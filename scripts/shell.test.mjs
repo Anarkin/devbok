@@ -36,6 +36,8 @@ describe('model: parseHash / toHash', () => {
     assert.deepEqual(M.parseHash('#csharp/study'), { slug: 'csharp', kind: 'study', v: null });
     assert.deepEqual(M.parseHash('#csharp/study/v2'), { slug: 'csharp', kind: 'study', v: 2 });
     assert.deepEqual(M.parseHash('#csharp/cheatsheet/v10'), { slug: 'csharp', kind: 'cheatsheet', v: 10 });
+    assert.deepEqual(M.parseHash('#csharp/study/draft'), { slug: 'csharp', kind: 'study', v: 'draft' });
+    assert.equal(M.toHash('csharp', 'study', 'draft'), '#csharp/study/draft');
   });
   test('ignores unknown kinds and malformed versions', () => {
     assert.deepEqual(M.parseHash('#csharp/notes/v2'), { slug: 'csharp', kind: null, v: 2 });
@@ -134,6 +136,17 @@ describe('model: view', () => {
     assert.equal(w.remember, null);
     assert.equal(w.crumb, '');
     assert.equal(w.title, 'devbok');
+  });
+  test('draft: the dry-run artifact from .devbok/, shown only when asked for', () => {
+    const w = M.view(T, '#csharp/study/draft', null);
+    assert.equal(w.message, null);
+    assert.equal(w.src, '.devbok/csharp.study.draft.html');
+    assert.equal(w.title, 'C# · study draft · devbok');
+    assert.deepEqual(w.options.map((o) => [o.v, o.selected]), [[2, false], [1, false], ['draft', true]]);
+    assert.equal(w.remember, 'study');
+    assert.ok(!M.view(T, '#csharp/study', null).options.some((o) => o.v === 'draft'), 'no draft option unless asked for');
+    assert.equal(M.view(T, '#sql/cheatsheet/draft', null).src, '.devbok/sql.cheatsheet.draft.html', 'a draft can exist for a kind with no recorded version');
+    assert.equal(M.view(T, '#nope/study/draft', null).src, null, 'but not for an unknown topic');
   });
   test('no topics yet: points at /devbok-new', () => {
     const w = M.view([], '', null);

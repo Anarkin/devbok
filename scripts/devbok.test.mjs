@@ -40,6 +40,7 @@ function freshRoot({ ready = KINDS } = {}) {
   root = fs.mkdtempSync(path.join(os.tmpdir(), 'devbok-test-'));
   fs.mkdirSync(path.join(root, 'prompts', 'shared'), { recursive: true });
   fs.writeFileSync(path.join(root, 'prompts', 'shared', 'template.md'), TEMPLATE);
+  fs.writeFileSync(path.join(root, 'prompts', 'shared', 'draft.md'), '## Draft mode\n\nkeep it small\n');
   for (const k of KINDS) {
     fs.writeFileSync(path.join(root, 'prompts', `${k}.md`), ready.includes(k) ? readyPrompt(k) : `TOPIC:\nold-style ${k} prompt without slots\n`);
   }
@@ -227,6 +228,22 @@ describe('prepare', () => {
     fs.writeFileSync(p('topics', 's', 'topic.json'), JSON.stringify(m));
     rendered = fs.readFileSync(p(ok(['prepare', 's', 'study']).json().prompt), 'utf8');
     assert.match(rendered, /accent=#a55da0 dark=#[0-9a-f]{6}/);
+  });
+  test('--draft renders a dry-run brief into .devbok/ and reserves nothing', () => {
+    initTopic('s');
+    const j = ok(['prepare', 's', 'study', '--draft']).json();
+    assert.equal(j.draft, true);
+    assert.equal(j.version, null);
+    assert.equal(j.output, `${root.split(path.sep).join('/')}/.devbok/s.study.draft.html`);
+    assert.equal(j.prompt, '.devbok/s.study.draft.prompt.md');
+    const rendered = fs.readFileSync(p(j.prompt), 'utf8');
+    assert.match(rendered, /^## Draft mode\n\nkeep it small\n\nTOPIC: /, 'the draft banner comes first, then the normal brief');
+    assert.ok(rendered.includes('v=draft'), 'the VERSION placeholder reads "draft"');
+    assert.ok(rendered.includes(`Write the file to ${j.output}.`));
+    const k = manifest('s').kinds.study;
+    assert.equal(k.next, 1);
+    assert.deepEqual(k.pending, []);
+    assert.equal(ok(['prepare', 's', 'study']).json().version, 1, 'the real run still gets v1');
   });
   test('each prepare reserves the next number, per kind', () => {
     initTopic('s');
@@ -443,6 +460,11 @@ describe('validate', () => {
     assert.ok(r.warnings.some((w) => /table with a fixed min-width/.test(w)));
     assert.ok(r.warnings.some((w) => /100vw/.test(w)));
   });
+  test('--draft lowers the size floor for dry runs', () => {
+    const small = file('small.html', html({ bytes: 10_000 }));
+    assert.ok(JSON.parse(bad(['validate', small]).out).errors.some((e) => /bytes/.test(e)));
+    assert.equal(ok(['validate', small, '--draft']).json().ok, true);
+  });
   test('accepts a correctly prefixed localStorage key', () => {
     const r = ok(['validate', file('ls.html', html({ extra: '<script>localStorage.setItem("devbok:s:study:v1:progress", "1")</script>' }))]).json();
     assert.deepEqual(r.warnings, []);
@@ -486,10 +508,13 @@ describe('delete', () => {
     const a = ok(['prepare', 's', 'study']).json().prompt;
     const b = ok(['prepare', 's', 'experience']).json().prompt;
     const c = ok(['prepare', 'other', 'study']).json().prompt;
+    const d = ok(['prepare', 's', 'study', '--draft']).json();
+    fs.writeFileSync(d.output, 'draft html');
     ok(['delete', 's', 'study', 'v1']);
     assert.deepEqual([a, b, c].map((f) => fs.existsSync(p(f))), [false, true, true], 'one version');
     ok(['delete', 's']);
     assert.deepEqual([b, c].map((f) => fs.existsSync(p(f))), [false, true], 'whole topic, other topic untouched');
+    assert.deepEqual([d.prompt, d.output].map((f) => fs.existsSync(path.resolve(root, f))), [false, false], 'drafts go with the topic');
   });
   test('rejects unknown topics, versions and malformed arguments', () => {
     bad(['delete', 'nope'], /no such topic/);

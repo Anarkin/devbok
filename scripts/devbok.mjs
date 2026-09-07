@@ -6,9 +6,9 @@
  *
  *   node scripts/devbok.mjs slug <text>                          print a filesystem-safe slug
  *   node scripts/devbok.mjs init <slug> --title T --topic X [--accent #rrggbb]   create topics/<slug>/topic.json
- *   node scripts/devbok.mjs prepare <slug> <kind>                reserve next version, render prompts/<kind>.md -> .devbok/
+ *   node scripts/devbok.mjs prepare <slug> <kind> [--draft]      reserve next version, render the brief -> .devbok/ (draft: dry run, no version)
  *   node scripts/devbok.mjs record <slug> <kind> v<N> [--force]  validate written HTML, add to manifest, rebuild index
- *   node scripts/devbok.mjs validate <file>                      sanity-check a generated HTML file (JSON)
+ *   node scripts/devbok.mjs validate <file> [--draft]            sanity-check a generated HTML file (JSON); --draft relaxes the size floor
  *   node scripts/devbok.mjs delete <slug> [<kind> v<N>]          delete a whole topic, or one version of one kind
  *   node scripts/devbok.mjs list [--json]                        overview with staleness markers
  *   node scripts/devbok.mjs index                                rebuild topics/index.js
@@ -86,6 +86,7 @@ const artifactName = (kind, v) => `${kind}.v${v}.html`;
 const promptFile = (kind) => path.join(PROMPTS_DIR, `${kind}.md`);
 const SHARED_DIR = path.join(PROMPTS_DIR, 'shared');
 const TEMPLATE_FILE = path.join(SHARED_DIR, 'template.md'); // not a partial: it is the shape, and cannot be included
+const DRAFT_FILE = path.join(SHARED_DIR, 'draft.md');       // not a partial either: prepended to a brief in draft (dry-run) mode
 const INCLUDE_RE = /\{\{include:([a-z0-9-]+)\}\}/g;
 const SLOT_RE = /\{\{slot:([a-z][a-z0-9-]*)\}\}/g;                   // a slot used in the template
 const SLOT_MARKER_RE = /^\{\{slot:([a-z][a-z0-9-]*)\}\}[ \t]*\r?$/m;  // a marker line in a kind prompt
@@ -209,14 +210,14 @@ function buildIndex() {
 }
 
 // ---------------------------------------------------------------- validation
-function validateHtml(file) {
+function validateHtml(file, { minBytes = MIN_BYTES } = {}) {
   const abs = path.resolve(ROOT, file);
   const r = { ok: false, file: rel(abs), bytes: 0, errors: [], warnings: [], counts: {}, external: [] };
   if (!fs.existsSync(abs)) { r.errors.push('file not found'); return r; }
   const html = fs.readFileSync(abs, 'utf8');
   const count = (re) => (html.match(re) ?? []).length;
   r.bytes = Buffer.byteLength(html);
-  if (r.bytes < MIN_BYTES) r.errors.push(`only ${r.bytes} bytes - a real artifact is far larger; looks truncated or a stub`);
+  if (r.bytes < minBytes) r.errors.push(`only ${r.bytes} bytes - a real artifact is far larger; looks truncated or a stub`);
   if (!/^\s*<!doctype html>/i.test(html)) r.errors.push('must start with <!doctype html>');
   if (!/<\/html>\s*$/i.test(html)) r.errors.push('must end with </html> - file looks truncated');
   for (const tag of ['details', 'section', 'table', 'div', 'script', 'style', 'pre']) {
@@ -283,24 +284,29 @@ function cmdInit(args) {
   json({ created: slug, title, topic, accent, manifest: rel(manifestPath(slug)) });
 }
 
-function cmdPrepare([slug, kind]) {
+function cmdPrepare(args) {
+  const draft = args.includes('--draft');
+  const [slug, kind] = args.filter((a) => a !== '--draft');
   const m = readManifest(requireSlug(slug));
   requireKind(kind);
   let tpl;
   try { tpl = loadTemplate(kind); } catch (e) { fail(e.message); }
-  const template = tpl.text;
+  if (draft && !fs.existsSync(DRAFT_FILE)) fail(`draft banner missing: ${rel(DRAFT_FILE)}`);
+  const template = draft ? `${fs.readFileSync(DRAFT_FILE, 'utf8').trim()}\n\n${tpl.text}` : tpl.text;
   const missing = REQUIRED_PLACEHOLDERS.filter((p) => !template.includes(`{{${p}}}`));
   if (missing.length) {
     fail(`${rel(TEMPLATE_FILE)} (with its partials) does not contain ${missing.map((p) => `{{${p}}}`).join(', ')}; every brief needs them.\n` +
       '        See AGENTS.md, "Prompt contract". Nothing was changed.');
   }
   const k = m.kinds[kind];
-  const v = k.next;
-  const file = artifactName(kind, v);
-  const output = posix(path.join(topicDir(slug), file));
+  const v = draft ? null : k.next;                       // a draft reserves nothing
+  const tag = draft ? 'draft' : `v${v}`;
+  const output = draft
+    ? posix(path.join(BUILD_DIR, `${slug}.${kind}.draft.html`)) // throwaway, git-ignored, viewable as devbok.html#slug/kind/draft
+    : posix(path.join(topicDir(slug), artifactName(kind, v)));
   const hash = tpl.hash;
   const vars = {
-    TOPIC: m.topic, TITLE: m.title, SLUG: slug, KIND: kind, VERSION: String(v), DATE: today(),
+    TOPIC: m.topic, TITLE: m.title, SLUG: slug, KIND: kind, VERSION: draft ? 'draft' : String(v), DATE: today(),
     OUTPUT: output, PROMPT_FILE: `${kind}.md`, PROMPT_HASH: hash,
     ACCENT: m.accent, ACCENT_DARK: darkAccent(m.accent),
   };
@@ -310,13 +316,15 @@ function cmdPrepare([slug, kind]) {
     unknown.add(name); return all;
   });
   fs.mkdirSync(BUILD_DIR, { recursive: true });
-  const promptOut = path.join(BUILD_DIR, `${slug}.${kind}.v${v}.prompt.md`);
+  const promptOut = path.join(BUILD_DIR, `${slug}.${kind}.${tag}.prompt.md`);
   fs.writeFileSync(promptOut, rendered);
-  k.next = v + 1;
-  k.pending.push({ v, prompt: hash, started: today() });
-  writeManifest(m);
+  if (!draft) {
+    k.next = v + 1;
+    k.pending.push({ v, prompt: hash, started: today() });
+    writeManifest(m);
+  }
   if (unknown.size) console.error(`devbok: warning - unknown placeholder(s) left as-is: ${[...unknown].map((n) => `{{${n}}}`).join(', ')}`);
-  json({ slug, kind, version: v, output, prompt: rel(promptOut), promptHash: hash, accent: m.accent, includes: tpl.includes, slots: tpl.slots });
+  json({ slug, kind, version: v, draft, output, prompt: rel(promptOut), promptHash: hash, accent: m.accent, includes: tpl.includes, slots: tpl.slots });
 }
 
 function cmdRecord(args) {
@@ -343,9 +351,11 @@ function cmdRecord(args) {
   json({ recorded: { slug, kind, version: v, file: `topics/${slug}/${file}`, forced: force && !res.ok }, validation: res });
 }
 
-function cmdValidate([file]) {
-  if (!file) fail('usage: validate <file.html>');
-  const res = validateHtml(file);
+function cmdValidate(args) {
+  const draft = args.includes('--draft');
+  const [file] = args.filter((a) => a !== '--draft');
+  if (!file) fail('usage: validate <file.html> [--draft]');
+  const res = validateHtml(file, { minBytes: draft ? 8_000 : MIN_BYTES });
   json(res);
   if (!res.ok) process.exit(1);
 }
@@ -379,7 +389,7 @@ function cmdDelete([slug, kind, vArg]) {
 }
 
 // Rendered briefs in .devbok/ exist only while a generation is pending; drop the ones for a recorded or
-// deleted version (or, without kind/version, everything that belongs to the topic).
+// deleted version (or, without kind/version, everything that belongs to the topic - drafts included).
 function removeRenderedPrompts(slug, kind, v) {
   if (!fs.existsSync(BUILD_DIR)) return;
   const prefix = kind ? `${slug}.${kind}.v${v}.prompt.md` : `${slug}.`;

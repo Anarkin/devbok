@@ -40,7 +40,7 @@ All four are user-invoked slash commands. Generation is slow and expensive (up t
 | command                                  | does                                                                                   |
 |------------------------------------------|----------------------------------------------------------------------------------------|
 | `/devbok-new [slug:] <topic text>`       | registers the topic, then generates **v1 of every kind** in parallel (kinds whose prompt is not ready are skipped and reported) |
-| `/devbok-update <slug> [kind]`           | generates the **next version** of every kind, or of one kind. Deletes nothing.          |
+| `/devbok-update <slug> [kind] [draft]`   | generates the **next version** of every kind, or of one kind. Deletes nothing. `draft` = dry run: two-unit pages into `.devbok/`, nothing recorded, minutes instead of half an hour; open as `devbok.html#<slug>/<kind>/draft` |
 | `/devbok-delete <slug> [<kind> v<N>]`    | deletes a whole topic, or one version. Pure script, no model judgment.                  |
 | `/devbok-list`                           | table of topics, latest versions, stale markers (`*` = prompt changed since generation) |
 
@@ -51,9 +51,9 @@ Underlying script (usable directly):
 ```
 node scripts/devbok.mjs slug <text>
 node scripts/devbok.mjs init <slug> --title "<short title>" --topic "<full topic text>" [--accent "#rrggbb"]
-node scripts/devbok.mjs prepare <slug> <kind>            # reserves v<N>, renders prompt to .devbok/, prints JSON
+node scripts/devbok.mjs prepare <slug> <kind> [--draft]  # reserves v<N>, renders the brief to .devbok/, prints JSON; --draft reserves nothing, output goes to .devbok/<slug>.<kind>.draft.html
 node scripts/devbok.mjs record <slug> <kind> v<N>        # validates the HTML, records it, rebuilds index.js, removes the rendered brief
-node scripts/devbok.mjs validate <file.html>
+node scripts/devbok.mjs validate <file.html> [--draft]   # --draft lowers the size floor for dry runs
 node scripts/devbok.mjs delete <slug> [<kind> v<N>]
 node scripts/devbok.mjs list [--json]
 node scripts/devbok.mjs index
@@ -87,6 +87,8 @@ TOPIC: {{TOPIC}}
 {{slot:content}}              what the artifact must contain, with its own ## heading, incl. kind-specific quality items
 {{include:quality}}
 ```
+
+`prompts/shared/draft.md` is the dry-run banner: `prepare --draft` prepends it to the assembled brief (two units, no research, no browser, `validate --draft`). Like the template it is not a partial, so the include-all rule does not apply to it; it still starts with one `## ` heading.
 
 A kind prompt (`prompts/<kind>.md`) is pure content: blocks introduced by a marker line `{{slot:name}}`, nothing before the first marker, no `TOPIC:` line, no includes (placeholders such as `{{TOPIC}}` may be used inside a block). See `prompts/study.md` for the reference. A kind prompt is **devbok-ready** when it fills every slot the template declares; a free-form prompt (no markers) or one with an unfilled slot is refused with "not devbok-ready" and the generating skills skip that kind. An unknown slot, a duplicate slot, or text before the first marker is a hard error. The "stale" hash is computed on the assembled text (template + partials + kind file), so editing any of them marks the affected artifacts stale.
 
@@ -174,4 +176,4 @@ Every brief must also satisfy the following; the template's partials (`delivery`
 
 ## Viewing
 
-Open `devbok.html` straight from disk or serve the folder with any static server. Deep links: `devbok.html#<slug>/<kind>/v<N>`; omit the version for the latest. The shell remembers the last topic and kind in localStorage.
+Open `devbok.html` straight from disk or serve the folder with any static server. Deep links: `devbok.html#<slug>/<kind>/v<N>`; omit the version for the latest; `devbok.html#<slug>/<kind>/draft` shows the dry-run artifact from `.devbok/`. The shell remembers the last topic and kind in localStorage.

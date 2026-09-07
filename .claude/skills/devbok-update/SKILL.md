@@ -1,6 +1,6 @@
 ---
 name: devbok-update
-description: Generate a NEW version of an existing devbok topic's artifacts (all four kinds, or just one). Older versions are kept. Usage - /devbok-update <slug> [study|experience|interview|cheatsheet]
+description: Generate a NEW version of an existing devbok topic's artifacts (all four kinds, or just one), or a quick draft for a layout check. Older versions are kept. Usage - /devbok-update <slug> [study|experience|interview|cheatsheet] [draft]
 disable-model-invocation: true
 allowed-tools: Bash(node scripts/devbok.mjs:*), Read, Agent
 ---
@@ -11,13 +11,14 @@ Generate new artifact version(s) for: `$ARGUMENTS`
 
 ## 1. Parse the arguments
 
-- First token is the slug. An optional second token is the kind: `study`, `experience`, `interview` or `cheatsheet`. Anything else: stop and show the usage line above.
+- First token is the slug. Optional tokens after it, in any order: a kind (`study`, `experience`, `interview` or `cheatsheet`) and/or the word `draft`. Anything else: stop and show the usage line above.
+- `draft` means a dry run: no version is reserved or recorded, the pages land in `.devbok/`, and the run takes minutes rather than half an hour. Use it to check layout and design after a prompt change.
 - Read `topics/<slug>/topic.json`. If it does not exist, stop and tell the user to run `/devbok-new <slug>: <topic text>`. Its `topic` field is the text the prompts receive and its `accent` field is the colour all of the topic's pages share; never modify them here (the user edits them by hand to rephrase the topic or change the colour).
 - Kinds to generate: the one given, otherwise all four.
 
 ## 2. Prepare one rendered prompt per kind
 
-For each selected kind:
+For each selected kind (append `--draft` for a dry run):
 
 ```
 node scripts/devbok.mjs prepare <slug> <kind>
@@ -27,7 +28,7 @@ Each successful call prints JSON with `version` (the new, never-reused number), 
 
 ## 3. Generate the prepared kinds in parallel
 
-Launch one `Agent` subagent (`general-purpose`) per prepared kind, all in ONE message so they run concurrently. Give each exactly this brief, with the paths from step 2 filled in:
+Launch one `Agent` subagent (`general-purpose`) per prepared kind, all in ONE message so they run concurrently; same model for drafts and real runs (the rendered brief already carries the draft instructions). Give each exactly this brief, with the paths from step 2 filled in:
 
 > Read `<prompt path>` and follow it exactly. It is a complete, self-contained brief with the topic already filled in. Its only deliverable is the single HTML file at `<output>`; write it there, in parts if it is large. Do not ask questions: state assumptions and proceed. When done, run `node scripts/devbok.mjs validate "<output>"`, fix anything it reports under `errors`, and reply with the final validation JSON plus a 2-3 line summary of what the file contains.
 
@@ -35,7 +36,7 @@ Wait for all of them to finish. Do not generate any of them yourself if one fail
 
 ## 4. Record and report
 
-For every prepared kind whose subagent finished, run:
+For a draft run there is nothing to record: report each `output` path and tell the user to open `devbok.html#<slug>/<kind>/draft` (the draft appears in the version dropdown only while that link is open; the next draft overwrites it, deleting the topic removes it). Otherwise, for every prepared kind whose subagent finished, run:
 
 ```
 node scripts/devbok.mjs record <slug> <kind> v<version>

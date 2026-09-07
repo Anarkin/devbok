@@ -164,12 +164,13 @@ const devbokModel = (function () {
   const esc = (s) => String(s ?? '').replace(/[&<>"']/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
 
   // "#slug/kind/vN" -> { slug, kind, v }; every part optional, unknown kinds and malformed versions become null.
+  // "#slug/kind/draft" -> v: 'draft', the dry-run artifact from `prepare --draft` (lives in .devbok/, never recorded).
   function parseHash(hash) {
     const [slug, kind, v] = decodeURIComponent(String(hash || '').replace(/^#/, '')).split('/');
-    return { slug: slug || null, kind: KINDS.includes(kind) ? kind : null, v: /^v\d+$/.test(v || '') ? Number(v.slice(1)) : null };
+    return { slug: slug || null, kind: KINDS.includes(kind) ? kind : null, v: v === 'draft' ? 'draft' : /^v\d+$/.test(v || '') ? Number(v.slice(1)) : null };
   }
   function toHash(slug, kind, v) {
-    return '#' + [slug, kind, v ? 'v' + v : null].filter(Boolean).join('/');
+    return '#' + [slug, kind, v === 'draft' ? 'draft' : v ? 'v' + v : null].filter(Boolean).join('/');
   }
 
   // topics: window.DEVBOK_TOPICS (array), or anything else when index.js is missing.
@@ -183,7 +184,9 @@ const devbokModel = (function () {
     const kind = h.kind || (KINDS.includes(lastKind) ? lastKind : 'study');
     const topic = slug ? (bySlug.get(slug) || null) : null;
     const versions = topic ? (topic.kinds[kind] || []) : [];
-    const ver = (h.v != null && versions.find((x) => x.v === h.v)) || versions[0] || null;
+    const ver = !topic ? null
+      : h.v === 'draft' ? { v: 'draft', generated: 'dry run', file: `.devbok/${slug}.${kind}.draft.html` }
+      : (h.v != null && versions.find((x) => x.v === h.v)) || versions[0] || null;
     return { slug, kind, topic, versions, ver };
   }
 
@@ -204,8 +207,12 @@ const devbokModel = (function () {
       const vs = s.topic ? (s.topic.kinds[k] || []) : [];
       return { kind: k, active: k === s.kind, latest: vs.length ? vs[0].v : null, disabled: !s.topic };
     });
-    const options = s.versions.map((x) => ({ v: x.v, label: `v${x.v} · ${x.generated}`, selected: !!s.ver && x.v === s.ver.v }));
-    const title = !s.topic ? 'devbok' : (s.ver ? `${s.topic.title} · ${s.kind} v${s.ver.v} · devbok` : `${s.topic.title} · devbok`);
+    const isDraft = !!s.ver && s.ver.v === 'draft';
+    const options = [
+      ...s.versions.map((x) => ({ v: x.v, label: `v${x.v} · ${x.generated}`, selected: !!s.ver && x.v === s.ver.v })),
+      ...(isDraft ? [{ v: 'draft', label: 'draft · dry run', selected: true }] : []),
+    ];
+    const title = !s.topic ? 'devbok' : (s.ver ? `${s.topic.title} · ${s.kind} ${isDraft ? 'draft' : 'v' + s.ver.v} · devbok` : `${s.topic.title} · devbok`);
     return {
       ...s, message, sidebarNote, sidebar, tabs, options, title,
       crumb: s.topic ? s.topic.topic : '',

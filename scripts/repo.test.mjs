@@ -19,7 +19,7 @@ const modelSrc = read('devbok.html').match(/<script id="devbok-model">([\s\S]*?)
 const shellKinds = vm.runInThisContext(`(function () {\n${modelSrc}\n;return devbokModel.KINDS; })()`);
 const requiredPlaceholders = () => JSON.parse(read('scripts', 'devbok.mjs').match(/^const REQUIRED_PLACEHOLDERS = (\[[^\]]*\]);/m)[1].replace(/'/g, '"'));
 const sharedDir = path.join(ROOT, 'prompts', 'shared');
-const partials = () => (fs.existsSync(sharedDir) ? fs.readdirSync(sharedDir).filter((f) => f.endsWith('.md')).map((f) => f.slice(0, -3)).filter((n) => n !== 'template').sort() : []);
+const partials = () => (fs.existsSync(sharedDir) ? fs.readdirSync(sharedDir).filter((f) => f.endsWith('.md')).map((f) => f.slice(0, -3)).filter((n) => n !== 'template' && n !== 'draft').sort() : []);
 const SKILLS = ['devbok-new', 'devbok-update', 'devbok-delete', 'devbok-list'];
 
 function frontmatter(skill) {
@@ -153,6 +153,16 @@ describe('prompt contract', () => {
     assert.doesNotMatch(tpl, /^#{1,2} /m, 'the template has no headings of its own; partials and slots bring theirs');
     assert.match(tpl, /^TOPIC: \{\{TOPIC\}\}/, 'the brief starts with the topic line');
   });
+  test('draft.md is the dry-run banner: one H2, no includes, documented', () => {
+    const draft = read('prompts', 'shared', 'draft.md');
+    assert.match(draft, /^## Draft mode/);
+    assert.doesNotMatch(draft, /\{\{include:/);
+    assert.match(draft, /--draft/, 'tells the agent to validate with --draft');
+    const agents = read('AGENTS.md');
+    assert.match(agents, /prepare <slug> <kind> \[--draft\]/);
+    assert.match(agents, /#<slug>\/<kind>\/draft/);
+    assert.match(frontmatter('devbok-update').fm.description, /\[draft\]/);
+  });
   test('kind prompts in slot form are pure content: no TOPIC line, no includes', () => {
     for (const k of scriptKinds) {
       const src = read('prompts', `${k}.md`);
@@ -271,6 +281,7 @@ describe('repo integrity', () => {
     // version is neither pending nor about to be recorded are leftovers.
     if (!exists('.devbok')) return;
     for (const f of fs.readdirSync(path.join(ROOT, '.devbok'))) {
+      if (/^[a-z0-9-]+\.[a-z]+\.draft\.(prompt\.md|html)$/.test(f)) continue; // dry-run files are throwaway and may linger
       const m = /^([a-z0-9-]+)\.([a-z]+)\.v(\d+)\.prompt\.md$/.exec(f);
       assert.ok(m, `.devbok/${f}: unexpected file`);
       const [, slug, kind, v] = m;
