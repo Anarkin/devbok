@@ -63,22 +63,20 @@ describe('model: resolve', () => {
     assert.equal(s.ver, null);
     assert.deepEqual(s.versions, []);
   });
-  test('uses the remembered topic and kind when the hash is empty', () => {
-    const s = M.resolve(T, '', 'csharp/experience');
-    assert.equal(s.slug, 'csharp');
-    assert.equal(s.kind, 'experience');
-    assert.equal(s.ver.v, 1);
-  });
-  test('ignores a remembered topic that no longer exists, selecting nothing', () => {
-    const s = M.resolve(T, '', 'deleted/study');
+  test('a remembered kind applies, but never selects a topic by itself', () => {
+    const s = M.resolve(T, '', 'experience');
     assert.equal(s.slug, null);
     assert.equal(s.topic, null);
+    assert.equal(s.kind, 'experience');
+    assert.equal(s.ver, null);
   });
-  test('ignores a remembered kind that is not a kind', () => {
-    assert.equal(M.resolve(T, '', 'csharp/bogus').kind, 'study');
+  test('ignores a remembered value that is not a kind', () => {
+    assert.equal(M.resolve(T, '', 'bogus').kind, 'study');
+    assert.equal(M.resolve(T, '', 'csharp/experience').kind, 'study', 'the old slug/kind memory format is ignored');
+    assert.equal(M.resolve(T, '', 'csharp/experience').slug, null);
   });
   test('the hash wins over the remembered state', () => {
-    const s = M.resolve(T, '#sql/cheatsheet', 'csharp/experience');
+    const s = M.resolve(T, '#sql/cheatsheet', 'experience');
     assert.equal(s.slug, 'sql');
     assert.equal(s.kind, 'cheatsheet');
     assert.equal(s.ver, null);
@@ -88,7 +86,7 @@ describe('model: resolve', () => {
     assert.equal(M.resolve(T, '#csharp/study/v9', null).ver.v, 2);
   });
   test('a hash with only a slug keeps the remembered kind', () => {
-    assert.equal(M.resolve(T, '#sql', 'csharp/experience').kind, 'experience');
+    assert.equal(M.resolve(T, '#sql', 'experience').kind, 'experience');
   });
   test('an unknown slug is kept for the message but resolves to no topic', () => {
     const s = M.resolve(T, '#nope/study', null);
@@ -154,7 +152,7 @@ describe('model: view', () => {
     assert.match(w.message, /No <b>interview<\/b> artifact for <b>C#<\/b> yet/);
     assert.match(w.message, /\/devbok-update csharp interview/);
     assert.equal(w.src, null);
-    assert.equal(w.remember, null);
+    assert.equal(w.remember, 'interview', 'the kind tab is remembered even without an artifact');
     assert.equal(w.title, 'C# · devbok');
     assert.equal(w.options.length, 0);
     assert.equal(w.tabs.find((t) => t.kind === 'interview').active, true);
@@ -164,7 +162,7 @@ describe('model: view', () => {
     const w = M.view(T, '#csharp/study', null);
     assert.equal(w.message, null);
     assert.equal(w.src, 'topics/csharp/study.v2.html');
-    assert.equal(w.remember, 'csharp/study');
+    assert.equal(w.remember, 'study');
     assert.equal(w.title, 'C# · study v2 · devbok');
     assert.equal(w.crumb, 'C# <the language> & "more"');
     assert.deepEqual(w.options, [
@@ -287,6 +285,16 @@ describe('devbok.html structure', () => {
     assert.deepEqual(headings, ['Generate more with Claude Code! ✨']);
     assert.match(dialog, /<h2 id="howto-title">/, 'the single heading labels the dialog');
     assert.doesNotMatch(dialog, /Enjoy learning|one tab each/, 'no learning section; the shell labels explain themselves');
+  });
+  test('landing chrome: tabs hidden until a topic is chosen, the title link resets to the landing state', () => {
+    const glue = HTML.match(/<script>\s*\(function \(\) \{[\s\S]*?<\/script>/)[0];
+    assert.match(glue, /els\.tabBar\.hidden = !v\.topic/);
+    assert.match(glue, /els\.crumb\.hidden = !v\.topic/);
+    assert.match(HTML, /<h1><a id="home" href="#"[^>]*>devbok<\/a><\/h1>/);
+    assert.match(glue, /\$\('#home'\)\.addEventListener\('click'/);
+    assert.match(glue, /history\.replaceState\(null, '', location\.pathname \+ location\.search\)/);
+    assert.doesNotMatch(glue, /devbok:last/, 'the old topic memory is gone; only the kind tab is remembered');
+    assert.match(glue, /devbok:kind/);
   });
   test('the model block has no DOM or browser dependencies', () => {
     assert.doesNotMatch(stripComments(modelSrc), /\b(document|window|location|localStorage)\b/);
