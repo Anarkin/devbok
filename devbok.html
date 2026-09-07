@@ -92,6 +92,7 @@
   @media (max-width: 720px) {
     main { grid-template-columns: 1fr; grid-template-rows: auto 1fr; }
     nav { border-right: 0; border-bottom: 2px solid var(--line); max-height: 40vh; }
+    .resizer { display: none; }
     .tab { padding: 11px 12px; }
   }
 </style>
@@ -105,6 +106,7 @@
   <nav aria-label="Topics">
     <ul id="topics"></ul>
     <button class="add" id="help" type="button">+ add more topics</button>
+    <div class="resizer" id="resizer" title="Drag to resize the topic list; double-click to reset"></div>
   </nav>
   <section class="content">
     <div class="tabs" id="tabs" role="tablist">
@@ -212,7 +214,15 @@ const devbokModel = (function () {
     };
   }
 
-  return { KINDS, esc, parseHash, toHash, resolve, view };
+  // Sidebar width in px: at least SIDEBAR_MIN, at most 60% of the viewport; anything unusable becomes the default.
+  const SIDEBAR_DEFAULT = 260, SIDEBAR_MIN = 160;
+  function clampSidebar(px, viewport) {
+    if (!Number.isFinite(px)) return SIDEBAR_DEFAULT;
+    const max = Math.max(SIDEBAR_MIN, Math.round((Number(viewport) || 0) * 0.6));
+    return Math.round(Math.min(Math.max(px, SIDEBAR_MIN), max));
+  }
+
+  return { KINDS, esc, parseHash, toHash, resolve, view, clampSidebar, SIDEBAR_DEFAULT, SIDEBAR_MIN };
 })();
 </script>
 <script>
@@ -226,6 +236,7 @@ const devbokModel = (function () {
   const store = {
     get(k) { try { return localStorage.getItem(k); } catch { return null; } },
     set(k, v) { try { localStorage.setItem(k, v); } catch { /* storage unavailable */ } },
+    del(k) { try { localStorage.removeItem(k); } catch { /* storage unavailable */ } },
   };
   const current = () => M.view(window.DEVBOK_TOPICS, location.hash, store.get('devbok:kind'));
 
@@ -272,6 +283,32 @@ const devbokModel = (function () {
     history.replaceState(null, '', location.pathname + location.search);
     render();
   });
+  // Resizable sidebar: drag the divider; the width lives in the --sidebar variable and is remembered per browser.
+  const SIDEBAR_KEY = 'devbok:sidebar';
+  const setSidebar = (px) => document.documentElement.style.setProperty('--sidebar', `${px}px`);
+  if (store.get(SIDEBAR_KEY) !== null) setSidebar(M.clampSidebar(Number(store.get(SIDEBAR_KEY)), innerWidth));
+  const resizer = $('#resizer');
+  resizer.addEventListener('pointerdown', (e) => {
+    e.preventDefault();
+    try { resizer.setPointerCapture(e.pointerId); } catch { /* synthetic event */ }
+    document.body.classList.add('resizing');
+    const left = $('main').getBoundingClientRect().left;
+    const widthAt = (ev) => M.clampSidebar(ev.clientX - left, innerWidth);
+    const move = (ev) => setSidebar(widthAt(ev));
+    const end = (ev) => {
+      resizer.removeEventListener('pointermove', move);
+      resizer.removeEventListener('pointerup', end);
+      resizer.removeEventListener('pointercancel', end);
+      document.body.classList.remove('resizing');
+      const px = widthAt(ev);
+      setSidebar(px);
+      store.set(SIDEBAR_KEY, String(px));
+    };
+    resizer.addEventListener('pointermove', move);
+    resizer.addEventListener('pointerup', end);
+    resizer.addEventListener('pointercancel', end);
+  });
+  resizer.addEventListener('dblclick', () => { document.documentElement.style.removeProperty('--sidebar'); store.del(SIDEBAR_KEY); });
   window.addEventListener('hashchange', render);
   render();
 })();

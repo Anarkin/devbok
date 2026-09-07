@@ -266,7 +266,7 @@ describe('devbok.html structure', () => {
     assert.doesNotMatch(HTML, /<header>[\s\S]*?<button[\s\S]*?<\/header>/, 'the header holds no controls');
   });
   test('the "add more topics" button at the foot of the sidebar opens a native dialog', () => {
-    assert.match(HTML, /<ul id="topics"><\/ul>\s*<button class="add" id="help" type="button">\+ add more topics<\/button>\s*<\/nav>/);
+    assert.match(HTML, /<ul id="topics"><\/ul>\s*<button class="add" id="help" type="button">\+ add more topics<\/button>\s*(?:<div class="resizer"[^>]*><\/div>\s*)?<\/nav>/);
     assert.match(HTML, /<dialog id="howto" aria-labelledby="howto-title">/);
     assert.match(HTML, /howto\.showModal\(\)/);
     assert.match(HTML, /howto\.close\(\)/);
@@ -304,5 +304,30 @@ describe('devbok.html structure', () => {
     const guarded = [...HTML.matchAll(/try \{ (?:return )?localStorage\./g)].length;
     assert.ok(uses > 0);
     assert.equal(guarded, uses);
+  });
+});
+
+describe('resizable sidebar', () => {
+  test('clampSidebar keeps the width usable', () => {
+    assert.equal(M.SIDEBAR_DEFAULT, 260);
+    assert.equal(M.clampSidebar(300, 1200), 300);
+    assert.equal(M.clampSidebar(100, 1200), M.SIDEBAR_MIN);
+    assert.equal(M.clampSidebar(900, 1200), 720, 'at most 60% of the viewport');
+    assert.equal(M.clampSidebar(300, 200), M.SIDEBAR_MIN, 'a tiny viewport still allows the minimum');
+    assert.equal(M.clampSidebar(300.6, 1200), 301, 'whole pixels');
+    for (const bad of [NaN, undefined, null, Infinity, 'abc']) assert.equal(M.clampSidebar(bad, 1200), M.SIDEBAR_DEFAULT, `unusable input ${bad} falls back to the default`);
+    assert.equal(M.clampSidebar(300, undefined), M.SIDEBAR_MIN, 'no viewport means the minimum');
+  });
+  test('the divider is a drag handle wired to --sidebar and remembered per browser', () => {
+    assert.match(HTML, /<div class="resizer" id="resizer" title="[^"]+"><\/div>\s*<\/nav>/);
+    const css = HTML.match(/<style>([\s\S]*?)<\/style>/)[1];
+    assert.match(css, /\.resizer \{[^}]*cursor: col-resize;/);
+    assert.match(css, /body\.resizing iframe \{ pointer-events: none; \}/, 'the iframe must not swallow the drag');
+    assert.match(css.match(/@media \(max-width: 720px\) \{[\s\S]*?\n  \}/)[0], /\.resizer \{ display: none; \}/, 'no resizer in the stacked layout');
+    const glue = HTML.match(/<script>\s*\(function \(\) \{([\s\S]*?)\}\)\(\);\s*<\/script>/)[1];
+    assert.match(glue, /setProperty\('--sidebar'/);
+    assert.match(glue, /removeProperty\('--sidebar'\)/, 'double-click resets');
+    assert.match(glue, /devbok:sidebar/);
+    assert.match(glue, /M\.clampSidebar\(/, 'the glue never computes the width itself');
   });
 });
