@@ -11,7 +11,7 @@ Map every sub-area of the topic that can be tested in interviews, from fundament
 
 - Hero summary: 3–5 sentences on what interviews for this topic actually test and how to use the bank (the map is the checklist; work down it in frequency order). Chips: sub-area count, question count, depth range, number of design exercises.
 - Immediately below the hero: the topic map as a table, one row per sub-area, linking to its section. Columns: **#**, **Sub-area**, **Asked** (often / sometimes / rarely), **Critical** (yes / nice to know), **Questions**.
-- The units are the numbered sub-areas. Every sub-area ends with a "Mark as covered" checkbox that fills a visual progress indicator in the sidebar (persisted as described above) — that is the coverage checklist.
+- The units are the numbered sub-areas, in the map's order.
 - Each sub-area section must contain, in this order:
   1. A 2–4 sentence orientation: what this sub-area is, why interviewers test it, and what depth is expected at which level.
   2. Its questions, most frequently asked first, each a collapsed `<details>` self-quiz block: the question visible with a small depth chip (screener / mid / senior / principal); hidden until clicked: the spoken-ready answer (3–6 sentences), a concrete example (code, config, query, or scenario — whatever fits), the 2–4 follow-up questions an interviewer would probe with (with a one-line answer each), and the common WRONG answer that gets candidates rejected, clearly labelled.

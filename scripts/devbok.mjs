@@ -229,6 +229,7 @@ function validateHtml(file, { minBytes = MIN_BYTES } = {}) {
   r.counts.h2 = count(/<h2\b/gi);
   r.counts.h3 = count(/<h3\b/gi);
   r.counts.checkboxes = count(/type=["']checkbox["']/gi);
+  if (r.counts.checkboxes) r.warnings.push(`${r.counts.checkboxes} checkbox(es) - progress tracking ("mark as studied") is not wanted; the page partial forbids it`);
   r.external = [...html.matchAll(/<(?:script|link)\b[^>]*?\b(?:src|href)=["'](https?:\/\/[^"']+)["']/gi)].map((m) => m[1]);
   const offHost = r.external.filter((u) => !/^https:\/\/(cdnjs\.cloudflare\.com|fonts\.googleapis\.com|fonts\.gstatic\.com)\//.test(u));
   if (offHost.length) r.warnings.push(`external resources outside cdnjs / Google Fonts: ${offHost.join(', ')}`);

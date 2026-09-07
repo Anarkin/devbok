@@ -105,7 +105,7 @@ Two rules for `prompts/shared/`, both enforced by `scripts/repo.test.mjs`:
 | `page`     | The page       | what every artifact page shares: self-contained file, provenance comment, hero, sidebar nav with scrollspy, localStorage key prefix for any state, code and tables, and the fixed design system (the shell's colour tokens in light and dark, Inter + Cascadia Mono, 260px sidebar, chips/callouts/details/tables) with the topic's accent via `{{ACCENT}}` / `{{ACCENT_DARK}}` |
 | `quality`  | Quality bar    | topic decides the shape, modern-first legacy-aware, version precision, specific over vague, official-doc links, no assumptions about me |
 
-Not shared, on purpose: progress checkboxes, self-quiz `<details>` with spoken-ready answers, "depth over breadth", "teach for transfer". A cheat sheet has none of these, so they live in the kind prompts that want them.
+Not shared, on purpose: self-quiz `<details>` with spoken-ready answers, "depth over breadth", "teach for transfer". A cheat sheet has none of these, so they live in the kind prompts that want them. Not wanted anywhere: progress tracking ("mark as studied" checkboxes, progress bars); the `page` partial forbids it.
 
 `prepare` substitutes these placeholders in the assembled text; the template (with its partials) must contain the required ones:
 
@@ -146,7 +146,7 @@ Every brief must also satisfy the following; the template's partials (`delivery`
   -->
   ```
 
-- Progress state (checkboxes, "mark as studied") **may use localStorage** - the old "not supported" restriction came from claude.ai artifacts and does not apply here. Every key must start with `devbok:{{SLUG}}:{{KIND}}:v{{VERSION}}:` so topics and versions never collide (all `file://` pages share one storage in Chrome).
+- No progress tracking: no "mark as studied" checkboxes, no progress bar. Any state a page does keep (open/closed blocks, say) **may use localStorage** - the old "not supported" restriction came from claude.ai artifacts and does not apply here. Every key must start with `devbok:{{SLUG}}:{{KIND}}:v{{VERSION}}:` so topics and versions never collide (all `file://` pages share one storage in Chrome).
 - Must render standalone and inside the `devbok.html` iframe: no top-level navigation, no assumptions about window size, fixed sidebars are fine.
 - Never scrolls horizontally, at any viewport width: block code scrolls inside its `<pre>`, tables sit in an `overflow-x: auto` wrapper, inline code wraps (no `white-space: nowrap`), grid/flex items that hold code get `min-width: 0`, no `100vw`. `validate` warns about the known offending CSS patterns.
 - `cheatsheet` additionally needs a `@media print` stylesheet; it is meant to be printed or kept in a side window.

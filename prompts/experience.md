@@ -15,7 +15,7 @@ Aim for 20 distinct, non-overlapping stories spanning the tiers from mid up to p
 
 - Hero summary: a 3–5 sentence "how to use this" — these are scaffolds; replace every worked example with your own real experience; the `EXAMPLE — replace with your own` label marks fiction, not your history; use the recall prompts to find your equivalent and the drill chains to pressure-test it. Chips: story count, archetypes covered, tier range.
 - Immediately below the hero: a coverage table mapping each story to its archetype and tier, so I see the spread at a glance and can spot gaps in my own history. Columns: **#**, **Story title**, **Archetype**, **Tier**.
-- The units are the numbered stories. Every story ends with a "Mark as prepped" checkbox that fills a visual progress indicator in the sidebar (persisted as described above).
+- The units are the numbered stories.
 - Each story must contain, in this order:
   1. A header with the story's number, a short descriptive title, a **tier chip** (Junior / Mid / Senior / Staff / Principal), and an **archetype chip**.
   2. **(a) Worked example** — labelled `EXAMPLE — replace with your own`. An in-depth, first-person, specific account (real numbers, real symptoms, real trade-offs) written as flowing prose, not bullet spam: the challenge → what was used and how → what broke → what you'd do differently. Concrete enough to be memorable, and dual-purpose: it must also teach the underlying topic concept (a memory-leak story teaches the GC internals). When the story genuinely turns on code or config, include a realistic snippet, and a comparison table where it truly clarifies a trade-off. Set it at no named company, so I can drop in my own.

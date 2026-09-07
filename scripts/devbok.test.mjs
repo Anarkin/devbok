@@ -460,6 +460,11 @@ describe('validate', () => {
     assert.ok(r.warnings.some((w) => /table with a fixed min-width/.test(w)));
     assert.ok(r.warnings.some((w) => /100vw/.test(w)));
   });
+  test('warns about progress checkboxes', () => {
+    const r = ok(['validate', file('cb.html', html({ extra: '<label><input type="checkbox"> Mark as studied</label>' }))]).json();
+    assert.equal(r.counts.checkboxes, 1);
+    assert.ok(r.warnings.some((w) => /progress tracking/.test(w)));
+  });
   test('--draft lowers the size floor for dry runs', () => {
     const small = file('small.html', html({ bytes: 10_000 }));
     assert.ok(JSON.parse(bad(['validate', small]).out).errors.some((e) => /bytes/.test(e)));

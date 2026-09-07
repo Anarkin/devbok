@@ -10,7 +10,7 @@ Identify the core building blocks of the topic and order them as a learning sequ
 ## The study guide
 
 - Hero summary: a 3–5 sentence "state of the technology".
-- The units are the numbered curriculum sections. Every section ends with a "Mark as studied" checkbox that fills a visual progress indicator in the sidebar (persisted as described above).
+- The units are the numbered curriculum sections.
 - Interview Q&A items are collapsed `<details>` self-quiz blocks: the question visible, the model answer hidden until clicked. Answers are spoken-ready (3–6 sentences), carry lead-level nuance and name the trade-offs — not textbook definitions.
 - Each core section must contain, in this order:
   1. An in-depth prose explanation (not bullet spam): how it works, what problem it solves, why it was designed this way, and what changed recently. Build a mental model I can reason from — when a concept is abstract, anchor it with a concrete running example or analogy.

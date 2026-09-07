@@ -10,7 +10,7 @@ Let the topic decide the sections (a language wants more syntax, a CLI tool more
 ## The reference card
 
 - Hero: keep it minimal — the topic, the version chips, and a 3-sentence summary of what is on the card and which version it reflects. No "how to use".
-- The units are the card's sections. No checkboxes and no progress tracker: nothing on a reference card is "done".
+- The units are the card's sections.
 - Layout: a dense multi-column grid on wide screens (single column on mobile), each section a compact card. One line per item: a task or concept on the left, the syntax or command on the right in monospace, with a minimal example where the syntax alone is not obvious. No paragraph longer than two lines.
 - Section content:
   - Syntax and APIs: the constructs and calls I reach for daily, each with a minimal, correct example.
