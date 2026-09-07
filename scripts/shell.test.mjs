@@ -211,8 +211,39 @@ describe('devbok.html structure', () => {
     assert.deepEqual(outsideTokens, []);
   });
   test('has the parts the glue script binds to', () => {
-    for (const id of ['topics', 'version', 'frame', 'empty', 'crumb']) assert.match(HTML, new RegExp(`id="${id}"`));
+    for (const id of ['topics', 'version', 'frame', 'empty', 'crumb', 'help', 'howto', 'howto-close']) assert.match(HTML, new RegExp(`id="${id}"`));
     assert.doesNotMatch(HTML, /id="(filter|open|count)"/, 'removed controls stay removed');
+  });
+  test('the active tab breaks the bar\'s bottom line', () => {
+    // No overlapping borders (they misalign at fractional zoom): the bar has no line, each tab and the spacer draw their own.
+    const css = HTML.match(/<style>([\s\S]*?)<\/style>/)[1];
+    assert.doesNotMatch(css.match(/\.tabs \{[^}]*\}/)[0], /border-bottom/);
+    assert.match(css, /\.tab \{[^}]*border-bottom: 2px solid var\(--line\);/);
+    assert.match(css, /\.tab\.active \{[^}]*border-bottom-color: transparent;/);
+    assert.match(css, /\.tools \{[^}]*flex: 1;[^}]*border-bottom: 2px solid var\(--line\);/);
+  });
+  test('the "How to use?" button opens a native dialog', () => {
+    assert.match(HTML, /<button class="help" id="help" type="button">How to use\?<\/button>/);
+    assert.match(HTML, /<dialog id="howto" aria-labelledby="howto-title">/);
+    assert.match(HTML, /howto\.showModal\(\)/);
+    assert.match(HTML, /howto\.close\(\)/);
+  });
+  test('the how-to dialog documents every skill, and no skill that does not exist', () => {
+    const dialog = HTML.match(/<dialog id="howto"[\s\S]*?<\/dialog>/)[0];
+    const skills = fs.readdirSync(path.join(ROOT, '.claude', 'skills')).filter((d) => d.startsWith('devbok-'));
+    assert.ok(skills.length >= 4, 'expected the four devbok skills');
+    for (const s of skills) assert.ok(dialog.includes(`<code>/${s}`), `dialog must document /${s}`);
+    for (const m of dialog.matchAll(/\/devbok-[a-z]+/g)) assert.ok(skills.includes(m[0].slice(1)), `dialog mentions a skill that does not exist: ${m[0]}`);
+    assert.match(dialog, /topics\/index\.js/, 'explains why a reload is needed');
+  });
+  test('the how-to dialog has a one-line learning section first and the generation guide second', () => {
+    const dialog = HTML.match(/<dialog id="howto"[\s\S]*?<\/dialog>/)[0];
+    const headings = [...dialog.matchAll(/<h2[^>]*>([^<]*)<\/h2>/g)].map((m) => m[1]);
+    assert.deepEqual(headings, ['Enjoy learning! 🎓', 'Generate more with Claude Code! ✨']);
+    const learning = dialog.slice(dialog.indexOf('Enjoy learning'), dialog.indexOf('Generate more with Claude Code'));
+    assert.match(learning, /one tab each\./);
+    assert.doesNotMatch(learning, /<table>/, 'the kinds are not re-explained; the tabs already show them');
+    assert.ok(dialog.indexOf('/devbok-new') > dialog.indexOf('Generate more with Claude Code'), 'commands are explained in the generation section');
   });
   test('the model block has no DOM or browser dependencies', () => {
     assert.doesNotMatch(stripComments(modelSrc), /\b(document|window|location|localStorage)\b/);
