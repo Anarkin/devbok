@@ -205,6 +205,26 @@ describe('devbok.html structure', () => {
     assert.match(HTML, /color-scheme: dark/);
     assert.doesNotMatch(HTML, /theme-toggle|data-theme|id="theme"/i);
   });
+  test('uses the devbok palette and font', () => {
+    const css = HTML.match(/<style>([\s\S]*?)<\/style>/)[1];
+    const light = css.match(/:root \{([\s\S]*?)\}/)[1];
+    const dark = css.match(/prefers-color-scheme: dark\) \{\s*:root \{([\s\S]*?)\}/)[1];
+    assert.match(light, /--accent: #a55da0;/);
+    assert.match(dark, /--accent: #d69ad1;/);
+    assert.match(dark, /--bg: #222222;/);
+    assert.match(dark, /--fg: #cccccc;/);
+    assert.match(css, /font-family: "Cascadia Mono", Consolas, monospace;/);
+    assert.match(HTML, /<link href="https:\/\/fonts\.googleapis\.com\/css2\?family=Cascadia\+Mono[^"]*" rel="stylesheet">/);
+    const external = [...HTML.matchAll(/<(?:link|script)\b[^>]*\b(?:href|src)="(https?:[^"]+)"/g)].map((m) => m[1]);
+    assert.ok(external.every((u) => /^https:\/\/fonts\.(googleapis|gstatic)\.com/.test(u)), `only Google Fonts may be external, got: ${external.join(', ')}`);
+  });
+  test('uses one font size everywhere (12px on body, nothing else sets one)', () => {
+    const css = HTML.match(/<style>([\s\S]*?)<\/style>/)[1];
+    const sizes = [...css.matchAll(/font-size:\s*([^;]+);/g)].map((m) => m[1]);
+    assert.deepEqual(sizes, ['12px']);
+    assert.match(css.match(/\n  body \{[\s\S]*?\n  \}/)[0], /font-size: 12px;/);
+    assert.match(css, /h1, h2, code, button, select \{ font: inherit; \}/, 'UA defaults for headings, code and controls are neutralised');
+  });
   test('keeps every colour in the token blocks', () => {
     const css = HTML.match(/<style>([\s\S]*?)<\/style>/)[1];
     const outsideTokens = css.split('\n').filter((line) => /#[0-9a-f]{3,8}\b/i.test(line) && !/^\s*--/.test(line));
@@ -222,8 +242,14 @@ describe('devbok.html structure', () => {
     assert.match(css, /\.tab\.active \{[^}]*border-bottom-color: transparent;/);
     assert.match(css, /\.tools \{[^}]*flex: 1;[^}]*border-bottom: 2px solid var\(--line\);/);
   });
-  test('the "How to use?" button opens a native dialog', () => {
-    assert.match(HTML, /<button class="help" id="help" type="button">How to use\?<\/button>/);
+  test('no orientation labels: the list and the tab row explain themselves', () => {
+    assert.match(HTML, /<nav aria-label="Topics">\s*<ul id="topics">/);
+    assert.match(HTML, /<div class="tabs" id="tabs" role="tablist">\s*<button class="tab"/);
+    assert.doesNotMatch(HTML, /nav-label|tabs-label/);
+    assert.doesNotMatch(HTML, /<header>[\s\S]*?<button[\s\S]*?<\/header>/, 'the header holds no controls');
+  });
+  test('the "add more topics" button at the foot of the sidebar opens a native dialog', () => {
+    assert.match(HTML, /<ul id="topics"><\/ul>\s*<button class="add" id="help" type="button">\+ add more topics<\/button>\s*<\/nav>/);
     assert.match(HTML, /<dialog id="howto" aria-labelledby="howto-title">/);
     assert.match(HTML, /howto\.showModal\(\)/);
     assert.match(HTML, /howto\.close\(\)/);
@@ -236,14 +262,12 @@ describe('devbok.html structure', () => {
     for (const m of dialog.matchAll(/\/devbok-[a-z]+/g)) assert.ok(skills.includes(m[0].slice(1)), `dialog mentions a skill that does not exist: ${m[0]}`);
     assert.match(dialog, /topics\/index\.js/, 'explains why a reload is needed');
   });
-  test('the how-to dialog has a one-line learning section first and the generation guide second', () => {
+  test('the how-to dialog is only the generation guide, titled for the "add more topics" button', () => {
     const dialog = HTML.match(/<dialog id="howto"[\s\S]*?<\/dialog>/)[0];
     const headings = [...dialog.matchAll(/<h2[^>]*>([^<]*)<\/h2>/g)].map((m) => m[1]);
-    assert.deepEqual(headings, ['Enjoy learning! 🎓', 'Generate more with Claude Code! ✨']);
-    const learning = dialog.slice(dialog.indexOf('Enjoy learning'), dialog.indexOf('Generate more with Claude Code'));
-    assert.match(learning, /one tab each\./);
-    assert.doesNotMatch(learning, /<table>/, 'the kinds are not re-explained; the tabs already show them');
-    assert.ok(dialog.indexOf('/devbok-new') > dialog.indexOf('Generate more with Claude Code'), 'commands are explained in the generation section');
+    assert.deepEqual(headings, ['Generate more with Claude Code! ✨']);
+    assert.match(dialog, /<h2 id="howto-title">/, 'the single heading labels the dialog');
+    assert.doesNotMatch(dialog, /Enjoy learning|one tab each/, 'no learning section; the shell labels explain themselves');
   });
   test('the model block has no DOM or browser dependencies', () => {
     assert.doesNotMatch(stripComments(modelSrc), /\b(document|window|location|localStorage)\b/);
