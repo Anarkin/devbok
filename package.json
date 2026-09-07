@@ -1,0 +1,12 @@
+{
+  "name": "devbok",
+  "private": true,
+  "version": "0.0.0",
+  "description": "Developer's Body of Knowledge - generated, versioned interview-prep artifacts",
+  "scripts": {
+    "test": "node --test \"scripts/*.test.mjs\""
+  },
+  "engines": {
+    "node": ">=22"
+  }
+}
