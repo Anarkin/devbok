@@ -213,6 +213,7 @@ describe('devbok.html structure', () => {
     assert.match(dark, /--accent: #d69ad1;/);
     assert.match(dark, /--bg: #222222;/);
     assert.match(dark, /--fg: #cccccc;/);
+    assert.match(dark, /--line: #111111;/, 'dark lines are darker than the ground, not lighter');
     assert.match(css, /font-family: "Cascadia Mono", Consolas, monospace;/);
     assert.match(HTML, /<link href="https:\/\/fonts\.googleapis\.com\/css2\?family=Cascadia\+Mono[^"]*" rel="stylesheet">/);
     const external = [...HTML.matchAll(/<(?:link|script)\b[^>]*\b(?:href|src)="(https?:[^"]+)"/g)].map((m) => m[1]);
@@ -240,6 +241,11 @@ describe('devbok.html structure', () => {
     assert.doesNotMatch(css.match(/\.tabs \{[^}]*\}/)[0], /border-bottom/);
     assert.match(css, /\.tab \{[^}]*border-bottom: 2px solid var\(--line\);/);
     assert.match(css, /\.tab\.active \{[^}]*border-bottom-color: transparent;/);
+    // and follows the header's title/subtitle pattern: active = text colour + bold, inactive = muted
+    assert.match(css, /\.tab \{[^}]*color: var\(--muted\);/);
+    assert.match(css, /\.tab\.active \{[^}]*font-weight: 700;[^}]*color: var\(--fg\);/);
+    // .tab.empty and .tab.active tie on specificity, so source order decides: active must come last to stay readable
+    assert.ok(css.indexOf('.tab.empty {') < css.indexOf('.tab.active {'), '.tab.active must be declared after .tab.empty');
     assert.match(css, /\.tools \{[^}]*flex: 1;[^}]*border-bottom: 2px solid var\(--line\);/);
   });
   test('no orientation labels: the list and the tab row explain themselves', () => {

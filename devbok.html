@@ -24,7 +24,7 @@
   @media (prefers-color-scheme: dark) {
     :root {
       color-scheme: dark;
-      --bg: #222222; --fg: #cccccc; --muted: #8f8f8f; --line: #cccccc; --soft: #2c2c2c; --accent: #d69ad1;
+      --bg: #222222; --fg: #cccccc; --muted: #8f8f8f; --line: #111111; --soft: #2c2c2c; --accent: #d69ad1;
       --border: #4a4a4a; --active-slug: #555555; --backdrop: rgba(0, 0, 0, .6);
     }
   }
@@ -68,15 +68,16 @@
   /* The bar has no line of its own: every tab draws its bottom line, the active tab draws none, and the
      spacer with the version picker draws the rest. Nothing overlaps, so it survives fractional zoom/DPI. */
   .tabs { display: flex; align-items: stretch; margin: 0; }
-  .tab { padding: 13px 22px; border: 0; border-right: 2px solid var(--line); border-bottom: 2px solid var(--line); background: none; font: inherit; color: inherit; cursor: pointer; display: flex; gap: 8px; align-items: baseline; }
-  .tab:hover:not([disabled]) { background: var(--soft); }
-  .tab[disabled] { cursor: default; color: var(--muted); }
-  .tab.active { font-weight: 700; border-bottom-color: transparent; }
+  /* Same pattern as the header: the active tab is bold in the text colour, the others are muted. */
+  .tab { padding: 13px 22px; border: 0; border-right: 2px solid var(--line); border-bottom: 2px solid var(--line); background: none; font: inherit; color: var(--muted); cursor: pointer; display: flex; gap: 8px; align-items: baseline; }
+  .tab:hover:not([disabled]) { background: var(--soft); color: var(--fg); }
+  .tab.empty { color: var(--muted); }   /* kind has no artifact yet; still clickable, shows the hint */
+  .tab.active { font-weight: 700; color: var(--fg); border-bottom-color: transparent; }   /* after .empty: the active tab always reads */
   .tab.active:hover { background: none; }
-  .tab .v { color: var(--muted); font-weight: 400; }
+  .tab[disabled] { cursor: default; color: var(--muted); }
   .tools { flex: 1; display: flex; align-items: center; justify-content: flex-end; gap: 12px; color: var(--muted); padding: 0 24px 0 12px; border-bottom: 2px solid var(--line); }
   .tools select { font: inherit; padding: 3px 6px; background: var(--bg); color: var(--fg); border: 1px solid var(--border); border-radius: 4px; }
-  .crumb { margin: 0 24px; padding: 8px 0 6px; color: var(--muted); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; min-height: 1.6em; }
+  .crumb { margin: 0 24px; padding: 8px 0 6px; color: var(--muted); line-height: 1.5; min-height: 1.6em; }
   .pane { min-height: 0; position: relative; }
   iframe { position: absolute; inset: 0; width: 100%; height: 100%; border: 0; display: block; background: var(--bg); }
   .empty { padding: 40px 24px; color: var(--muted); max-width: 64ch; line-height: 1.7; }
@@ -86,7 +87,6 @@
     main { grid-template-columns: 1fr; grid-template-rows: auto 1fr; }
     nav { border-right: 0; border-bottom: 2px solid var(--line); max-height: 40vh; }
     .tab { padding: 11px 12px; }
-    .crumb { white-space: normal; }
   }
 </style>
 </head>
@@ -102,10 +102,10 @@
   </nav>
   <section class="content">
     <div class="tabs" id="tabs" role="tablist">
-      <button class="tab" role="tab" data-kind="study">study <span class="v"></span></button>
-      <button class="tab" role="tab" data-kind="experience">experience <span class="v"></span></button>
-      <button class="tab" role="tab" data-kind="interview">interview <span class="v"></span></button>
-      <button class="tab" role="tab" data-kind="cheatsheet">cheatsheet <span class="v"></span></button>
+      <button class="tab" role="tab" data-kind="study">study</button>
+      <button class="tab" role="tab" data-kind="experience">experience</button>
+      <button class="tab" role="tab" data-kind="interview">interview</button>
+      <button class="tab" role="tab" data-kind="cheatsheet">cheatsheet</button>
       <div class="tools">
         <select id="version" aria-label="Version"></select>
       </div>
@@ -232,12 +232,13 @@ const devbokModel = (function () {
       const t = v.tabs.find((x) => x.kind === b.dataset.kind);
       b.classList.toggle('active', t.active);
       b.setAttribute('aria-selected', String(t.active));
-      b.querySelector('.v').textContent = t.latest ? `v${t.latest}` : '-';
+      b.classList.toggle('empty', t.latest === null);
       b.disabled = t.disabled;
+      b.title = t.latest === null ? 'no artifact yet' : `v${t.latest}`;
     }
     els.version.innerHTML = v.options.map((o) => `<option value="${o.v}"${o.selected ? ' selected' : ''}>${M.esc(o.label)}</option>`).join('');
     els.version.hidden = !v.options.length;
-    els.crumb.textContent = v.crumb;
+    els.crumb.textContent = v.crumb ? `“${v.crumb}”` : '';
     els.crumb.title = v.crumb;
     if (v.message) {
       els.frame.hidden = true;
