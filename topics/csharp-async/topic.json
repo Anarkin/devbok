@@ -1,0 +1,56 @@
+{
+  "slug": "csharp-async",
+  "title": "C# async/await",
+  "topic": "C# async/await and the Task-based asynchronous pattern (Task, ValueTask, cancellation, IAsyncEnumerable, ConfigureAwait, thread-pool behaviour; assume general C# syntax is known)",
+  "created": "2026-09-07",
+  "kinds": {
+    "study": {
+      "next": 2,
+      "versions": [
+        {
+          "v": 1,
+          "generated": "2026-09-07",
+          "prompt": "6b29eaac",
+          "file": "study.v1.html"
+        }
+      ],
+      "pending": []
+    },
+    "experience": {
+      "next": 2,
+      "versions": [
+        {
+          "v": 1,
+          "generated": "2026-09-07",
+          "prompt": "891dff1c",
+          "file": "experience.v1.html"
+        }
+      ],
+      "pending": []
+    },
+    "interview": {
+      "next": 2,
+      "versions": [
+        {
+          "v": 1,
+          "generated": "2026-09-07",
+          "prompt": "6fbc2cc4",
+          "file": "interview.v1.html"
+        }
+      ],
+      "pending": []
+    },
+    "cheatsheet": {
+      "next": 2,
+      "versions": [
+        {
+          "v": 1,
+          "generated": "2026-09-07",
+          "prompt": "436d8839",
+          "file": "cheatsheet.v1.html"
+        }
+      ],
+      "pending": []
+    }
+  }
+}
