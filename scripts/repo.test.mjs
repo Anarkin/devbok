@@ -18,6 +18,8 @@ const scriptKinds = JSON.parse(read('scripts', 'devbok.mjs').match(/^const KINDS
 const modelSrc = read('devbok.html').match(/<script id="devbok-model">([\s\S]*?)<\/script>/)[1];
 const shellKinds = vm.runInThisContext(`(function () {\n${modelSrc}\n;return devbokModel.KINDS; })()`);
 const requiredPlaceholders = () => JSON.parse(read('scripts', 'devbok.mjs').match(/^const REQUIRED_PLACEHOLDERS = (\[[^\]]*\]);/m)[1].replace(/'/g, '"'));
+const sharedDir = path.join(ROOT, 'prompts', 'shared');
+const partials = () => (fs.existsSync(sharedDir) ? fs.readdirSync(sharedDir).filter((f) => f.endsWith('.md')).map((f) => f.slice(0, -3)).filter((n) => n !== 'template').sort() : []);
 const SKILLS = ['devbok-new', 'devbok-update', 'devbok-delete', 'devbok-list'];
 
 function frontmatter(skill) {
@@ -49,7 +51,42 @@ describe('kinds agree everywhere', () => {
     assert.ok(fm.description.includes(`[${scriptKinds.join('|')}]`), `devbok-update description must list ${scriptKinds.join('|')}`);
     const newBody = frontmatter('devbok-new').body;
     for (const k of scriptKinds) assert.ok(newBody.includes(`\`${k}\``), `devbok-new must mention \`${k}\``);
-    assert.ok(newBody.includes(`Launch ${['zero', 'one', 'two', 'three', 'four', 'five', 'six'][scriptKinds.length]} \`Agent\` subagents`), 'devbok-new must launch one subagent per kind');
+    for (const s of ['devbok-new', 'devbok-update']) {
+      assert.match(frontmatter(s).body, /one `Agent` subagent \(`general-purpose`\) per prepared kind/, `${s} must launch one subagent per prepared kind`);
+      assert.match(frontmatter(s).body, /not devbok-ready/, `${s} must explain how a not-ready prompt is skipped`);
+    }
+  });
+});
+
+describe('shared prompt partials', () => {
+  const includesIn = (text) => [...text.matchAll(/\{\{include:([a-z0-9-]+)\}\}/g)].map((m) => m[1]);
+  test('every partial starts with one H2 heading and has no other H1/H2 inside', () => {
+    assert.ok(partials().length > 0);
+    for (const n of partials()) {
+      const lines = read('prompts', 'shared', `${n}.md`).split('\n');
+      assert.match(lines[0], /^## \S/, `prompts/shared/${n}.md must start with a "## " heading on line 1`);
+      assert.deepEqual(lines.slice(1).filter((l) => /^#{1,2} /.test(l)), [], `prompts/shared/${n}.md has extra H1/H2 headings`);
+    }
+  });
+  test('every include resolves to a partial, and every partial is used', () => {
+    const used = new Set();
+    const sources = [
+      ['prompts/shared/template.md', read('prompts', 'shared', 'template.md')],
+      ...scriptKinds.map((k) => [`prompts/${k}.md`, read('prompts', `${k}.md`)]),
+      ...partials().map((n) => [`prompts/shared/${n}.md`, read('prompts', 'shared', `${n}.md`)]),
+    ];
+    for (const [file, text] of sources) {
+      for (const name of includesIn(text)) {
+        used.add(name);
+        assert.ok(exists('prompts', 'shared', `${name}.md`), `${file} includes {{include:${name}}} but prompts/shared/${name}.md does not exist`);
+      }
+    }
+    for (const n of partials()) assert.ok(used.has(n), `prompts/shared/${n}.md is not included by any prompt`);
+  });
+  test('partials are documented in AGENTS.md', () => {
+    const agents = read('AGENTS.md');
+    assert.match(agents, /\{\{include:name\}\}/);
+    for (const n of partials()) assert.ok(agents.includes(`\`${n}\``), `AGENTS.md must describe the partial \`${n}\``);
   });
 });
 
@@ -107,10 +144,28 @@ describe('prompt contract', () => {
     for (const v of vars) assert.ok(agents.includes(`\`{{${v}}}\``), `AGENTS.md must document {{${v}}}`);
     for (const r of requiredPlaceholders()) assert.ok(vars.includes(r), `required placeholder ${r} must be substituted`);
   });
+  test('template.md owns the shape: declares the documented slots, includes every partial, adds no headings', () => {
+    const tpl = read('prompts', 'shared', 'template.md');
+    const slots = [...new Set([...tpl.matchAll(/\{\{slot:([a-z0-9-]+)\}\}/g)].map((m) => m[1]))];
+    assert.deepEqual(slots, ['goal', 'design', 'content']);
+    for (const s of slots) assert.ok(read('AGENTS.md').includes(`{{slot:${s}}}`), `AGENTS.md must document {{slot:${s}}}`);
+    for (const n of partials()) assert.ok(tpl.includes(`{{include:${n}}}`), `template.md must include every partial (${n})`);
+    assert.doesNotMatch(tpl, /^#{1,2} /m, 'the template has no headings of its own; partials and slots bring theirs');
+    assert.match(tpl, /^TOPIC: \{\{TOPIC\}\}/, 'the brief starts with the topic line');
+  });
+  test('kind prompts in slot form are pure content: no TOPIC line, no includes', () => {
+    for (const k of scriptKinds) {
+      const src = read('prompts', `${k}.md`);
+      if (!/^\{\{slot:[a-z-]+\}\}/m.test(src)) continue; // free-form prompts are checked by the render test
+      assert.match(src, /^\{\{slot:/, `prompts/${k}.md must start with its first slot marker`);
+      assert.doesNotMatch(src, /^TOPIC:/m, `prompts/${k}.md: the template owns the TOPIC line`);
+      assert.doesNotMatch(src, /\{\{include:/, `prompts/${k}.md: the template owns the includes`);
+    }
+  });
   test('the real prompt files render cleanly through prepare, or are refused as not ready', () => {
-    // Runs the actual prompts/ directory in a temp root. A prompt that is not devbok-ready must be refused;
-    // a ready one must render the topic and output path and leave no placeholder behind.
-    const required = requiredPlaceholders();
+    // Runs the actual prompts/ directory in a temp root. The only acceptable outcomes per kind: a clean
+    // "not devbok-ready" refusal, or a successful render that contains the topic and output path and
+    // leaves no placeholder behind. Anything else (missing partial, cycle, unknown placeholder) fails.
     const tmp = fs.mkdtempSync(path.join(os.tmpdir(), 'devbok-prompts-'));
     try {
       fs.cpSync(path.join(ROOT, 'prompts'), path.join(tmp, 'prompts'), { recursive: true });
@@ -118,20 +173,18 @@ describe('prompt contract', () => {
       const run = (...args) => spawnSync(process.execPath, [SCRIPT, ...args], { encoding: 'utf8', env });
       assert.equal(run('init', 'probe', '--title', 'Probe', '--topic', 'Probe topic text').status, 0);
       for (const k of scriptKinds) {
-        const ready = required.every((p) => read('prompts', `${k}.md`).includes(`{{${p}}}`));
         const r = run('prepare', 'probe', k);
-        if (!ready) {
-          assert.equal(r.status, 1, `prompts/${k}.md is not ready and must be refused`);
-          assert.match(r.stderr, /not devbok-ready/);
+        if (r.status !== 0) {
+          assert.match(r.stderr, /not devbok-ready/, `prompts/${k}.md failed for another reason:\n${r.stderr}`);
           continue;
         }
-        assert.equal(r.status, 0, r.stderr);
         const j = JSON.parse(r.stdout);
         const rendered = fs.readFileSync(path.join(tmp, j.prompt), 'utf8');
         assert.ok(rendered.includes('Probe topic text'), `prompts/${k}.md: topic text not rendered`);
         assert.ok(rendered.includes(j.output), `prompts/${k}.md: output path not rendered`);
         assert.doesNotMatch(r.stderr, /unknown placeholder/, `prompts/${k}.md uses a placeholder the script does not know`);
         assert.doesNotMatch(rendered, /\{\{[A-Z_]+\}\}/, `prompts/${k}.md: a placeholder survived rendering`);
+        assert.deepEqual([...j.includes].sort(), partials(), `prompts/${k}.md must include every shared partial - shared means shared by all kinds`);
       }
     } finally {
       fs.rmSync(tmp, { recursive: true, force: true });
@@ -186,6 +239,19 @@ describe('repo integrity', () => {
     assert.match(read('CLAUDE.md'), /@AGENTS\.md/);
     const pkg = JSON.parse(read('package.json'));
     assert.match(pkg.scripts.test, /scripts\/\*\.test\.mjs/, 'npm test must pick up every test file');
-    assert.equal(exists('.devbok'), false, '.devbok/ (rendered prompts) should not linger between runs');
+  });
+  test('rendered prompts in .devbok/ belong to a generation that is still pending', () => {
+    // .devbok/ is git-ignored and legitimately exists while a generation is in flight; only files whose
+    // version is neither pending nor about to be recorded are leftovers.
+    if (!exists('.devbok')) return;
+    for (const f of fs.readdirSync(path.join(ROOT, '.devbok'))) {
+      const m = /^([a-z0-9-]+)\.([a-z]+)\.v(\d+)\.prompt\.md$/.exec(f);
+      assert.ok(m, `.devbok/${f}: unexpected file`);
+      const [, slug, kind, v] = m;
+      const manifestFile = path.join(ROOT, 'topics', slug, 'topic.json');
+      assert.ok(fs.existsSync(manifestFile), `.devbok/${f} belongs to a topic that no longer exists; delete the file`);
+      const pending = (JSON.parse(fs.readFileSync(manifestFile, 'utf8')).kinds?.[kind]?.pending ?? []).some((x) => x.v === Number(v));
+      assert.ok(pending, `.devbok/${f} lingers: ${slug} ${kind} v${v} is not pending (recorded or deleted); delete the file`);
+    }
   });
 });

@@ -9,7 +9,7 @@ Personal interview-prep knowledge base. One **topic** (e.g. `csharp`) has four *
 | `interview`  | `prompts/interview.md`  | question bank: topic map as a checklist, then every question with answer, example, follow-ups, wrong answer, design exercises |
 | `cheatsheet` | `prompts/cheatsheet.md` | dense, printable reference card kept open while coding: syntax/APIs, commands and flags, modern-vs-legacy table, version timeline |
 
-Status: the prompts are being refactored and are **not yet devbok-ready** (see "Prompt contract"); `prepare` refuses to run until they are. `prompts/cheatsheet.md` is only a draft brief so far.
+Status: all four kind prompts are in template form and devbok-ready (see "Prompt contract"), but none has been run end to end yet; the first real `/devbok-new` on a small topic is the next step. `prepare` refuses a prompt that is not ready, and the generating skills skip such kinds.
 
 ## Layout
 
@@ -23,7 +23,9 @@ topics/
     experience.v1.html
     interview.v1.html
     cheatsheet.v1.html
-prompts/<kind>.md              the three generation prompts (templates with {{PLACEHOLDERS}})
+prompts/shared/template.md            the shape of every brief: TOPIC line, {{include:name}} partials, {{slot:name}} declarations
+prompts/<kind>.md              one content file per kind: only the blocks that fill the template's slots
+prompts/shared/<name>.md       partials shared by every kind (persona, delivery, research, page structure, quality bar)
 scripts/devbok.mjs             all deterministic operations (Node, no dependencies)
 scripts/*.test.mjs             tests: script (devbok.test), shell view-model (shell.test), cross-file agreements (repo.test)
 package.json                   exists only for `npm test`; no dependencies
@@ -37,8 +39,8 @@ All four are user-invoked slash commands. Generation is slow and expensive (up t
 
 | command                                  | does                                                                                   |
 |------------------------------------------|----------------------------------------------------------------------------------------|
-| `/devbok-new [slug:] <topic text>`       | registers the topic, then generates **v1 of all four kinds** in parallel                |
-| `/devbok-update <slug> [kind]`           | generates the **next version** of all four kinds, or of one kind. Deletes nothing.      |
+| `/devbok-new [slug:] <topic text>`       | registers the topic, then generates **v1 of every kind** in parallel (kinds whose prompt is not ready are skipped and reported) |
+| `/devbok-update <slug> [kind]`           | generates the **next version** of every kind, or of one kind. Deletes nothing.          |
 | `/devbok-delete <slug> [<kind> v<N>]`    | deletes a whole topic, or one version. Pure script, no model judgment.                  |
 | `/devbok-list`                           | table of topics, latest versions, stale markers (`*` = prompt changed since generation) |
 
@@ -50,7 +52,7 @@ Underlying script (usable directly):
 node scripts/devbok.mjs slug <text>
 node scripts/devbok.mjs init <slug> --title "<short title>" --topic "<full topic text>"
 node scripts/devbok.mjs prepare <slug> <kind>            # reserves v<N>, renders prompt to .devbok/, prints JSON
-node scripts/devbok.mjs record <slug> <kind> v<N>        # validates the HTML, records it, rebuilds index.js
+node scripts/devbok.mjs record <slug> <kind> v<N>        # validates the HTML, records it, rebuilds index.js, removes the rendered brief
 node scripts/devbok.mjs validate <file.html>
 node scripts/devbok.mjs delete <slug> [<kind> v<N>]
 node scripts/devbok.mjs list [--json]
@@ -73,7 +75,36 @@ node scripts/devbok.mjs index
 
 ## Prompt contract (`prompts/<kind>.md`)
 
-`prepare` substitutes these placeholders and refuses to run if a required one is missing:
+`prompts/shared/template.md` gives every brief its shape. It is the only file that pulls in the shared partials (`{{include:name}}` → `prompts/shared/<name>.md`; partials may include partials, cycles are refused, a missing partial fails `prepare` before anything changes), and it declares the slots a kind prompt fills:
+
+```
+TOPIC: {{TOPIC}}
+{{slot:goal}}                 the kind's goal paragraph
+{{include:persona}}  {{include:delivery}}  {{include:research}}
+{{slot:design}}               the kind's own design section, with its own ## heading
+{{include:page}}
+{{slot:content}}              what the artifact must contain, with its own ## heading, incl. kind-specific quality items
+{{include:quality}}
+```
+
+A kind prompt (`prompts/<kind>.md`) is pure content: blocks introduced by a marker line `{{slot:name}}`, nothing before the first marker, no `TOPIC:` line, no includes (placeholders such as `{{TOPIC}}` may be used inside a block). See `prompts/study.md` for the reference. A kind prompt is **devbok-ready** when it fills every slot the template declares; a free-form prompt (no markers) or one with an unfilled slot is refused with "not devbok-ready" and the generating skills skip that kind. An unknown slot, a duplicate slot, or text before the first marker is a hard error. The "stale" hash is computed on the assembled text (template + partials + kind file), so editing any of them marks the affected artifacts stale.
+
+Two rules for `prompts/shared/`, both enforced by `scripts/repo.test.mjs`:
+
+- A partial holds only text that applies to **every** kind. Anything true for just some kinds lives in those kind prompts, even if that repeats a few lines. Only the template includes partials, so this holds by construction.
+- Every partial starts with exactly one `## ` heading on its first line and contains no other `#`/`##` heading (H3 and below are fine), so the assembled brief has one consistent heading level.
+
+| partial    | heading        | provides                                                                                                   |
+|------------|----------------|------------------------------------------------------------------------------------------------------------|
+| `persona`  | Who I am       | level calibration: lead/principal engineer, ceiling visible up to principal                                |
+| `delivery` | How to deliver | unattended, never ask, one file at `{{OUTPUT}}`, run `validate`, report                                    |
+| `research` | Research first | web research before writing: latest version, modern vs legacy, dated with `{{DATE}}`                       |
+| `page`     | The page       | what every artifact page shares: self-contained file, provenance comment, hero, sidebar nav with scrollspy, localStorage key prefix for any state, code and tables, design incl. light/dark and iframe-friendliness |
+| `quality`  | Quality bar    | topic decides the shape, modern-first legacy-aware, version precision, specific over vague, official-doc links, no assumptions about me |
+
+Not shared, on purpose: progress checkboxes, self-quiz `<details>` with spoken-ready answers, "depth over breadth", "teach for transfer". A cheat sheet has none of these, so they live in the kind prompts that want them.
+
+`prepare` substitutes these placeholders in the assembled text; the template (with its partials) must contain the required ones:
 
 | placeholder       | required | value                                                             |
 |-------------------|----------|-------------------------------------------------------------------|
@@ -87,7 +118,7 @@ node scripts/devbok.mjs index
 | `{{PROMPT_FILE}}` |          | `study.md` etc.                                                   |
 | `{{PROMPT_HASH}}` |          | 8-hex hash of the prompt file that produced this render           |
 
-A devbok-ready prompt must also:
+Every brief must also satisfy the following; the template's partials (`delivery`, `research`, `page`) take care of it, so a kind prompt only fills its slots:
 
 - be **non-interactive**: it is executed by a subagent that cannot ask the user anything, so "ask clarifying questions first" must become "state assumptions and proceed"; the topic text is the disambiguation.
 - name **one deliverable**: write the single file to `{{OUTPUT}}` (no "provide as a download", no streaming HTML into chat).

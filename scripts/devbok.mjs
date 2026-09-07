@@ -14,6 +14,9 @@
  *   node scripts/devbok.mjs index                                rebuild topics/index.js
  *
  * kinds: study | experience | interview | cheatsheet.  Version numbers per kind only ever increase.
+ * A brief is assembled from prompts/shared/template.md (the shape: {{include:name}} partials from prompts/shared/
+ * and {{slot:name}} declarations) plus prompts/<kind>.md (pure content: blocks introduced by {{slot:name}}
+ * marker lines), then {{PLACEHOLDERS}} are substituted.
  */
 import fs from 'node:fs';
 import path from 'node:path';
@@ -56,7 +59,63 @@ const topicDir = (slug) => path.join(TOPICS_DIR, slug);
 const manifestPath = (slug) => path.join(topicDir(slug), 'topic.json');
 const artifactName = (kind, v) => `${kind}.v${v}.html`;
 const promptFile = (kind) => path.join(PROMPTS_DIR, `${kind}.md`);
-const currentPromptHash = (kind) => (fs.existsSync(promptFile(kind)) ? sha8(fs.readFileSync(promptFile(kind), 'utf8')) : null);
+const SHARED_DIR = path.join(PROMPTS_DIR, 'shared');
+const TEMPLATE_FILE = path.join(SHARED_DIR, 'template.md'); // not a partial: it is the shape, and cannot be included
+const INCLUDE_RE = /\{\{include:([a-z0-9-]+)\}\}/g;
+const SLOT_RE = /\{\{slot:([a-z][a-z0-9-]*)\}\}/g;                   // a slot used in the template
+const SLOT_MARKER_RE = /^\{\{slot:([a-z][a-z0-9-]*)\}\}[ \t]*\r?$/m;  // a marker line in a kind prompt
+
+// {{include:name}} -> prompts/shared/<name>.md, nested allowed, cycles refused. Records names in `includes`.
+function makeExpander(includes) {
+  const expand = (text, from, stack) => text.replace(INCLUDE_RE, (all, name) => {
+    if (name === 'template') throw new Error(`${rel(from)} includes {{include:template}}, but the template is the shape, not a partial`);
+    const file = path.join(SHARED_DIR, `${name}.md`);
+    if (stack.includes(name)) throw new Error(`circular include {{include:${name}}} via ${[...stack, name].join(' > ')}`);
+    if (!fs.existsSync(file)) throw new Error(`${rel(from)} includes {{include:${name}}} but ${rel(file)} does not exist`);
+    if (!includes.includes(name)) includes.push(name);
+    return expand(fs.readFileSync(file, 'utf8').replace(/\s+$/, ''), file, [...stack, name]);
+  });
+  return expand;
+}
+
+// A kind prompt is a sequence of blocks, each introduced by a marker line `{{slot:name}}`. Returns
+// { name: text } or null when the file has no markers at all (a free-form prompt, i.e. not devbok-ready).
+function parseSlots(src, file) {
+  const parts = src.split(SLOT_MARKER_RE); // [before, name, body, name, body, ...]
+  if (parts.length === 1) return null;
+  if (parts[0].trim()) throw new Error(`${rel(file)}: text before the first {{slot:...}} marker`);
+  const slots = {};
+  for (let i = 1; i < parts.length; i += 2) {
+    if (parts[i] in slots) throw new Error(`${rel(file)}: {{slot:${parts[i]}}} is filled twice`);
+    slots[parts[i]] = parts[i + 1].trim();
+  }
+  return slots;
+}
+
+// prompts/template.md gives every brief its shape: it includes the shared partials and declares the slots;
+// prompts/<kind>.md only fills those slots. Returns the assembled text with placeholders still unsubstituted,
+// plus its hash - it covers template, partials and kind file, so editing any of them marks artifacts stale.
+function loadTemplate(kind) {
+  const pf = promptFile(kind);
+  if (!fs.existsSync(pf)) throw new Error(`prompt file missing: ${rel(pf)}`);
+  if (!fs.existsSync(TEMPLATE_FILE)) throw new Error(`template missing: ${rel(TEMPLATE_FILE)}`);
+  const includes = [];
+  const expand = makeExpander(includes);
+  const template = expand(fs.readFileSync(TEMPLATE_FILE, 'utf8'), TEMPLATE_FILE, []);
+  const declared = [...new Set([...template.matchAll(SLOT_RE)].map((m) => m[1]))];
+  const slots = parseSlots(fs.readFileSync(pf, 'utf8'), pf);
+  const list = (names) => names.map((s) => `{{slot:${s}}}`).join(', ');
+  if (!slots) throw new Error(`${rel(pf)} is not devbok-ready: it has no {{slot:...}} markers (still a free-form prompt). ${rel(TEMPLATE_FILE)} expects: ${list(declared)}.`);
+  const missing = declared.filter((s) => !(s in slots));
+  if (missing.length) throw new Error(`${rel(pf)} is not devbok-ready: it does not fill ${list(missing)} declared by ${rel(TEMPLATE_FILE)}.`);
+  const unknown = Object.keys(slots).filter((s) => !declared.includes(s));
+  if (unknown.length) throw new Error(`${rel(pf)} fills ${list(unknown)}, which ${rel(TEMPLATE_FILE)} does not declare (it declares ${list(declared)}).`);
+  const text = template.replace(SLOT_RE, (all, name) => expand(slots[name], pf, []));
+  return { text, hash: sha8(text), includes, slots: declared };
+}
+function currentPromptHash(kind) {
+  try { return loadTemplate(kind).hash; } catch { return null; }
+}
 
 function requireSlug(slug) {
   if (!slug || !SLUG_RE.test(slug)) fail(`invalid slug "${slug ?? ''}" - lowercase letters, digits and hyphens only`);
@@ -184,19 +243,19 @@ function cmdInit(args) {
 function cmdPrepare([slug, kind]) {
   const m = readManifest(requireSlug(slug));
   requireKind(kind);
-  const pf = promptFile(kind);
-  if (!fs.existsSync(pf)) fail(`prompt file missing: ${rel(pf)}`);
-  const template = fs.readFileSync(pf, 'utf8');
+  let tpl;
+  try { tpl = loadTemplate(kind); } catch (e) { fail(e.message); }
+  const template = tpl.text;
   const missing = REQUIRED_PLACEHOLDERS.filter((p) => !template.includes(`{{${p}}}`));
   if (missing.length) {
-    fail(`${rel(pf)} is not devbok-ready: missing placeholder(s) ${missing.map((p) => `{{${p}}}`).join(', ')}.\n` +
+    fail(`${rel(TEMPLATE_FILE)} (with its partials) does not contain ${missing.map((p) => `{{${p}}}`).join(', ')}; every brief needs them.\n` +
       '        See AGENTS.md, "Prompt contract". Nothing was changed.');
   }
   const k = m.kinds[kind];
   const v = k.next;
   const file = artifactName(kind, v);
   const output = posix(path.join(topicDir(slug), file));
-  const hash = sha8(template);
+  const hash = tpl.hash;
   const vars = {
     TOPIC: m.topic, TITLE: m.title, SLUG: slug, KIND: kind, VERSION: String(v), DATE: today(),
     OUTPUT: output, PROMPT_FILE: `${kind}.md`, PROMPT_HASH: hash,
@@ -213,7 +272,7 @@ function cmdPrepare([slug, kind]) {
   k.pending.push({ v, prompt: hash, started: today() });
   writeManifest(m);
   if (unknown.size) console.error(`devbok: warning - unknown placeholder(s) left as-is: ${[...unknown].map((n) => `{{${n}}}`).join(', ')}`);
-  json({ slug, kind, version: v, output, prompt: rel(promptOut), promptHash: hash });
+  json({ slug, kind, version: v, output, prompt: rel(promptOut), promptHash: hash, includes: tpl.includes, slots: tpl.slots });
 }
 
 function cmdRecord(args) {
@@ -236,6 +295,7 @@ function cmdRecord(args) {
   k.versions.sort((a, b) => a.v - b.v);
   writeManifest(m);
   buildIndex();
+  removeRenderedPrompts(slug, kind, v); // the rendered brief has served its purpose
   json({ recorded: { slug, kind, version: v, file: `topics/${slug}/${file}`, forced: force && !res.ok }, validation: res });
 }
 
@@ -252,6 +312,7 @@ function cmdDelete([slug, kind, vArg]) {
   if (!kind) {
     fs.rmSync(topicDir(slug), { recursive: true, force: true });
     buildIndex();
+    removeRenderedPrompts(slug);
     console.log(`deleted topic ${slug} (all kinds, all versions)`);
     return;
   }
@@ -269,7 +330,18 @@ function cmdDelete([slug, kind, vArg]) {
   if (before === k.versions.length + k.pending.length && !existed) fail(`${slug} ${kind} v${v} not found`);
   writeManifest(m); // k.next is deliberately NOT decremented: version numbers are never reused
   buildIndex();
+  removeRenderedPrompts(slug, kind, v);
   console.log(`deleted ${slug} ${kind} v${v}`);
+}
+
+// Rendered briefs in .devbok/ exist only while a generation is pending; drop the ones for a recorded or
+// deleted version (or, without kind/version, everything that belongs to the topic).
+function removeRenderedPrompts(slug, kind, v) {
+  if (!fs.existsSync(BUILD_DIR)) return;
+  const prefix = kind ? `${slug}.${kind}.v${v}.prompt.md` : `${slug}.`;
+  for (const f of fs.readdirSync(BUILD_DIR)) {
+    if (kind ? f === prefix : f.startsWith(prefix)) fs.rmSync(path.join(BUILD_DIR, f));
+  }
 }
 
 function cmdList(args) {

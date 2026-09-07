@@ -1,0 +1,3 @@
+## Research first
+
+Search the web before writing anything, to verify the current state of the topic: the latest stable version and its release date, what changed in the most recent release, what is newly stable, newly default, or newly deprecated, and what the current "modern way" is versus the legacy way still found in real codebases. Everything you produce must reflect today's reality (today is {{DATE}}), not your training data. Include at least one very recent, citable change — the kind of detail that shows I'm current. If web access is unavailable, say so in the hero summary, state your knowledge-cutoff date, and clearly label anything that may have changed since — never invent a "latest version".

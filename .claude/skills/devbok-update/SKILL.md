@@ -23,11 +23,11 @@ For each selected kind:
 node scripts/devbok.mjs prepare <slug> <kind>
 ```
 
-Each call prints JSON with `version` (the new, never-reused number), `output` (the exact HTML path to write) and `prompt` (the rendered prompt file). If any call fails - typically because a prompt file is not devbok-ready yet - stop, show the message verbatim, and launch nothing.
+Each successful call prints JSON with `version` (the new, never-reused number), `output` (the exact HTML path to write) and `prompt` (the rendered prompt file). If a call fails with "not devbok-ready", that kind's prompt has not been refactored yet: skip the kind and tell the user. Any other failure: stop, show the message verbatim, and launch nothing. If no kind could be prepared, report that and stop.
 
-## 3. Generate in parallel
+## 3. Generate the prepared kinds in parallel
 
-Launch one `Agent` subagent (`general-purpose`) per selected kind, all in ONE message so they run concurrently. Give each exactly this brief, with the paths from step 2 filled in:
+Launch one `Agent` subagent (`general-purpose`) per prepared kind, all in ONE message so they run concurrently. Give each exactly this brief, with the paths from step 2 filled in:
 
 > Read `<prompt path>` and follow it exactly. It is a complete, self-contained brief with the topic already filled in. Its only deliverable is the single HTML file at `<output>`; write it there, in parts if it is large. Do not ask questions: state assumptions and proceed. When done, run `node scripts/devbok.mjs validate "<output>"`, fix anything it reports under `errors`, and reply with the final validation JSON plus a 2-3 line summary of what the file contains.
 
@@ -35,7 +35,7 @@ Wait for all of them to finish. Do not generate any of them yourself if one fail
 
 ## 4. Record and report
 
-For every kind whose subagent finished, run:
+For every prepared kind whose subagent finished, run:
 
 ```
 node scripts/devbok.mjs record <slug> <kind> v<version>

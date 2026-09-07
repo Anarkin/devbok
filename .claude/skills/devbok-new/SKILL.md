@@ -32,19 +32,19 @@ Run, for each of `study`, `experience`, `interview`, `cheatsheet`:
 node scripts/devbok.mjs prepare <slug> <kind>
 ```
 
-Each call prints JSON with `version`, `output` (the exact HTML path to write) and `prompt` (the rendered prompt file with the topic filled in). If any call fails - typically because a prompt file is not devbok-ready yet - stop, show the message verbatim, and launch nothing.
+Each successful call prints JSON with `version`, `output` (the exact HTML path to write) and `prompt` (the rendered prompt file with the topic filled in). If a call fails with "not devbok-ready", that kind's prompt has not been refactored yet: skip the kind and tell the user. Any other failure: stop, show the message verbatim, and launch nothing. If no kind could be prepared, report that and stop; the topic stays registered and `/devbok-update <slug>` picks it up once a prompt is ready.
 
-## 4. Generate all four in parallel
+## 4. Generate the prepared kinds in parallel
 
-Launch four `Agent` subagents (`general-purpose`) in ONE message so they run concurrently. Give each exactly this brief, with the paths from step 3 filled in:
+Launch one `Agent` subagent (`general-purpose`) per prepared kind, all in ONE message so they run concurrently. Give each exactly this brief, with the paths from step 3 filled in:
 
 > Read `<prompt path>` and follow it exactly. It is a complete, self-contained brief with the topic already filled in. Its only deliverable is the single HTML file at `<output>`; write it there, in parts if it is large. Do not ask questions: state assumptions and proceed. When done, run `node scripts/devbok.mjs validate "<output>"`, fix anything it reports under `errors`, and reply with the final validation JSON plus a 2-3 line summary of what the file contains.
 
-Wait for all four to finish. Do not generate any of them yourself if one fails; report instead.
+Wait for all of them to finish. Do not generate any of them yourself if one fails; report instead.
 
 ## 5. Record and report
 
-For every kind whose subagent finished, run:
+For every prepared kind whose subagent finished, run:
 
 ```
 node scripts/devbok.mjs record <slug> <kind> v<version>

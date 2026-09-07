@@ -31,17 +31,21 @@ function bad(args, re) {
   if (re) assert.match(r.err, re);
   return r;
 }
-const readyPrompt = (kind) =>
-  `TOPIC: {{TOPIC}}\nWrite the file to {{OUTPUT}}.\n` +
-  `slug={{SLUG}} kind={{KIND}} v={{VERSION}} date={{DATE}} title={{TITLE}} file={{PROMPT_FILE}} hash={{PROMPT_HASH}} keep={{NOT_A_VAR}}\n(${kind})\n`;
+// The test template mirrors the real one's job: it carries every placeholder and declares the slots.
+const TEMPLATE =
+  'TOPIC: {{TOPIC}}\n\n{{slot:goal}}\n\nWrite the file to {{OUTPUT}}.\n' +
+  'slug={{SLUG}} kind={{KIND}} v={{VERSION}} date={{DATE}} title={{TITLE}} file={{PROMPT_FILE}} hash={{PROMPT_HASH}} keep={{NOT_A_VAR}}\n\n{{slot:content}}\n';
+const readyPrompt = (kind) => `{{slot:goal}}\ngoal of ${kind}\n\n{{slot:content}}\ncontent of ${kind}\n`;
 function freshRoot({ ready = KINDS } = {}) {
   root = fs.mkdtempSync(path.join(os.tmpdir(), 'devbok-test-'));
-  fs.mkdirSync(path.join(root, 'prompts'));
+  fs.mkdirSync(path.join(root, 'prompts', 'shared'), { recursive: true });
+  fs.writeFileSync(path.join(root, 'prompts', 'shared', 'template.md'), TEMPLATE);
   for (const k of KINDS) {
-    fs.writeFileSync(path.join(root, 'prompts', `${k}.md`), ready.includes(k) ? readyPrompt(k) : `TOPIC:\nold-style ${k} prompt without placeholders\n`);
+    fs.writeFileSync(path.join(root, 'prompts', `${k}.md`), ready.includes(k) ? readyPrompt(k) : `TOPIC:\nold-style ${k} prompt without slots\n`);
   }
 }
 const p = (...parts) => path.join(root, ...parts);
+const template = (text) => fs.writeFileSync(p('prompts', 'shared', 'template.md'), text);
 const manifest = (slug) => JSON.parse(fs.readFileSync(p('topics', slug, 'topic.json'), 'utf8'));
 function indexTopics() {
   const src = fs.readFileSync(p('topics', 'index.js'), 'utf8');
@@ -127,16 +131,42 @@ describe('init', () => {
 
 // ---------------------------------------------------------------- prepare
 describe('prepare', () => {
-  test('refuses a prompt without the required placeholders and changes nothing', () => {
+  test('refuses a free-form prompt (no slot markers) and changes nothing', () => {
     fs.rmSync(root, { recursive: true, force: true });
     freshRoot({ ready: ['experience'] });
     initTopic('s');
-    const r = bad(['prepare', 's', 'study'], /not devbok-ready/);
-    assert.match(r.err, /\{\{TOPIC\}\}, \{\{OUTPUT\}\}/);
+    const r = bad(['prepare', 's', 'study'], /prompts\/study\.md is not devbok-ready: it has no \{\{slot:/);
+    assert.match(r.err, /expects: \{\{slot:goal\}\}, \{\{slot:content\}\}/);
     assert.equal(manifest('s').kinds.study.next, 1);
     assert.deepEqual(manifest('s').kinds.study.pending, []);
     assert.equal(fs.existsSync(p('.devbok')), false);
     ok(['prepare', 's', 'experience']); // the ready one still works
+  });
+  test('refuses a prompt that leaves a declared slot unfilled', () => {
+    fs.writeFileSync(p('prompts', 'study.md'), '{{slot:goal}}\nonly the goal\n');
+    initTopic('s');
+    bad(['prepare', 's', 'study'], /not devbok-ready: it does not fill \{\{slot:content\}\}/);
+    assert.equal(manifest('s').kinds.study.next, 1);
+  });
+  test('rejects malformed slot files outright (not a readiness problem)', () => {
+    initTopic('s');
+    fs.writeFileSync(p('prompts', 'study.md'), '{{slot:goal}}\ng\n{{slot:content}}\nc\n{{slot:extra}}\ne\n');
+    const r = bad(['prepare', 's', 'study'], /fills \{\{slot:extra\}\}, which prompts\/shared\/template\.md does not declare/);
+    assert.doesNotMatch(r.err, /not devbok-ready/);
+    fs.writeFileSync(p('prompts', 'study.md'), 'stray text\n{{slot:goal}}\ng\n{{slot:content}}\nc\n');
+    bad(['prepare', 's', 'study'], /text before the first \{\{slot:/);
+    fs.writeFileSync(p('prompts', 'study.md'), '{{slot:goal}}\ng\n{{slot:goal}}\ng2\n{{slot:content}}\nc\n');
+    bad(['prepare', 's', 'study'], /\{\{slot:goal\}\} is filled twice/);
+    assert.equal(manifest('s').kinds.study.next, 1);
+  });
+  test('fails when the template is missing or lacks a required placeholder', () => {
+    initTopic('s');
+    template('TOPIC: {{TOPIC}}\n{{slot:goal}}\n{{slot:content}}\n');
+    const r = bad(['prepare', 's', 'study'], /prompts\/shared\/template\.md .*\{\{OUTPUT\}\}/);
+    assert.doesNotMatch(r.err, /not devbok-ready/);
+    fs.rmSync(p('prompts', 'shared', 'template.md'));
+    bad(['prepare', 's', 'study'], /template missing: prompts\/shared\/template\.md/);
+    assert.equal(manifest('s').kinds.study.next, 1);
   });
   test('fails on a missing prompt file', () => {
     fs.rmSync(p('prompts', 'interview.md'));
@@ -158,6 +188,11 @@ describe('prepare', () => {
     assert.ok(rendered.includes(`slug=s kind=study v=1 date=${TODAY} title=Short title file=study.md hash=${j.promptHash}`));
     assert.ok(rendered.includes('keep={{NOT_A_VAR}}'), 'unknown placeholders are left untouched');
     assert.match(r.err, /unknown placeholder.*NOT_A_VAR/);
+    assert.deepEqual(j.slots, ['goal', 'content']);
+    const at = (s) => rendered.indexOf(s);
+    assert.ok(at('TOPIC:') < at('goal of study') && at('goal of study') < at('Write the file'), 'slot content lands where the template declares it');
+    assert.ok(rendered.endsWith('content of study\n'));
+    assert.doesNotMatch(rendered, /\{\{slot:/);
     const k = manifest('s').kinds.study;
     assert.equal(k.next, 2);
     assert.deepEqual(k.pending, [{ v: 1, prompt: j.promptHash, started: TODAY }]);
@@ -178,6 +213,72 @@ describe('prepare', () => {
     bad(['prepare', 'nope', 'study'], /no such topic/);
     initTopic('s');
     bad(['prepare', 's', 'notes'], /invalid kind/);
+  });
+});
+
+// ---------------------------------------------------------------- prepare: shared partials
+describe('prepare: template, partials and slots', () => {
+  const shared = (name, text) => { fs.mkdirSync(p('prompts', 'shared'), { recursive: true }); fs.writeFileSync(p('prompts', 'shared', `${name}.md`), text); };
+  test('the template includes partials (nested); slot content may include partials too', () => {
+    shared('delivery', 'Write to {{OUTPUT}}.\n\n');
+    shared('outer', 'outer[{{include:inner}}]\n');
+    shared('inner', 'inner {{DATE}}');
+    shared('tip', 'a tip');
+    template('TOPIC: {{TOPIC}}\n{{include:delivery}}\n{{slot:goal}}\n{{include:outer}}\n{{slot:content}}\n');
+    fs.writeFileSync(p('prompts', 'study.md'), '{{slot:goal}}\nG {{include:tip}}\n\n{{slot:content}}\nC\n');
+    initTopic('s', 'The topic');
+    const j = ok(['prepare', 's', 'study']).json();
+    assert.deepEqual(j.includes, ['delivery', 'outer', 'inner', 'tip']);
+    assert.deepEqual(j.slots, ['goal', 'content']);
+    const rendered = fs.readFileSync(p(j.prompt), 'utf8');
+    assert.equal(rendered, `TOPIC: The topic\nWrite to ${j.output}.\nG a tip\nouter[inner ${TODAY}]\nC\n`);
+  });
+  test('a required placeholder may live in a partial', () => {
+    shared('delivery', '{{OUTPUT}}');
+    template('{{TOPIC}} {{include:delivery}} {{slot:goal}} {{slot:content}}');
+    initTopic('s');
+    assert.equal(ok(['prepare', 's', 'study']).json().version, 1);
+  });
+  test('a missing or circular partial is refused before anything changes', () => {
+    shared('a', '{{include:b}}');
+    shared('b', '{{include:a}}');
+    initTopic('s');
+    template(TEMPLATE + '{{include:nope}}\n');
+    bad(['prepare', 's', 'study'], /prompts\/shared\/template\.md includes \{\{include:nope\}\} but prompts\/shared\/nope\.md does not exist/);
+    template(TEMPLATE + '{{include:a}}\n');
+    bad(['prepare', 's', 'study'], /circular include \{\{include:a\}\} via a > b > a/);
+    template(TEMPLATE);
+    fs.writeFileSync(p('prompts', 'study.md'), readyPrompt('study') + '{{include:nope}}\n');
+    bad(['prepare', 's', 'study'], /prompts\/study\.md includes \{\{include:nope\}\}/);
+    assert.equal(manifest('s').kinds.study.next, 1);
+    assert.equal(fs.existsSync(p('.devbok')), false);
+  });
+  test('editing the template or a partial marks every kind stale; editing a kind file only that kind', () => {
+    shared('q', 'quality v1');
+    template(TEMPLATE + '{{include:q}}\n');
+    initTopic('s');
+    for (const k of ['study', 'experience']) { ok(['prepare', 's', k]); writeArtifact('s', k, 1); ok(['record', 's', k, 'v1']); }
+    const stale = () => { const [row] = ok(['list', '--json']).json(); return [row.study.stale, row.experience.stale]; };
+    assert.deepEqual(stale(), [false, false]);
+    shared('q', 'quality v2');
+    assert.deepEqual(stale(), [true, true], 'partial edit');
+    shared('q', 'quality v1');
+    assert.deepEqual(stale(), [false, false], 'restored');
+    fs.appendFileSync(p('prompts', 'study.md'), '\nmore\n');
+    assert.deepEqual(stale(), [true, false], 'kind file edit');
+    template(TEMPLATE + '{{include:q}}\n\nextra\n');
+    assert.deepEqual(stale(), [true, true], 'template edit');
+  });
+  test('a partial that breaks later shows as stale instead of crashing list', () => {
+    shared('q', 'quality');
+    template(TEMPLATE + '{{include:q}}\n');
+    initTopic('s');
+    ok(['prepare', 's', 'study']);
+    writeArtifact('s', 'study', 1);
+    ok(['record', 's', 'study', 'v1']);
+    fs.rmSync(p('prompts', 'shared', 'q.md'));
+    assert.match(ok(['list']).out, /^s\s+\S.*v1 \S+ \*/m);
+    assert.equal(ok(['list', '--json']).json()[0].study.stale, true);
   });
 });
 
@@ -245,6 +346,16 @@ describe('record', () => {
     ok(['record', 's', 'study', 'v2']);
     assert.deepEqual(indexTopics()[0].kinds.study.map((x) => x.v), [2, 1]);
     assert.deepEqual(manifest('s').kinds.study.versions.map((x) => x.v), [1, 2]);
+  });
+  test('removes the rendered brief once the version is recorded', () => {
+    initTopic('s');
+    const j = ok(['prepare', 's', 'study']).json();
+    const other = ok(['prepare', 's', 'experience']).json().prompt;
+    assert.equal(fs.existsSync(p(j.prompt)), true);
+    writeArtifact('s', 'study', 1);
+    ok(['record', 's', 'study', 'v1']);
+    assert.equal(fs.existsSync(p(j.prompt)), false, 'recorded: brief removed');
+    assert.equal(fs.existsSync(p(other)), true, 'still pending: brief kept');
   });
   test('rejects bad version syntax', () => {
     initTopic('s');
@@ -330,6 +441,17 @@ describe('delete', () => {
     ok(['prepare', 's', 'study']);
     ok(['delete', 's', 'study', 'v1']);
     assert.deepEqual(manifest('s').kinds.study.pending, []);
+  });
+  test('removes the rendered briefs of whatever it deletes', () => {
+    initTopic('s');
+    initTopic('other', 'Other');
+    const a = ok(['prepare', 's', 'study']).json().prompt;
+    const b = ok(['prepare', 's', 'experience']).json().prompt;
+    const c = ok(['prepare', 'other', 'study']).json().prompt;
+    ok(['delete', 's', 'study', 'v1']);
+    assert.deepEqual([a, b, c].map((f) => fs.existsSync(p(f))), [false, true, true], 'one version');
+    ok(['delete', 's']);
+    assert.deepEqual([b, c].map((f) => fs.existsSync(p(f))), [false, true], 'whole topic, other topic untouched');
   });
   test('rejects unknown topics, versions and malformed arguments', () => {
     bad(['delete', 'nope'], /no such topic/);
