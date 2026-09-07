@@ -2,6 +2,7 @@
   "slug": "csharp-async",
   "title": "C# async/await",
   "topic": "C# async/await and the Task-based asynchronous pattern (Task, ValueTask, cancellation, IAsyncEnumerable, ConfigureAwait, thread-pool behaviour; assume general C# syntax is known)",
+  "accent": "#512bd4",
   "created": "2026-09-07",
   "kinds": {
     "study": {

@@ -192,6 +192,32 @@ describe('prompt contract', () => {
   });
 });
 
+describe('shell and generated pages share one design', () => {
+  // prompts/shared/page.md restates the shell's design tokens for the generating agents. The two must not drift:
+  // change both together (and expect the artifacts to go stale).
+  const SHARED_TOKENS = ['bg', 'fg', 'muted', 'line', 'soft', 'border'];
+  const tokens = (css) => Object.fromEntries([...css.matchAll(/--([a-z-]+):\s*(#[0-9a-f]{6})\b/gi)].map((m) => [m[1], m[2].toLowerCase()]));
+  const split = (css) => { const i = css.indexOf('@media (prefers-color-scheme: dark)'); assert.ok(i > 0, 'dark block present'); return [tokens(css.slice(0, i)), tokens(css.slice(i))]; };
+  const shellCss = read('devbok.html').match(/<style>([\s\S]*?)<\/style>/)[1];
+  const page = read('prompts', 'shared', 'page.md');
+  test('colour tokens match in light and dark', () => {
+    const [shellLight, shellDark] = split(shellCss);
+    const [pageLight, pageDark] = split(page);
+    for (const t of SHARED_TOKENS) {
+      assert.equal(pageLight[t], shellLight[t], `light --${t}: page.md says ${pageLight[t]}, devbok.html says ${shellLight[t]}`);
+      assert.equal(pageDark[t], shellDark[t], `dark --${t}: page.md says ${pageDark[t]}, devbok.html says ${shellDark[t]}`);
+    }
+    assert.match(page, /--accent: \{\{ACCENT\}\}/);
+    assert.match(page, /--accent: \{\{ACCENT_DARK\}\}/);
+  });
+  test('mono font and sidebar width match', () => {
+    const mono = shellCss.match(/font-family: "([^"]+)"/)[1];
+    assert.ok(page.includes(`"${mono}"`), `page.md must name the shell's mono font "${mono}"`);
+    const width = shellCss.match(/--sidebar: (\d+)px/)[1];
+    assert.ok(page.includes(`${width}px wide`), `page.md must state the shell's sidebar width (${width}px)`);
+  });
+});
+
 describe('repo integrity', () => {
   const topicDirs = () => fs.existsSync(path.join(ROOT, 'topics'))
     ? fs.readdirSync(path.join(ROOT, 'topics'), { withFileTypes: true }).filter((d) => d.isDirectory()).map((d) => d.name)

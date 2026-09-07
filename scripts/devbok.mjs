@@ -5,7 +5,7 @@
  * devbok.html reads. No command in this file ever calls a model.
  *
  *   node scripts/devbok.mjs slug <text>                          print a filesystem-safe slug
- *   node scripts/devbok.mjs init <slug> --title T --topic X      create topics/<slug>/topic.json
+ *   node scripts/devbok.mjs init <slug> --title T --topic X [--accent #rrggbb]   create topics/<slug>/topic.json
  *   node scripts/devbok.mjs prepare <slug> <kind>                reserve next version, render prompts/<kind>.md -> .devbok/
  *   node scripts/devbok.mjs record <slug> <kind> v<N> [--force]  validate written HTML, add to manifest, rebuild index
  *   node scripts/devbok.mjs validate <file>                      sanity-check a generated HTML file (JSON)
@@ -33,6 +33,7 @@ const KINDS = ['study', 'experience', 'interview', 'cheatsheet'];
 const SLUG_RE = /^[a-z0-9][a-z0-9-]*$/;
 const REQUIRED_PLACEHOLDERS = ['TOPIC', 'OUTPUT'];
 const MIN_BYTES = 20_000;
+const DEFAULT_ACCENT = '#a55da0'; // devbok's own accent, used when a topic has no brand colour set
 
 const fail = (msg) => { console.error(`devbok: ${msg}`); process.exit(1); };
 const today = () => new Date().toISOString().slice(0, 10);
@@ -52,6 +53,30 @@ export function slugify(text) {
     .replace(/&/g, ' and ')
     .replace(/[^a-z0-9]+/g, '-')
     .replace(/^-+|-+$/g, '');
+}
+
+// ---------------------------------------------------------------- accent colour
+// The accent is a topic-level choice (its brand colour), shared by all of the topic's pages.
+function normalizeAccent(s) {
+  const m = /^#?([0-9a-f]{6})$/i.exec(String(s ?? '').trim());
+  return m ? `#${m[1].toLowerCase()}` : null;
+}
+// A tint of the accent for dark backgrounds: same hue and saturation, lightness raised to at least 66%.
+function darkAccent(hex) {
+  const n = parseInt(hex.slice(1), 16);
+  const r = (n >> 16) / 255, g = ((n >> 8) & 255) / 255, b = (n & 255) / 255;
+  const max = Math.max(r, g, b), min = Math.min(r, g, b), l = (max + min) / 2;
+  let h = 0, s = 0;
+  if (max !== min) {
+    const d = max - min;
+    s = l > 0.5 ? d / (2 - max - min) : d / (max + min);
+    h = (max === r ? (g - b) / d + (g < b ? 6 : 0) : max === g ? (b - r) / d + 2 : (r - g) / d + 4) / 6;
+  }
+  const L = Math.max(l, 0.66);
+  const f = (p, q, t) => { t = (t + 1) % 1; return t < 1 / 6 ? p + (q - p) * 6 * t : t < 1 / 2 ? q : t < 2 / 3 ? p + (q - p) * (2 / 3 - t) * 6 : p; };
+  const q = L < 0.5 ? L * (1 + s) : L + s - L * s, p = 2 * L - q;
+  const [R, G, B] = s === 0 ? [L, L, L] : [f(p, q, h + 1 / 3), f(p, q, h), f(p, q, h - 1 / 3)];
+  return '#' + [R, G, B].map((x) => Math.round(x * 255).toString(16).padStart(2, '0')).join('');
 }
 
 // ---------------------------------------------------------------- manifests
@@ -139,6 +164,7 @@ function readManifest(slug) {
   let m;
   try { m = JSON.parse(fs.readFileSync(file, 'utf8')); } catch (e) { fail(`cannot parse ${rel(file)}: ${e.message}`); }
   m.slug = slug;
+  m.accent = normalizeAccent(m.accent) ?? DEFAULT_ACCENT;
   m.kinds ??= {};
   for (const k of KINDS) {
     m.kinds[k] ??= emptyKind();
@@ -167,6 +193,7 @@ function buildIndex() {
       slug: m.slug,
       title: m.title,
       topic: m.topic,
+      accent: m.accent,
       created: m.created,
       kinds: Object.fromEntries(KINDS.map((k) => [k,
         [...m.kinds[k].versions].sort((a, b) => b.v - a.v).map((x) => ({
@@ -204,6 +231,20 @@ function validateHtml(file) {
   r.external = [...html.matchAll(/<(?:script|link)\b[^>]*?\b(?:src|href)=["'](https?:\/\/[^"']+)["']/gi)].map((m) => m[1]);
   const offHost = r.external.filter((u) => !/^https:\/\/(cdnjs\.cloudflare\.com|fonts\.googleapis\.com|fonts\.gstatic\.com)\//.test(u));
   if (offHost.length) r.warnings.push(`external resources outside cdnjs / Google Fonts: ${offHost.join(', ')}`);
+  // CSS patterns that produce a horizontal scrollbar (seen in real generations); the rule lives in prompts/shared/page.md.
+  const css = [...html.matchAll(/<style[^>]*>([\s\S]*?)<\/style>/gi)].map((m) => m[1]).join('\n');
+  for (const rule of css.split('}')) {
+    const [selector, decls = ''] = rule.split('{');
+    if (!selector || !decls) continue;
+    const sel = selector.replace(/\/\*[\s\S]*?\*\//g, '').trim();
+    if (/\bcode\b/.test(sel) && !/\bpre\b/.test(sel) && /white-space\s*:\s*nowrap/.test(decls)) {
+      r.warnings.push(`inline code cannot wrap ("${sel.slice(0, 60)}" sets white-space: nowrap) - long snippets in prose force a horizontal scrollbar; use overflow-wrap: anywhere`);
+    }
+    if (/\btable\b/.test(sel) && /min-width\s*:\s*\d+px/.test(decls)) {
+      r.warnings.push(`table with a fixed min-width ("${sel.slice(0, 60)}") - wrap tables in an overflow-x: auto container instead`);
+    }
+  }
+  if (/\b100vw\b/.test(css)) r.warnings.push('100vw includes the scrollbar width and overflows the viewport; use 100%');
   if (!/<!--\s*devbok\b/.test(html)) r.warnings.push('no "<!-- devbok" provenance comment (see AGENTS.md, Artifact contract)');
   if (/localStorage/.test(html) && !/devbok:/.test(html)) r.warnings.push('uses localStorage without a "devbok:<slug>:<kind>:v<N>:" key prefix');
   r.ok = r.errors.length === 0;
@@ -229,15 +270,17 @@ function cmdSlug(args) {
 function cmdInit(args) {
   const { opts, rest } = parseOpts(args);
   const slug = requireSlug(rest[0]);
-  if (typeof opts.topic !== 'string' || !opts.topic.trim()) fail('usage: init <slug> --title "<short title>" --topic "<full topic text>"');
+  if (typeof opts.topic !== 'string' || !opts.topic.trim()) fail('usage: init <slug> --title "<short title>" --topic "<full topic text>" [--accent #rrggbb]');
   const topic = opts.topic.trim();
   const title = (typeof opts.title === 'string' && opts.title.trim()) || topic;
+  const accent = opts.accent === undefined ? DEFAULT_ACCENT : normalizeAccent(opts.accent);
+  if (!accent) fail(`invalid accent "${opts.accent}" - expected a 6-digit hex colour like #512bd4`);
   if (fs.existsSync(topicDir(slug))) fail(`topic "${slug}" already exists - use /devbok-update ${slug}`);
-  const m = { slug, title, topic, created: today(), kinds: Object.fromEntries(KINDS.map((k) => [k, emptyKind()])) };
+  const m = { slug, title, topic, accent, created: today(), kinds: Object.fromEntries(KINDS.map((k) => [k, emptyKind()])) };
   fs.mkdirSync(topicDir(slug), { recursive: true });
   writeManifest(m);
   buildIndex();
-  json({ created: slug, title, topic, manifest: rel(manifestPath(slug)) });
+  json({ created: slug, title, topic, accent, manifest: rel(manifestPath(slug)) });
 }
 
 function cmdPrepare([slug, kind]) {
@@ -259,6 +302,7 @@ function cmdPrepare([slug, kind]) {
   const vars = {
     TOPIC: m.topic, TITLE: m.title, SLUG: slug, KIND: kind, VERSION: String(v), DATE: today(),
     OUTPUT: output, PROMPT_FILE: `${kind}.md`, PROMPT_HASH: hash,
+    ACCENT: m.accent, ACCENT_DARK: darkAccent(m.accent),
   };
   const unknown = new Set();
   const rendered = template.replace(/\{\{([A-Z_]+)\}\}/g, (all, name) => {
@@ -272,7 +316,7 @@ function cmdPrepare([slug, kind]) {
   k.pending.push({ v, prompt: hash, started: today() });
   writeManifest(m);
   if (unknown.size) console.error(`devbok: warning - unknown placeholder(s) left as-is: ${[...unknown].map((n) => `{{${n}}}`).join(', ')}`);
-  json({ slug, kind, version: v, output, prompt: rel(promptOut), promptHash: hash, includes: tpl.includes, slots: tpl.slots });
+  json({ slug, kind, version: v, output, prompt: rel(promptOut), promptHash: hash, accent: m.accent, includes: tpl.includes, slots: tpl.slots });
 }
 
 function cmdRecord(args) {

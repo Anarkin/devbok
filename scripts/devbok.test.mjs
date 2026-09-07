@@ -34,7 +34,7 @@ function bad(args, re) {
 // The test template mirrors the real one's job: it carries every placeholder and declares the slots.
 const TEMPLATE =
   'TOPIC: {{TOPIC}}\n\n{{slot:goal}}\n\nWrite the file to {{OUTPUT}}.\n' +
-  'slug={{SLUG}} kind={{KIND}} v={{VERSION}} date={{DATE}} title={{TITLE}} file={{PROMPT_FILE}} hash={{PROMPT_HASH}} keep={{NOT_A_VAR}}\n\n{{slot:content}}\n';
+  'slug={{SLUG}} kind={{KIND}} v={{VERSION}} date={{DATE}} title={{TITLE}} file={{PROMPT_FILE}} hash={{PROMPT_HASH}} accent={{ACCENT}} dark={{ACCENT_DARK}} keep={{NOT_A_VAR}}\n\n{{slot:content}}\n';
 const readyPrompt = (kind) => `{{slot:goal}}\ngoal of ${kind}\n\n{{slot:content}}\ncontent of ${kind}\n`;
 function freshRoot({ ready = KINDS } = {}) {
   root = fs.mkdtempSync(path.join(os.tmpdir(), 'devbok-test-'));
@@ -104,6 +104,15 @@ describe('init', () => {
     assert.equal(idx[0].slug, 'csharp');
     assert.equal(idx[0].topic, 'C# (the language)');
     for (const k of KINDS) assert.deepEqual(idx[0].kinds[k], []);
+  });
+  test('stores a normalized accent, defaults to devbok purple, rejects junk', () => {
+    ok(['init', 'a', '--title', 'A', '--topic', 'A', '--accent', '512BD4']);
+    assert.equal(manifest('a').accent, '#512bd4');
+    ok(['init', 'b', '--title', 'B', '--topic', 'B']);
+    assert.equal(manifest('b').accent, '#a55da0');
+    bad(['init', 'c', '--topic', 'C', '--accent', 'purple'], /invalid accent/);
+    assert.equal(fs.existsSync(p('topics', 'c')), false);
+    assert.deepEqual(indexTopics().map((t) => [t.slug, t.accent]), [['a', '#512bd4'], ['b', '#a55da0']]);
   });
   test('title defaults to the topic text', () => {
     ok(['init', 's', '--topic', 'Only a topic']);
@@ -198,6 +207,26 @@ describe('prepare', () => {
     assert.deepEqual(k.pending, [{ v: 1, prompt: j.promptHash, started: TODAY }]);
     assert.deepEqual(k.versions, []);
     assert.deepEqual(indexTopics()[0].kinds.study, [], 'pending versions never reach the index');
+  });
+  test('renders the topic accent and a lighter dark-mode tint of it', () => {
+    ok(['init', 's', '--topic', 'S', '--accent', '#512bd4']);
+    const j = ok(['prepare', 's', 'study']).json();
+    assert.equal(j.accent, '#512bd4');
+    const m = /accent=(#[0-9a-f]{6}) dark=(#[0-9a-f]{6})/.exec(fs.readFileSync(p(j.prompt), 'utf8'));
+    assert.ok(m, 'both accent placeholders substituted');
+    assert.equal(m[1], '#512bd4');
+    const lum = (hex) => [1, 3, 5].map((i) => parseInt(hex.slice(i, i + 2), 16)).reduce((a, b) => a + b);
+    assert.ok(lum(m[2]) > lum(m[1]), `dark-mode tint ${m[2]} must be lighter than ${m[1]}`);
+  });
+  test('a light accent stays as-is in dark mode; a manifest without accent gets the default', () => {
+    ok(['init', 's', '--topic', 'S', '--accent', '#cccccc']);
+    let rendered = fs.readFileSync(p(ok(['prepare', 's', 'study']).json().prompt), 'utf8');
+    assert.match(rendered, /accent=#cccccc dark=#cccccc/);
+    const m = manifest('s');
+    delete m.accent;
+    fs.writeFileSync(p('topics', 's', 'topic.json'), JSON.stringify(m));
+    rendered = fs.readFileSync(p(ok(['prepare', 's', 'study']).json().prompt), 'utf8');
+    assert.match(rendered, /accent=#a55da0 dark=#[0-9a-f]{6}/);
   });
   test('each prepare reserves the next number, per kind', () => {
     initTopic('s');
@@ -404,6 +433,15 @@ describe('validate', () => {
     assert.ok(r.warnings.some((w) => /unpkg\.com/.test(w) && !/cdnjs\.cloudflare\.com\/ajax/.test(w)));
     assert.ok(r.warnings.some((w) => /provenance/.test(w)));
     assert.ok(r.warnings.some((w) => /localStorage/.test(w)));
+  });
+  test('warns about the CSS patterns that cause horizontal scrolling', () => {
+    const head = '<style>p code, li code { white-space: nowrap; color: red } pre code { white-space: pre } table { width: 100%; min-width: 560px } .hero { width: 100vw }</style>';
+    const r = ok(['validate', file('scroll.html', html({ head }))]).json();
+    assert.equal(r.ok, true, 'warnings only');
+    assert.ok(r.warnings.some((w) => /inline code cannot wrap \("p code, li code"/.test(w)), JSON.stringify(r.warnings));
+    assert.ok(!r.warnings.some((w) => /"pre code"/.test(w)), 'nowrap inside <pre> is fine');
+    assert.ok(r.warnings.some((w) => /table with a fixed min-width/.test(w)));
+    assert.ok(r.warnings.some((w) => /100vw/.test(w)));
   });
   test('accepts a correctly prefixed localStorage key', () => {
     const r = ok(['validate', file('ls.html', html({ extra: '<script>localStorage.setItem("devbok:s:study:v1:progress", "1")</script>' }))]).json();

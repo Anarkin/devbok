@@ -12,7 +12,7 @@ Generate new artifact version(s) for: `$ARGUMENTS`
 ## 1. Parse the arguments
 
 - First token is the slug. An optional second token is the kind: `study`, `experience`, `interview` or `cheatsheet`. Anything else: stop and show the usage line above.
-- Read `topics/<slug>/topic.json`. If it does not exist, stop and tell the user to run `/devbok-new <slug>: <topic text>`. Its `topic` field is the text the prompts receive; never modify it here (the user edits it by hand if they want to rephrase the topic).
+- Read `topics/<slug>/topic.json`. If it does not exist, stop and tell the user to run `/devbok-new <slug>: <topic text>`. Its `topic` field is the text the prompts receive and its `accent` field is the colour all of the topic's pages share; never modify them here (the user edits them by hand to rephrase the topic or change the colour).
 - Kinds to generate: the one given, otherwise all four.
 
 ## 2. Prepare one rendered prompt per kind

@@ -44,13 +44,13 @@ All four are user-invoked slash commands. Generation is slow and expensive (up t
 | `/devbok-delete <slug> [<kind> v<N>]`    | deletes a whole topic, or one version. Pure script, no model judgment.                  |
 | `/devbok-list`                           | table of topics, latest versions, stale markers (`*` = prompt changed since generation) |
 
-The **slug** is the short identifier used everywhere (`csharp`, `dotnet`, `system-design`). The **topic** is the full text the prompts receive, e.g. `System design interviews (as a full-stack .NET engineer, incl. JS FE, databases, and everything inbetween)`. It lives once in `topic.json`; `update` re-reads it, so it never has to be retyped. To rephrase a topic, edit `topic.json` by hand and run `/devbok-update`.
+The **slug** is the short identifier used everywhere (`csharp`, `dotnet`, `system-design`). The **topic** is the full text the prompts receive, e.g. `System design interviews (as a full-stack .NET engineer, incl. JS FE, databases, and everything inbetween)`. It lives once in `topic.json`; `update` re-reads it, so it never has to be retyped. The **accent** is the topic's brand colour, chosen once by `/devbok-new` and shared by all of the topic's pages (the rest of the design is fixed, see the `page` partial). To rephrase a topic or change its colour, edit `topic.json` by hand and run `/devbok-update`.
 
 Underlying script (usable directly):
 
 ```
 node scripts/devbok.mjs slug <text>
-node scripts/devbok.mjs init <slug> --title "<short title>" --topic "<full topic text>"
+node scripts/devbok.mjs init <slug> --title "<short title>" --topic "<full topic text>" [--accent "#rrggbb"]
 node scripts/devbok.mjs prepare <slug> <kind>            # reserves v<N>, renders prompt to .devbok/, prints JSON
 node scripts/devbok.mjs record <slug> <kind> v<N>        # validates the HTML, records it, rebuilds index.js, removes the rendered brief
 node scripts/devbok.mjs validate <file.html>
@@ -61,7 +61,7 @@ node scripts/devbok.mjs index
 
 ## Hard rules for agents
 
-- Everything deterministic goes through `scripts/devbok.mjs`. Never hand-edit `topics/index.js`. In `topic.json` only `title` and `topic` are meant for hand edits.
+- Everything deterministic goes through `scripts/devbok.mjs`. Never hand-edit `topics/index.js`. In `topic.json` only `title`, `topic` and `accent` are meant for hand edits.
 - `devbok.html` is static and topic-agnostic. Do not bake topic data or per-topic styling into it.
 - `devbok-new` and `devbok-update` must run in the main context (no `context: fork` in their frontmatter): a forked skill runs as a subagent, and subagents cannot spawn the parallel generation subagents.
 - Version numbers per kind only ever increase (`next` in the manifest), even after deletes. Never renumber files.
@@ -72,6 +72,7 @@ node scripts/devbok.mjs index
 - **Commits follow Conventional Commits**: `type(scope): summary`, imperative, lower-case. Types: `feat`, `fix`, `refactor`, `test`, `docs`, `chore`. Scopes: `shell` (devbok.html), `script` (scripts/devbok.mjs), `skills`, `prompts`, `agents` (AGENTS.md); omit the scope when a change spans several. Generated artifacts are committed as `feat(topics): <slug> v1` or `feat(topics): <slug> <kind> v<N>`.
 - **Tests are part of every change.** `npm test` must pass before committing. Behaviour changes in `scripts/devbok.mjs`, in the `devbok-model` block of `devbok.html`, in a skill's frontmatter, or to the kind list come with updated or new tests in the matching `scripts/*.test.mjs` file. Node's built-in runner, no dependencies; tests never write to the real `topics/`, they work in temp roots via `DEVBOK_ROOT`.
 - **Keep the shell testable**: everything that decides *what* to show lives in the `<script id="devbok-model">` block (pure functions, no DOM); the glue script below it only paints and wires events.
+- **The shell and the generated pages share one design.** `prompts/shared/page.md` restates the shell's colour tokens (light and dark), mono font and sidebar width for the generating agents; `scripts/repo.test.mjs` fails when they drift. Change both together, and expect every artifact to go stale (`*` in `/devbok-list`) because the `page` partial changed.
 
 ## Prompt contract (`prompts/<kind>.md`)
 
@@ -99,7 +100,7 @@ Two rules for `prompts/shared/`, both enforced by `scripts/repo.test.mjs`:
 | `persona`  | Who I am       | level calibration: lead/principal engineer, ceiling visible up to principal                                |
 | `delivery` | How to deliver | unattended, never ask, one file at `{{OUTPUT}}`, run `validate`, report                                    |
 | `research` | Research first | web research before writing: latest version, modern vs legacy, dated with `{{DATE}}`                       |
-| `page`     | The page       | what every artifact page shares: self-contained file, provenance comment, hero, sidebar nav with scrollspy, localStorage key prefix for any state, code and tables, design incl. light/dark and iframe-friendliness |
+| `page`     | The page       | what every artifact page shares: self-contained file, provenance comment, hero, sidebar nav with scrollspy, localStorage key prefix for any state, code and tables, and the fixed design system (the shell's colour tokens in light and dark, Inter + Cascadia Mono, 260px sidebar, chips/callouts/details/tables) with the topic's accent via `{{ACCENT}}` / `{{ACCENT_DARK}}` |
 | `quality`  | Quality bar    | topic decides the shape, modern-first legacy-aware, version precision, specific over vague, official-doc links, no assumptions about me |
 
 Not shared, on purpose: progress checkboxes, self-quiz `<details>` with spoken-ready answers, "depth over breadth", "teach for transfer". A cheat sheet has none of these, so they live in the kind prompts that want them.
@@ -117,6 +118,8 @@ Not shared, on purpose: progress checkboxes, self-quiz `<details>` with spoken-r
 | `{{DATE}}`        |          | today, `YYYY-MM-DD`                                               |
 | `{{PROMPT_FILE}}` |          | `study.md` etc.                                                   |
 | `{{PROMPT_HASH}}` |          | 8-hex hash of the prompt file that produced this render           |
+| `{{ACCENT}}`      |          | the topic's accent colour from `topic.json`, e.g. `#512bd4`; shared by all of the topic's pages |
+| `{{ACCENT_DARK}}` |          | a lighter tint of it for dark backgrounds, derived by the script  |
 
 Every brief must also satisfy the following; the template's partials (`delivery`, `research`, `page`) take care of it, so a kind prompt only fills its slots:
 
@@ -143,6 +146,7 @@ Every brief must also satisfy the following; the template's partials (`delivery`
 
 - Progress state (checkboxes, "mark as studied") **may use localStorage** - the old "not supported" restriction came from claude.ai artifacts and does not apply here. Every key must start with `devbok:{{SLUG}}:{{KIND}}:v{{VERSION}}:` so topics and versions never collide (all `file://` pages share one storage in Chrome).
 - Must render standalone and inside the `devbok.html` iframe: no top-level navigation, no assumptions about window size, fixed sidebars are fine.
+- Never scrolls horizontally, at any viewport width: block code scrolls inside its `<pre>`, tables sit in an `overflow-x: auto` wrapper, inline code wraps (no `white-space: nowrap`), grid/flex items that hold code get `min-width: 0`, no `100vw`. `validate` warns about the known offending CSS patterns.
 - `cheatsheet` additionally needs a `@media print` stylesheet; it is meant to be printed or kept in a side window.
 - Like the shell, artifacts should follow the system theme via `prefers-color-scheme` (light and dark, no selector UI).
 - `node scripts/devbok.mjs validate <file>` must report no `errors` (doctype, closing tag, balanced `details`/`section`/`table`/`div`/`script`/`style`/`pre`, size sanity); `warnings` should be addressed when reasonable.
@@ -154,6 +158,7 @@ Every brief must also satisfy the following; the template's partials (`delivery`
   "slug": "system-design",
   "title": "System design (.NET full-stack)",
   "topic": "System design interviews (as a full-stack .NET engineer, incl. JS FE, databases, and everything inbetween)",
+  "accent": "#336791",
   "created": "2026-09-07",
   "kinds": {
     "study":      { "next": 3, "versions": [ { "v": 1, "generated": "2026-09-07", "prompt": "a1b2c3d4", "file": "study.v1.html" },
