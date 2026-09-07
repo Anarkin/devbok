@@ -55,12 +55,13 @@ describe('model: parseHash / toHash', () => {
 });
 
 describe('model: resolve', () => {
-  test('defaults to the first topic, study, latest version', () => {
+  test('selects nothing until a topic is chosen', () => {
     const s = M.resolve(T, '', null);
-    assert.equal(s.slug, 'csharp');
+    assert.equal(s.slug, null);
+    assert.equal(s.topic, null);
     assert.equal(s.kind, 'study');
-    assert.equal(s.ver.v, 2);
-    assert.equal(s.versions.length, 2);
+    assert.equal(s.ver, null);
+    assert.deepEqual(s.versions, []);
   });
   test('uses the remembered topic and kind when the hash is empty', () => {
     const s = M.resolve(T, '', 'csharp/experience');
@@ -68,9 +69,10 @@ describe('model: resolve', () => {
     assert.equal(s.kind, 'experience');
     assert.equal(s.ver.v, 1);
   });
-  test('ignores a remembered topic that no longer exists', () => {
+  test('ignores a remembered topic that no longer exists, selecting nothing', () => {
     const s = M.resolve(T, '', 'deleted/study');
-    assert.equal(s.slug, 'csharp');
+    assert.equal(s.slug, null);
+    assert.equal(s.topic, null);
   });
   test('ignores a remembered kind that is not a kind', () => {
     assert.equal(M.resolve(T, '', 'csharp/bogus').kind, 'study');
@@ -123,6 +125,17 @@ describe('model: view', () => {
     assert.equal(w.remember, null);
     assert.equal(w.title, 'devbok');
     assert.equal(w.crumb, '');
+  });
+  test('landing: topics exist but none chosen - hint, nothing active, tabs disabled', () => {
+    const w = M.view(T, '', null);
+    assert.match(w.message, /Pick a topic on the left/);
+    assert.doesNotMatch(w.message, /Unknown topic/);
+    assert.ok(w.sidebar.length === 2 && w.sidebar.every((t) => !t.active));
+    assert.ok(w.tabs.every((t) => t.disabled));
+    assert.equal(w.src, null);
+    assert.equal(w.remember, null);
+    assert.equal(w.crumb, '');
+    assert.equal(w.title, 'devbok');
   });
   test('no topics yet: points at /devbok-new', () => {
     const w = M.view([], '', null);
