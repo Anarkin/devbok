@@ -39,6 +39,27 @@ window.DEVBOK_CATEGORIES = [
 ];
 window.DEVBOK_TOPICS = [
   {
+    "slug": "aspire",
+    "title": ".NET Aspire",
+    "topic": ".NET Aspire",
+    "category": "ops",
+    "accent": "#7c3aed",
+    "created": "2026-09-08",
+    "kinds": {
+      "study": [],
+      "experience": [],
+      "interview": [],
+      "cheatsheet": [
+        {
+          "v": 1,
+          "generated": "2026-09-08",
+          "prompt": "ccd2d4a9",
+          "file": "topics/aspire/cheatsheet.v1.html"
+        }
+      ]
+    }
+  },
+  {
     "slug": "angular",
     "title": "Angular",
     "topic": "Angular",
@@ -130,9 +151,30 @@ window.DEVBOK_TOPICS = [
     "accent": "#512bd4",
     "created": "2026-09-08",
     "kinds": {
-      "study": [],
-      "experience": [],
-      "interview": [],
+      "study": [
+        {
+          "v": 1,
+          "generated": "2026-09-08",
+          "prompt": "3e395ac4",
+          "file": "topics/aspnet/study.v1.html"
+        }
+      ],
+      "experience": [
+        {
+          "v": 1,
+          "generated": "2026-09-08",
+          "prompt": "f284a113",
+          "file": "topics/aspnet/experience.v1.html"
+        }
+      ],
+      "interview": [
+        {
+          "v": 1,
+          "generated": "2026-09-08",
+          "prompt": "880c04f3",
+          "file": "topics/aspnet/interview.v1.html"
+        }
+      ],
       "cheatsheet": [
         {
           "v": 1,
@@ -332,6 +374,27 @@ window.DEVBOK_TOPICS = [
     }
   },
   {
+    "slug": "entityframework",
+    "title": "Entity Framework",
+    "topic": "Entity Framework",
+    "category": "data",
+    "accent": "#512bd4",
+    "created": "2026-09-08",
+    "kinds": {
+      "study": [],
+      "experience": [],
+      "interview": [],
+      "cheatsheet": [
+        {
+          "v": 1,
+          "generated": "2026-09-08",
+          "prompt": "ccd2d4a9",
+          "file": "topics/entityframework/cheatsheet.v1.html"
+        }
+      ]
+    }
+  },
+  {
     "slug": "jsts",
     "title": "JavaScript & TypeScript",
     "topic": "JavaScript and TypeScript",
@@ -381,6 +444,41 @@ window.DEVBOK_TOPICS = [
     "accent": "#c2410c",
     "created": "2026-09-08",
     "kinds": {
+      "study": [
+        {
+          "v": 1,
+          "generated": "2026-09-08",
+          "prompt": "3e395ac4",
+          "file": "topics/modernization/study.v1.html"
+        }
+      ],
+      "experience": [
+        {
+          "v": 1,
+          "generated": "2026-09-08",
+          "prompt": "f284a113",
+          "file": "topics/modernization/experience.v1.html"
+        }
+      ],
+      "interview": [],
+      "cheatsheet": [
+        {
+          "v": 1,
+          "generated": "2026-09-08",
+          "prompt": "ccd2d4a9",
+          "file": "topics/modernization/cheatsheet.v1.html"
+        }
+      ]
+    }
+  },
+  {
+    "slug": "mongo",
+    "title": "MongoDB",
+    "topic": "MongoDB",
+    "category": "data",
+    "accent": "#13aa52",
+    "created": "2026-09-08",
+    "kinds": {
       "study": [],
       "experience": [],
       "interview": [],
@@ -389,7 +487,7 @@ window.DEVBOK_TOPICS = [
           "v": 1,
           "generated": "2026-09-08",
           "prompt": "ccd2d4a9",
-          "file": "topics/modernization/cheatsheet.v1.html"
+          "file": "topics/mongo/cheatsheet.v1.html"
         }
       ]
     }
@@ -486,9 +584,30 @@ window.DEVBOK_TOPICS = [
     "accent": "#336791",
     "created": "2026-09-08",
     "kinds": {
-      "study": [],
-      "experience": [],
-      "interview": [],
+      "study": [
+        {
+          "v": 1,
+          "generated": "2026-09-08",
+          "prompt": "3e395ac4",
+          "file": "topics/sql/study.v1.html"
+        }
+      ],
+      "experience": [
+        {
+          "v": 1,
+          "generated": "2026-09-08",
+          "prompt": "f284a113",
+          "file": "topics/sql/experience.v1.html"
+        }
+      ],
+      "interview": [
+        {
+          "v": 1,
+          "generated": "2026-09-08",
+          "prompt": "880c04f3",
+          "file": "topics/sql/interview.v1.html"
+        }
+      ],
       "cheatsheet": [
         {
           "v": 1,

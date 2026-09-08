@@ -1,0 +1,58 @@
+{
+  "slug": "sql",
+  "title": "SQL (SQL Server & PostgreSQL)",
+  "topic": "SQL Server and PostgreSQL (if they differ, mention both separately)",
+  "category": "data",
+  "accent": "#336791",
+  "created": "2026-09-08",
+  "kinds": {
+    "study": {
+      "next": 2,
+      "versions": [
+        {
+          "v": 1,
+          "generated": "2026-09-08",
+          "prompt": "3e395ac4",
+          "file": "study.v1.html"
+        }
+      ],
+      "pending": []
+    },
+    "experience": {
+      "next": 2,
+      "versions": [
+        {
+          "v": 1,
+          "generated": "2026-09-08",
+          "prompt": "f284a113",
+          "file": "experience.v1.html"
+        }
+      ],
+      "pending": []
+    },
+    "interview": {
+      "next": 2,
+      "versions": [
+        {
+          "v": 1,
+          "generated": "2026-09-08",
+          "prompt": "880c04f3",
+          "file": "interview.v1.html"
+        }
+      ],
+      "pending": []
+    },
+    "cheatsheet": {
+      "next": 2,
+      "versions": [
+        {
+          "v": 1,
+          "generated": "2026-09-08",
+          "prompt": "ccd2d4a9",
+          "file": "cheatsheet.v1.html"
+        }
+      ],
+      "pending": []
+    }
+  }
+}

@@ -1,0 +1,761 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>SQL (SQL Server &amp; PostgreSQL) · cheatsheet · devbok</title>
+<link rel="preconnect" href="https://fonts.googleapis.com/">
+<link rel="preconnect" href="https://fonts.gstatic.com/" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Cascadia+Mono:wght@400;700&amp;display=swap">
+<style>
+:root { color-scheme: light;
+  --bg: #ffffff; --fg: #111111; --muted: #6b6b6b; --line: #111111; --soft: #f4f4f4; --border: #cccccc;
+  --accent: #336791; --accent-soft: color-mix(in srgb, var(--accent) 12%, var(--bg)); }
+@media (prefers-color-scheme: dark) { :root { color-scheme: dark;
+  --bg: #222222; --fg: #cccccc; --muted: #8f8f8f; --line: #111111; --soft: #2c2c2c; --border: #4a4a4a;
+  --accent: #7fadd2; --accent-soft: color-mix(in srgb, var(--accent) 16%, var(--bg)); } }
+
+*, *::before, *::after { box-sizing: border-box; }
+html { -webkit-text-size-adjust: 100%; }
+body { margin: 0; background: var(--bg); color: var(--fg);
+  font-family: system-ui, sans-serif; font-size: 16px; line-height: 1.6; overflow-wrap: break-word; }
+h1, h2, h3 { font-family: system-ui, sans-serif; font-weight: 700; }
+h2 { font-size: 1.5em; }
+h3 { font-size: 1.17em; }
+a { color: var(--accent); }
+a:focus-visible, button:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+img { max-width: 100%; }
+
+code, kbd, pre, .mono, .chip, .since, .eng, .docs, .hero .meta, .side, dl.rows dd, table.grid { font-family: "Cascadia Mono", Consolas, monospace; font-size: 12px; }
+code { background: var(--soft); border: 1px solid var(--border); border-radius: 3px; padding: 0 .3em; overflow-wrap: anywhere; }
+pre { background: var(--soft); border: 1px solid var(--border); border-radius: 4px;
+  margin: 10px 0 0; padding: 10px 12px; overflow-x: auto; max-width: 100%; line-height: 1.5; }
+pre code { background: none; border: 0; padding: 0; white-space: pre; }
+
+.hero { margin: 0 0 24px; padding: 0 0 24px; border-bottom: 2px solid var(--line); }
+.hero h1 { margin: 0 0 8px; font-size: 2em; line-height: 1.2; font-weight: 700; }
+.hero .meta { margin: 0 0 12px; font-family: "Cascadia Mono", Consolas, monospace; font-size: 12px; color: var(--muted); }
+.hero .summary { margin: 0 0 12px; }
+.hero .chips { display: flex; flex-wrap: wrap; gap: 6px; margin: 0; }
+
+.side { position: fixed; top: 0; bottom: 0; left: 0; width: 260px; display: flex; flex-direction: column; background: var(--bg); border-right: 2px solid var(--line); font-family: "Cascadia Mono", Consolas, monospace; font-size: 12px; }
+.units { list-style: none; margin: 0; padding: 12px 0; overflow-y: auto; flex: 1; }
+.units a { display: grid; grid-template-columns: 2.5em 1fr; padding: 9px 20px; color: var(--fg); text-decoration: none; line-height: 1.4; }
+.units .n { color: var(--muted); }
+.units a:hover { background: var(--soft); }
+.units a[aria-current="true"] { background: var(--accent-soft); color: var(--accent); }
+.units a[aria-current="true"] .n { color: var(--accent); }
+.side footer { padding: 12px 20px; border-top: 2px solid var(--line); color: var(--muted); line-height: 1.5; }
+
+.content { margin-left: 260px; padding: 24px; max-width: 120ch; min-width: 0; }
+.unit { border-top: 2px solid var(--line); margin: 0 0 26px; padding: 14px 0 0; min-width: 0; }
+.unit > header { display: flex; flex-wrap: wrap; align-items: baseline; gap: 4px 14px; margin: 0 0 4px; min-width: 0; }
+.unit h2 { margin: 0; line-height: 1.25; }
+.unit h2 .n { font-family: "Cascadia Mono", Consolas, monospace; font-size: 12px; color: var(--muted); margin-right: 10px; }
+.unit h3 { margin: 16px 0 0; }
+.unit p { margin: 8px 0 0; }
+.docs { color: var(--muted); }
+.docs a { color: var(--accent); text-decoration: none; }
+.docs a:hover { text-decoration: underline; }
+
+dl.rows { display: grid; grid-template-columns: minmax(0, 32ch) minmax(0, 1fr);
+  margin: 12px 0 0; border-top: 1px solid var(--border); min-width: 0; }
+dl.rows dt { grid-column: 1; margin: 0; padding: 6px 14px 6px 0; border-bottom: 1px solid var(--border);
+  min-width: 0; line-height: 1.35; }
+dl.rows dd { grid-column: 2; margin: 0; padding: 7px 0 6px; border-bottom: 1px solid var(--border);
+  min-width: 0; line-height: 1.5; overflow-wrap: anywhere; }
+dl.rows dd code { background: none; border: 0; padding: 0; }
+.cmt { color: var(--muted); }
+
+.chip { display: inline-block; text-transform: uppercase; letter-spacing: .03em;
+  background: var(--soft); border: 1px solid var(--border); border-radius: 4px; padding: 2px 7px; }
+.since { display: inline-block; border: 1px solid var(--accent); border-radius: 4px;
+  padding: 0 5px; color: var(--accent); white-space: nowrap; }
+.eng { display: inline-block; border: 1px solid var(--border); border-radius: 4px; padding: 0 5px;
+  color: var(--muted); white-space: nowrap; }
+.note { background: var(--soft); border-left: 3px solid var(--accent); padding: 8px 12px; margin: 12px 0 0; }
+.note p { margin: 0; }
+
+.tw { overflow-x: auto; margin: 12px 0 0; min-width: 0; }
+table.grid { border-collapse: collapse; width: 100%; }
+table.grid th { text-align: left; font-weight: 400; color: var(--muted);
+  border-bottom: 1px solid var(--border); padding: 6px 14px 6px 0; vertical-align: bottom; }
+table.grid td { border-bottom: 1px solid var(--border); padding: 6px 14px 6px 0; vertical-align: top; }
+table.grid td code { background: none; border: 0; padding: 0; }
+table.grid tr.hi td { background: var(--accent-soft); }
+
+ul.tight { margin: 12px 0 0; padding-left: 1.1em; }
+ul.tight li { margin: 0 0 3px; }
+ul.tight code { overflow-wrap: anywhere; }
+
+.navtoggle { display: none; position: fixed; top: 10px; left: 10px; z-index: 30;
+  font-family: "Cascadia Mono", Consolas, monospace; font-size: 12px; color: var(--fg);
+  background: var(--bg); border: 1px solid var(--line); border-radius: 4px; padding: 6px 10px; cursor: pointer; }
+@media (max-width: 720px) {
+  .navtoggle { display: block; }
+  .side { width: min(260px, 84%); transform: translateX(-102%); transition: transform .15s ease; z-index: 25; }
+  body.nav-open .side { transform: none; }
+  .content { margin-left: 0; padding: 52px 16px 24px; }
+  dl.rows { grid-template-columns: minmax(0, 1fr); }
+  dl.rows dt { padding: 6px 0 0; border-bottom: 0; font-weight: 600; }
+  dl.rows dd { padding: 2px 0 7px; }
+}
+
+@media print {
+  :root { color-scheme: light;
+    --bg: #ffffff; --fg: #000000; --muted: #444444; --line: #000000; --soft: #ffffff; --border: #999999;
+    --accent: #000000; --accent-soft: #ffffff; }
+  .side, .navtoggle { display: none !important; }
+  body { font-size: 8pt; line-height: 1.3; background: #fff; color: #000; }
+  .content { margin: 0; padding: 0; max-width: 100%; }
+  code, kbd, pre, .chip, .since, .eng, .docs, .hero .meta, dl.rows dd, table.grid { font-size: 6.5pt; }
+  .hero { padding-bottom: 8pt; margin-bottom: 10pt; border-bottom: 1pt solid #000; }
+  .hero h1 { font-size: 15pt; }
+  .unit { break-inside: avoid; page-break-inside: avoid; margin: 0 0 8pt; padding-top: 6pt; border-top: 1pt solid #000; }
+  .unit h2 { font-size: 10pt; }
+  pre { background: #fff; border: 1pt solid #999; padding: 3pt 5pt; }
+  .note { background: #fff; border-left: 2pt solid #000; }
+  code { border: 0; padding: 0; }
+  a, a:visited { color: #000; text-decoration: none; }
+  a[href]::after { content: ""; }
+  @page { size: A4; margin: 9mm; }
+}
+</style>
+<style>
+/* devbok: the shared code palette (prompts/shared/page.md, "Code"). */
+:root {
+  --code: color-mix(in srgb, var(--accent) 70%, var(--fg));
+  --hl-kw: #a626a4; --hl-str: #50a14f; --hl-num: #986801; --hl-cmt: #6b6b6b; --hl-type: #0184bc; --hl-fn: #4078f2; --hl-attr: #986801;
+}
+@media (prefers-color-scheme: dark) {
+  :root { --hl-kw: #c678dd; --hl-str: #98c379; --hl-num: #d19a66; --hl-cmt: #8f8f8f; --hl-type: #56b6c2; --hl-fn: #61afef; --hl-attr: #e5c07b; }
+}
+code { background: var(--soft); border: 1px solid var(--border); border-radius: 3px; padding: 0 .3em; color: var(--code); overflow-wrap: anywhere; }
+pre code, pre code.hljs { background: none; border: 0; border-radius: 0; padding: 0; color: inherit; white-space: pre; overflow-wrap: normal; }
+.hljs { color: var(--fg); background: transparent; }
+.hljs-keyword, .hljs-built_in, .hljs-literal, .hljs-selector-tag { color: var(--hl-kw); }
+.hljs-string, .hljs-regexp, .hljs-selector-attr { color: var(--hl-str); }
+.hljs-number, .hljs-symbol { color: var(--hl-num); }
+.hljs-comment, .hljs-quote, .hljs-doctag { color: var(--hl-cmt); font-style: italic; }
+.hljs-title, .hljs-title.class_, .hljs-type, .hljs-name, .hljs-section, .hljs-selector-class, .hljs-selector-pseudo { color: var(--hl-type); }
+.hljs-title.function_ { color: var(--hl-fn); }
+.hljs-meta, .hljs-attr, .hljs-attribute, .hljs-tag, .hljs-property, .hljs-variable { color: var(--hl-attr); }
+.hljs-template-tag, .hljs-template-variable { color: var(--hl-attr); }
+.hljs-code, .hljs-formula { color: var(--hl-cmt); }
+.hljs-operator, .hljs-subst, .hljs-punctuation, .hljs-params { color: var(--fg); }
+.hljs-emphasis { font-style: italic; }
+.hljs-strong { font-weight: 700; }
+@media print { code, .hljs, .hljs span { color: #000 !important; background: transparent !important; } }
+</style>
+</head>
+<body>
+<!-- devbok
+slug: sql
+kind: cheatsheet
+version: 1
+topic: "SQL Server and PostgreSQL (if they differ, mention both separately)"
+prompt: cheatsheet.md@ccd2d4a9
+generated: 2026-09-08
+-->
+<button class="navtoggle" type="button" aria-expanded="false" aria-controls="side">units</button>
+<nav class="side" id="side" aria-label="Units">
+  <ol class="units">
+    <li><a href="#u01"><span class="n">01</span><span class="t">Dialect map &amp; connecting</span></a></li>
+    <li><a href="#u02"><span class="n">02</span><span class="t">Types, DDL &amp; keys</span></a></li>
+    <li><a href="#u03"><span class="n">03</span><span class="t">Query syntax you use daily</span></a></li>
+    <li><a href="#u04"><span class="n">04</span><span class="t">Text, dates, JSON &amp; regex</span></a></li>
+    <li><a href="#u05"><span class="n">05</span><span class="t">Indexes &amp; constraints</span></a></li>
+    <li><a href="#u06"><span class="n">06</span><span class="t">Plans, stats &amp; tuning</span></a></li>
+    <li><a href="#u07"><span class="n">07</span><span class="t">Concurrency &amp; isolation</span></a></li>
+    <li><a href="#u08"><span class="n">08</span><span class="t">Transactions &amp; procedural code</span></a></li>
+    <li><a href="#u09"><span class="n">09</span><span class="t">CLI commands &amp; flags</span></a></li>
+    <li><a href="#u10"><span class="n">10</span><span class="t">Config, backup &amp; maintenance</span></a></li>
+    <li><a href="#u11"><span class="n">11</span><span class="t">Gotchas, one line each</span></a></li>
+    <li><a href="#u12"><span class="n">12</span><span class="t">Modern vs legacy</span></a></li>
+    <li><a href="#u13"><span class="n">13</span><span class="t">Version timeline</span></a></li>
+  </ol>
+  <footer>SQL (SQL Server &amp; PostgreSQL) · cheatsheet · version 1 · 2026-09-08</footer>
+</nav>
+<main class="content">
+<header class="hero">
+  <h1>SQL (SQL Server &amp; PostgreSQL)</h1>
+  <p class="meta">cheatsheet · PostgreSQL 18.6 &amp; SQL Server 2025 (17.x) CU8 17.0.4075.5 · released 2026-08-13</p>
+  <p class="summary">Two engines side by side on every row: the DDL, query syntax, JSON and regex, index and locking idioms, plan-reading commands, CLI flags and maintenance knobs an engineer touches weekly, each tagged with the version where it became true. It reflects <strong>PostgreSQL 18.6</strong> (2026-08-13 — 18.5 was skipped after a regression) with <strong>19 Beta 3</strong> already out and GA due this month, and <strong>SQL Server 2025 (17.x)</strong>, GA 2025-11-15, at <strong>CU8</strong> (17.0.4075.5, 2026-08-13). Where the two dialects agree the row is written once; where they diverge — upsert, isolation defaults, JSON, identifier folding — both are spelled out, and rows marked <span class="eng">PG</span> or <span class="eng">MSSQL</span> apply to that engine only.</p>
+  <p class="chips"><span class="chip">PostgreSQL 18.6</span> <span class="chip">PG 19 Beta 3 · GA ~2026-09</span> <span class="chip">SQL Server 2025 17.0.4075.5 CU8</span> <span class="chip">compat level 170</span> <span class="chip">SQL 2016 EOL 2026-07-14</span> <span class="chip">PG 14 EOL 2026-11-12</span> <span class="chip">verified 2026-09-08</span></p>
+</header>
+
+<section class="unit" id="u01">
+  <header>
+    <h2><span class="n">01</span>Dialect map &amp; connecting</h2>
+    <span class="docs"><a href="https://www.postgresql.org/docs/18/">docs: PostgreSQL 18</a> · <a href="https://learn.microsoft.com/sql/sql-server/what-s-new-in-sql-server-2025">docs: SQL Server 2025</a></span>
+  </header>
+  <p>Supported versions today: PostgreSQL 14–18 (14 dies 2026-11-12, 13 already dead 2025-11-13); SQL Server 2017–2025 (2016 left extended support 2026-07-14, ESU to 2029-07-17).</p>
+  <div class="tw">
+  <table class="grid">
+    <thead><tr><th>Thing</th><th>PostgreSQL</th><th>SQL Server</th></tr></thead>
+    <tbody>
+      <tr><td>Version string</td><td><code>SELECT version();</code> · <code>SHOW server_version_num;</code> → <code>180006</code></td><td><code>SELECT @@VERSION, SERVERPROPERTY('ProductVersion');</code> → <code>17.0.4075.5</code></td></tr>
+      <tr><td>Behaviour switch</td><td>none — behaviour follows the binary</td><td><code>ALTER DATABASE db SET COMPATIBILITY_LEVEL = 170;</code> <span class="cmt">160 = 2022, 170 = 2025</span></td></tr>
+      <tr class="hi"><td>Identifier folding</td><td>folded to <strong>lower</strong> case unless double-quoted; <code>"Order"</code> ≠ <code>order</code></td><td>case preserved; comparison follows collation, default <code>*_CI_AS</code> = case-insensitive</td></tr>
+      <tr><td>Quoting</td><td><code>"identifier"</code>, <code>'string'</code>, <code>$$body$$</code></td><td><code>[identifier]</code> or <code>"identifier"</code> with <code>QUOTED_IDENTIFIER ON</code>, <code>N'string'</code></td></tr>
+      <tr><td>Namespacing</td><td><code>database.schema.table</code>, one DB per connection, <code>search_path</code></td><td><code>server.database.schema.table</code>, cross-DB queries on one connection, <code>dbo</code> default</td></tr>
+      <tr><td>Concat</td><td><code>||</code> (NULL propagates), <code>concat()</code> (skips NULL)</td><td><code>+</code>, <code>CONCAT()</code>, and <code>||</code> <span class="since">2025</span></td></tr>
+      <tr><td>Row limit</td><td><code>LIMIT 10 OFFSET 20</code> or ANSI <code>FETCH FIRST 10 ROWS ONLY</code></td><td><code>TOP (10)</code>, or <code>OFFSET 20 ROWS FETCH NEXT 10 ROWS ONLY</code> <span class="since">2012</span></td></tr>
+      <tr><td>Cast</td><td><code>x::int</code> or <code>CAST(x AS int)</code></td><td><code>CAST</code> / <code>CONVERT(int, x, style)</code> / <code>TRY_CAST</code></td></tr>
+      <tr><td>Boolean</td><td>real <code>boolean</code> type</td><td><code>bit</code> only; no boolean expression column</td></tr>
+      <tr><td>Statement separator</td><td><code>;</code></td><td><code>;</code> plus <code>GO</code> (a client batch separator, not T-SQL)</td></tr>
+      <tr><td>Wire encryption default</td><td><code>sslmode=prefer</code>; use <code>verify-full</code> in prod</td><td>TDS 8.0 strict (<code>Encrypt=Strict</code>), TLS 1.3 <span class="since">2025</span></td></tr>
+    </tbody>
+  </table>
+  </div>
+  <h3>Connection strings worth memorising</h3>
+<pre><code class="language-bash"># PostgreSQL — libpq URI; sslmode=verify-full is the only one that checks the hostname
+postgresql://app:secret@db.internal:5432/orders?sslmode=verify-full&amp;application_name=api&amp;connect_timeout=5
+
+# SQL Server — ADO.NET; Encrypt=Strict is TDS 8.0 (2022+), Encrypt=True is TLS-over-TDS
+Server=tcp:db.internal,1433;Database=Orders;Authentication=Active Directory Default;Encrypt=Strict;
+  TrustServerCertificate=False;Application Name=api;Connect Timeout=5;Max Pool Size=200
+</code></pre>
+  <div class="note"><p><strong>Pooling differs structurally.</strong> PostgreSQL forks a process per connection (~5–10 MB each): put <code>pgbouncer</code> in <code>transaction</code> mode in front and keep <code>max_connections</code> ≈ 100–300. SQL Server is thread-per-request with client-side pooling built into the driver — the equivalent mistake is leaking pooled connections, not opening too many server-side.</p></div>
+</section>
+
+<section class="unit" id="u02">
+  <header>
+    <h2><span class="n">02</span>Types, DDL &amp; keys</h2>
+    <span class="docs"><a href="https://www.postgresql.org/docs/18/datatype.html">docs: PG data types</a> · <a href="https://learn.microsoft.com/sql/t-sql/data-types/data-types-transact-sql">docs: T-SQL data types</a></span>
+  </header>
+  <div class="tw">
+  <table class="grid">
+    <thead><tr><th>Need</th><th>PostgreSQL</th><th>SQL Server</th></tr></thead>
+    <tbody>
+      <tr><td>Surrogate key</td><td><code>id bigint GENERATED ALWAYS AS IDENTITY PRIMARY KEY</code></td><td><code>id bigint IDENTITY(1,1) PRIMARY KEY</code> or a <code>SEQUENCE</code> <span class="since">2012</span></td></tr>
+      <tr class="hi"><td>UUID key</td><td><code>uuid DEFAULT uuidv7()</code> <span class="since">18</span> <span class="cmt">time-ordered; <code>uuidv4()</code> aliases <code>gen_random_uuid()</code></span></td><td><code>uniqueidentifier DEFAULT NEWSEQUENTIALID()</code> <span class="cmt">never <code>NEWID()</code> on a clustered PK — page splits</span></td></tr>
+      <tr><td>Text</td><td><code>text</code> — no length penalty; <code>varchar(n)</code> only as a constraint</td><td><code>nvarchar(n)</code>; <code>varchar(n)</code> with a UTF-8 collation; <code>text</code>/<code>ntext</code> deprecated</td></tr>
+      <tr><td>Exact money</td><td><code>numeric(19,4)</code> <span class="cmt">avoid the <code>money</code> type</span></td><td><code>decimal(19,4)</code> <span class="cmt">avoid <code>money</code>/<code>float</code></span></td></tr>
+      <tr><td>Timestamp</td><td><code>timestamptz</code> — stored UTC, rendered in <code>TimeZone</code>. Never bare <code>timestamp</code>.</td><td><code>datetime2(3)</code> or <code>datetimeoffset(3)</code>. Never <code>datetime</code> (3.33 ms rounding).</td></tr>
+      <tr><td>JSON</td><td><code>jsonb</code> — binary, indexable. <code>json</code> keeps raw text.</td><td><code>json</code> native binary type <span class="since">2025</span>; before that <code>nvarchar(max)</code> + <code>ISJSON</code> check</td></tr>
+      <tr><td>Binary</td><td><code>bytea</code>; large objects via <code>lo_*</code> rarely worth it</td><td><code>varbinary(max)</code>; <code>FILESTREAM</code> for &gt; 1 MB blobs</td></tr>
+      <tr><td>Embeddings</td><td><code>vector(1536)</code> via <code>pgvector</code> extension (HNSW / IVFFlat)</td><td><code>vector(1536)</code> native <span class="since">2025</span>; <code>CREATE VECTOR INDEX</code> needs <code>PREVIEW_FEATURES</code></td></tr>
+      <tr><td>Enum-ish</td><td><code>CREATE TYPE status AS ENUM (...)</code>, or a lookup table + FK</td><td>lookup table + FK, or a <code>CHECK</code> constraint</td></tr>
+      <tr><td>Arrays / multi-value</td><td><code>text[]</code>, <code>int4range</code>, <code>tstzrange</code> — first class</td><td>none — use a child table, a <code>json</code> column, or a table-valued parameter</td></tr>
+      <tr><td>Computed column</td><td><code>GENERATED ALWAYS AS (a*b) STORED</code>; <strong>virtual is the default</strong> <span class="since">18</span></td><td><code>AS (a*b) PERSISTED</code>; non-persisted computed columns are virtual</td></tr>
+      <tr><td>System versioning</td><td><code>PRIMARY KEY (id, valid_at WITHOUT OVERLAPS)</code> + FK <code>PERIOD</code> <span class="since">18</span></td><td><code>WITH (SYSTEM_VERSIONING = ON)</code> temporal tables <span class="since">2016</span></td></tr>
+    </tbody>
+  </table>
+  </div>
+  <h3>DDL that will not take the table down</h3>
+<pre><code class="language-sql">-- PostgreSQL 18: add NOT NULL without an AccessExclusive full scan (was CHECK (c IS NOT NULL) NOT VALID)
+ALTER TABLE orders ADD CONSTRAINT orders_email_nn NOT NULL (email) NOT VALID;  -- instant, rejects new NULLs
+ALTER TABLE orders VALIDATE CONSTRAINT orders_email_nn;                        -- ShareUpdateExclusive, reads+writes continue
+
+-- PostgreSQL: same trick for FK and CHECK (all versions)
+ALTER TABLE orders ADD CONSTRAINT fk_cust FOREIGN KEY (customer_id) REFERENCES customer(id) NOT VALID;
+ALTER TABLE orders VALIDATE CONSTRAINT fk_cust;
+
+-- PostgreSQL: adding a column with a non-volatile default is metadata-only since 11; dropping is metadata-only too
+ALTER TABLE orders ADD COLUMN currency text NOT NULL DEFAULT 'EUR';
+SET lock_timeout = '3s';  -- ALWAYS, before DDL: a queued AccessExclusive lock blocks every reader behind it
+</code></pre>
+<pre><code class="language-sql">-- SQL Server: adding a NOT NULL column with a default is metadata-only in Enterprise since 2012
+ALTER TABLE dbo.Orders ADD Currency char(3) NOT NULL CONSTRAINT DF_Orders_Currency DEFAULT 'EUR';
+-- Untrusted constraint after WITH NOCHECK: the optimizer stops using it. Check for them:
+SELECT name, is_not_trusted FROM sys.check_constraints WHERE is_not_trusted = 1
+UNION ALL SELECT name, is_not_trusted FROM sys.foreign_keys WHERE is_not_trusted = 1;
+ALTER TABLE dbo.Orders WITH CHECK CHECK CONSTRAINT fk_cust;  -- re-trust it
+SET LOCK_TIMEOUT 3000;  -- milliseconds
+</code></pre>
+</section>
+
+<section class="unit" id="u03">
+  <header>
+    <h2><span class="n">03</span>Query syntax you use daily</h2>
+    <span class="docs"><a href="https://www.postgresql.org/docs/18/sql-select.html">docs: PG SELECT</a> · <a href="https://learn.microsoft.com/sql/t-sql/queries/select-transact-sql">docs: T-SQL SELECT</a></span>
+  </header>
+  <h3>Upsert — the one real dialect fork</h3>
+<pre><code class="language-sql">-- PostgreSQL: ON CONFLICT is atomic and needs a unique index on the conflict target
+INSERT INTO inventory (sku, qty) VALUES ('A-1', 5)
+ON CONFLICT (sku) DO UPDATE SET qty = inventory.qty + EXCLUDED.qty, updated_at = now()
+WHERE inventory.qty &lt;&gt; EXCLUDED.qty            -- skip no-op writes: no dead tuple, no WAL
+RETURNING sku, qty;
+-- ON CONFLICT DO NOTHING still burns a sequence value; MERGE exists since 15 but has no ON CONFLICT's atomicity.
+
+-- SQL Server: the safe upsert is NOT bare MERGE. Take the key lock in the same statement.
+BEGIN TRAN;
+  UPDATE dbo.Inventory WITH (UPDLOCK, SERIALIZABLE) SET Qty += @qty WHERE Sku = @sku;
+  IF @@ROWCOUNT = 0 INSERT dbo.Inventory (Sku, Qty) VALUES (@sku, @qty);
+COMMIT;
+</code></pre>
+  <div class="note"><p><code>MERGE</code> on SQL Server has a long tail of open bugs (unique-violation races without <code>HOLDLOCK</code>, wrong results with filtered indexes, halloween-protection costs). It is fine for a single-threaded ETL batch; it is not the concurrent upsert. On PostgreSQL the ranking is the reverse: <code>ON CONFLICT</code> first, <code>MERGE</code> <span class="since">15</span> only for multi-action ETL — and <code>MERGE ... RETURNING</code> plus <code>WHEN NOT MATCHED BY SOURCE</code> arrived in <span class="since">17</span>.</p></div>
+  <h3>Paging, dedup, hierarchy</h3>
+  <dl class="rows">
+    <dt>Keyset (seek) pagination <span class="cmt">both</span></dt>
+    <dd><code>WHERE (created_at, id) &lt; ($1, $2) ORDER BY created_at DESC, id DESC LIMIT 50</code> — O(1) per page. <code>OFFSET 200000</code> reads and throws away 200 000 rows.</dd>
+    <dt>Latest row per group <span class="eng">PG</span></dt>
+    <dd><code>SELECT DISTINCT ON (customer_id) * FROM orders ORDER BY customer_id, created_at DESC;</code> — PG-only, and the cheapest form.</dd>
+    <dt>Latest row per group <span class="cmt">portable</span></dt>
+    <dd><code>ROW_NUMBER() OVER (PARTITION BY customer_id ORDER BY created_at DESC) = 1</code>, or <code>CROSS APPLY</code>/<code>LATERAL</code> + <code>TOP 1</code>/<code>LIMIT 1</code> when the outer set is small.</dd>
+    <dt>Correlated sub-select</dt>
+    <dd><span class="eng">MSSQL</span> <code>CROSS APPLY</code> / <code>OUTER APPLY</code> · <span class="eng">PG</span> <code>JOIN LATERAL</code> / <code>LEFT JOIN LATERAL ... ON true</code>.</dd>
+    <dt>Recursive CTE</dt>
+    <dd><span class="eng">PG</span> needs <code>WITH RECURSIVE</code>; <span class="eng">MSSQL</span> does not, but caps at <code>OPTION (MAXRECURSION 100)</code> by default — set it to <code>0</code> deliberately, never blindly.</dd>
+    <dt>CTE materialisation <span class="eng">PG</span></dt>
+    <dd>Inlined since 12. Force with <code>WITH x AS MATERIALIZED (...)</code> / <code>NOT MATERIALIZED</code>. On SQL Server a CTE is always just a name — it is re-evaluated per reference.</dd>
+    <dt>Generate a series</dt>
+    <dd><span class="eng">PG</span> <code>generate_series('2026-01-01'::date, '2026-12-31', '1 day')</code> · <span class="eng">MSSQL</span> <code>GENERATE_SERIES(1, 100, 1)</code> <span class="since">2022</span>, else a numbers table.</dd>
+    <dt>Window frame reuse</dt>
+    <dd>Both support the <code>WINDOW w AS (...)</code> clause — SQL Server got it in <span class="since">2022</span>. <code>ROWS BETWEEN</code> ≠ <code>RANGE BETWEEN</code>: <code>RANGE</code> ties peers together and is the default.</dd>
+    <dt>NULL-safe equality</dt>
+    <dd><code>a IS NOT DISTINCT FROM b</code> — PG always, SQL Server <span class="since">2022</span>. Replaces <code>(a = b OR (a IS NULL AND b IS NULL))</code>.</dd>
+    <dt>Aggregate to string</dt>
+    <dd><code>STRING_AGG(name, ',') WITHIN GROUP (ORDER BY name)</code> <span class="eng">MSSQL</span> <span class="since">2017, ordering 2022</span> · <code>string_agg(name, ',' ORDER BY name)</code> <span class="eng">PG</span>.</dd>
+    <dt>Explicit ordering of NULLs</dt>
+    <dd><span class="eng">PG</span> <code>ORDER BY x DESC NULLS LAST</code> (NULLs sort high by default). <span class="eng">MSSQL</span> has no clause — NULLs sort low; emulate with <code>ORDER BY CASE WHEN x IS NULL THEN 1 ELSE 0 END, x</code>.</dd>
+  </dl>
+</section>
+
+<section class="unit" id="u04">
+  <header>
+    <h2><span class="n">04</span>Text, dates, JSON &amp; regex</h2>
+    <span class="docs"><a href="https://www.postgresql.org/docs/18/functions-json.html">docs: PG JSON functions</a> · <a href="https://learn.microsoft.com/sql/t-sql/functions/regular-expressions-functions-transact-sql">docs: T-SQL regex functions</a></span>
+  </header>
+  <div class="tw">
+  <table class="grid">
+    <thead><tr><th>Task</th><th>PostgreSQL</th><th>SQL Server</th></tr></thead>
+    <tbody>
+      <tr><td>Now, UTC</td><td><code>now()</code> (tx start) · <code>clock_timestamp()</code> (real) · <code>statement_timestamp()</code></td><td><code>SYSUTCDATETIME()</code> · <code>SYSDATETIMEOFFSET()</code>; <code>GETDATE()</code> is low-precision local</td></tr>
+      <tr><td>Today</td><td><code>current_date</code></td><td><code>CURRENT_DATE</code> <span class="since">2025</span>, else <code>CAST(SYSDATETIME() AS date)</code></td></tr>
+      <tr><td>Truncate to period</td><td><code>date_trunc('month', ts)</code></td><td><code>DATETRUNC(month, ts)</code> <span class="since">2022</span>, batch-mode optimised <span class="since">2025</span></td></tr>
+      <tr><td>Bucket</td><td><code>date_bin('15 min', ts, timestamptz '2000-01-01')</code></td><td><code>DATE_BUCKET(minute, 15, ts)</code> <span class="since">2022</span></td></tr>
+      <tr><td>Zone conversion</td><td><code>ts AT TIME ZONE 'Europe/Budapest'</code> (IANA)</td><td><code>ts AT TIME ZONE 'Central European Standard Time'</code> <span class="since">2016</span> (Windows names on Windows, IANA on Linux)</td></tr>
+      <tr><td>Interval maths</td><td><code>ts + interval '30 days'</code></td><td><code>DATEADD(day, 30, ts)</code> — <em>number</em> takes <code>bigint</code> <span class="since">2025</span></td></tr>
+      <tr class="hi"><td>Regex match</td><td><code>t ~ '^\d{3}-'</code> / <code>~*</code> case-insensitive; <code>regexp_replace</code>, <code>regexp_matches</code>, <code>regexp_split_to_table</code></td><td><code>REGEXP_LIKE(t, '^\d{3}-')</code> <span class="since">2025</span>; also <code>REGEXP_REPLACE / SUBSTR / INSTR / COUNT / MATCHES / SPLIT_TO_TABLE</code> — before 2025 it was SQLCLR or nothing</td></tr>
+      <tr><td>Split a string</td><td><code>string_to_table(csv, ',')</code> · <code>unnest(string_to_array(csv, ','))</code></td><td><code>STRING_SPLIT(csv, ',', 1)</code> — the third arg returns <code>ordinal</code> <span class="since">2022</span></td></tr>
+      <tr><td>Case-insensitive compare</td><td><code>lower(x) = lower(y)</code> + expression index, <code>citext</code>, or a nondeterministic ICU collation</td><td>free — default collations are <code>_CI_AS</code>; <code>COLLATE Latin1_General_BIN2</code> when you want it case-sensitive</td></tr>
+      <tr><td>Fuzzy match</td><td><code>pg_trgm</code>: <code>similarity(a,b)</code>, <code>a % b</code>; <code>fuzzystrmatch</code>: <code>levenshtein()</code></td><td><code>EDIT_DISTANCE</code>, <code>JARO_WINKLER_SIMILARITY</code> <span class="since">2025</span> <span class="cmt">needs <code>PREVIEW_FEATURES</code></span></td></tr>
+      <tr><td>Base64</td><td><code>encode(b, 'base64')</code> / <code>decode(t, 'base64')</code></td><td><code>BASE64_ENCODE</code> / <code>BASE64_DECODE</code> <span class="since">2025</span></td></tr>
+    </tbody>
+  </table>
+  </div>
+  <h3>JSON, both engines</h3>
+<pre><code class="language-sql">-- PostgreSQL: jsonb. -&gt; keeps json, -&gt;&gt; returns text, #&gt;&gt; takes a path.
+SELECT doc -&gt;&gt; 'id', doc -&gt; 'items' -&gt; 0 -&gt;&gt; 'sku', doc #&gt;&gt; '{shipping,city}' FROM events;
+SELECT * FROM events WHERE doc @&gt; '{"status":"paid"}';            -- containment; GIN-indexable
+CREATE INDEX ix_events_doc ON events USING gin (doc jsonb_path_ops);  -- @&gt; only, ~2x smaller
+CREATE INDEX ix_events_status ON events ((doc -&gt;&gt; 'status'));         -- expression index for one key
+SELECT * FROM json_table(doc, '$.items[*]' COLUMNS (sku text PATH '$.sku')) t;  -- SQL/JSON, PG 17
+
+-- SQL Server 2025: native json type, no more nvarchar(max) + ISJSON
+ALTER TABLE dbo.Events ALTER COLUMN Doc json NOT NULL;
+SELECT JSON_VALUE(Doc, '$.id'), JSON_QUERY(Doc, '$.items') FROM dbo.Events;
+SELECT e.Id, i.sku FROM dbo.Events e CROSS APPLY OPENJSON(e.Doc, '$.items')
+  WITH (sku nvarchar(50) '$.sku', qty int '$.qty') i;
+SELECT JSON_OBJECTAGG(k VALUE v), JSON_ARRAYAGG(v ORDER BY k) FROM dbo.Settings;  -- 2025
+-- Indexing JSON on SQL Server is still a PERSISTED computed column + an index on it.
+</code></pre>
+  <div class="note"><p><strong>Rule of thumb both sides:</strong> anything you filter or join on gets promoted out of the document into a real column (generated/computed, indexed). JSON is for the tail of attributes you only project — not for your access paths.</p></div>
+</section>
+
+<section class="unit" id="u05">
+  <header>
+    <h2><span class="n">05</span>Indexes &amp; constraints</h2>
+    <span class="docs"><a href="https://www.postgresql.org/docs/18/indexes.html">docs: PG indexes</a> · <a href="https://learn.microsoft.com/sql/relational-databases/indexes/indexes">docs: SQL Server indexes</a></span>
+  </header>
+  <div class="tw">
+  <table class="grid">
+    <thead><tr><th>Shape</th><th>PostgreSQL</th><th>SQL Server</th></tr></thead>
+    <tbody>
+      <tr class="hi"><td>Table storage</td><td>heap always; every index is secondary and stores a <code>ctid</code></td><td>the <strong>clustered index is the table</strong>; every nonclustered index carries the clustering key — keep it narrow, static, increasing</td></tr>
+      <tr><td>Build without blocking</td><td><code>CREATE INDEX CONCURRENTLY</code> / <code>DROP INDEX CONCURRENTLY</code> / <code>REINDEX CONCURRENTLY</code> <span class="since">12</span> — cannot run in a transaction; a failure leaves an <code>INVALID</code> index to drop</td><td><code>WITH (ONLINE = ON, RESUMABLE = ON, MAXDOP = 4)</code> <span class="since">2017/2019, Enterprise</span>; <code>ALTER INDEX ... RESUME</code> after a pause</td></tr>
+      <tr><td>Covering</td><td><code>CREATE INDEX ... (a, b) INCLUDE (c)</code> <span class="since">11</span></td><td><code>CREATE NONCLUSTERED INDEX ... (a, b) INCLUDE (c)</code> <span class="since">2005</span></td></tr>
+      <tr><td>Partial / filtered</td><td><code>WHERE deleted_at IS NULL</code> — any predicate</td><td><code>WHERE IsDeleted = 0</code> — no <code>OR</code>, no expressions, and the query must match the predicate literally</td></tr>
+      <tr><td>Expression index</td><td><code>ON t (lower(email))</code> — native</td><td>index a <code>PERSISTED</code> computed column instead</td></tr>
+      <tr><td>Text search / LIKE '%x%'</td><td>GIN + <code>pg_trgm</code> (<code>gin_trgm_ops</code>); full text via <code>tsvector</code> + GIN</td><td>Full-Text catalogue (<code>CONTAINS</code>, <code>FREETEXT</code>); a leading wildcard scans otherwise</td></tr>
+      <tr><td>Very large append-only</td><td>BRIN (<code>USING brin (created_at)</code>) — kilobytes for a billion rows</td><td>clustered columnstore; ordered <em>nonclustered</em> columnstore <span class="since">2025</span></td></tr>
+      <tr><td>Analytics on OLTP</td><td>columnar via <code>citus</code>/<code>pg_mooncake</code>-class extensions, or ship to a warehouse</td><td>nonclustered columnstore over the rowstore = real-time operational analytics <span class="since">2016</span></td></tr>
+      <tr><td>Hot-page contention</td><td>partition, or hash the key</td><td><code>WITH (OPTIMIZE_FOR_SEQUENTIAL_KEY = ON)</code> <span class="since">2019</span> for last-page insert latch waits</td></tr>
+      <tr><td>Multi-column skipping</td><td><strong>skip scan</strong> on multicolumn B-tree <span class="since">18</span>: a query on the 2nd column can now use <code>(a,b)</code> when <code>a</code> has few distinct values</td><td>optimizer has never done this — order columns by the predicate you actually filter on</td></tr>
+      <tr><td>Unique with NULLs</td><td>multiple NULLs allowed; <code>UNIQUE NULLS NOT DISTINCT</code> <span class="since">15</span> to forbid them</td><td>only <strong>one</strong> NULL allowed; workaround is a filtered unique index <code>WHERE col IS NOT NULL</code></td></tr>
+      <tr><td>No-overlap constraint</td><td><code>EXCLUDE USING gist (room WITH =, during WITH &amp;&amp;)</code></td><td>none — a trigger or a <code>SERIALIZABLE</code> transaction</td></tr>
+      <tr><td>Find unused indexes</td><td><code>pg_stat_user_indexes</code> (<code>idx_scan = 0</code>) + <code>pg_relation_size()</code></td><td><code>sys.dm_db_index_usage_stats</code> — resets on restart, so sample over weeks</td></tr>
+      <tr><td>Find missing indexes</td><td>read plans / <code>pg_stat_statements</code>; no DMV equivalent</td><td><code>sys.dm_db_missing_index_details</code> — a hint list, never a script to run</td></tr>
+    </tbody>
+  </table>
+  </div>
+<pre><code class="language-sql">-- PostgreSQL: safe online index swap
+CREATE INDEX CONCURRENTLY ix_orders_cust_new ON orders (customer_id, created_at DESC) INCLUDE (total);
+DROP INDEX CONCURRENTLY IF EXISTS ix_orders_cust;
+SELECT indexrelid::regclass FROM pg_index WHERE NOT indisvalid;  -- clean up failed CIC runs
+-- Bloat / size, fastest useful check
+SELECT relname, pg_size_pretty(pg_total_relation_size(oid)) FROM pg_class ORDER BY pg_total_relation_size(oid) DESC LIMIT 20;
+</code></pre>
+<pre><code class="language-sql">-- SQL Server: rebuild vs reorganize. Fragmentation alone is a weak signal; page density matters more.
+SELECT i.name, s.avg_fragmentation_in_percent, s.avg_page_space_used_in_percent, s.page_count
+FROM sys.dm_db_index_physical_stats(DB_ID(), NULL, NULL, NULL, 'SAMPLED') s
+JOIN sys.indexes i ON i.object_id = s.object_id AND i.index_id = s.index_id
+WHERE s.page_count &gt; 1000 ORDER BY s.avg_fragmentation_in_percent DESC;
+ALTER INDEX ix_orders_cust ON dbo.Orders REBUILD WITH (ONLINE = ON, RESUMABLE = ON, MAXDOP = 4);
+ALTER INDEX ix_orders_cust ON dbo.Orders REORGANIZE;   -- always online, no stats update
+</code></pre>
+</section>
+
+<section class="unit" id="u06">
+  <header>
+    <h2><span class="n">06</span>Plans, stats &amp; tuning</h2>
+    <span class="docs"><a href="https://www.postgresql.org/docs/18/sql-explain.html">docs: PG EXPLAIN</a> · <a href="https://learn.microsoft.com/sql/relational-databases/performance/monitoring-performance-by-using-the-query-store">docs: Query Store</a></span>
+  </header>
+<pre><code class="language-sql">-- PostgreSQL: the only EXPLAIN worth typing. 18 shows BUFFERS in ANALYZE by default.
+EXPLAIN (ANALYZE, BUFFERS, SETTINGS, WAL, VERBOSE, FORMAT TEXT) SELECT ...;
+-- read: actual rows vs estimate (&gt;10x off = bad stats), "Rows Removed by Filter", "Heap Fetches" (index-only scan
+-- falling back = stale visibility map), external "Sort Method: external merge" (raise work_mem), loops x actual time.
+
+SELECT query, calls, round(total_exec_time) ms, round(mean_exec_time,2) avg_ms, rows
+FROM pg_stat_statements ORDER BY total_exec_time DESC LIMIT 20;   -- extension, load in shared_preload_libraries
+ANALYZE orders;                                   -- refresh stats after a bulk load; autovacuum won't be instant
+ALTER TABLE orders ALTER COLUMN status SET STATISTICS 1000;       -- more histogram buckets on a skewed column
+CREATE STATISTICS st_city_zip (dependencies, ndistinct) ON city, zip FROM addr;  -- extended stats for correlated columns
+SELECT pid, state, wait_event_type, wait_event, now()-query_start AS age, left(query,80)
+FROM pg_stat_activity WHERE state &lt;&gt; 'idle' ORDER BY age DESC;
+</code></pre>
+<pre><code class="language-sql">-- SQL Server: measure first, then read the plan
+SET STATISTICS IO, TIME ON;                        -- logical reads is the tuning currency, not duration
+-- Query Store (on by default for new DBs since 2022; for readable secondaries by default since 2025)
+ALTER DATABASE Orders SET QUERY_STORE = ON (OPERATION_MODE = READ_WRITE, QUERY_CAPTURE_MODE = AUTO);
+SELECT TOP 20 qt.query_sql_text, rs.avg_duration/1000.0 AS avg_ms, rs.count_executions
+FROM sys.query_store_runtime_stats rs
+JOIN sys.query_store_plan p ON p.plan_id = rs.plan_id
+JOIN sys.query_store_query q ON q.query_id = p.query_id
+JOIN sys.query_store_query_text qt ON qt.query_text_id = q.query_text_id
+ORDER BY rs.avg_duration DESC;
+EXEC sp_query_store_force_plan @query_id = 42, @plan_id = 77;      -- plan stability without a plan guide
+-- Blocking / waits right now
+SELECT session_id, blocking_session_id, wait_type, wait_time, last_wait_type, command
+FROM sys.dm_exec_requests WHERE blocking_session_id &lt;&gt; 0;
+</code></pre>
+  <dl class="rows">
+    <dt>Parameter sniffing <span class="eng">MSSQL</span></dt>
+    <dd>Diagnose with Query Store regressed queries. Fixes in order: fix the index → <strong>PSPO</strong> <span class="since">2022</span> and <strong>OPPO</strong> <span class="since">2025</span> (multiple plans per statement) → <code>OPTION (RECOMPILE)</code> on the one statement → <code>OPTIMIZE FOR UNKNOWN</code> last.</dd>
+    <dt>Compile storms <span class="eng">MSSQL</span></dt>
+    <dd><code>OPTIMIZED_SP_EXECUTESQL</code> <span class="since">2025</span> serialises compilation of identical <code>sp_executesql</code> batches — the fix for a thundering herd of ad-hoc parameterised SQL.</dd>
+    <dt>Plan hints <span class="eng">PG</span></dt>
+    <dd>There are none. You get <code>enable_seqscan = off</code> (session-level, a diagnostic not a fix), <code>pg_hint_plan</code>, or better stats. <strong>PG 19</strong> adds <code>pg_plan_advice</code> — the first supported way to nudge plans.</dd>
+    <dt>Cost knobs <span class="eng">PG</span></dt>
+    <dd><code>random_page_cost = 1.1</code> on SSD (default 4.0 assumes spinning disks), <code>effective_cache_size = 0.75 × RAM</code>, <code>effective_io_concurrency = 200</code>.</dd>
+    <dt>Intelligent query processing <span class="eng">MSSQL</span></dt>
+    <dd>Free with the compat level: adaptive joins + memory grant feedback (2017), batch mode on rowstore + scalar UDF inlining + table variable deferred compilation (2019), PSPO + CE feedback + optimized plan forcing (2022), CE feedback for expressions + OPPO + DOP feedback on by default (2025).</dd>
+    <dt>Kill a runaway query</dt>
+    <dd><span class="eng">PG</span> <code>SELECT pg_cancel_backend(pid);</code> then <code>pg_terminate_backend(pid)</code> · <span class="eng">MSSQL</span> <code>KILL 57;</code> (watch <code>estimated_completion_time</code> for rollback).</dd>
+    <dt>Block a known-bad query <span class="eng">MSSQL</span></dt>
+    <dd><code>ABORT_QUERY_EXECUTION</code> Query Store hint <span class="since">2025</span> — refuse a nonessential query outright instead of chasing its owner.</dd>
+  </dl>
+</section>
+
+<section class="unit" id="u07">
+  <header>
+    <h2><span class="n">07</span>Concurrency &amp; isolation</h2>
+    <span class="docs"><a href="https://www.postgresql.org/docs/18/transaction-iso.html">docs: PG transaction isolation</a> · <a href="https://learn.microsoft.com/sql/relational-databases/performance/optimized-locking">docs: optimized locking</a></span>
+  </header>
+  <div class="tw">
+  <table class="grid">
+    <thead><tr><th>Level</th><th>PostgreSQL (MVCC always)</th><th>SQL Server</th></tr></thead>
+    <tbody>
+      <tr class="hi"><td>Default</td><td><code>READ COMMITTED</code> — readers never block writers, writers never block readers</td><td><code>READ COMMITTED</code> with <strong>locking</strong> — readers <em>do</em> block on writers unless RCSI is on (Azure SQL DB defaults RCSI on; a boxed install does not)</td></tr>
+      <tr><td>Snapshot reads</td><td>built in; <code>REPEATABLE READ</code> is a true snapshot for the whole transaction</td><td><code>ALTER DATABASE db SET READ_COMMITTED_SNAPSHOT ON;</code> (statement-level, row versions in tempdb) and/or <code>ALLOW_SNAPSHOT_ISOLATION</code> for transaction-level</td></tr>
+      <tr><td>Read uncommitted</td><td>accepted, silently behaves as <code>READ COMMITTED</code></td><td><code>WITH (NOLOCK)</code> — dirty reads, <em>and</em> missing or duplicated committed rows during page splits. Turn on RCSI instead.</td></tr>
+      <tr><td>Serializable</td><td>SSI — no locks, optimistic; you must retry <code>40001 serialization_failure</code></td><td>range locks — pessimistic; you must handle deadlock error <code>1205</code></td></tr>
+      <tr><td>Lost update at RC</td><td>possible; use <code>SELECT ... FOR UPDATE</code> or a <code>WHERE version = @v</code> guard</td><td>possible; use <code>WITH (UPDLOCK)</code> in the read that precedes the write</td></tr>
+      <tr><td>Write conflict</td><td>second writer blocks, then re-reads the row at RC (may silently skip the <code>WHERE</code>)</td><td>lock escalation to table at ~5 000 locks; <strong>optimized locking</strong> <span class="since">2025</span> (needs RCSI + ADR) holds one TID lock and avoids escalation entirely</td></tr>
+      <tr><td>Work queue</td><td><code>SELECT ... FOR UPDATE SKIP LOCKED LIMIT 10</code> <span class="since">9.5</span></td><td><code>WITH (READPAST, UPDLOCK, ROWLOCK)</code>, or <code>DELETE TOP (10) ... OUTPUT deleted.*</code></td></tr>
+      <tr><td>Advisory lock</td><td><code>pg_advisory_xact_lock(hashtext('job:nightly'))</code></td><td><code>sp_getapplock @Resource='job:nightly', @LockMode='Exclusive', @LockOwner='Transaction'</code></td></tr>
+      <tr><td>Deadlock forensics</td><td><code>log_lock_waits = on</code>, <code>deadlock_timeout = 1s</code>; the victim is in the server log</td><td><code>system_health</code> extended event session already captures every deadlock graph — query it, don't add a trace</td></tr>
+      <tr><td>Timeouts to always set</td><td><code>statement_timeout</code>, <code>lock_timeout</code>, <code>idle_in_transaction_session_timeout</code>, <code>transaction_timeout</code> <span class="since">17</span></td><td><code>SET LOCK_TIMEOUT</code>, client <code>CommandTimeout</code>; there is no server-side statement timeout — use Resource Governor</td></tr>
+    </tbody>
+  </table>
+  </div>
+  <div class="note"><p><strong>The one-sentence contrast:</strong> PostgreSQL pays for MVCC in vacuum and bloat, SQL Server pays for locking in blocking — so the PG incident is “autovacuum can’t keep up behind a long transaction” and the SQL Server incident is “a head blocker is holding an X lock while the app waits”. RCSI moves SQL Server onto the PostgreSQL trade-off, with the version store in <code>tempdb</code>.</p></div>
+</section>
+
+<section class="unit" id="u08">
+  <header>
+    <h2><span class="n">08</span>Transactions &amp; procedural code</h2>
+    <span class="docs"><a href="https://www.postgresql.org/docs/18/plpgsql.html">docs: PL/pgSQL</a> · <a href="https://learn.microsoft.com/sql/t-sql/language-elements/try-catch-transact-sql">docs: TRY…CATCH</a></span>
+  </header>
+<pre><code class="language-sql">-- PostgreSQL: a function is always inside the caller's transaction; only a PROCEDURE can COMMIT.
+CREATE OR REPLACE PROCEDURE settle_batch(p_day date)
+LANGUAGE plpgsql AS $$
+DECLARE v_id bigint;
+BEGIN
+  FOR v_id IN SELECT id FROM invoice WHERE due = p_day LOOP
+    BEGIN
+      UPDATE invoice SET settled = true WHERE id = v_id;
+      COMMIT;                                   -- procedures only, PG 11+
+    EXCEPTION WHEN serialization_failure THEN   -- 40001: retry is the caller's job in PG
+      RAISE NOTICE 'retry %', v_id;
+    END;
+  END LOOP;
+END $$;
+-- Any BEGIN...EXCEPTION block creates a subtransaction (XID). Millions of them = SLRU contention. Avoid in hot loops.
+SET default_transaction_isolation = 'read committed';
+SAVEPOINT sp1;  ROLLBACK TO SAVEPOINT sp1;      -- after ANY error the whole tx is aborted until you roll back
+</code></pre>
+<pre><code class="language-sql">-- SQL Server: the header every procedure should have
+CREATE OR ALTER PROCEDURE dbo.SettleBatch @Day date AS
+BEGIN
+  SET NOCOUNT ON;                 -- stop DONE_IN_PROC chatter
+  SET XACT_ABORT ON;              -- make errors roll back the transaction; without it some errors leave it open
+  BEGIN TRY
+    BEGIN TRAN;
+      UPDATE dbo.Invoice SET Settled = 1 WHERE Due = @Day;
+    COMMIT;
+  END TRY
+  BEGIN CATCH
+    IF XACT_STATE() &lt;&gt; 0 ROLLBACK;
+    THROW;                        -- 2012+; RAISERROR loses the original error number
+  END CATCH
+END
+</code></pre>
+  <dl class="rows">
+    <dt>Retryable errors</dt>
+    <dd><span class="eng">PG</span> SQLSTATE <code>40001</code> serialization failure, <code>40P01</code> deadlock · <span class="eng">MSSQL</span> <code>1205</code> deadlock victim, <code>1222</code> lock timeout, <code>49918/40501/40613</code> on Azure SQL. Retry with jitter, cap at 3–5.</dd>
+    <dt>Nested transactions</dt>
+    <dd>Neither engine has them. <span class="eng">MSSQL</span> <code>@@TRANCOUNT</code> only counts; an inner <code>ROLLBACK</code> rolls back everything. <span class="eng">PG</span> uses <code>SAVEPOINT</code>.</dd>
+    <dt>Set-returning function</dt>
+    <dd><span class="eng">PG</span> <code>RETURNS TABLE (...) LANGUAGE sql</code> — inlined when it is a plain SQL function, so prefer <code>LANGUAGE sql</code> over <code>plpgsql</code>. <span class="eng">MSSQL</span> inline TVF (<code>RETURNS TABLE AS RETURN SELECT ...</code>) is inlined; a multi-statement TVF is <strong>not</strong> and estimates 100 rows (1 before 2014).</dd>
+    <dt>Scalar UDFs <span class="eng">MSSQL</span></dt>
+    <dd>Historically a per-row interpreter call and a silent parallelism killer. Froid inlining <span class="since">2019</span> fixes many; check <code>sys.sql_modules.is_inlineable</code> before you trust it.</dd>
+    <dt>Bulk parameters</dt>
+    <dd><span class="eng">PG</span> <code>unnest($1::bigint[], $2::text[])</code> or <code>COPY</code> · <span class="eng">MSSQL</span> table-valued parameter (<code>CREATE TYPE ... AS TABLE</code>) or <code>SqlBulkCopy</code>. Never a loop of single-row round trips.</dd>
+    <dt>Change data out</dt>
+    <dd><span class="eng">PG</span> logical replication / <code>wal2json</code> / Debezium on the replication slot. <span class="eng">MSSQL</span> CDC, change tracking, or <strong>change event streaming</strong> to Event Hubs / Fabric Eventstream as CloudEvents <span class="since">2025, PREVIEW_FEATURES</span>.</dd>
+    <dt>Returning modified rows</dt>
+    <dd><span class="eng">PG</span> <code>RETURNING</code>, and <span class="since">18</span> both versions: <code>UPDATE ... RETURNING OLD.qty AS before, NEW.qty AS after</code>. <span class="eng">MSSQL</span> <code>OUTPUT inserted.*, deleted.*</code> — but <code>OUTPUT ... INTO</code> a table with triggers or FKs silently forbids the direct form.</dd>
+  </dl>
+</section>
+
+<section class="unit" id="u09">
+  <header>
+    <h2><span class="n">09</span>CLI commands &amp; flags</h2>
+    <span class="docs"><a href="https://www.postgresql.org/docs/18/app-psql.html">docs: psql</a> · <a href="https://learn.microsoft.com/sql/tools/sqlcmd/sqlcmd-utility">docs: sqlcmd</a></span>
+  </header>
+<pre><code class="language-bash"># psql — the flags that matter
+psql "postgresql://app@db/orders?sslmode=verify-full" -v ON_ERROR_STOP=1 -f migrate.sql   # exit non-zero on error
+psql -h db -U app -d orders -c "SELECT 1" -At                    # -A unaligned, -t tuples only => scriptable
+psql -X                                                          # ignore ~/.psqlrc in CI
+# inside psql
+\l  \dt+  \d+ orders  \di  \df  \dn  \du        # list db / tables / describe / indexes / functions / schemas / roles
+\x auto        \timing on        \e        \watch 2      # expanded output, timings, $EDITOR, re-run every 2s
+\copy (SELECT * FROM orders) TO 'o.csv' CSV HEADER        # client-side; COPY needs server file access + superuser
+\set ON_ERROR_STOP on   \conninfo   \errverbose   \gexec
+
+# dump / restore / upgrade
+pg_dump -Fc -Z 3 -j 4 -d orders -f orders.dump      # custom format, compressed, parallel dump (needs -Fd for -j on some)
+pg_restore -d orders -j 8 --no-owner --no-privileges orders.dump
+pg_dumpall --globals-only &gt; roles.sql               # roles+tablespaces are NOT in pg_dump
+pg_basebackup -D /data/standby -X stream -c fast -P -R   # -R writes standby.signal + primary_conninfo
+pg_upgrade -b /old/bin -B /new/bin -d /old -D /new --link --swap --jobs 8
+#   18: --swap swaps directories instead of copying; planner statistics now survive the upgrade (no post-upgrade ANALYZE storm)
+pgbench -i -s 100 orders &amp;&amp; pgbench -c 32 -j 8 -T 60 -P 5 orders
+</code></pre>
+<pre><code class="language-bash"># sqlcmd — note go-sqlcmd is the current binary; -C trusts the cert, -N/-Encrypt strict is TDS 8.0
+sqlcmd -S tcp:db,1433 -d Orders -G -Q "SELECT @@VERSION" -b -h -1 -W   # -G Entra ID, -b exit code on error
+sqlcmd -S db -E -i migrate.sql -v Env="prod" -I                        # -E integrated auth, -I quoted identifiers on
+sqlcmd create mssql --accept-eula --tag 2025-latest                    # go-sqlcmd: local container in one line
+bcp Orders.dbo.Events out events.dat -S db -T -n -b 10000              # -n native, -b batch size
+bcp Orders.dbo.Events in events.csv -S db -T -c -t, -F 2 -e err.log
+
+# schema + data as artefacts
+sqlpackage /Action:Extract /SourceConnectionString:"..." /TargetFile:Orders.dacpac
+sqlpackage /Action:Publish /SourceFile:Orders.dacpac /TargetConnectionString:"..." \
+  /p:BlockOnPossibleDataLoss=True /p:GenerateSmartDefaults=True
+
+# backup / restore (T-SQL, not a shell tool)
+BACKUP DATABASE Orders TO DISK='/bak/o.bak' WITH COMPRESSION (ALGORITHM = ZSTD), CHECKSUM, INIT, STATS=5;  -- ZSTD: 2025
+RESTORE DATABASE Orders FROM DISK='/bak/o.bak' WITH MOVE 'Orders' TO '/data/o.mdf', NORECOVERY, REPLACE;
+RESTORE HEADERONLY FROM DISK='/bak/o.bak';   RESTORE VERIFYONLY FROM DISK='/bak/o.bak';
+</code></pre>
+  <dl class="rows">
+    <dt>Tooling, current</dt>
+    <dd><span class="eng">MSSQL</span> SSMS 21 (VS 2022 shell, dark theme, GitHub Copilot) or the <strong>MSSQL extension for VS Code</strong> — <strong>Azure Data Studio retired 2026-02-28</strong>. <span class="eng">PG</span> psql, pgAdmin 4, DBeaver.</dd>
+    <dt>Migrations</dt>
+    <dd>EF Core migrations, Flyway, Liquibase, <code>dbmate</code>/<code>sqitch</code> (PG); DACPAC/<code>sqlpackage</code> or SSDT for state-based SQL Server. Pick one model — state-based and migration-based do not mix.</dd>
+    <dt>Local container</dt>
+    <dd><code>docker run -e ACCEPT_EULA=Y -e MSSQL_SA_PASSWORD=... -p 1433:1433 mcr.microsoft.com/mssql/server:2025-latest</code> · <code>docker run -e POSTGRES_PASSWORD=... -p 5432:5432 postgres:18</code></dd>
+    <dt>Ad-hoc triage scripts</dt>
+    <dd><span class="eng">MSSQL</span> <code>sp_WhoIsActive</code>, Brent Ozar First Responder Kit (<code>sp_Blitz</code>, <code>sp_BlitzCache</code>), Ola Hallengren maintenance solution. <span class="eng">PG</span> <code>pg_stat_statements</code>, <code>pgbadger</code>, <code>pg_activity</code>, <code>pgmetrics</code>.</dd>
+  </dl>
+</section>
+
+<section class="unit" id="u10">
+  <header>
+    <h2><span class="n">10</span>Config, backup &amp; maintenance</h2>
+    <span class="docs"><a href="https://www.postgresql.org/docs/18/runtime-config.html">docs: PG server config</a> · <a href="https://learn.microsoft.com/sql/database-engine/configure-windows/server-configuration-options-sql-server">docs: sp_configure</a></span>
+  </header>
+  <div class="tw">
+  <table class="grid">
+    <thead><tr><th>Knob</th><th>PostgreSQL — set to</th><th>SQL Server — set to</th></tr></thead>
+    <tbody>
+      <tr class="hi"><td>Memory</td><td><code>shared_buffers</code> = 25 % RAM · <code>effective_cache_size</code> = 75 % · <code>work_mem</code> per sort/hash node (start 16–64 MB, it multiplies by nodes × connections) · <code>maintenance_work_mem</code> 1–2 GB</td><td><code>max server memory</code> = RAM − 4 GB − (OS/other instances); <code>min server memory</code> equal to it on a dedicated box</td></tr>
+      <tr><td>Parallelism</td><td><code>max_parallel_workers_per_gather</code> 2–4, <code>max_parallel_workers</code>, <code>parallel_setup_cost</code></td><td><code>MAXDOP</code> = 8 or cores-per-NUMA-node, whichever is lower; <code>cost threshold for parallelism</code> = 50 (the default 5 is from 1997)</td></tr>
+      <tr><td>Async I/O</td><td><code>io_method</code> <span class="since">18</span> — default <code>worker</code> (3 <code>io_workers</code>); <code>io_uring</code> on modern Linux; <code>sync</code> restores 17 behaviour</td><td>storage-side; <code>tempdb</code> on the fastest device, one data file per core up to 8 (auto-configured by setup since 2016)</td></tr>
+      <tr><td>WAL / log</td><td><code>max_wal_size</code> 4–16 GB, <code>wal_compression = zstd</code> <span class="since">15</span>, <code>checkpoint_completion_target = 0.9</code>, <code>synchronous_commit</code> (<code>off</code> trades durability for throughput)</td><td>log on its own volume, pre-size it, <code>VLF</code> count under a few hundred, <code>DELAYED_DURABILITY</code> for the same trade</td></tr>
+      <tr><td>Vacuum / cleanup</td><td><code>autovacuum_vacuum_scale_factor = 0.05</code> on big tables, <code>autovacuum_vacuum_insert_threshold</code> <span class="since">13</span>, <code>autovacuum_max_workers</code>, <code>autovacuum_vacuum_cost_delay = 2ms</code></td><td>no vacuum; instead <code>ghost cleanup</code>, index maintenance jobs, and <code>tempdb</code> version store growth under RCSI</td></tr>
+      <tr><td>Statistics</td><td><code>default_statistics_target = 100</code> (raise per column, not globally); <code>ANALYZE</code> after bulk loads</td><td><code>AUTO_UPDATE_STATISTICS</code> on, <code>AUTO_UPDATE_STATISTICS_ASYNC</code> on for OLTP; the 20 % + 500-row trigger is now sqrt-based (2016+)</td></tr>
+      <tr><td>Integrity check</td><td><code>amcheck</code> extension: <code>bt_index_check()</code>, <code>pg_amcheck --all --heapallindexed</code>; checksums <strong>on by default</strong> <span class="since">18</span></td><td><code>DBCC CHECKDB WITH DATA_PURITY, NO_INFOMSGS</code> weekly; restore-and-check on a secondary if the window is tight</td></tr>
+      <tr><td>Backups</td><td><code>pgBackRest</code> or <code>barman</code> (WAL archiving + PITR). <code>pg_dump</code> is a logical export, <strong>not</strong> a backup strategy.</td><td>FULL + DIFF + LOG chain; <code>WITH COMPRESSION (ALGORITHM = ZSTD)</code> <span class="since">2025</span>, backup to URL with immutable blob storage <span class="since">2025</span>, backup <code>CHECKSUM</code> always</td></tr>
+      <tr><td>HA</td><td>streaming replication + <code>Patroni</code>/<code>repmgr</code>; <code>synchronous_standby_names</code> for zero-RPO; logical replication for selective/major-version moves</td><td>Always On AG (contained AGs, distributed AGs between contained AGs <span class="since">2025</span>), FCI, log shipping; full+differential backups on any secondary <span class="since">2025</span></td></tr>
+      <tr><td>Auth</td><td><code>scram-sha-256</code> in <code>pg_hba.conf</code>; <code>md5</code> <strong>deprecated</strong> <span class="since">18</span>; <code>oauth</code> method new <span class="since">18</span></td><td>Microsoft Entra ID + managed identity (Arc-enabled) <span class="since">2025</span>; PBKDF2 password hashing on by default <span class="since">2025</span></td></tr>
+      <tr><td>Resource limits</td><td><code>ALTER ROLE app SET statement_timeout='30s'</code>; connection limits per role/db; <code>pgbouncer</code> pools</td><td>Resource Governor — <strong>now in Standard edition</strong> <span class="since">2025</span> — plus <code>tempdb</code> space resource governance <span class="since">2025</span></td></tr>
+    </tbody>
+  </table>
+  </div>
+<pre><code class="language-sql">-- PostgreSQL: the four queries that answer "why is it slow right now"
+SELECT * FROM pg_stat_activity WHERE backend_xmin IS NOT NULL ORDER BY xact_start;   -- oldest tx blocks vacuum
+SELECT relname, n_dead_tup, last_autovacuum, last_autoanalyze FROM pg_stat_user_tables ORDER BY n_dead_tup DESC LIMIT 10;
+SELECT datname, age(datfrozenxid) FROM pg_database ORDER BY 2 DESC;   -- &gt; 200M: wraparound risk, act now
+SELECT slot_name, active, pg_size_pretty(pg_wal_lsn_diff(pg_current_wal_lsn(), restart_lsn)) AS retained FROM pg_replication_slots;
+</code></pre>
+</section>
+
+<section class="unit" id="u11">
+  <header>
+    <h2><span class="n">11</span>Gotchas, one line each</h2>
+    <span class="docs"><a href="https://wiki.postgresql.org/wiki/Don%27t_Do_This">docs: PG &ldquo;Don't do this&rdquo;</a></span>
+  </header>
+  <h3>PostgreSQL</h3>
+  <ul class="tight">
+    <li>An <em>idle in transaction</em> session pins <code>xmin</code>: vacuum stops, bloat grows, wraparound clock ticks. Set <code>idle_in_transaction_session_timeout</code>.</li>
+    <li><code>COUNT(*)</code> on a big table is a full scan — the visibility map only helps index-only scans; use <code>pg_class.reltuples</code> for an estimate.</li>
+    <li><code>work_mem</code> is <em>per node per worker</em>: 64 MB × 8 nodes × 4 workers × 50 sessions is not 64 MB.</li>
+    <li>Unquoted identifiers fold to lower case; ORMs that quote <code>"CamelCase"</code> force you to quote forever.</li>
+    <li><code>char(n)</code> pads with spaces and is never faster than <code>text</code>; <code>timestamp</code> without a zone loses the offset; <code>money</code> depends on <code>lc_monetary</code>.</li>
+    <li>A DDL statement waits for an <code>AccessExclusive</code> lock — and every reader queues <em>behind</em> it. Always <code>SET lock_timeout</code> first and retry.</li>
+    <li>Deep <code>OFFSET</code> pagination is O(offset); keyset pagination is O(1).</li>
+    <li><code>REINDEX</code> without <code>CONCURRENTLY</code> takes an exclusive lock; <code>VACUUM FULL</code> rewrites the table and takes one for the whole rewrite (PG 19's <code>REPACK CONCURRENTLY</code> finally fixes this).</li>
+    <li>A dropped or inactive replication slot is either retaining WAL until the disk fills, or losing you the subscriber. Monitor both.</li>
+    <li>Upgrading the OS can change ICU/glibc collation ordering and silently corrupt text indexes — <code>REINDEX</code> after any libc change.</li>
+    <li>PG 18 defaults generated columns to <strong>virtual</strong>: an existing script that assumed <code>STORED</code> now computes at read time. Say <code>STORED</code> explicitly.</li>
+  </ul>
+  <h3>SQL Server</h3>
+  <ul class="tight">
+    <li><code>WITH (NOLOCK)</code> is not "read uncommitted, no big deal": it can return a committed row twice or skip it entirely. RCSI is the answer.</li>
+    <li>Implicit conversion kills seeks: an <code>nvarchar</code> parameter against a <code>varchar</code> column scans. Check the plan for <code>CONVERT_IMPLICIT</code>.</li>
+    <li>Non-SARGable predicates: <code>WHERE YEAR(d) = 2026</code>, <code>WHERE col + 0 = @x</code>, <code>WHERE LEFT(name,3) = 'abc'</code> — rewrite as a range.</li>
+    <li>Naming a user procedure <code>sp_something</code> makes the engine look in <code>master</code> first and defeats plan caching.</li>
+    <li><code>MERGE</code> without <code>HOLDLOCK</code> races; several optimizer bugs remain open. Prefer explicit <code>UPDATE</code>+<code>INSERT</code>.</li>
+    <li>Table variables estimate 1 row (100 with deferred compilation, 2019+); temp tables get statistics. Use <code>#temp</code> for anything over a few hundred rows.</li>
+    <li>A unique index allows only <strong>one</strong> NULL; use a filtered unique index for "unique when present".</li>
+    <li><code>SET XACT_ABORT ON</code> or an error can leave a transaction open holding locks; <code>SET NOCOUNT ON</code> or clients pay for row-count messages.</li>
+    <li>Shrinking a data file fragments every index and the space comes straight back — it is not maintenance.</li>
+    <li>Auto-growth in percent, or a 1 MB default, means growth storms; pre-size and set fixed increments, with instant file initialisation enabled.</li>
+    <li>Constraints added <code>WITH NOCHECK</code> are untrusted and the optimizer ignores them for good.</li>
+    <li>SQL Server 2025 features marked <em>preview</em> (vector index, <code>VECTOR_SEARCH</code>, change event streaming, fuzzy matching) need <code>ALTER DATABASE SCOPED CONFIGURATION SET PREVIEW_FEATURES = ON</code> — do not design production around them.</li>
+  </ul>
+</section>
+
+<section class="unit" id="u12">
+  <header>
+    <h2><span class="n">12</span>Modern vs legacy</h2>
+    <span class="docs"><a href="https://learn.microsoft.com/sql/database-engine/deprecated-database-engine-features-in-sql-server-2025">docs: deprecated in SQL Server 2025</a></span>
+  </header>
+  <div class="tw">
+  <table class="grid">
+    <thead><tr><th>Task</th><th>Modern</th><th>Legacy still seen</th><th>Since</th></tr></thead>
+    <tbody>
+      <tr class="hi"><td>Upsert</td><td><span class="eng">PG</span> <code>INSERT … ON CONFLICT DO UPDATE</code> · <span class="eng">MSSQL</span> <code>UPDATE</code>+<code>IF @@ROWCOUNT=0 INSERT</code> under <code>UPDLOCK, SERIALIZABLE</code></td><td><code>MERGE</code> everywhere; <code>IF EXISTS … ELSE …</code> with a race window</td><td>PG 9.5 (2016)</td></tr>
+      <tr><td>Paging</td><td>keyset/seek, or <code>OFFSET … FETCH</code></td><td><code>ROW_NUMBER()</code> CTE, <code>TOP n</code> + <code>NOT IN</code>, <code>SET ROWCOUNT</code></td><td>SQL 2012 · PG 8.4</td></tr>
+      <tr><td>Surrogate keys</td><td><code>GENERATED ALWAYS AS IDENTITY</code> · <code>uuidv7()</code> · <code>NEWSEQUENTIALID()</code></td><td><code>serial</code>/<code>bigserial</code>; random <code>NEWID()</code> as a clustered PK</td><td>PG 10 / PG 18 · SQL 2005</td></tr>
+      <tr><td>String aggregation</td><td><code>STRING_AGG</code> / <code>string_agg</code></td><td><code>FOR XML PATH('') … STUFF()</code>; <code>array_to_string(array_agg(...))</code></td><td>SQL 2017 · PG 9.0</td></tr>
+      <tr class="hi"><td>JSON storage</td><td><span class="eng">PG</span> <code>jsonb</code> + <code>JSON_TABLE</code> · <span class="eng">MSSQL</span> native <code>json</code> type</td><td><span class="eng">PG</span> <code>json</code> text type · <span class="eng">MSSQL</span> <code>nvarchar(max)</code> + <code>ISJSON</code> check constraint</td><td>PG 9.4 / 17 · SQL 2025</td></tr>
+      <tr><td>Pattern matching</td><td><code>REGEXP_LIKE</code>/<code>REGEXP_REPLACE</code> <span class="eng">MSSQL</span>; <code>~</code>/<code>regexp_replace</code> <span class="eng">PG</span></td><td>SQLCLR regex assemblies; <code>LIKE '%[0-9][0-9]%'</code> gymnastics</td><td>SQL 2025</td></tr>
+      <tr><td>Read concurrency</td><td>RCSI on <span class="eng">MSSQL</span>; MVCC is free on <span class="eng">PG</span></td><td><code>WITH (NOLOCK)</code> sprayed on every query</td><td>SQL 2005</td></tr>
+      <tr><td>Write concurrency</td><td>optimized locking (TID locks + LAQ, needs RCSI + ADR) <span class="eng">MSSQL</span>; <code>SKIP LOCKED</code> queues <span class="eng">PG</span></td><td>lock hints and escalation tuning; queue tables polled with <code>UPDLOCK</code> table scans</td><td>SQL 2025 · PG 9.5</td></tr>
+      <tr><td>Adding NOT NULL to a big table</td><td><span class="eng">PG</span> <code>ADD CONSTRAINT … NOT NULL (c) NOT VALID</code> then <code>VALIDATE</code></td><td><code>CHECK (c IS NOT NULL) NOT VALID</code>, or a full-table-lock <code>SET NOT NULL</code></td><td>PG 18</td></tr>
+      <tr><td>Index maintenance</td><td><code>REINDEX CONCURRENTLY</code> · <code>REBUILD WITH (ONLINE=ON, RESUMABLE=ON)</code></td><td>offline rebuild windows; <code>DBCC DBREINDEX</code>; scheduled <code>VACUUM FULL</code></td><td>PG 12 · SQL 2017/2019</td></tr>
+      <tr><td>Plan stability</td><td>Query Store + forced plans <span class="eng">MSSQL</span>; extended statistics + <code>pg_plan_advice</code> <span class="eng">PG 19</span></td><td>plan guides, <code>OPTION (RECOMPILE)</code> on everything, <code>enable_seqscan = off</code> in production</td><td>SQL 2016 · PG 19</td></tr>
+      <tr><td>Authentication</td><td>Entra ID / managed identity <span class="eng">MSSQL</span>; <code>scram-sha-256</code> or <code>oauth</code> <span class="eng">PG</span></td><td>SQL logins with shared passwords; <code>md5</code> in <code>pg_hba.conf</code>; <code>sa</code> in a connection string</td><td>SQL 2022/2025 · PG 10 / 18</td></tr>
+      <tr><td>Major-version upgrade <span class="eng">PG</span></td><td><code>pg_upgrade --link --swap</code>, statistics preserved</td><td>dump/restore with a long outage, then an <code>ANALYZE</code> storm</td><td>PG 18</td></tr>
+      <tr><td>Backup compression <span class="eng">MSSQL</span></td><td><code>WITH COMPRESSION (ALGORITHM = ZSTD)</code></td><td><code>MS_XPRESS</code> default, or third-party backup products</td><td>SQL 2025</td></tr>
+      <tr><td>Analytics tail <span class="eng">MSSQL</span></td><td>Mirroring in Microsoft Fabric</td><td>Azure Synapse Link (<strong>discontinued</strong> in 2025), nightly ETL out of the OLTP box</td><td>SQL 2025</td></tr>
+      <tr><td>Master data / cleansing <span class="eng">MSSQL</span></td><td>owned by the platform team, outside the engine</td><td>Master Data Services and Data Quality Services (<strong>both discontinued</strong> in 2025)</td><td>SQL 2025</td></tr>
+      <tr><td>Similarity search</td><td><span class="eng">MSSQL</span> <code>vector</code> type + <code>VECTOR_DISTANCE</code> · <span class="eng">PG</span> <code>pgvector</code> HNSW</td><td>embeddings in a separate vector database and a join across the network</td><td>SQL 2025 · pgvector 0.5</td></tr>
+      <tr><td>Client tooling <span class="eng">MSSQL</span></td><td>SSMS 21, MSSQL extension for VS Code, <code>go-sqlcmd</code></td><td>Azure Data Studio (retired 2026-02-28), <code>mssql-cli</code>, SSMS 18/19</td><td>2025/2026</td></tr>
+    </tbody>
+  </table>
+  </div>
+</section>
+
+<section class="unit" id="u13">
+  <header>
+    <h2><span class="n">13</span>Version timeline</h2>
+    <span class="docs"><a href="https://www.postgresql.org/support/versioning/">docs: PG versioning policy</a> · <a href="https://learn.microsoft.com/lifecycle/products/">docs: Microsoft lifecycle</a></span>
+  </header>
+  <div class="tw">
+  <table class="grid">
+    <thead><tr><th>Date</th><th>Release</th><th>What changed</th></tr></thead>
+    <tbody>
+      <tr class="hi"><td>~2026-09/10</td><td>PostgreSQL 19 — Beta 3 out 2026-08-13, GA imminent</td><td><code>pg_plan_advice</code> (first supported plan control), <code>REPACK [CONCURRENTLY]</code> replacing <code>VACUUM FULL</code>+<code>CLUSTER</code>, parallel autovacuum with table scoring, logical replication of <strong>sequences</strong> and without a restart at <code>wal_level=replica</code>, SQL/PGQ property graphs, <code>FOR PORTION OF</code>, <code>IGNORE NULLS</code>. <span class="chip">newly stable</span> <em>Note: <code>GROUP BY ALL</code> was reverted in Beta 3 — do not quote it as a 19 feature.</em></td></tr>
+      <tr><td>2026-08-13</td><td>PostgreSQL 18.6, 17.11, 16.15, 15.19, 14.24</td><td>28 CVEs and 110+ bugs; <strong>18.5 was skipped</strong> after a regression. Fixes parallel GIN builds writing bogus <code>reltuples</code> (which stalled autovacuum), <code>btree_gist</code> NaN/bit handling, and an <code>ltree</code> overflow that could corrupt B-tree indexes.</td></tr>
+      <tr><td>2026-08-13</td><td>SQL Server 2025 CU8 — 17.0.4075.5</td><td>12 fixes: backup/restore, PolyBase encryption on Linux, a new <code>sp_adddistributor</code> parameter, JSON and setup fixes, plus seven CVEs. <span class="chip">current build</span></td></tr>
+      <tr><td>2026-07-14</td><td>SQL Server 2016 end of extended support</td><td>ESU available to 2029-07-17. Everything on 2016 is now an unpatched-CVE conversation. <span class="chip">deprecated</span></td></tr>
+      <tr><td>2026-02-28</td><td>Azure Data Studio retired</td><td>Move to the MSSQL extension for VS Code, or SSMS 21.</td></tr>
+      <tr class="hi"><td>2025-11-15</td><td><strong>SQL Server 2025 (17.x) GA</strong> — 17.0.1000.7, compat level 170</td><td>Native <code>json</code> and <code>vector</code> types; <code>REGEXP_*</code> functions; <code>||</code>, <code>CURRENT_DATE</code>, <code>PRODUCT()</code>, <code>UNISTR</code>, <code>BASE64_*</code>, optional <code>SUBSTRING</code> length; <code>JSON_OBJECTAGG</code>/<code>JSON_ARRAYAGG</code>; <strong>optimized locking</strong>; ADR in <code>tempdb</code>; <code>tempdb</code> space resource governance; ZSTD backup compression; <code>OPTIMIZED_SP_EXECUTESQL</code>; OPPO and CE-feedback-for-expressions; DOP feedback and Query Store on secondaries <span class="chip">newly default</span>; Fabric mirroring; PBKDF2 hashes and TLS 1.3/TDS 8.0; Standard edition raised to 32 cores / 256 GB with Resource Governor. <span class="chip">discontinued</span> Web edition, Express Advanced, MDS, DQS, Synapse Link, Purview access policies. <span class="chip">deprecated</span> hot add CPU, lightweight pooling (fiber mode).</td></tr>
+      <tr><td>2025-11-13</td><td>PostgreSQL 13 EOL</td><td>PostgreSQL 14 follows on <strong>2026-11-12</strong>; 5-year support, one major release every September.</td></tr>
+      <tr class="hi"><td>2025-09-25</td><td><strong>PostgreSQL 18</strong></td><td>Asynchronous I/O (<code>io_method = worker</code> <span class="chip">newly default</span>, <code>io_uring</code> available, up to 3× on reads); B-tree <strong>skip scan</strong>; <code>uuidv7()</code>; virtual generated columns <span class="chip">newly default</span>; <code>OLD</code>/<code>NEW</code> in <code>RETURNING</code>; temporal <code>WITHOUT OVERLAPS</code> / <code>PERIOD</code> constraints; <code>NOT NULL … NOT VALID</code>; <code>pg_upgrade</code> keeps planner statistics and gains <code>--swap</code>; data checksums <span class="chip">newly default</span>; OAuth auth; <code>EXPLAIN ANALYZE</code> shows buffers by default; wire protocol 3.2. <span class="chip">deprecated</span> <code>md5</code> password authentication.</td></tr>
+      <tr><td>2024-09-26</td><td>PostgreSQL 17</td><td><code>MERGE … RETURNING</code> and <code>WHEN NOT MATCHED BY SOURCE</code>, <code>JSON_TABLE</code>, <code>COPY … ON_ERROR ignore</code>, incremental <code>pg_basebackup</code>, <code>pg_createsubscriber</code>, <code>transaction_timeout</code>, a far cheaper vacuum memory structure, <code>sslnegotiation=direct</code>.</td></tr>
+      <tr><td>2023-09-14</td><td>PostgreSQL 16</td><td><code>pg_stat_io</code>, logical replication from a standby, parallel <code>FULL</code>/right joins, SQL/JSON constructors.</td></tr>
+      <tr><td>2022-11-16</td><td>SQL Server 2022 (16.x) — mainstream ends 2027-01-11</td><td><code>GENERATE_SERIES</code>, <code>DATE_BUCKET</code>, <code>LEAST</code>/<code>GREATEST</code>, <code>IS [NOT] DISTINCT FROM</code>, <code>WINDOW</code> clause, ordinal <code>STRING_SPLIT</code>, <code>TRIM(LEADING …)</code>, bit functions; PSPO, CE feedback, DOP feedback, memory-grant-feedback persistence; contained AGs; ledger; Query Store on by default for new databases.</td></tr>
+      <tr><td>2022-10-13</td><td>PostgreSQL 15</td><td><code>MERGE</code>, <code>UNIQUE NULLS NOT DISTINCT</code>, <code>security_invoker</code> views, zstd WAL compression, <code>CREATE</code> revoked from <code>public</code> schema <span class="chip">breaking</span>.</td></tr>
+      <tr><td>2019-11-04</td><td>SQL Server 2019 (15.x) — extended ends 2030-01-08</td><td>Scalar UDF inlining, batch mode on rowstore, table-variable deferred compilation, approximate count distinct, resumable online index build, <code>OPTIMIZE_FOR_SEQUENTIAL_KEY</code>, ADR.</td></tr>
+      <tr><td>2017-10-02</td><td>SQL Server 2017 (14.x) — extended ends 2027-10-12</td><td>Linux and containers, <code>STRING_AGG</code>, <code>TRIM</code>, <code>CONCAT_WS</code>, adaptive joins, interleaved execution, memory grant feedback.</td></tr>
+      <tr><td>2016-06-01</td><td>SQL Server 2016 (13.x)</td><td>The practical floor most codebases still assume: Query Store, JSON functions, <code>STRING_SPLIT</code>, temporal tables, row-level security, Always Encrypted, <code>AT TIME ZONE</code>, <code>DROP IF EXISTS</code>, JSON, and "it just runs faster" service-pack-1 feature parity across editions.</td></tr>
+    </tbody>
+  </table>
+  </div>
+  <div class="note"><p><strong>Cadence to expect:</strong> PostgreSQL ships one major every September with a 5-year window and minors every quarter (next scheduled batch 2026-11-12, which is also PG 14's last). SQL Server ships roughly every three years with monthly-to-quarterly CUs; 2025 is at CU8, and CU cadence drops to quarterly after the first year. Anything above the 2025-11 line here is younger than a year — re-verify the exact build before you quote it.</p></div>
+</section>
+</main>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.11.1/highlight.min.js"></script>
+<script>
+(function () {
+  if (window.hljs) { try { hljs.highlightAll(); } catch (e) { /* highlighting is decoration */ } }
+
+  var toggle = document.querySelector('.navtoggle');
+  var side = document.getElementById('side');
+  if (toggle) {
+    toggle.addEventListener('click', function () {
+      var open = document.body.classList.toggle('nav-open');
+      toggle.setAttribute('aria-expanded', open ? 'true' : 'false');
+    });
+  }
+  if (side) {
+    side.addEventListener('click', function (e) {
+      if (e.target.closest('a')) {
+        document.body.classList.remove('nav-open');
+        if (toggle) toggle.setAttribute('aria-expanded', 'false');
+      }
+    });
+  }
+
+  var links = Array.prototype.slice.call(document.querySelectorAll('.units a'));
+  var units = links.map(function (a) { return document.getElementById(a.getAttribute('href').slice(1)); });
+  var ticking = false;
+  function spy() {
+    ticking = false;
+    var best = 0;
+    for (var i = 0; i < units.length; i++) {
+      if (units[i] && units[i].getBoundingClientRect().top <= 140) best = i;
+    }
+    for (var j = 0; j < links.length; j++) {
+      if (j === best) links[j].setAttribute('aria-current', 'true');
+      else links[j].removeAttribute('aria-current');
+    }
+  }
+  function onScroll() {
+    if (!ticking) { ticking = true; window.requestAnimationFrame(spy); }
+  }
+  window.addEventListener('scroll', onScroll, { passive: true });
+  window.addEventListener('resize', onScroll, { passive: true });
+  spy();
+})();
+</script>
+</body>
+</html>
