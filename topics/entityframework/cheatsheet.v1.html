@@ -1,0 +1,699 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Entity Framework · cheatsheet · devbok</title>
+<link rel="preconnect" href="https://fonts.googleapis.com/">
+<link rel="preconnect" href="https://fonts.gstatic.com/" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Cascadia+Mono:wght@400;700&display=swap">
+<style>
+:root { color-scheme: light;
+  --bg: #ffffff; --fg: #111111; --muted: #6b6b6b; --line: #111111; --soft: #f4f4f4; --border: #cccccc;
+  --accent: #512bd4; --accent-soft: color-mix(in srgb, var(--accent) 12%, var(--bg));
+  --code: color-mix(in srgb, var(--accent) 70%, var(--fg));
+  --hl-kw: #a626a4; --hl-str: #50a14f; --hl-num: #986801; --hl-cmt: #6b6b6b; --hl-type: #0184bc; --hl-fn: #4078f2; --hl-attr: #986801; }
+@media (prefers-color-scheme: dark) { :root { color-scheme: dark;
+  --bg: #222222; --fg: #cccccc; --muted: #8f8f8f; --line: #111111; --soft: #2c2c2c; --border: #4a4a4a;
+  --accent: #896fe2; --accent-soft: color-mix(in srgb, var(--accent) 16%, var(--bg));
+  --hl-kw: #c678dd; --hl-str: #98c379; --hl-num: #d19a66; --hl-cmt: #8f8f8f; --hl-type: #56b6c2; --hl-fn: #61afef; --hl-attr: #e5c07b; } }
+
+*, *::before, *::after { box-sizing: border-box; }
+html { -webkit-text-size-adjust: 100%; }
+body { margin: 0; background: var(--bg); color: var(--fg);
+  font-family: system-ui, sans-serif; font-size: 16px; line-height: 1.6;
+  overflow-x: hidden; }
+h1, h2, h3 { font-family: system-ui, sans-serif; font-weight: 700; }
+a { color: var(--accent); }
+:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+
+/* ---- sidebar (verbatim) ---- */
+.side { position: fixed; top: 0; bottom: 0; left: 0; width: 260px; display: flex; flex-direction: column; background: var(--bg); border-right: 2px solid var(--line); font-family: "Cascadia Mono", Consolas, monospace; font-size: 12px; }
+.units { list-style: none; margin: 0; padding: 12px 0; overflow-y: auto; flex: 1; }
+.units a { display: grid; grid-template-columns: 2.5em 1fr; padding: 9px 20px; color: var(--fg); text-decoration: none; line-height: 1.4; }
+.units .n { color: var(--muted); }
+.units a:hover { background: var(--soft); }
+.units a[aria-current="true"] { background: var(--accent-soft); color: var(--accent); }
+.units a[aria-current="true"] .n { color: var(--accent); }
+.side footer { padding: 12px 20px; border-top: 2px solid var(--line); color: var(--muted); line-height: 1.5; }
+
+/* ---- layout ---- */
+.shell { margin-left: 260px; min-width: 0; }
+main { max-width: 120ch; padding: 24px; min-width: 0; }
+.navtoggle { display: none; position: fixed; z-index: 30; top: 10px; left: 10px;
+  font-family: "Cascadia Mono", Consolas, monospace; font-size: 12px; text-transform: uppercase;
+  background: var(--soft); color: var(--fg); border: 1px solid var(--border); border-radius: 4px;
+  padding: 6px 10px; cursor: pointer; }
+
+/* ---- hero (verbatim) ---- */
+.hero { margin: 0 0 24px; padding: 0 0 24px; border-bottom: 2px solid var(--line); }
+.hero h1 { margin: 0 0 8px; font-size: 2em; line-height: 1.2; font-weight: 700; }
+.hero .meta { margin: 0 0 12px; font-family: "Cascadia Mono", Consolas, monospace; font-size: 12px; color: var(--muted); }
+.hero .summary { margin: 0 0 12px; }
+.hero .chips { display: flex; flex-wrap: wrap; gap: 6px; margin: 0; }
+
+.chip { font-family: "Cascadia Mono", Consolas, monospace; font-size: 12px; text-transform: uppercase;
+  background: var(--soft); border: 1px solid var(--border); border-radius: 4px; padding: 2px 7px;
+  color: var(--fg); white-space: normal; }
+
+/* ---- units as compact cards ---- */
+.unit { margin: 0 0 22px; padding: 16px 18px; background: var(--bg); border: 1px solid var(--border); border-radius: 4px; min-width: 0; }
+.unit > h2 { margin: 0 0 4px; font-size: 1.5em; line-height: 1.25; }
+.unit > .lede { margin: 0 0 12px; color: var(--muted); font-size: 14px; }
+.unit h3 { margin: 16px 0 6px; font-size: 1.17em; }
+.unit h3:first-of-type { margin-top: 8px; }
+.docs { font-family: "Cascadia Mono", Consolas, monospace; font-size: 12px; margin: 14px 0 0;
+  padding-top: 10px; border-top: 1px solid var(--border); color: var(--muted); }
+
+/* ---- the reference rows: task left, syntax right ---- */
+.ref { display: grid; grid-template-columns: minmax(0, 22em) minmax(0, 1fr); margin: 0; }
+.ref > dt { grid-column: 1; padding: 6px 12px 6px 0; border-top: 1px solid var(--border); font-size: 14px; min-width: 0; overflow-wrap: anywhere; }
+.ref > dd { grid-column: 2; padding: 6px 0; border-top: 1px solid var(--border); margin: 0; min-width: 0;
+  font-family: "Cascadia Mono", Consolas, monospace; font-size: 12px; overflow-wrap: anywhere; }
+.ref > dt:first-of-type, .ref > dt:first-of-type + dd { border-top: 0; }
+.ref > dd .c { color: var(--code); }
+.ref > dd .note { font-family: system-ui, sans-serif; font-size: 13px; color: var(--muted); display: block; }
+
+/* ---- callouts, tables ---- */
+.callout { background: var(--soft); border-left: 3px solid var(--accent); padding: 8px 12px; margin: 12px 0; font-size: 14px; }
+.callout p { margin: 0 0 6px; }
+.callout p:last-child { margin: 0; }
+.tw { overflow-x: auto; margin: 12px 0; max-width: 100%; }
+table { border-collapse: collapse; width: 100%; font-size: 13px; }
+th, td { text-align: left; vertical-align: top; padding: 7px 10px; border-bottom: 1px solid var(--border); }
+th { color: var(--muted); font-weight: 700; font-size: 12px; text-transform: uppercase;
+  font-family: "Cascadia Mono", Consolas, monospace; white-space: nowrap; }
+tbody tr.now { background: var(--accent-soft); }
+td.v, td.since { font-family: "Cascadia Mono", Consolas, monospace; font-size: 12px; white-space: nowrap; }
+.gotchas { margin: 0; padding-left: 1.1em; font-size: 14px; }
+.gotchas li { margin: 0 0 6px; }
+
+/* ---- code (verbatim palette) ---- */
+code { background: var(--soft); border: 1px solid var(--border); border-radius: 3px; padding: 0 .3em; color: var(--code); overflow-wrap: anywhere; }
+pre { background: var(--soft); border: 1px solid var(--border); border-radius: 4px; padding: 12px 14px; overflow-x: auto; line-height: 1.5; margin: 14px 0; max-width: 100%; }
+pre code { background: none; border: 0; border-radius: 0; padding: 0; color: inherit; white-space: pre; overflow-wrap: normal; }
+pre, pre code, code { font-family: "Cascadia Mono", Consolas, monospace; font-size: 12px; }
+.hljs { color: var(--fg); background: transparent; }
+.hljs-keyword, .hljs-built_in, .hljs-literal, .hljs-selector-tag { color: var(--hl-kw); }
+.hljs-string, .hljs-regexp, .hljs-selector-attr { color: var(--hl-str); }
+.hljs-number, .hljs-symbol { color: var(--hl-num); }
+.hljs-comment, .hljs-quote, .hljs-doctag { color: var(--hl-cmt); font-style: italic; }
+.hljs-title, .hljs-title.class_, .hljs-type, .hljs-name, .hljs-section, .hljs-selector-class, .hljs-selector-pseudo { color: var(--hl-type); }
+.hljs-title.function_ { color: var(--hl-fn); }
+.hljs-meta, .hljs-attr, .hljs-attribute, .hljs-tag, .hljs-property, .hljs-variable { color: var(--hl-attr); }
+.hljs-template-tag, .hljs-template-variable { color: var(--hl-attr); }
+.hljs-code, .hljs-formula { color: var(--hl-cmt); }
+.hljs-operator, .hljs-subst, .hljs-punctuation, .hljs-params { color: var(--fg); }
+.hljs-emphasis { font-style: italic; } .hljs-strong { font-weight: 700; }
+
+/* ---- narrow ---- */
+@media (max-width: 900px) { .ref { grid-template-columns: minmax(0, 1fr); }
+  .ref > dt { padding-bottom: 0; }
+  .ref > dt + dd { border-top: 0; padding-top: 2px; }
+  .ref > dt { font-weight: 700; } }
+@media (max-width: 720px) {
+  .navtoggle { display: block; }
+  .side { transform: translateX(-100%); transition: transform .15s ease; z-index: 20; width: 260px; max-width: 88%; }
+  body.nav-open .side { transform: translateX(0); }
+  .shell { margin-left: 0; }
+  main { padding: 56px 14px 24px; }
+  .unit { padding: 14px; }
+}
+
+/* ---- print ---- */
+@media print {
+  @page { size: A4 portrait; margin: 12mm; }
+  :root { --bg: #fff; --fg: #000; --muted: #333; --line: #000; --soft: #fff; --border: #999; --accent: #000; --accent-soft: #fff; --code: #000; }
+  body { background: #fff; color: #000; font-size: 9pt; line-height: 1.35; }
+  .side, .navtoggle, .docs a[href^="http"]::after { display: none !important; }
+  .shell { margin-left: 0; }
+  main { max-width: none; padding: 0; }
+  .hero { border-bottom: 1pt solid #000; padding-bottom: 8pt; margin-bottom: 10pt; }
+  .hero h1 { font-size: 16pt; }
+  .unit { break-inside: avoid; page-break-inside: avoid; border: 0; padding: 0; margin: 0 0 8pt; }
+  .unit > h2 { font-size: 11pt; margin-bottom: 2pt; break-after: avoid; page-break-after: avoid; }
+  .unit h3 { font-size: 9.5pt; margin: 6pt 0 2pt; break-after: avoid; page-break-after: avoid; }
+  .ref > dt, .ref > dd { padding: 2pt 8pt 2pt 0; border-top: 0.5pt solid #ccc; }
+  pre { border: 0.5pt solid #999; padding: 4pt; margin: 4pt 0; white-space: pre-wrap; }
+  table { font-size: 8pt; } th, td { padding: 2pt 4pt; }
+  tbody tr.now { background: transparent; }
+  .callout { border-left: 2pt solid #000; background: transparent; padding: 3pt 6pt; }
+  .chip { border: 0.5pt solid #666; }
+  a { color: #000 !important; text-decoration: none; }
+  code, .hljs, .hljs span { color: #000 !important; background: transparent !important; }
+  code { border: 0.5pt solid #bbb; }
+}
+</style>
+</head>
+<body>
+<!-- devbok
+slug: entityframework
+kind: cheatsheet
+version: 1
+topic: "Entity Framework"
+prompt: cheatsheet.md@ccd2d4a9
+generated: 2026-09-08
+-->
+
+<button class="navtoggle" id="navtoggle" aria-expanded="false" aria-controls="side">Units</button>
+
+<nav class="side" id="side" aria-label="Units">
+  <ol class="units">
+    <li><a href="#u01"><span class="n">01</span><span class="t">Packages, DbContext, registration</span></a></li>
+    <li><a href="#u02"><span class="n">02</span><span class="t">Modelling: conventions &amp; fluent API</span></a></li>
+    <li><a href="#u03"><span class="n">03</span><span class="t">Querying: LINQ that translates</span></a></li>
+    <li><a href="#u04"><span class="n">04</span><span class="t">Loading related data</span></a></li>
+    <li><a href="#u05"><span class="n">05</span><span class="t">Change tracking &amp; SaveChanges</span></a></li>
+    <li><a href="#u06"><span class="n">06</span><span class="t">Bulk ops, raw SQL, transactions</span></a></li>
+    <li><a href="#u07"><span class="n">07</span><span class="t">Migrations &amp; the dotnet ef CLI</span></a></li>
+    <li><a href="#u08"><span class="n">08</span><span class="t">JSON, complex types, vectors</span></a></li>
+    <li><a href="#u09"><span class="n">09</span><span class="t">Performance &amp; diagnostics</span></a></li>
+    <li><a href="#u10"><span class="n">10</span><span class="t">Testing &amp; concurrency</span></a></li>
+    <li><a href="#u11"><span class="n">11</span><span class="t">Gotchas &amp; pitfalls</span></a></li>
+    <li><a href="#u12"><span class="n">12</span><span class="t">Modern vs legacy</span></a></li>
+    <li><a href="#u13"><span class="n">13</span><span class="t">Version timeline</span></a></li>
+  </ol>
+  <footer>Entity Framework · cheatsheet · version 1 · 2026-09-08</footer>
+</nav>
+
+<div class="shell">
+<main>
+
+<header class="hero">
+  <h1>Entity Framework</h1>
+  <p class="meta">cheatsheet · EF Core 10.0.11 · released 2026-08-11</p>
+  <p class="summary">Assumption: "Entity Framework" means the whole family, so this card is EF Core-first and treats EF6 (classic, <code>EntityFramework</code> 6.5.2) as the legacy runtime you still meet, never as a target. Everything here is correct for EF Core 10 (GA 2025-11-11 with .NET 10, LTS through 2028-11-10); the latest patch is 10.0.11 and EF Core 11 reached <code>11.0.0-rc.1</code> on 2026-09-08, shipping with .NET 11 on 2026-11-10. Version labels mark where each API became stable, default or deprecated, and the timeline at the end is the part that goes stale first — EF Core 8 and 9 both leave support on 2026-11-10.</p>
+  <p class="chips"><span class="chip">EF Core 10.0.11</span> <span class="chip">GA 2025-11-11</span> <span class="chip">LTS to 2028-11-10</span> <span class="chip">.NET 10 required</span> <span class="chip">EF11 rc.1 · 2026-09-08</span> <span class="chip">EF Core 8/9 EOL 2026-11-10</span> <span class="chip">EF6 6.5.2 · maintenance</span></p>
+</header>
+
+<section class="unit" id="u01">
+  <h2>01 Packages, DbContext, registration</h2>
+  <p class="lede">EF Core 10 needs .NET 10; there is no .NET Framework target. Provider version tracks the EF version.</p>
+  <dl class="ref">
+    <dt>Core + provider (SQL Server)</dt>
+    <dd><code>dotnet add package Microsoft.EntityFrameworkCore.SqlServer -v 10.0.11</code></dd>
+    <dt>Other providers</dt>
+    <dd><code>Npgsql.EntityFrameworkCore.PostgreSQL</code> · <code>Pomelo.EntityFrameworkCore.MySql</code> · <code>Microsoft.EntityFrameworkCore.Sqlite</code> · <code>Microsoft.EntityFrameworkCore.Cosmos</code> · <code>Oracle.EntityFrameworkCore</code></dd>
+    <dt>Design-time (migrations, scaffold)</dt>
+    <dd><code>Microsoft.EntityFrameworkCore.Design</code> — <span class="note">PrivateAssets="all"; only the startup project needs it</span></dd>
+    <dt>CLI tool</dt>
+    <dd><code>dotnet tool install --global dotnet-ef --version 10.*</code></dd>
+    <dt>Register a context</dt>
+    <dd><code>builder.Services.AddDbContext&lt;AppDb&gt;(o =&gt; o.UseSqlServer(cs))</code> — <span class="note">scoped lifetime; one context per request/unit of work</span></dd>
+    <dt>Pooled context (hot path)</dt>
+    <dd><code>AddDbContextPool&lt;AppDb&gt;(...)</code> — <span class="note">reuses instances; no injected scoped state in the ctor</span></dd>
+    <dt>Factory (Blazor, background work)</dt>
+    <dd><code>AddDbContextFactory&lt;AppDb&gt;(...)</code> → <code>await using var db = await f.CreateDbContextAsync()</code></dd>
+    <dt>Retry on transient failure</dt>
+    <dd><code>o.UseSqlServer(cs, s =&gt; s.EnableRetryOnFailure())</code> — <span class="note">then you must own transactions via an execution strategy, see 06</span></dd>
+    <dt>Diagnostics for dev only</dt>
+    <dd><code>o.EnableSensitiveDataLogging().EnableDetailedErrors()</code> — <span class="note">EF 10 redacts inlined constants from logs by default; this switch turns them back on</span></dd>
+  </dl>
+<pre><code class="language-csharp">public sealed class AppDb(DbContextOptions&lt;AppDb&gt; options) : DbContext(options)
+{
+    public DbSet&lt;Blog&gt; Blogs =&gt; Set&lt;Blog&gt;();
+    public DbSet&lt;Post&gt; Posts =&gt; Set&lt;Post&gt;();
+
+    protected override void OnModelCreating(ModelBuilder b)
+        =&gt; b.ApplyConfigurationsFromAssembly(typeof(AppDb).Assembly);
+
+    protected override void ConfigureConventions(ModelConfigurationBuilder c)
+        =&gt; c.Properties&lt;decimal&gt;().HavePrecision(18, 2);   // EF6+: model-wide defaults
+}</code></pre>
+  <div class="callout"><p><strong>Lifetime rule.</strong> <code>DbContext</code> is not thread-safe: one concurrent operation per instance. Parallel work needs one context each (use the factory), or you get <code>InvalidOperationException: A second operation was started on this context instance</code>.</p></div>
+  <p class="docs">Docs: <a href="https://learn.microsoft.com/en-us/ef/core/dbcontext-configuration/">DbContext lifetime, configuration and initialization</a></p>
+</section>
+
+<section class="unit" id="u02">
+  <h2>02 Modelling: conventions &amp; fluent API</h2>
+  <p class="lede">Conventions first, fluent API for anything the convention gets wrong. Data annotations only for the trivial cases.</p>
+  <dl class="ref">
+    <dt>Key</dt>
+    <dd><code>Id</code> / <code>&lt;Type&gt;Id</code> by convention · <code>b.HasKey(x =&gt; x.Id)</code> · composite <code>b.HasKey(x =&gt; new { x.A, x.B })</code></dd>
+    <dt>Required / optional</dt>
+    <dd>nullability decides it under NRTs; <code>b.Property(x =&gt; x.Name).IsRequired().HasMaxLength(200)</code></dd>
+    <dt>One-to-many</dt>
+    <dd><code>b.HasOne(p =&gt; p.Blog).WithMany(x =&gt; x.Posts).HasForeignKey(p =&gt; p.BlogId).OnDelete(DeleteBehavior.Cascade)</code></dd>
+    <dt>Many-to-many</dt>
+    <dd><code>b.HasMany(x =&gt; x.Tags).WithMany(t =&gt; t.Posts).UsingEntity&lt;PostTag&gt;()</code> — <span class="note">skip navigations, EF Core 5+; no join entity needed unless it carries payload</span></dd>
+    <dt>Owned value object</dt>
+    <dd><code>b.OwnsOne(x =&gt; x.Address)</code> — <span class="note">has identity, one instance per owner</span></dd>
+    <dt>Complex type (preferred value object)</dt>
+    <dd><code>b.ComplexProperty(x =&gt; x.Address)</code> — <span class="note">EF Core 8+; no identity, no tracking, struct or class; EF 10 adds optional complex properties</span></dd>
+    <dt>Value conversion</dt>
+    <dd><code>b.Property(x =&gt; x.Status).HasConversion&lt;string&gt;()</code> · strongly typed ids: <code>HasConversion(v =&gt; v.Value, v =&gt; new OrderId(v))</code></dd>
+    <dt>Global convention</dt>
+    <dd><code>c.Properties&lt;string&gt;().AreUnicode(false)</code> in <code>ConfigureConventions</code> (EF Core 6+); custom <code>IModelFinalizingConvention</code> (EF Core 7+)</dd>
+    <dt>Index / unique</dt>
+    <dd><code>b.HasIndex(x =&gt; x.Slug).IsUnique().HasFilter("[Slug] IS NOT NULL")</code></dd>
+    <dt>Inheritance</dt>
+    <dd>TPH default (<code>HasDiscriminator</code>) · <code>UseTptMappingStrategy()</code> · <code>UseTpcMappingStrategy()</code> (EF Core 7+, usually the fastest of the three)</dd>
+    <dt>Query filter</dt>
+    <dd><code>b.HasQueryFilter(x =&gt; !x.IsDeleted)</code>; EF 10 names them: <code>b.HasQueryFilter("SoftDelete", x =&gt; !x.IsDeleted)</code> + <code>IgnoreQueryFilters(["SoftDelete"])</code></dd>
+    <dt>Concurrency token</dt>
+    <dd><code>b.Property(x =&gt; x.RowVersion).IsRowVersion()</code> · <code>[Timestamp]</code></dd>
+    <dt>Keyless (views, raw projections)</dt>
+    <dd><code>b.HasNoKey().ToView("vw_Sales")</code></dd>
+    <dt>Named default constraint</dt>
+    <dd><code>.HasDefaultValueSql("GETUTCDATE()", "DF_Post_Created")</code> · model-wide <code>modelBuilder.UseNamedDefaultConstraints()</code> — <span class="note">EF Core 10</span></dd>
+  </dl>
+<pre><code class="language-csharp">public sealed class PostConfig : IEntityTypeConfiguration&lt;Post&gt;
+{
+    public void Configure(EntityTypeBuilder&lt;Post&gt; b)
+    {
+        b.ToTable("Posts", t =&gt; t.HasCheckConstraint("CK_Post_Rating", "[Rating] BETWEEN 0 AND 5"));
+        b.Property(p =&gt; p.Title).IsRequired().HasMaxLength(200);
+        b.ComplexProperty(p =&gt; p.Seo);                       // EF8+ value object, no identity
+        b.HasQueryFilter("SoftDelete", p =&gt; !p.IsDeleted);   // EF10 named filter
+        b.HasIndex(p =&gt; new { p.BlogId, p.PublishedOn });
+    }
+}</code></pre>
+  <p class="docs">Docs: <a href="https://learn.microsoft.com/en-us/ef/core/modeling/">Creating and configuring a model</a></p>
+</section>
+
+<section class="unit" id="u03">
+  <h2>03 Querying: LINQ that translates</h2>
+  <p class="lede">Everything before the first <code>ToList</code>/<code>AsEnumerable</code> is SQL. Anything EF cannot translate throws since EF Core 3.0 — it no longer silently evaluates on the client.</p>
+  <dl class="ref">
+    <dt>Read-only read</dt>
+    <dd><code>await db.Blogs.AsNoTracking().Where(b =&gt; b.Rating &gt; 3).ToListAsync(ct)</code></dd>
+    <dt>Project, don't load entities</dt>
+    <dd><code>.Select(b =&gt; new BlogDto(b.Id, b.Name, b.Posts.Count))</code> — <span class="note">one SQL statement, no tracking cost, no lazy loading</span></dd>
+    <dt>Single row</dt>
+    <dd><code>FirstOrDefaultAsync</code> (TOP 1) · <code>SingleOrDefaultAsync</code> (TOP 2, throws on 2) · <code>FindAsync(id)</code> (identity-map hit first, no round trip)</dd>
+    <dt>Paging</dt>
+    <dd><code>.OrderBy(b =&gt; b.Id).Skip(n).Take(20)</code> — <span class="note">unordered Skip/Take is undefined; keyset paging (<code>Where(b =&gt; b.Id &gt; last)</code>) beats OFFSET on deep pages</span></dd>
+    <dt>IN over a collection</dt>
+    <dd><code>.Where(b =&gt; ids.Contains(b.Id))</code> — <span class="note">EF 10 sends <code>@ids1, @ids2, …</code> with parameter padding instead of inlined constants or a JSON array</span></dd>
+    <dt>Left / right join</dt>
+    <dd><code>.LeftJoin(db.Depts, s =&gt; s.DeptId, d =&gt; d.Id, (s, d) =&gt; new { s, d })</code> — <span class="note">EF Core 10 + .NET 10; replaces the <code>GroupJoin</code>/<code>SelectMany</code>/<code>DefaultIfEmpty</code> dance. <code>FullJoin</code> lands in EF 11</span></dd>
+    <dt>Grouping</dt>
+    <dd><code>.GroupBy(p =&gt; p.BlogId).Select(g =&gt; new { g.Key, Count = g.Count(), Max = g.Max(p =&gt; p.Rating) })</code> — <span class="note">group-then-materialize-entities does not translate; aggregate in the Select</span></dd>
+    <dt>Set-based existence</dt>
+    <dd><code>await db.Posts.AnyAsync(p =&gt; p.BlogId == id, ct)</code> — <span class="note">never <code>Count() &gt; 0</code></span></dd>
+    <dt>Streaming</dt>
+    <dd><code>await foreach (var b in db.Blogs.AsAsyncEnumerable().WithCancellation(ct))</code> — <span class="note">EF 11 analyzer flags <code>ToAsyncEnumerable</code> as the wrong one</span></dd>
+    <dt>Provider functions</dt>
+    <dd><code>EF.Functions.Like(b.Name, "%ef%")</code> · <code>EF.Functions.DateDiffDay(a, b)</code> · <code>EF.Functions.Contains(...)</code> (full-text)</dd>
+    <dt>Force server evaluation of a constant</dt>
+    <dd><code>EF.Constant(x)</code> (inline literal) vs <code>EF.Parameter(x)</code> (force a parameter) — <span class="note">EF Core 8/9, for plan-cache tuning</span></dd>
+    <dt>Split a cartesian explosion</dt>
+    <dd><code>.AsSplitQuery()</code> · default it with <code>o.UseQuerySplittingBehavior(QuerySplittingBehavior.SplitQuery)</code></dd>
+    <dt>Compose a filter</dt>
+    <dd><code>IQueryable&lt;Blog&gt; q = db.Blogs; if (r != null) q = q.Where(b =&gt; b.Rating &gt;= r);</code></dd>
+    <dt>See the SQL</dt>
+    <dd><code>query.ToQueryString()</code> — <span class="note">EF Core 5+; prints the SQL plus parameter declarations</span></dd>
+  </dl>
+  <div class="callout"><p><strong>Async everywhere, or nowhere.</strong> Sync <code>ToList()</code> on a web request burns a thread-pool thread per query; mixing the two is how thread-pool starvation shows up under load. Pass the <code>CancellationToken</code> — EF ships it to the provider.</p></div>
+  <p class="docs">Docs: <a href="https://learn.microsoft.com/en-us/ef/core/querying/">Querying data</a> · <a href="https://learn.microsoft.com/en-us/ef/core/querying/client-eval">Client vs. server evaluation</a></p>
+</section>
+
+<section class="unit" id="u04">
+  <h2>04 Loading related data</h2>
+  <p class="lede">Three ways in, one to avoid. Projection is a fourth and usually the right answer.</p>
+  <dl class="ref">
+    <dt>Eager</dt>
+    <dd><code>db.Blogs.Include(b =&gt; b.Posts).ThenInclude(p =&gt; p.Author)</code></dd>
+    <dt>Filtered include</dt>
+    <dd><code>.Include(b =&gt; b.Posts.Where(p =&gt; !p.IsDeleted).OrderByDescending(p =&gt; p.Date).Take(5))</code> — <span class="note">EF Core 5+</span></dd>
+    <dt>Include everything one level</dt>
+    <dd><code>.Include(b =&gt; b.Posts).AsSplitQuery()</code> — <span class="note">two <code>Include</code>s of collections in one query = row multiplication</span></dd>
+    <dt>Explicit</dt>
+    <dd><code>await db.Entry(blog).Collection(b =&gt; b.Posts).LoadAsync()</code> · <code>.Reference(p =&gt; p.Blog).LoadAsync()</code></dd>
+    <dt>Explicit with a filter</dt>
+    <dd><code>await db.Entry(blog).Collection(b =&gt; b.Posts).Query().Where(p =&gt; p.Rating &gt; 3).ToListAsync()</code></dd>
+    <dt>Lazy (opt-in, usually a mistake)</dt>
+    <dd><code>o.UseLazyLoadingProxies()</code> + <code>public virtual ICollection&lt;Post&gt; Posts</code> — <span class="note">the classic N+1 generator; disabled by default in EF Core, was on by default in EF6</span></dd>
+    <dt>Projection instead of Include</dt>
+    <dd><code>.Select(b =&gt; new { b.Name, Recent = b.Posts.OrderByDescending(p =&gt; p.Date).Take(3).Select(p =&gt; p.Title) })</code></dd>
+    <dt>Auto-include a navigation</dt>
+    <dd><code>b.Navigation(x =&gt; x.Owner).AutoInclude()</code> (EF Core 6+); opt out per query with <code>.IgnoreAutoIncludes()</code></dd>
+    <dt>Load the FK only</dt>
+    <dd>keep the shadow/explicit FK property and read <code>post.BlogId</code> — <span class="note">no join at all</span></dd>
+  </dl>
+  <div class="callout"><p><strong>Cartesian explosion.</strong> <code>Include</code> of two sibling collections multiplies rows (10 posts × 20 tags = 200 rows of duplicated blog columns). Symptom: a query that returns a handful of entities but transfers megabytes. Fix: <code>AsSplitQuery()</code>, or project.</p></div>
+  <p class="docs">Docs: <a href="https://learn.microsoft.com/en-us/ef/core/querying/related-data/">Loading related data</a></p>
+</section>
+
+<section class="unit" id="u05">
+  <h2>05 Change tracking &amp; SaveChanges</h2>
+  <p class="lede">One <code>SaveChanges</code> = one transaction, ordered and batched by EF. Tracking is what makes it work and what makes it slow.</p>
+  <dl class="ref">
+    <dt>Insert</dt>
+    <dd><code>db.Blogs.Add(blog); await db.SaveChangesAsync(ct);</code> — <span class="note">graph is added too; <code>AddRange</code> for many</span></dd>
+    <dt>Update (tracked)</dt>
+    <dd>load, mutate, <code>SaveChangesAsync</code> — <span class="note">EF writes only changed columns</span></dd>
+    <dt>Update (disconnected)</dt>
+    <dd><code>db.Attach(e).Property(x =&gt; x.Name).IsModified = true;</code> — <span class="note">prefer this to <code>db.Update(e)</code>, which marks every column dirty</span></dd>
+    <dt>Delete</dt>
+    <dd><code>db.Remove(new Blog { Id = id });</code> — <span class="note">no SELECT needed when you have the key</span></dd>
+    <dt>Entry state</dt>
+    <dd><code>db.Entry(e).State</code> ∈ <code>Detached | Unchanged | Added | Modified | Deleted</code></dd>
+    <dt>Original vs current values</dt>
+    <dd><code>db.Entry(e).OriginalValues["Name"]</code> · <code>.CurrentValues.SetValues(dto)</code></dd>
+    <dt>Audit hook</dt>
+    <dd>override <code>SaveChangesAsync</code> and walk <code>ChangeTracker.Entries&lt;IAuditable&gt;()</code>; call <code>ChangeTracker.DetectChanges()</code> first if you disabled it</dd>
+    <dt>Interceptor (cleaner hook)</dt>
+    <dd><code>o.AddInterceptors(new AuditInterceptor())</code> : <code>SaveChangesInterceptor</code> / <code>DbCommandInterceptor</code> / <code>IMaterializationInterceptor</code></dd>
+    <dt>Turn off tracking globally for reads</dt>
+    <dd><code>o.UseQueryTrackingBehavior(QueryTrackingBehavior.NoTracking)</code>, opt back in with <code>.AsTracking()</code></dd>
+    <dt>Identity resolution without tracking</dt>
+    <dd><code>.AsNoTrackingWithIdentityResolution()</code> — <span class="note">EF Core 5+; dedupes repeated rows in the graph</span></dd>
+    <dt>Clear the tracker</dt>
+    <dd><code>db.ChangeTracker.Clear()</code> — <span class="note">EF Core 5+; cheaper than a new context in a long loop</span></dd>
+    <dt>Debug the graph</dt>
+    <dd><code>db.ChangeTracker.DebugView.LongView</code></dd>
+    <dt>Optimistic concurrency</dt>
+    <dd>catch <code>DbUpdateConcurrencyException</code>, inspect <code>ex.Entries</code>, refresh with <code>GetDatabaseValuesAsync()</code>, retry</dd>
+  </dl>
+<pre><code class="language-csharp">try { await db.SaveChangesAsync(ct); }
+catch (DbUpdateConcurrencyException ex)
+{
+    foreach (var entry in ex.Entries)
+    {
+        var db_ = await entry.GetDatabaseValuesAsync(ct);
+        if (db_ is null) { /* deleted by someone else */ continue; }
+        entry.OriginalValues.SetValues(db_);          // client wins, retry once
+    }
+    await db.SaveChangesAsync(ct);
+}</code></pre>
+  <div class="callout"><p><strong>Cost model.</strong> <code>DetectChanges</code> is O(tracked entities × properties) and runs on every <code>SaveChanges</code>, <code>Find</code> and most queries. 10 000 tracked entities in one context is a design smell — batch in chunks, or use <code>ExecuteUpdate</code> (06).</p></div>
+  <p class="docs">Docs: <a href="https://learn.microsoft.com/en-us/ef/core/change-tracking/">Change tracking</a> · <a href="https://learn.microsoft.com/en-us/ef/core/saving/concurrency">Handling concurrency conflicts</a></p>
+</section>
+
+<section class="unit" id="u06">
+  <h2>06 Bulk ops, raw SQL, transactions</h2>
+  <p class="lede">Set-based work bypasses the change tracker entirely: no entities loaded, no <code>SaveChanges</code>, no interceptor on <code>SaveChanges</code>.</p>
+  <dl class="ref">
+    <dt>Bulk update</dt>
+    <dd><code>await db.Posts.Where(p =&gt; p.Old).ExecuteUpdateAsync(s =&gt; s.SetProperty(p =&gt; p.Archived, true), ct)</code> — <span class="note">EF Core 7+</span></dd>
+    <dt>Conditional bulk update</dt>
+    <dd>EF Core 10 allows a statement-bodied lambda: <code>s =&gt; { s.SetProperty(...); if (x) s.SetProperty(...); }</code></dd>
+    <dt>Bulk delete</dt>
+    <dd><code>await db.Logs.Where(l =&gt; l.At &lt; cutoff).ExecuteDeleteAsync(ct)</code> — <span class="note">ignores cascade config: the database's FK rules apply</span></dd>
+    <dt>Raw SQL returning entities</dt>
+    <dd><code>db.Blogs.FromSql($"SELECT * FROM Blogs WHERE Rating &gt; {min}")</code> — <span class="note">EF Core 8+; interpolation becomes parameters. Composable: <code>.Where(...).ToListAsync()</code></span></dd>
+    <dt>Raw SQL, unmapped type</dt>
+    <dd><code>db.Database.SqlQuery&lt;int&gt;($"SELECT Id FROM Blogs")</code> — <span class="note">EF Core 8+</span></dd>
+    <dt>Non-query SQL</dt>
+    <dd><code>await db.Database.ExecuteSqlAsync($"EXEC Rebuild {id}", ct)</code></dd>
+    <dt>The unsafe one</dt>
+    <dd><code>FromSqlRaw</code> / <code>ExecuteSqlRaw</code> — <span class="note">EF Core 10 ships an analyzer that warns on string concatenation into these (SQL injection)</span></dd>
+    <dt>Explicit transaction</dt>
+    <dd><code>await using var tx = await db.Database.BeginTransactionAsync(ct); … await tx.CommitAsync(ct);</code></dd>
+    <dt>Transaction + retrying strategy</dt>
+    <dd>wrap the whole unit: <code>await db.Database.CreateExecutionStrategy().ExecuteAsync(async () =&gt; { … })</code> — <span class="note">mandatory once <code>EnableRetryOnFailure</code> is on</span></dd>
+    <dt>Share a transaction (Dapper etc.)</dt>
+    <dd><code>db.Database.UseTransaction(dbTransaction)</code> · <code>db.Database.GetDbConnection()</code></dd>
+    <dt>Isolation level</dt>
+    <dd><code>BeginTransactionAsync(IsolationLevel.Serializable, ct)</code></dd>
+    <dt>Third-party bulk copy</dt>
+    <dd><code>EFCore.BulkExtensions</code> / <code>SqlBulkCopy</code> for 10k+ row inserts — <span class="note">EF batches, but it still sends parameterised INSERTs</span></dd>
+  </dl>
+  <div class="callout"><p><strong>ExecuteUpdate is not <code>SaveChanges</code>.</strong> It runs immediately, outside any tracked state, and leaves already-tracked entities stale. Run it first, or <code>ChangeTracker.Clear()</code> after. It also skips soft-delete query filters unless you keep the <code>Where</code> yourself.</p></div>
+  <p class="docs">Docs: <a href="https://learn.microsoft.com/en-us/ef/core/saving/execute-insert-update-delete">ExecuteUpdate and ExecuteDelete</a> · <a href="https://learn.microsoft.com/en-us/ef/core/querying/sql-queries">SQL queries</a></p>
+</section>
+
+<section class="unit" id="u07">
+  <h2>07 Migrations &amp; the dotnet ef CLI</h2>
+  <p class="lede">CLI shown; the Package Manager Console verbs are the same words (<code>Add-Migration</code>, <code>Update-Database</code>, <code>Script-Migration</code>, <code>Remove-Migration</code>, <code>Scaffold-DbContext</code>).</p>
+  <dl class="ref">
+    <dt>Install / update the tool</dt>
+    <dd><code>dotnet tool update -g dotnet-ef</code> — <span class="note">tool major version must be ≥ the EF runtime version</span></dd>
+    <dt>Add a migration</dt>
+    <dd><code>dotnet ef migrations add AddPostRating -p src/Infra -s src/Api -o Migrations</code></dd>
+    <dt>Apply</dt>
+    <dd><code>dotnet ef database update</code> · to a point <code>dotnet ef database update AddPostRating</code> · undo all <code>dotnet ef database update 0</code></dd>
+    <dt>Drop the last (unapplied) migration</dt>
+    <dd><code>dotnet ef migrations remove</code></dd>
+    <dt>List / inspect</dt>
+    <dd><code>dotnet ef migrations list</code> · <code>dotnet ef dbcontext info</code> · <code>dotnet ef dbcontext list</code></dd>
+    <dt>CI drift gate</dt>
+    <dd><code>dotnet ef migrations has-pending-model-changes</code> — <span class="note">EF Core 9+; non-zero exit if the model moved without a migration</span></dd>
+    <dt>Deployment SQL</dt>
+    <dd><code>dotnet ef migrations script --idempotent -o migrate.sql</code> · range <code>script From To</code></dd>
+    <dt>Self-contained bundle</dt>
+    <dd><code>dotnet ef migrations bundle --self-contained -r linux-x64 -o efbundle</code> — <span class="note">EF Core 6+; the one artefact to ship to a locked-down environment</span></dd>
+    <dt>Reverse-engineer a database</dt>
+    <dd><code>dotnet ef dbcontext scaffold "$CS" Microsoft.EntityFrameworkCore.SqlServer -o Models -t Orders --use-database-names --no-onconfiguring</code></dd>
+    <dt>Compiled model (large models)</dt>
+    <dd><code>dotnet ef dbcontext optimize --output-dir Generated</code> — <span class="note">EF Core 6+; EF Core 9+ can regenerate it on build via MSBuild</span></dd>
+    <dt>NativeAOT / precompiled queries</dt>
+    <dd><code>dotnet ef dbcontext optimize --precompile-queries --nativeaot</code> — <span class="note">experimental in EF Core 9 and still experimental in EF Core 10; not production-ready</span></dd>
+    <dt>Common flags</dt>
+    <dd><code>-c AppDb</code> (context) · <code>-p</code> project · <code>-s</code> startup project · <code>--no-build</code> · <code>--connection</code> · <code>--verbose</code> · <code>--json</code></dd>
+    <dt>Apply at startup (dev only)</dt>
+    <dd><code>await db.Database.MigrateAsync()</code> — <span class="note">never <code>EnsureCreated()</code> alongside migrations; the two are mutually exclusive</span></dd>
+    <dt>Coming in EF 11</dt>
+    <dd><code>.config/dotnet-ef.json</code> for per-repo defaults · <code>dotnet ef database update Init --add</code> (create + apply in one step) · <code>--offline</code> · <code>--context "*"</code></dd>
+  </dl>
+<pre><code class="language-csharp">public partial class AddPostRating : Migration
+{
+    protected override void Up(MigrationBuilder b)
+    {
+        b.AddColumn&lt;int&gt;("Rating", "Posts", nullable: false, defaultValue: 0);
+        b.Sql("UPDATE Posts SET Rating = 3 WHERE Legacy = 1;");   // data moves here, not in code
+        b.CreateIndex("IX_Posts_Rating", "Posts", "Rating");
+    }
+    protected override void Down(MigrationBuilder b) =&gt; b.DropColumn("Rating", "Posts");
+}</code></pre>
+  <div class="callout"><p><strong>EF Core 10 breaking change.</strong> <code>database update</code> no longer wraps <em>all</em> migrations in one transaction — each migration gets its own. A failure part-way now leaves earlier migrations applied. Expand/contract your schema changes and make them re-runnable.</p></div>
+  <p class="docs">Docs: <a href="https://learn.microsoft.com/en-us/ef/core/managing-schemas/migrations/">Migrations</a> · <a href="https://learn.microsoft.com/en-us/ef/core/cli/dotnet">EF Core tools reference (.NET CLI)</a></p>
+</section>
+
+<section class="unit" id="u08">
+  <h2>08 JSON, complex types, vectors</h2>
+  <p class="lede">Where EF Core 8–11 actually moved: document-shaped columns as first-class model members, and AI workloads on relational stores.</p>
+  <dl class="ref">
+    <dt>Owned entity as a JSON column</dt>
+    <dd><code>b.OwnsOne(x =&gt; x.Metadata, o =&gt; o.ToJson());</code> — <span class="note">EF Core 7+</span></dd>
+    <dt>Complex type as a JSON column</dt>
+    <dd><code>b.ComplexProperty(x =&gt; x.Details, o =&gt; o.ToJson());</code> — <span class="note">EF Core 10; on SQL Server 2025 it uses the native <code>json</code> type</span></dd>
+    <dt>Query into JSON</dt>
+    <dd><code>db.Blogs.Where(b =&gt; b.Details.Views &gt; 100)</code> — <span class="note">translates to <code>OPENJSON</code>/<code>JSON_VALUE</code></span></dd>
+    <dt>Update inside JSON</dt>
+    <dd><code>ExecuteUpdateAsync(s =&gt; s.SetProperty(b =&gt; b.Details.Views, b =&gt; b.Details.Views + 1))</code> — <span class="note">EF Core 10; partial update, no full-document rewrite</span></dd>
+    <dt>Primitive collection</dt>
+    <dd><code>public List&lt;int&gt; Scores { get; set; }</code> maps to a JSON column by convention — <span class="note">EF Core 8+; <code>Contains</code> translates</span></dd>
+    <dt>Vector column (SQL Server 2025 / Azure SQL)</dt>
+    <dd><code>[Column(TypeName = "vector(1536)")] public SqlVector&lt;float&gt; Embedding { get; set; }</code> — <span class="note">EF Core 10</span></dd>
+    <dt>Vector distance search</dt>
+    <dd><code>.OrderBy(b =&gt; EF.Functions.VectorDistance("cosine", b.Embedding, query)).Take(5)</code></dd>
+    <dt>ANN index (EF 11 preview)</dt>
+    <dd><code>HasVectorIndex()</code> + <code>.VectorSearch(...).WithApproximate()</code> → <code>VECTOR_SEARCH()</code>; vector columns also stop being auto-SELECTed</dd>
+    <dt>Cosmos full-text</dt>
+    <dd><code>EF.Functions.FullTextContains(b.Body, "ef core")</code> · <code>FullTextScore</code> · hybrid via <code>EF.Functions.Rrf(...)</code> — <span class="note">EF Core 10</span></dd>
+    <dt>SQL Server JSON helpers</dt>
+    <dd>EF 11 adds <code>EF.Functions.JsonContains(...)</code> (SQL Server 2025, compat 170) and <code>EF.Functions.JsonPathExists(...)</code> (SQL Server 2022+)</dd>
+    <dt>Index a JSON path</dt>
+    <dd><code>b.HasIndex("Contact.Address.City")</code> — <span class="note">EF 11 preview, SQL Server JSON indexes</span></dd>
+  </dl>
+<pre><code class="language-csharp">// EF10: value object in a native json column, queried and patched server-side
+modelBuilder.Entity&lt;Blog&gt;().ComplexProperty(b =&gt; b.Details, d =&gt; d.ToJson());
+
+var hot = await db.Blogs.Where(b =&gt; b.Details.Views &gt; 1_000)
+                        .Select(b =&gt; new { b.Name, b.Details.Views })
+                        .ToListAsync(ct);
+
+await db.Blogs.Where(b =&gt; b.Id == id)
+              .ExecuteUpdateAsync(s =&gt; s.SetProperty(b =&gt; b.Details.Views, b =&gt; b.Details.Views + 1), ct);</code></pre>
+  <p class="docs">Docs: <a href="https://learn.microsoft.com/en-us/ef/core/modeling/complex-types">Complex types</a> · <a href="https://learn.microsoft.com/en-us/ef/core/what-is-new/ef-core-10.0/whatsnew">What's new in EF Core 10</a></p>
+</section>
+
+<section class="unit" id="u09">
+  <h2>09 Performance &amp; diagnostics</h2>
+  <p class="lede">The order that pays: fewer round trips → less tracking → narrower projections → better SQL → caching.</p>
+  <dl class="ref">
+    <dt>Biggest wins, in order</dt>
+    <dd>1. kill N+1 (project or <code>Include</code>) · 2. <code>AsNoTracking</code> on reads · 3. <code>Select</code> only needed columns · 4. <code>AsSplitQuery</code> on wide graphs · 5. index the predicate</dd>
+    <dt>Pooling</dt>
+    <dd><code>AddDbContextPool</code> — <span class="note">removes context construction + model resolution per request</span></dd>
+    <dt>Compiled model</dt>
+    <dd><code>dotnet ef dbcontext optimize</code> then <code>o.UseModel(AppDbModel.Instance)</code> — <span class="note">pays off past ~100 entity types</span></dd>
+    <dt>Compiled query</dt>
+    <dd><code>EF.CompileAsyncQuery((AppDb d, int id) =&gt; d.Blogs.FirstOrDefault(b =&gt; b.Id == id))</code> — <span class="note">skips LINQ→SQL each call; EF already auto-caches, so measure first</span></dd>
+    <dt>Plan-cache control</dt>
+    <dd><code>EF.Parameter(x)</code> to force parameterisation, <code>EF.Constant(x)</code> to inline — <span class="note">EF 10 parameterises collections and pads counts to keep plans reusable</span></dd>
+    <dt>Batching</dt>
+    <dd><code>o.UseSqlServer(cs, s =&gt; s.MaxBatchSize(100))</code> — <span class="note">EF batches inserts/updates into one round trip by default</span></dd>
+    <dt>See the SQL for one query</dt>
+    <dd><code>query.ToQueryString()</code></dd>
+    <dt>Log all SQL in dev</dt>
+    <dd><code>o.LogTo(Console.WriteLine, [DbLoggerCategory.Database.Command.Name], LogLevel.Information)</code></dd>
+    <dt>Metrics / traces</dt>
+    <dd>OpenTelemetry sources <code>Microsoft.EntityFrameworkCore</code> and <code>Microsoft.Data.SqlClient</code>; EventCounters <code>Microsoft.EntityFrameworkCore</code></dd>
+    <dt>Find the N+1 in prod</dt>
+    <dd>a <code>DbCommandInterceptor</code> that counts commands per request and logs when the count exceeds a threshold</dd>
+    <dt>Warn on bad patterns</dt>
+    <dd><code>o.ConfigureWarnings(w =&gt; w.Throw(RelationalEventId.MultipleCollectionIncludeWarning))</code></dd>
+    <dt>Don't</dt>
+    <dd>second-level cache libraries before fixing queries; <code>ToList()</code> mid-pipeline; <code>Count()</code> where <code>Any()</code> works; entity graphs as API DTOs</dd>
+  </dl>
+  <p class="docs">Docs: <a href="https://learn.microsoft.com/en-us/ef/core/performance/">Performance</a> · <a href="https://learn.microsoft.com/en-us/ef/core/performance/advanced-performance-topics">Advanced performance topics</a></p>
+</section>
+
+<section class="unit" id="u10">
+  <h2>10 Testing &amp; concurrency</h2>
+  <p class="lede">Test against the real provider; the in-memory provider does not enforce constraints and is not maintained for new work.</p>
+  <dl class="ref">
+    <dt>Preferred test database</dt>
+    <dd>Testcontainers (<code>Testcontainers.MsSql</code> / <code>.PostgreSql</code>) + <code>MigrateAsync()</code> per fixture</dd>
+    <dt>Fast local alternative</dt>
+    <dd>SQLite in-memory: <code>var c = new SqliteConnection("Filename=:memory:"); c.Open(); o.UseSqlite(c);</code> — <span class="note">keep the connection open for the DB's lifetime</span></dd>
+    <dt>Avoid</dt>
+    <dd><code>UseInMemoryDatabase</code> — <span class="note">no FK/unique enforcement, no relational SQL semantics; Microsoft explicitly recommends against it for testing</span></dd>
+    <dt>Fresh state per test</dt>
+    <dd>transaction per test + rollback, or <code>Respawn</code> to reset tables</dd>
+    <dt>Assert the SQL, not the DB</dt>
+    <dd><code>Assert.Contains("LEFT JOIN", query.ToQueryString())</code></dd>
+    <dt>Concurrency: rowversion</dt>
+    <dd><code>b.Property(x =&gt; x.RowVersion).IsRowVersion()</code> — <span class="note">SQL Server; on PostgreSQL use <code>UseXminAsConcurrencyToken()</code></span></dd>
+    <dt>Concurrency: any column</dt>
+    <dd><code>b.Property(x =&gt; x.Price).IsConcurrencyToken()</code></dd>
+    <dt>Pessimistic lock</dt>
+    <dd>raw SQL: <code>FromSql($"SELECT * FROM Orders WITH (UPDLOCK, ROWLOCK) WHERE Id = {id}")</code> inside a transaction</dd>
+    <dt>Transient-fault retries</dt>
+    <dd><code>EnableRetryOnFailure(maxRetryCount: 6, maxRetryDelay: TimeSpan.FromSeconds(30), null)</code> + execution strategy around explicit transactions</dd>
+    <dt>Idempotent writes</dt>
+    <dd>unique index + catch <code>DbUpdateException</code> with the provider's duplicate-key number (SQL Server 2601/2627)</dd>
+  </dl>
+  <p class="docs">Docs: <a href="https://learn.microsoft.com/en-us/ef/core/testing/">Testing EF Core applications</a> · <a href="https://learn.microsoft.com/en-us/ef/core/miscellaneous/connection-resiliency">Connection resiliency</a></p>
+</section>
+
+<section class="unit" id="u11">
+  <h2>11 Gotchas &amp; pitfalls</h2>
+  <p class="lede">One line each; every one of these has cost somebody a production incident.</p>
+  <ul class="gotchas">
+    <li><strong>N+1 by lazy loading</strong> — proxies turn a <code>foreach</code> into one query per row; if you must keep them, log command counts per request.</li>
+    <li><strong>Cartesian explosion</strong> — two collection <code>Include</code>s multiply rows; use <code>AsSplitQuery()</code> and accept the extra round trips.</li>
+    <li><strong>Split query without <code>OrderBy</code></strong> — pages can interleave inconsistently between the split statements; always order.</li>
+    <li><strong>Client evaluation throws</strong> — since EF Core 3.0 an untranslatable <code>Where</code> is an exception, not a silent full-table scan; the fix is <code>AsEnumerable()</code> at the boundary you chose.</li>
+    <li><strong><code>db.Update(entity)</code></strong> marks every property modified — a full-column UPDATE and lost concurrency granularity.</li>
+    <li><strong><code>ExecuteUpdate</code>/<code>ExecuteDelete</code> bypass the tracker</strong> — interceptors on <code>SaveChanges</code>, soft-delete filters and audit hooks do not run.</li>
+    <li><strong>Query filters + required navigation</strong> — an <code>Include</code> over a required nav becomes an <code>INNER JOIN</code> and silently drops parents whose child was filtered out.</li>
+    <li><strong>Async captured wrong</strong> — mixing <code>ToList()</code> and <code>ToListAsync()</code> under load starves the thread pool; one style per codebase.</li>
+    <li><strong>DbContext shared across threads</strong> — <code>A second operation was started on this context instance</code>; use <code>IDbContextFactory</code>.</li>
+    <li><strong><code>EnableRetryOnFailure</code> without an execution strategy</strong> — explicit transactions throw <code>InvalidOperationException</code> at runtime, not at startup.</li>
+    <li><strong><code>EnsureCreated()</code> and migrations together</strong> — <code>EnsureCreated</code> skips the <code>__EFMigrationsHistory</code> table, so the first <code>Migrate()</code> fails on existing objects.</li>
+    <li><strong>Migrating on startup in multi-instance deployments</strong> — concurrent <code>Migrate()</code> calls race; ship an idempotent script or a bundle from the pipeline instead.</li>
+    <li><strong>EF Core 10: migrations are no longer one transaction</strong> — a mid-run failure leaves a partially migrated database.</li>
+    <li><strong><code>Skip</code>/<code>Take</code> without <code>OrderBy</code></strong> — non-deterministic paging; the database may return the same row twice across pages.</li>
+    <li><strong>Deep OFFSET paging</strong> — <code>Skip(100000)</code> scans everything skipped; switch to keyset paging.</li>
+    <li><strong><code>DateTime.Now</code> in a query</strong> — evaluated once, parameterised, and in server-local time; use <code>DateTime.UtcNow</code> captured explicitly.</li>
+    <li><strong>Decimal without precision</strong> — silently truncates to <code>decimal(18,2)</code> on SQL Server; set it in <code>ConfigureConventions</code>.</li>
+    <li><strong><code>string.Contains</code> as search</strong> — becomes <code>LIKE '%x%'</code>, unindexable; use full-text search past a few thousand rows.</li>
+    <li><strong>Enum stored as int by convention</strong> — reordering the enum silently corrupts data; convert to string or pin the values.</li>
+    <li><strong>Owned types are not entities</strong> — you cannot query them independently or track them separately; complex types (EF Core 8+) say that out loud.</li>
+    <li><strong>Scaffolding overwrites</strong> — <code>dbcontext scaffold</code> regenerates the whole context; keep customisations in partial classes or <code>-f</code> will eat them.</li>
+    <li><strong>EF Core 8/9 leave support on 2026-11-10</strong> — anything still on .NET 8 needs an upgrade plan now.</li>
+  </ul>
+  <p class="docs">Docs: <a href="https://learn.microsoft.com/en-us/ef/core/what-is-new/ef-core-10.0/breaking-changes">EF Core 10 breaking changes</a></p>
+</section>
+
+<section class="unit" id="u12">
+  <h2>12 Modern vs legacy</h2>
+  <p class="lede">The left column is what to write today; the right column is what you will find in the repository you inherit.</p>
+  <div class="tw">
+  <table>
+    <thead><tr><th>Task</th><th>Modern</th><th>Legacy still seen</th><th>Since</th></tr></thead>
+    <tbody>
+      <tr><td>Runtime choice</td><td>EF Core 10 on .NET 10</td><td>EF6 6.5.2 on .NET Framework, EDMX designer, <code>ObjectContext</code></td><td class="since">EF Core 1.0 (2016)</td></tr>
+      <tr><td>Update many rows</td><td><code>ExecuteUpdateAsync</code> / <code>ExecuteDeleteAsync</code></td><td>load into memory, mutate, <code>SaveChanges</code> in a loop</td><td class="since">EF Core 7</td></tr>
+      <tr><td>Value object</td><td><code>ComplexProperty</code> (struct or class, optional in EF 10)</td><td><code>OwnsOne</code>, or flattened <code>Address_City</code> columns</td><td class="since">EF Core 8</td></tr>
+      <tr><td>Many-to-many</td><td><code>HasMany().WithMany()</code> skip navigations</td><td>explicit join entity + two one-to-many relations</td><td class="since">EF Core 5</td></tr>
+      <tr><td>Left outer join</td><td><code>.LeftJoin(...)</code></td><td><code>GroupJoin</code> + <code>SelectMany</code> + <code>DefaultIfEmpty</code></td><td class="since">EF Core 10</td></tr>
+      <tr><td>Parameterised raw SQL</td><td><code>FromSql($"… {value}")</code>, <code>ExecuteSqlAsync</code></td><td><code>FromSqlRaw</code> with concatenation (EF 10 analyzer flags it)</td><td class="since">EF Core 8</td></tr>
+      <tr><td>Several global filters</td><td>named <code>HasQueryFilter("Tenant", …)</code> + <code>IgnoreQueryFilters(["Tenant"])</code></td><td>one filter combined with <code>&amp;&amp;</code>, all-or-nothing to disable</td><td class="since">EF Core 10</td></tr>
+      <tr><td>Document column</td><td><code>ComplexProperty(… , o =&gt; o.ToJson())</code> on the native <code>json</code> type</td><td><code>nvarchar(max)</code> + hand-written <code>JsonSerializer</code> value converter</td><td class="since">EF Core 7 / 10</td></tr>
+      <tr><td>Model-wide conventions</td><td><code>ConfigureConventions</code>, custom <code>IConvention</code></td><td><code>foreach (var t in modelBuilder.Model.GetEntityTypes())</code> loops</td><td class="since">EF Core 6 / 7</td></tr>
+      <tr><td>Seed data</td><td><code>UseSeeding</code> / <code>UseAsyncSeeding</code></td><td><code>HasData</code> in <code>OnModelCreating</code> (baked into migrations)</td><td class="since">EF Core 9</td></tr>
+      <tr><td>Deploy schema</td><td>idempotent script or <code>migrations bundle</code> from the pipeline</td><td><code>Database.Migrate()</code> on app start; <code>EnsureCreated()</code></td><td class="since">EF Core 6</td></tr>
+      <tr><td>Detect model drift</td><td><code>dotnet ef migrations has-pending-model-changes</code> in CI</td><td>a developer noticing at 2 a.m.</td><td class="since">EF Core 9</td></tr>
+      <tr><td>Inheritance mapping</td><td>TPC (<code>UseTpcMappingStrategy</code>) when hierarchies are wide</td><td>TPT everywhere, or TPH with 60 nullable columns</td><td class="since">EF Core 7</td></tr>
+      <tr><td>Large-model startup</td><td>compiled model (<code>dbcontext optimize</code>), auto-regenerated on build</td><td>accept a multi-second first query</td><td class="since">EF Core 6 / 9</td></tr>
+      <tr><td>Reading a graph</td><td><code>Select</code> into a DTO</td><td>lazy-loading proxies + <code>virtual</code> navigations everywhere</td><td class="since">EF Core 1.0</td></tr>
+      <tr><td>Parameters in logs</td><td>redacted by default; <code>EnableSensitiveDataLogging()</code> in dev only</td><td>sensitive logging left on in production</td><td class="since">EF Core 10</td></tr>
+      <tr><td>Testing</td><td>Testcontainers against the real provider</td><td><code>UseInMemoryDatabase</code></td><td class="since">EF Core 5 (guidance)</td></tr>
+    </tbody>
+  </table>
+  </div>
+  <p class="docs">Docs: <a href="https://learn.microsoft.com/en-us/ef/efcore-and-ef6/">Compare EF Core and EF6</a></p>
+</section>
+
+<section class="unit" id="u13">
+  <h2>13 Version timeline</h2>
+  <p class="lede">Latest first. Support dates are the ones that drive upgrade plans; EF releases and support track .NET exactly.</p>
+  <div class="tw">
+  <table>
+    <thead><tr><th>Version</th><th>Date</th><th>What changed</th></tr></thead>
+    <tbody>
+      <tr><td class="v">11.0 rc.1</td><td class="v">2026-09-08</td><td><strong>Newly in preview.</strong> <code>FullJoin</code> → <code>FULL OUTER JOIN</code>; ANN vector search (<code>HasVectorIndex</code>, <code>VECTOR_SEARCH()</code>, experimental) with vector columns no longer auto-SELECTed; JSON as a first-class relational concept; complex types under TPT/TPC and in Cosmos; Cosmos moves to <code>System.Text.Json</code> (Newtonsoft dropped) with transactional batches by default; <code>.config/dotnet-ef.json</code>, <code>database update X --add</code>, <code>--offline</code>. GA with .NET 11 on <strong>2026-11-10</strong>; requires .NET 11.</td></tr>
+      <tr><td class="v">10.0.11</td><td class="v">2026-08-11</td><td>Current patch — always take the highest 10.0.x.</td></tr>
+      <tr class="now"><td class="v">10.0</td><td class="v">2025-11-11</td><td><strong>Current LTS, supported to 2028-11-10.</strong> Newly stable: vector type + <code>EF.Functions.VectorDistance</code> (SQL Server 2025 / Azure SQL), Cosmos vector search out of preview, Cosmos full-text and hybrid (<code>Rrf</code>) search, named query filters, optional and struct complex types, complex types <code>ToJson</code> on the native <code>json</code> type, <code>LeftJoin</code>/<code>RightJoin</code>, <code>ExecuteUpdate</code> with statement-bodied lambdas and JSON-path updates. Newly default: parameterised collections (<code>@ids1, @ids2…</code>) with padding, and redaction of inlined values in logs. Newly deprecated/breaking: .NET Framework unsupported, migrations no longer run in a single transaction, <code>Microsoft.Data.Sqlite</code> <code>DateTime</code>/UTC handling changed.</td></tr>
+      <tr><td class="v">9.0</td><td class="v">2024-11-12</td><td>Cosmos provider rewritten (hierarchical partition keys, vector search preview); experimental NativeAOT + precompiled queries; <code>UseSeeding</code>/<code>UseAsyncSeeding</code>; auto-compiled models via MSBuild; <code>has-pending-model-changes</code>; heavy query pruning; read-only primitive collections. <strong>Support ends 2026-11-10.</strong></td></tr>
+      <tr><td class="v">8.0</td><td class="v">2023-11-14</td><td>Complex types; primitive collections mapped to JSON; <code>FromSql</code> with interpolated parameters; <code>SqlQuery&lt;T&gt;</code> for unmapped types; <code>HierarchyId</code>, <code>DateOnly</code>/<code>TimeOnly</code>; sentinel values. LTS — <strong>support ends 2026-11-10.</strong></td></tr>
+      <tr><td class="v">7.0</td><td class="v">2022-11-08</td><td><code>ExecuteUpdate</code>/<code>ExecuteDelete</code>; JSON columns (<code>ToJson</code>); TPC inheritance; stored-procedure mapping for insert/update/delete; custom model-building conventions. Out of support since 2024-05-14.</td></tr>
+      <tr><td class="v">6.0</td><td class="v">2021-11-08</td><td>Temporal tables; compiled models; migration bundles; <code>ConfigureConventions</code>; sparse columns; SQLite connection pooling. Out of support since 2024-11-12.</td></tr>
+      <tr><td class="v">5.0</td><td class="v">2020-11-10</td><td>Many-to-many skip navigations; table-per-type; filtered <code>Include</code>; split queries; <code>ToQueryString()</code>; simple logging; <code>ChangeTracker.Clear()</code>.</td></tr>
+      <tr><td class="v">3.0 / 3.1</td><td class="v">2019-09-23 / 2019-12-03</td><td>The big break: client evaluation of <code>Where</code> off by default, LINQ pipeline rewritten, <code>Include</code> restrictions, Cosmos provider, NetTopologySuite. Still the reason old codebases stall on 2.x.</td></tr>
+      <tr><td class="v">2.1</td><td class="v">2018-05-30</td><td>Lazy-loading proxies, data seeding (<code>HasData</code>), value conversions, query types, <code>DbContext</code> pooling.</td></tr>
+      <tr><td class="v">1.0</td><td class="v">2016-06-27</td><td>Ground-up rewrite, cross-platform, no EDMX, no <code>ObjectContext</code>.</td></tr>
+      <tr><td class="v">EF 6.5.2</td><td class="v">2026-04</td><td><strong>Classic EF, maintenance only.</strong> Ports the .NET 10 first-class-span fix so EF6 keeps working on .NET 10. Security fixes only, no new features; Microsoft promises 12 months' notice before ending support and has announced none.</td></tr>
+      <tr><td class="v">EF 6.0</td><td class="v">2013-10</td><td>Async, code-first migrations, connection resiliency — and the EDMX/database-first designer that keeps EF6 alive in old estates.</td></tr>
+    </tbody>
+  </table>
+  </div>
+  <p class="docs">Docs: <a href="https://learn.microsoft.com/en-us/ef/core/what-is-new/">EF Core releases and planning</a> · <a href="https://learn.microsoft.com/en-us/ef/efcore-and-ef6/support">Entity Framework support policies</a></p>
+</section>
+
+</main>
+</div>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.11.1/highlight.min.js" defer></script>
+<script>
+(function () {
+  // Colour is decoration: if the CDN is unreachable the page still reads.
+  window.addEventListener('load', function () {
+    try { if (window.hljs) { window.hljs.configure({ ignoreUnescapedHTML: true }); window.hljs.highlightAll(); } } catch (e) {}
+  });
+
+  // Scrollspy: aria-current="true" on the unit in view.
+  var links = Array.prototype.slice.call(document.querySelectorAll('.units a'));
+  var byId = {};
+  links.forEach(function (a) { byId[a.getAttribute('href').slice(1)] = a; });
+  var units = Array.prototype.slice.call(document.querySelectorAll('section.unit'));
+  var current = null;
+  function mark(id) {
+    if (id === current) return;
+    current = id;
+    links.forEach(function (a) { a.removeAttribute('aria-current'); });
+    if (byId[id]) byId[id].setAttribute('aria-current', 'true');
+  }
+  if ('IntersectionObserver' in window) {
+    var seen = {};
+    var io = new IntersectionObserver(function (entries) {
+      entries.forEach(function (e) { seen[e.target.id] = e.isIntersecting ? e.intersectionRatio : 0; });
+      var best = null, bestRatio = 0;
+      units.forEach(function (u) { var r = seen[u.id] || 0; if (r > bestRatio) { bestRatio = r; best = u.id; } });
+      if (best) mark(best);
+    }, { rootMargin: '-10% 0px -60% 0px', threshold: [0, 0.1, 0.5, 1] });
+    units.forEach(function (u) { io.observe(u); });
+  }
+  if (units.length) mark(units[0].id);
+
+  // Off-canvas sidebar below 720px.
+  var btn = document.getElementById('navtoggle');
+  var side = document.getElementById('side');
+  if (btn) {
+    btn.addEventListener('click', function () {
+      var open = document.body.classList.toggle('nav-open');
+      btn.setAttribute('aria-expanded', open ? 'true' : 'false');
+    });
+    side.addEventListener('click', function (e) {
+      if (e.target.closest('a')) { document.body.classList.remove('nav-open'); btn.setAttribute('aria-expanded', 'false'); }
+    });
+  }
+})();
+</script>
+</body>
+</html>

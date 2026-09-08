@@ -439,7 +439,14 @@ window.DEVBOK_TOPICS = [
           "file": "topics/entityframework/experience.v1.html"
         }
       ],
-      "interview": [],
+      "interview": [
+        {
+          "v": 1,
+          "generated": "2026-09-08",
+          "prompt": "880c04f3",
+          "file": "topics/entityframework/interview.v1.html"
+        }
+      ],
       "cheatsheet": [
         {
           "v": 1,
@@ -542,7 +549,14 @@ window.DEVBOK_TOPICS = [
     "accent": "#13aa52",
     "created": "2026-09-08",
     "kinds": {
-      "study": [],
+      "study": [
+        {
+          "v": 1,
+          "generated": "2026-09-08",
+          "prompt": "3e395ac4",
+          "file": "topics/mongo/study.v1.html"
+        }
+      ],
       "experience": [
         {
           "v": 1,
