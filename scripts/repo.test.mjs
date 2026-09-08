@@ -258,6 +258,14 @@ describe('shell and generated pages share one design', () => {
     assert.equal(defaultAccent, shellLight.accent, "the script's default accent is the shell's own accent");
     assert.equal(shellDark.accent, darkAccent(defaultAccent), "the shell's dark accent must be the tint the script derives, or devbok's own page and a topic page using the same accent look different");
   });
+  test('inline code is coloured the same way in the shell and in a generated page', () => {
+    // --code is derived from the accent, so it is an expression rather than a hex and the loop above
+    // cannot see it; the shell and page.md must still say exactly the same thing.
+    const expr = (shellCss.match(/--code:\s*([^;]+);/) ?? [])[1];
+    assert.ok(expr, 'devbok.html must declare --code');
+    assert.ok(page.includes(`--code: ${expr};`), `page.md must declare --code: ${expr};`);
+    assert.match(page, /never one of its theme stylesheets/, 'page.md must forbid a cdnjs highlight.js theme, or pages drift back to four palettes');
+  });
   test('mono font and sidebar width match', () => {
     const mono = shellCss.match(/font-family: "([^"]+)"/)[1];
     assert.ok(page.includes(`"${mono}"`), `page.md must name the shell's mono font "${mono}"`);

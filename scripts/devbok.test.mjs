@@ -61,6 +61,10 @@ function html({ bytes = 25_000, provenance = true, head = '', extra = '', tail =
   }
   return `<!doctype html><html><head><meta charset="utf-8"><title>t</title>${head}</head><body>${provenance ? '<!-- devbok\nslug: x\n-->' : ''}${extra}${body}${tail}`;
 }
+// The code palette prompts/shared/page.md calls verbatim; validate wants every token declared.
+const PALETTE = ':root { --code: color-mix(in srgb, var(--accent) 70%, var(--fg));' +
+  ' --hl-kw: #a626a4; --hl-str: #50a14f; --hl-num: #986801; --hl-cmt: #6b6b6b;' +
+  ' --hl-type: #0184bc; --hl-fn: #4078f2; --hl-attr: #986801; }';
 // A page that satisfies the whole artifact contract, design checks included, so `record` accepts it.
 // The validate tests below write their files outside topics/, where a file has no identity and only the
 // structural checks apply.
@@ -71,7 +75,7 @@ function artifactHtml(slug, kind, v, { title, bytes = 25_000, head = '', extra =
     filler += '<section><h2>01 S</h2><p>' + 'lorem ipsum '.repeat(40) + '</p><details><summary>Q</summary><p>A</p></details></section>\n';
   }
   return `<!doctype html><html><head><meta charset="utf-8"><title>${name} · ${kind} · devbok</title>` +
-    `<style>${kind === 'cheatsheet' ? '@media print { .side { display: none } }' : ''}</style>${head}</head><body>` +
+    `<style>${PALETTE}${kind === 'cheatsheet' ? '@media print { .side { display: none } }' : ''}</style>${head}</head><body>` +
     `<!-- devbok\nslug: ${slug}\nkind: ${kind}\nversion: ${v}\ntopic: "t"\nprompt: ${kind}.md@00000000\ngenerated: 2026-01-01\n-->` +
     '<nav class="side" aria-label="Units"><ol class="units"><li><a href="#u01" aria-current="true"><span class="n">01</span><span class="t">First</span></a></li></ol><footer>f</footer></nav>' +
     `<header class="hero"><h1>${name}</h1><p class="meta">m</p><p class="summary">s</p><p class="chips"><span class="chip">c</span></p></header>` +
@@ -621,6 +625,19 @@ describe('validate: the verbatim parts of prompts/shared/page.md', () => {
     const j = checked((h) => h.replace('@media print { .side { display: none } }', ''), { kind: 'cheatsheet' });
     assert.ok(j.errors.some((e) => /@media print/.test(e)), errs(j));
     assert.deepEqual(checked((x) => x, { kind: 'study' }).errors, []);
+  });
+  test('the code palette must be declared, and never a cdnjs highlight.js theme', () => {
+    initTopic('s');
+    // Every --hl-* token plus --code: the page carries its own theme, in both colour schemes.
+    let j = checked((h) => h.replace('--hl-str: #50a14f;', '').replace('--code:', '--inline-code:'));
+    assert.ok(j.errors.some((e) => /code palette is missing --code, --hl-str/.test(e)), errs(j));
+    // A cdnjs theme stylesheet is light-only and fights the tokens in dark mode, so it is an error even
+    // though cdnjs is an allowed host for the highlight.js script itself.
+    const theme = '<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.11.1/styles/github.min.css">';
+    j = checked((h) => h.replace('</head>', `${theme}</head>`));
+    assert.ok(j.errors.some((e) => /theme stylesheet .*styles\/github\.min\.css/.test(e)), errs(j));
+    j = checked((h) => h.replace('</head>', '<script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.11.1/highlight.min.js"></script></head>'));
+    assert.deepEqual(j.errors, [], errs(j));
   });
   test('localStorage keys are checked against the page\'s own slug, kind and version', () => {
     initTopic('s');

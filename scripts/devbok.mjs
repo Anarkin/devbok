@@ -309,6 +309,12 @@ function checkDesign(html, id, r) {
   }
   if (!/\baria-current=/i.test(html)) err('scrollspy must set aria-current="true" on the unit in view - the verbatim sidebar CSS styles nothing else');
   if (id.kind === 'cheatsheet' && !/@media\s+print/i.test(html)) err('a cheatsheet needs a @media print stylesheet (see AGENTS.md, Artifact contract)');
+  // One code palette for the whole knowledge base: the --hl-* tokens are the theme, so a cdnjs theme
+  // stylesheet is not a second opinion, it is a light-only palette fighting them in dark mode.
+  const theme = /https:\/\/cdnjs\.cloudflare\.com\/[^"']*\/styles\/[^"']+\.css/i.exec(html);
+  if (theme) err(`links a highlight.js theme stylesheet (${theme[0]}) - only its script may be loaded; the palette is verbatim in ${page}`);
+  const missing = ['--code', '--hl-kw', '--hl-str', '--hl-num', '--hl-cmt', '--hl-type', '--hl-fn', '--hl-attr'].filter((t) => !html.includes(`${t}:`));
+  if (missing.length) err(`the code palette is missing ${missing.join(', ')} - the tokens and the .hljs rules are verbatim in ${page}`);
 }
 
 function validateHtml(file, { minBytes = MIN_BYTES } = {}) {

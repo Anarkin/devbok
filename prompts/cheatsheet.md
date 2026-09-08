@@ -18,5 +18,5 @@ Let the topic decide the sections (a language wants more syntax, a CLI tool more
   - Idioms and gotchas: the modern way with the legacy pattern I'll still meet in real codebases, and one-line pitfalls.
   - Modern-versus-legacy table. Columns: **Task**, **Modern**, **Legacy still seen**, **Since**.
   - Version timeline, latest first: version, date, what changed in one line each, marking newly stable, newly default and newly deprecated — the part most likely to go stale, so verify it against the research.
-- Print: a `@media print` stylesheet that hides the sidebar and chrome, prints black on white on 2–4 A4/Letter pages, avoids page breaks inside a section, and prints links as plain text.
+- Print: a `@media print` stylesheet that hides the sidebar and chrome, prints black on white on 2–4 A4/Letter pages, avoids page breaks inside a section, and prints links as plain text. Black on white includes code: `@media print { code, .hljs, .hljs span { color: #000 !important; background: transparent !important; } }` — the screen palette costs toner and prints grey on a mono printer.
 - Every item must be correct for the latest stable version, labelled with the version where it became true when that matters. Terse beats complete: if something needs a paragraph, it does not belong on the card.
