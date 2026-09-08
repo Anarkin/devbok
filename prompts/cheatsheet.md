@@ -9,7 +9,7 @@ Let the topic decide the sections (a language wants more syntax, a CLI tool more
 {{slot:content}}
 ## The reference card
 
-- Hero: keep it minimal — the topic, the version chips, and a 3-sentence summary of what is on the card and which version it reflects. No "how to use".
+- Hero summary: 3 sentences — what is on the card and which version it reflects; no "how to use". Chips: the version facts only.
 - The units are the card's sections.
 - Layout: a dense multi-column grid on wide screens (single column on mobile), each section a compact card. One line per item: a task or concept on the left, the syntax or command on the right in monospace, with a minimal example where the syntax alone is not obvious. No paragraph longer than two lines.
 - Section content:

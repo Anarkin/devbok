@@ -17,8 +17,8 @@ Put this provenance comment immediately after `<body>`, verbatim:
 
       <header class="hero">
         <h1>{{TITLE}}</h1>
-        <p class="meta">{{KIND}} · <latest stable version> · released <date></p>
-        <p class="summary">3–5 sentences; the kind-specific section below says what they must cover.</p>
+        <p class="meta">…</p>
+        <p class="summary">…</p>
         <p class="chips"><span class="chip">…</span> <span class="chip">…</span></p>
       </header>
 
@@ -28,8 +28,8 @@ Put this provenance comment immediately after `<body>`, verbatim:
       .hero .summary { margin: 0 0 12px; }
       .hero .chips { display: flex; flex-wrap: wrap; gap: 6px; margin: 0; }
 
-  The `<h1>` is the topic's title exactly as given, `{{TITLE}}` — never with a kind suffix, never the full topic sentence; the kind is on the meta line. Nothing sits above the hero.
-- **Fixed sidebar navigation** listing all units (numbered — order matters), with scrollspy highlighting of the current unit. No progress tracking, no "mark as done" checkboxes. If the page keeps any state at all (which blocks are open, say), persist it in localStorage under keys that start with `devbok:{{SLUG}}:{{KIND}}:v{{VERSION}}:`.
+  The `<h1>` is the topic's title exactly as given, `{{TITLE}}` — never with a kind suffix, never the full topic sentence. The meta line reads `{{KIND}} · <latest stable version> · released <date>`. The summary is the 3–5 sentences the kind-specific section asks for; the chips carry the headline facts. Nothing sits above the hero.
+- **State** — no progress tracking, no "mark as done" checkboxes. If the page keeps any state at all (which blocks are open, say), persist it in localStorage under keys that start with `devbok:{{SLUG}}:{{KIND}}:v{{VERSION}}:`. The sidebar is specified below, verbatim.
 - **Code** with syntax highlighting; **comparison tables** where they genuinely clarify.
 
 ### Design system

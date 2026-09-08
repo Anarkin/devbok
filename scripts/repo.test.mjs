@@ -219,6 +219,8 @@ describe('shell and generated pages share one design', () => {
     }
     assert.match(page, /--accent: \{\{ACCENT\}\}/);
     assert.match(page, /--accent: \{\{ACCENT_DARK\}\}/);
+    const defaultAccent = read('scripts', 'devbok.mjs').match(/const DEFAULT_ACCENT = '(#[0-9a-f]{6})'/)[1];
+    assert.equal(defaultAccent, shellLight.accent, "the script's default accent is the shell's own accent");
   });
   test('mono font and sidebar width match', () => {
     const mono = shellCss.match(/font-family: "([^"]+)"/)[1];

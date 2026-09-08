@@ -1,5 +1,5 @@
 {{slot:goal}}
-I'm preparing for technical interviews and want to master the topic above completely — every question an interviewer could ask about it, up to the depth expected at the top of the IC ladder. Build me a complete question bank, not a question list: first the full topic map as a coverage checklist, then every question worth preparing, each with its answer, a concrete example, the follow-ups an interviewer would probe with, and the common wrong answer that gets candidates rejected — plus the open-ended judgment questions and the design exercises this topic leads to.
+I'm preparing for technical interviews and want to master the topic above completely — every question an interviewer could ask about it, up to the depth expected at the top of the IC ladder. Build me a complete question bank, not a question list: first the full topic map, then every question worth preparing, each with its answer, a concrete example, the follow-ups an interviewer would probe with, and the common wrong answer that gets candidates rejected — plus the open-ended judgment questions and the design exercises this topic leads to.
 
 {{slot:design}}
 ## Design the topic map
@@ -9,7 +9,7 @@ Map every sub-area of the topic that can be tested in interviews, from fundament
 {{slot:content}}
 ## The question bank
 
-- Hero summary: 3–5 sentences on what interviews for this topic actually test and how to use the bank (the map is the checklist; work down it in frequency order). Chips: sub-area count, question count, depth range, number of design exercises.
+- Hero summary: 3–5 sentences on what interviews for this topic actually test and how to use the bank (work down the map in frequency order). Chips: sub-area count, question count, depth range, number of design exercises.
 - Immediately below the hero: the topic map as a table, one row per sub-area, linking to its section. Columns: **#**, **Sub-area**, **Asked** (often / sometimes / rarely), **Critical** (yes / nice to know), **Questions**.
 - The units are the numbered sub-areas, in the map's order.
 - Each sub-area section must contain, in this order:

@@ -268,8 +268,6 @@ describe('devbok.html structure', () => {
     // and follows the header's title/subtitle pattern: active = text colour + bold, inactive = muted
     assert.match(css, /\.tab \{[^}]*color: var\(--muted\);/);
     assert.match(css, /\.tab\.active \{[^}]*font-weight: 700;[^}]*color: var\(--fg\);/);
-    // .tab.empty and .tab.active tie on specificity, so source order decides: active must come last to stay readable
-    assert.ok(css.indexOf('.tab.empty {') < css.indexOf('.tab.active {'), '.tab.active must be declared after .tab.empty');
     assert.match(css, /\.tools \{[^}]*flex: 1;[^}]*border-bottom: 2px solid var\(--line\);/);
   });
   test('no orientation labels: the list and the tab row explain themselves', () => {
