@@ -1,0 +1,718 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>C# async/await · cheatsheet · devbok</title>
+<link rel="preconnect" href="https://fonts.googleapis.com/">
+<link rel="preconnect" href="https://fonts.gstatic.com/" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Cascadia+Mono:wght@400;700&amp;display=swap">
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.11.1/styles/github.min.css" media="(prefers-color-scheme: light)">
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.11.1/styles/github-dark.min.css" media="(prefers-color-scheme: dark)">
+<style>
+:root { color-scheme: light;
+  --bg: #ffffff; --fg: #111111; --muted: #6b6b6b; --line: #111111; --soft: #f4f4f4; --border: #cccccc;
+  --accent: #512bd4; --accent-soft: color-mix(in srgb, var(--accent) 12%, var(--bg)); }
+@media (prefers-color-scheme: dark) { :root { color-scheme: dark;
+  --bg: #222222; --fg: #cccccc; --muted: #8f8f8f; --line: #111111; --soft: #2c2c2c; --border: #4a4a4a;
+  --accent: #896fe2; --accent-soft: color-mix(in srgb, var(--accent) 16%, var(--bg)); } }
+
+*, *::before, *::after { box-sizing: border-box; }
+html { -webkit-text-size-adjust: 100%; }
+body { margin: 0; background: var(--bg); color: var(--fg);
+  font-family: system-ui, sans-serif; font-size: 16px; line-height: 1.6; overflow-wrap: break-word; }
+h1, h2, h3 { font-family: system-ui, sans-serif; font-weight: 700; }
+h2 { font-size: 1.5em; }
+h3 { font-size: 1.17em; }
+a { color: var(--accent); }
+a:focus-visible, button:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+img { max-width: 100%; }
+
+code, kbd, pre, .mono, .chip, .since, .docs, .hero .meta, .side, dl.rows dd, table.grid { font-family: "Cascadia Mono", Consolas, monospace; font-size: 12px; }
+code { background: var(--soft); border-radius: 3px; padding: 0 3px; overflow-wrap: anywhere; }
+pre { background: var(--soft); border: 1px solid var(--border); border-radius: 4px;
+  margin: 10px 0 0; padding: 10px 12px; overflow-x: auto; max-width: 100%; line-height: 1.5; }
+pre code { background: none; border: 0; padding: 0; white-space: pre; }
+pre code.hljs { background: transparent; padding: 0; }
+
+.hero { margin: 0 0 24px; padding: 0 0 24px; border-bottom: 2px solid var(--line); }
+.hero h1 { margin: 0 0 8px; font-size: 2em; line-height: 1.2; font-weight: 700; }
+.hero .meta { margin: 0 0 12px; font-family: "Cascadia Mono", Consolas, monospace; font-size: 12px; color: var(--muted); }
+.hero .summary { margin: 0 0 12px; }
+.hero .chips { display: flex; flex-wrap: wrap; gap: 6px; margin: 0; }
+
+.side { position: fixed; top: 0; bottom: 0; left: 0; width: 260px; display: flex; flex-direction: column; background: var(--bg); border-right: 2px solid var(--line); font-family: "Cascadia Mono", Consolas, monospace; font-size: 12px; }
+.units { list-style: none; margin: 0; padding: 12px 0; overflow-y: auto; flex: 1; }
+.units a { display: grid; grid-template-columns: 2.5em 1fr; padding: 9px 20px; color: var(--fg); text-decoration: none; line-height: 1.4; }
+.units .n { color: var(--muted); }
+.units a:hover { background: var(--soft); }
+.units a[aria-current="true"] { background: var(--accent-soft); color: var(--accent); }
+.units a[aria-current="true"] .n { color: var(--accent); }
+.side footer { padding: 12px 20px; border-top: 2px solid var(--line); color: var(--muted); line-height: 1.5; }
+
+.content { margin-left: 260px; padding: 24px; max-width: 120ch; min-width: 0; }
+.unit { border-top: 2px solid var(--line); margin: 0 0 26px; padding: 14px 0 0; min-width: 0; }
+.unit > header { display: flex; flex-wrap: wrap; align-items: baseline; gap: 4px 14px; margin: 0 0 4px; min-width: 0; }
+.unit h2 { margin: 0; line-height: 1.25; }
+.unit h2 .n { font-family: "Cascadia Mono", Consolas, monospace; font-size: 12px; color: var(--muted); margin-right: 10px; }
+.docs { color: var(--muted); }
+.docs a { color: var(--accent); text-decoration: none; }
+.docs a:hover { text-decoration: underline; }
+
+dl.rows { display: grid; grid-template-columns: minmax(0, 30ch) minmax(0, 1fr);
+  margin: 12px 0 0; border-top: 1px solid var(--border); min-width: 0; }
+dl.rows dt { grid-column: 1; margin: 0; padding: 6px 14px 6px 0; border-bottom: 1px solid var(--border);
+  min-width: 0; line-height: 1.35; }
+dl.rows dd { grid-column: 2; margin: 0; padding: 7px 0 6px; border-bottom: 1px solid var(--border);
+  min-width: 0; line-height: 1.5; overflow-wrap: anywhere; }
+dl.rows dd code { background: none; padding: 0; }
+.cmt { color: var(--muted); }
+
+.chip { display: inline-block; text-transform: uppercase; letter-spacing: .03em;
+  background: var(--soft); border: 1px solid var(--border); border-radius: 4px; padding: 2px 7px; }
+.since { display: inline-block; border: 1px solid var(--accent); border-radius: 4px;
+  padding: 0 5px; color: var(--accent); white-space: nowrap; }
+.note { background: var(--soft); border-left: 3px solid var(--accent); padding: 8px 12px; margin: 12px 0 0; }
+.note p { margin: 0; }
+
+.tw { overflow-x: auto; margin: 12px 0 0; min-width: 0; }
+table.grid { border-collapse: collapse; width: 100%; }
+table.grid th { text-align: left; font-weight: 400; color: var(--muted);
+  border-bottom: 1px solid var(--border); padding: 6px 14px 6px 0; vertical-align: bottom; }
+table.grid td { border-bottom: 1px solid var(--border); padding: 6px 14px 6px 0; vertical-align: top; }
+table.grid td code { background: none; padding: 0; }
+table.grid tr.hi td { background: var(--accent-soft); }
+
+ul.tight { margin: 12px 0 0; padding-left: 1.1em; }
+ul.tight li { margin: 0 0 3px; }
+
+.navtoggle { display: none; position: fixed; top: 10px; left: 10px; z-index: 30;
+  font-family: "Cascadia Mono", Consolas, monospace; font-size: 12px; color: var(--fg);
+  background: var(--bg); border: 1px solid var(--line); border-radius: 4px; padding: 6px 10px; cursor: pointer; }
+@media (max-width: 720px) {
+  .navtoggle { display: block; }
+  .side { width: min(260px, 84%); transform: translateX(-102%); transition: transform .15s ease; z-index: 25; }
+  body.nav-open .side { transform: none; }
+  .content { margin-left: 0; padding: 52px 16px 24px; }
+  dl.rows { grid-template-columns: minmax(0, 1fr); }
+  dl.rows dt { padding: 6px 0 0; border-bottom: 0; font-weight: 600; }
+  dl.rows dd { padding: 2px 0 7px; }
+}
+
+@media print {
+  :root { color-scheme: light;
+    --bg: #ffffff; --fg: #000000; --muted: #444444; --line: #000000; --soft: #ffffff; --border: #999999;
+    --accent: #000000; --accent-soft: #ffffff; }
+  .side, .navtoggle { display: none !important; }
+  body { font-size: 9pt; line-height: 1.3; background: #fff; color: #000; }
+  .content { margin: 0; padding: 0; max-width: 100%; }
+  code, kbd, pre, .chip, .since, .docs, .hero .meta, dl.rows dd, table.grid { font-size: 7.5pt; }
+  .hero { padding-bottom: 8pt; margin-bottom: 10pt; border-bottom: 1pt solid #000; }
+  .hero h1 { font-size: 16pt; }
+  .unit { break-inside: avoid; page-break-inside: avoid; margin: 0 0 8pt; padding-top: 6pt; border-top: 1pt solid #000; }
+  .unit h2 { font-size: 11pt; }
+  pre { background: #fff; border: 1pt solid #999; padding: 4pt 6pt; }
+  pre code.hljs, pre code.hljs span { color: #000 !important; background: transparent !important; }
+  .note { background: #fff; border-left: 2pt solid #000; }
+  a, a:visited { color: #000; text-decoration: none; }
+  a[href]::after { content: ""; }
+  @page { size: A4; margin: 11mm; }
+}
+</style>
+</head>
+<body>
+<!-- devbok
+slug: csharp-async
+kind: cheatsheet
+version: 3
+topic: "C# async/await and the Task-based asynchronous pattern (Task, ValueTask, cancellation, IAsyncEnumerable, ConfigureAwait, thread-pool behaviour; assume general C# syntax is known)"
+prompt: cheatsheet.md@eef70255
+generated: 2026-09-08
+-->
+<button class="navtoggle" type="button" aria-expanded="false" aria-controls="side">units</button>
+<nav class="side" id="side" aria-label="Units">
+  <ol class="units">
+    <li><a href="#u01"><span class="n">01</span><span class="t">Syntax essentials</span></a></li>
+    <li><a href="#u02"><span class="n">02</span><span class="t">Task API</span></a></li>
+    <li><a href="#u03"><span class="n">03</span><span class="t">ValueTask</span></a></li>
+    <li><a href="#u04"><span class="n">04</span><span class="t">Cancellation</span></a></li>
+    <li><a href="#u05"><span class="n">05</span><span class="t">Async streams &amp; channels</span></a></li>
+    <li><a href="#u06"><span class="n">06</span><span class="t">ConfigureAwait &amp; contexts</span></a></li>
+    <li><a href="#u07"><span class="n">07</span><span class="t">Thread-pool behaviour</span></a></li>
+    <li><a href="#u08"><span class="n">08</span><span class="t">Runtime Async (.NET 11)</span></a></li>
+    <li><a href="#u09"><span class="n">09</span><span class="t">Commands &amp; diagnostics</span></a></li>
+    <li><a href="#u10"><span class="n">10</span><span class="t">Idioms &amp; gotchas</span></a></li>
+    <li><a href="#u11"><span class="n">11</span><span class="t">Modern vs legacy</span></a></li>
+    <li><a href="#u12"><span class="n">12</span><span class="t">Version timeline</span></a></li>
+  </ol>
+  <footer>C# async/await · cheatsheet · version 3 · 2026-09-08</footer>
+</nav>
+<main class="content">
+<header class="hero">
+  <h1>C# async/await</h1>
+  <p class="meta">cheatsheet · .NET 10.0.11 (C# 14) · released 2026-08-11</p>
+  <p class="summary">Everything reached for when writing asynchronous C#: the syntax, the <code>Task</code> and <code>ValueTask</code> surface, cancellation, async streams, <code>ConfigureAwait</code>, thread-pool behaviour and the diagnostic commands, with each row labelled by the version where it became true. It reflects .NET 10 (LTS, GA 2025-11-11; current patch 10.0.11, 2026-08-11) with C# 14. Anything marked <span class="since">.NET 11</span> is preview today and ships 2026-11-10, so read it as direction, not as something to deploy.</p>
+  <p class="chips"><span class="chip">.NET 10.0.11</span> <span class="chip">C# 14</span> <span class="chip">LTS to Nov 2028</span> <span class="chip">next: .NET 11 GA 2026-11-10</span> <span class="chip">verified 2026-09-08</span></p>
+</header>
+
+<section class="unit" id="u01">
+  <header>
+    <h2><span class="n">01</span>Syntax essentials</h2>
+    <span class="docs"><a href="https://learn.microsoft.com/dotnet/csharp/asynchronous-programming/">docs: asynchronous programming in C#</a></span>
+  </header>
+  <dl class="rows">
+    <dt>Async method</dt>
+    <dd><code>public async Task&lt;Order&gt; GetAsync(int id, CancellationToken ct = default)</code></dd>
+    <dt>Legal return types</dt>
+    <dd><code>Task</code>, <code>Task&lt;T&gt;</code>, <code>ValueTask</code>, <code>ValueTask&lt;T&gt;</code>, <code>IAsyncEnumerable&lt;T&gt;</code>, <code>void</code> (event handlers only), any type with <code>[AsyncMethodBuilder]</code></dd>
+    <dt>Await</dt>
+    <dd><code>var o = await GetAsync(id, ct);</code> <span class="cmt">— unwraps the result, rethrows the first exception un-aggregated</span></dd>
+    <dt>Entry point</dt>
+    <dd><code>static async Task Main(string[] a)</code> <span class="since">C# 7.1</span>; top-level statements just <code>await</code> directly</dd>
+    <dt>Async lambda / local fn</dt>
+    <dd><code>Func&lt;CancellationToken, Task&lt;int&gt;&gt; f = async ct =&gt; await GetAsync(ct);</code> · <code>async Task&lt;int&gt; LocalAsync() =&gt; ...</code></dd>
+    <dt>Async disposal</dt>
+    <dd><code>await using var conn = new SqlConnection(cs);</code> <span class="since">C# 8</span> <span class="cmt">— needs <code>IAsyncDisposable</code>; plain <code>using</code> silently takes the sync path</span></dd>
+    <dt>Async stream, consume</dt>
+    <dd><code>await foreach (var row in src.WithCancellation(ct).ConfigureAwait(false)) { ... }</code></dd>
+    <dt>Async stream, produce</dt>
+    <dd><code>async IAsyncEnumerable&lt;T&gt; ReadAsync([EnumeratorCancellation] CancellationToken ct)</code> + <code>yield return</code></dd>
+    <dt>Awaitable contract</dt>
+    <dd>any type exposing <code>GetAwaiter()</code> whose result has <code>bool IsCompleted</code>, <code>GetResult()</code> and <code>INotifyCompletion</code> — that is all <code>await</code> requires</dd>
+    <dt>Yield the current thread</dt>
+    <dd><code>await Task.Yield();</code> <span class="cmt">— forces an asynchronous continuation; never a substitute for real async I/O</span></dd>
+    <dt>Custom state machine</dt>
+    <dd><code>[AsyncMethodBuilder(typeof(PoolingAsyncValueTaskMethodBuilder&lt;&gt;))]</code> on a method <span class="since">C# 10</span> or on a type <span class="since">C# 7</span></dd>
+    <dt><code>ref</code> / <code>unsafe</code> in async</dt>
+    <dd>ref locals and <code>unsafe</code> blocks are allowed inside async methods and iterators <span class="since">C# 13</span> — but never live across an <code>await</code></dd>
+    <dt><code>await</code> inside <code>lock</code></dt>
+    <dd>compile error, always. With <code>System.Threading.Lock</code> <span class="since">.NET 9</span> the compiler also rejects <code>await</code> in the block; use <code>SemaphoreSlim(1, 1).WaitAsync(ct)</code></dd>
+  </dl>
+  <pre><code class="language-csharp">// The shape 95% of production async methods take.
+public async Task&lt;Order&gt; GetOrderAsync(int id, CancellationToken ct = default)
+{
+    await using var conn = await _factory.OpenAsync(ct);            // IAsyncDisposable
+    var dto = await conn.QuerySingleAsync&lt;OrderDto&gt;(Sql, ct)
+                        .ConfigureAwait(false);                     // library code
+    return Map(dto);
+}
+
+// Async iterator: the token must be marked, or WithCancellation(ct) is silently ignored.
+public async IAsyncEnumerable&lt;Order&gt; StreamAsync(
+    [EnumeratorCancellation] CancellationToken ct = default)
+{
+    await foreach (var dto in _repo.ReadAllAsync(ct))
+        yield return Map(dto);
+}</code></pre>
+</section>
+
+<section class="unit" id="u02">
+  <header>
+    <h2><span class="n">02</span>Task API</h2>
+    <span class="docs"><a href="https://learn.microsoft.com/dotnet/api/system.threading.tasks.task">docs: System.Threading.Tasks.Task</a></span>
+  </header>
+  <dl class="rows">
+    <dt>Offload CPU work</dt>
+    <dd><code>await Task.Run(() =&gt; Hash(bytes), ct);</code> <span class="cmt">— never to make sync I/O "async"</span></dd>
+    <dt>Already-finished results</dt>
+    <dd><code>Task.CompletedTask</code> · <code>Task.FromResult(v)</code> · <code>Task.FromException(ex)</code> · <code>Task.FromCanceled(ct)</code></dd>
+    <dt>Fan out, wait for all</dt>
+    <dd><code>var results = await Task.WhenAll(ids.Select(i =&gt; GetAsync(i, ct)));</code></dd>
+    <dt>First to finish</dt>
+    <dd><code>var done = await Task.WhenAny(a, b);</code> <span class="cmt">— the losers keep running; observe or cancel them</span></dd>
+    <dt>Process as they finish</dt>
+    <dd><code>await foreach (var t in Task.WhenEach(tasks)) Handle(await t);</code> <span class="since">.NET 9</span></dd>
+    <dt>Timeout / external cancel</dt>
+    <dd><code>await task.WaitAsync(TimeSpan.FromSeconds(5), ct);</code> <span class="since">.NET 6</span> <span class="cmt">— throws <code>TimeoutException</code> on the timeout, <code>OperationCanceledException</code> on the token</span></dd>
+    <dt>Delay</dt>
+    <dd><code>await Task.Delay(delay, timeProvider, ct);</code> <span class="since">.NET 8</span> <span class="cmt">— the <code>TimeProvider</code> overload is the testable one</span></dd>
+    <dt>Bridge a callback / event</dt>
+    <dd><code>new TaskCompletionSource&lt;T&gt;(TaskCreationOptions.RunContinuationsAsynchronously)</code> <span class="cmt">— the flag is not optional; without it the continuation runs on whoever calls <code>SetResult</code></span></dd>
+    <dt>Non-generic TCS</dt>
+    <dd><code>new TaskCompletionSource(...)</code> <span class="since">.NET 5</span> <span class="cmt">— before that, <code>TaskCompletionSource&lt;bool&gt;</code></span></dd>
+    <dt>Inspect state</dt>
+    <dd><code>t.IsCompletedSuccessfully</code> / <code>IsFaulted</code> / <code>IsCanceled</code> · <code>t.Exception</code> is an <code>AggregateException</code></dd>
+    <dt>Flatten <code>Task&lt;Task&gt;</code></dt>
+    <dd><code>Task.Factory.StartNew(async () =&gt; ...).Unwrap()</code> <span class="cmt">— the reason <code>Task.Run</code> exists; prefer it</span></dd>
+    <dt>Legacy continuation</dt>
+    <dd><code>t.ContinueWith(x =&gt; ..., TaskScheduler.Default)</code> <span class="cmt">— pre-<code>await</code>; the scheduler argument is mandatory in practice, the default is <code>TaskScheduler.Current</code></span></dd>
+    <dt>Blocking (avoid)</dt>
+    <dd><code>t.Result</code>, <code>t.Wait()</code>, <code>Task.WaitAll</code>, <code>t.GetAwaiter().GetResult()</code> <span class="cmt">— last one at least rethrows un-aggregated</span></dd>
+  </dl>
+  <pre><code class="language-csharp">// WhenAll surfaces only the FIRST exception on await. Grab the rest from the task.
+var all = Task.WhenAll(tasks);
+try { await all; }
+catch { throw all.Exception!; }                 // AggregateException with every failure
+
+// Streaming completion: react to the fastest replies without waiting for the slowest.
+await foreach (var finished in Task.WhenEach(tasks).WithCancellation(ct))   // .NET 9
+    await WriteAsync(await finished, ct);
+
+// Timeout without leaking the Task.Delay timer (the pre-.NET 6 WhenAny dance did).
+using var cts = CancellationTokenSource.CreateLinkedTokenSource(ct);
+var page = await FetchAsync(url, cts.Token).WaitAsync(TimeSpan.FromSeconds(2), ct);</code></pre>
+</section>
+
+<section class="unit" id="u03">
+  <header>
+    <h2><span class="n">03</span>ValueTask</h2>
+    <span class="docs"><a href="https://learn.microsoft.com/dotnet/api/system.threading.tasks.valuetask-1">docs: ValueTask&lt;TResult&gt;</a> · <a href="https://devblogs.microsoft.com/dotnet/understanding-the-whys-whats-and-whens-of-valuetask/">whys, whats and whens</a></span>
+  </header>
+  <dl class="rows">
+    <dt>Use it when</dt>
+    <dd>the method is hot <em>and</em> usually completes synchronously (cache hit, buffered read) <em>and</em> you measured. Otherwise return <code>Task</code>: it is cacheable, awaitable many times, and cheaper to reason about</dd>
+    <dt>The three rules</dt>
+    <dd>await it <strong>once</strong>; never <code>.Result</code> unless <code>IsCompletedSuccessfully</code>; never await the same instance concurrently. Breaking these is undefined behaviour, not an exception you can catch reliably</dd>
+    <dt>Store or await twice</dt>
+    <dd><code>Task&lt;T&gt; t = vt.AsTask();</code> or <code>ValueTask&lt;T&gt; v = vt.Preserve();</code></dd>
+    <dt>Construct</dt>
+    <dd><code>ValueTask.CompletedTask</code> · <code>ValueTask.FromResult(v)</code> · <code>new ValueTask&lt;T&gt;(cached)</code> · <code>new ValueTask&lt;T&gt;(source, token)</code></dd>
+    <dt>Custom backing source</dt>
+    <dd><code>ManualResetValueTaskSourceCore&lt;T&gt;</code> behind <code>IValueTaskSource&lt;T&gt;</code> <span class="since">.NET Core 2.1</span> — how <code>Socket</code>, <code>Channel</code> and <code>PipeReader</code> allocate zero per operation</dd>
+    <dt>Pool the state machine</dt>
+    <dd><code>[AsyncMethodBuilder(typeof(PoolingAsyncValueTaskMethodBuilder&lt;&gt;))]</code> <span class="since">.NET 6</span>, or process-wide <code>DOTNET_SYSTEM_THREADING_POOLASYNCVALUETASKS=1</code> <span class="since">.NET 5</span></dd>
+    <dt>Sync fast path</dt>
+    <dd><code>if (vt.IsCompletedSuccessfully) return vt.Result;</code> <span class="cmt">— the whole point: no <code>Task</code> allocation, no state machine box</span></dd>
+    <dt>Analyzer</dt>
+    <dd><code>CA2012: Use ValueTasks correctly</code> catches the double-await and stored-ValueTask mistakes at build time</dd>
+    <dt>Interface design</dt>
+    <dd>a <code>ValueTask</code>-returning interface method forces every implementer into the contract; public library APIs usually stay on <code>Task</code></dd>
+    <dt><span class="since">.NET 11</span></dt>
+    <dd>the JIT recognises <code>Task.FromResult</code>, <code>Task.CompletedTask</code> and <code>ValueTask.FromResult</code> as intrinsics and folds them into faster runtime-async paths</dd>
+  </dl>
+  <pre><code class="language-csharp">// Canonical cache read: synchronous 99% of the time, no allocation on that path.
+public ValueTask&lt;Order&gt; GetAsync(int id, CancellationToken ct)
+    =&gt; _cache.TryGetValue(id, out var o)
+        ? new ValueTask&lt;Order&gt;(o)
+        : new ValueTask&lt;Order&gt;(LoadAsync(id, ct));   // Task&lt;Order&gt;, wrapped
+
+// WRONG - awaited twice, and stored in a field. Both are undefined behaviour.
+var vt = GetAsync(1, ct);
+var a = await vt;
+var b = await vt;                                    // CA2012</code></pre>
+</section>
+
+<section class="unit" id="u04">
+  <header>
+    <h2><span class="n">04</span>Cancellation</h2>
+    <span class="docs"><a href="https://learn.microsoft.com/dotnet/standard/threading/cancellation-in-managed-threads">docs: cancellation in managed threads</a></span>
+  </header>
+  <dl class="rows">
+    <dt>Signature convention</dt>
+    <dd><code>CancellationToken ct</code> is the last parameter, <code>= default</code> only on public entry points; <code>CA2016</code> flags the ones you forgot to forward</dd>
+    <dt>Source with a deadline</dt>
+    <dd><code>using var cts = new CancellationTokenSource(TimeSpan.FromSeconds(30));</code> · later <code>cts.CancelAfter(delay)</code></dd>
+    <dt>Cancel and drain callbacks</dt>
+    <dd><code>await cts.CancelAsync();</code> <span class="since">.NET 8</span> <span class="cmt">— <code>Cancel()</code> runs registrations synchronously on the caller's thread</span></dd>
+    <dt>Combine tokens</dt>
+    <dd><code>using var linked = CancellationTokenSource.CreateLinkedTokenSource(ct, timeoutCts.Token);</code> <span class="cmt">— must be disposed or it stays registered on the parents</span></dd>
+    <dt>Check</dt>
+    <dd><code>ct.ThrowIfCancellationRequested();</code> at loop tops · <code>ct.IsCancellationRequested</code> when you need to clean up first</dd>
+    <dt>Callback on cancel</dt>
+    <dd><code>using var reg = ct.Register(static s =&gt; ((Socket)s!).Dispose(), socket);</code> <span class="cmt">— dispose the registration; long-lived tokens leak every un-disposed one</span></dd>
+    <dt>Wait on a task</dt>
+    <dd><code>await task.WaitAsync(ct);</code> <span class="since">.NET 6</span> <span class="cmt">— abandons the wait, does not cancel the work</span></dd>
+    <dt>Catch precisely</dt>
+    <dd><code>catch (OperationCanceledException) when (ct.IsCancellationRequested)</code> <span class="cmt">— separates "the caller gave up" from "my internal timeout fired"</span></dd>
+    <dt>Cooperative only</dt>
+    <dd>nothing preempts; a token that nobody polls or passes down does nothing. There is no <code>Thread.Abort</code></dd>
+    <dt>ASP.NET Core sources</dt>
+    <dd><code>HttpContext.RequestAborted</code> (client disconnected) · <code>BackgroundService.ExecuteAsync(stoppingToken)</code> · <code>IHostApplicationLifetime.ApplicationStopping</code></dd>
+    <dt>Never-cancels token</dt>
+    <dd><code>CancellationToken.None</code> — identical to <code>default</code>, but says it on purpose</dd>
+    <dt>Testable timeouts</dt>
+    <dd><code>TimeProvider</code> <span class="since">.NET 8</span> + <code>FakeTimeProvider</code> from <code>Microsoft.Extensions.TimeProvider.Testing</code>; <code>timeProvider.CreateCancellationTokenSource(delay)</code></dd>
+    <dt>Timeouts as policy</dt>
+    <dd><code>HttpClient.Timeout</code> is per-request and surfaces as <code>TaskCanceledException</code>; <code>Microsoft.Extensions.Http.Resilience</code> gives per-attempt timeouts with the token wired through</dd>
+  </dl>
+  <pre><code class="language-csharp">// Caller's token + our own SLA, distinguished in the catch.
+using var timeout = new CancellationTokenSource(TimeSpan.FromSeconds(2));
+using var linked  = CancellationTokenSource.CreateLinkedTokenSource(ct, timeout.Token);
+try
+{
+    return await _client.GetAsync(url, linked.Token);
+}
+catch (OperationCanceledException) when (ct.IsCancellationRequested)
+{
+    throw;                                  // caller went away: propagate
+}
+catch (OperationCanceledException)
+{
+    return Fallback;                        // our 2s budget blew: degrade
+}</code></pre>
+</section>
+
+<section class="unit" id="u05">
+  <header>
+    <h2><span class="n">05</span>Async streams &amp; channels</h2>
+    <span class="docs"><a href="https://learn.microsoft.com/dotnet/csharp/asynchronous-programming/generate-consume-asynchronous-stream">docs: async streams</a> · <a href="https://learn.microsoft.com/dotnet/core/extensions/channels">channels</a></span>
+  </header>
+  <dl class="rows">
+    <dt>Produce</dt>
+    <dd><code>async IAsyncEnumerable&lt;T&gt; ReadAsync([EnumeratorCancellation] CancellationToken ct)</code> <span class="since">.NET Core 3.0 / C# 8</span></dd>
+    <dt>Consume with a token</dt>
+    <dd><code>await foreach (var x in src.WithCancellation(ct)) ...</code> <span class="cmt">— no-op unless the producer marked its parameter</span></dd>
+    <dt>Consume in a library</dt>
+    <dd><code>await foreach (var x in src.WithCancellation(ct).ConfigureAwait(false)) ...</code></dd>
+    <dt>LINQ over the stream</dt>
+    <dd><code>await src.Where(x =&gt; x.Ok).Select(Map).Take(100).ToListAsync(ct)</code> — in-box <code>System.Linq.AsyncEnumerable</code> <span class="since">.NET 10</span></dd>
+    <dt>Upgrade trap</dt>
+    <dd>the in-box operators collide with the <code>System.Linq.Async</code> (Ix) package: drop that reference, or move to Ix 7.0.0; when multi-targeting, reference the <code>System.Linq.AsyncEnumerable</code> NuGet package instead</dd>
+    <dt>New joins</dt>
+    <dd><code>AsyncEnumerable.FullJoin</code> plus tuple-returning <code>Join</code>/<code>GroupJoin</code> <span class="since">.NET 11</span></dd>
+    <dt>Bounded queue</dt>
+    <dd><code>Channel.CreateBounded&lt;T&gt;(new BoundedChannelOptions(1000) { FullMode = BoundedChannelFullMode.Wait, SingleReader = true })</code></dd>
+    <dt>Channel read loop</dt>
+    <dd><code>await foreach (var item in ch.Reader.ReadAllAsync(ct)) ...</code> · producer ends with <code>ch.Writer.Complete()</code></dd>
+    <dt>Bounded parallel I/O</dt>
+    <dd><code>await Parallel.ForEachAsync(urls, new ParallelOptions { MaxDegreeOfParallelism = 8, CancellationToken = ct }, FetchAsync);</code> <span class="since">.NET 6</span></dd>
+    <dt>Periodic work</dt>
+    <dd><code>while (await timer.WaitForNextTickAsync(ct)) ...</code> with <code>new PeriodicTimer(TimeSpan.FromSeconds(5))</code> <span class="since">.NET 6</span> <span class="cmt">— no overlap, no timer captures</span></dd>
+    <dt>Throttle</dt>
+    <dd><code>await _gate.WaitAsync(ct); try { ... } finally { _gate.Release(); }</code> with <code>SemaphoreSlim(8)</code>; rate limits via <code>System.Threading.RateLimiting</code> <span class="since">.NET 7</span></dd>
+    <dt>Stream JSON</dt>
+    <dd><code>JsonSerializer.DeserializeAsyncEnumerable&lt;T&gt;(stream, ct)</code>; .NET 10 adds <code>PipeReader</code>/<code>PipeWriter</code> overloads, .NET 11 adds NDJSON top-level output</dd>
+    <dt>Return from ASP.NET Core</dt>
+    <dd>an action returning <code>IAsyncEnumerable&lt;T&gt;</code> streams the response; combine with <code>HttpContext.RequestAborted</code></dd>
+  </dl>
+  <pre><code class="language-csharp">// Producer/consumer with backpressure - the default for ingest pipelines.
+var ch = Channel.CreateBounded&lt;Event&gt;(new BoundedChannelOptions(1_000)
+{
+    FullMode = BoundedChannelFullMode.Wait,   // block the producer, do not drop
+    SingleReader = true, SingleWriter = false
+});
+
+var consumer = Task.Run(async () =&gt;
+{
+    await foreach (var e in ch.Reader.ReadAllAsync(ct))
+        await SinkAsync(e, ct);
+}, ct);
+
+await foreach (var e in SourceAsync(ct))
+    await ch.Writer.WriteAsync(e, ct);
+ch.Writer.Complete();
+await consumer;</code></pre>
+  <div class="note"><p><strong>Ordering gotcha.</strong> <code>await foreach</code> is sequential by construction. To overlap, fan out into <code>Task.WhenEach</code> or <code>Parallel.ForEachAsync</code> — an <code>await</code> inside the loop body serialises the whole stream at the slowest item.</p></div>
+</section>
+
+<section class="unit" id="u06">
+  <header>
+    <h2><span class="n">06</span>ConfigureAwait &amp; contexts</h2>
+    <span class="docs"><a href="https://devblogs.microsoft.com/dotnet/configureawait-faq/">docs: ConfigureAwait FAQ</a> · <a href="https://learn.microsoft.com/dotnet/api/system.threading.tasks.task.configureawait">API</a></span>
+  </header>
+  <dl class="rows">
+    <dt>What <code>await</code> captures</dt>
+    <dd><code>SynchronizationContext.Current</code>, else <code>TaskScheduler.Current</code>. If both are null (console, ASP.NET Core, most services) the continuation goes straight to the thread pool</dd>
+    <dt>Library default</dt>
+    <dd><code>.ConfigureAwait(false)</code> on every await in reusable code — it is insurance against the one caller that <em>does</em> have a context</dd>
+    <dt>App code</dt>
+    <dd>skip it in ASP.NET Core (no context to capture); keep it in WinForms/WPF/MAUI/Blazor Server code only where you do not need the UI thread back</dd>
+    <dt>Options overload</dt>
+    <dd><code>await t.ConfigureAwait(ConfigureAwaitOptions.None)</code> <span class="since">.NET 8</span> — flags: <code>None</code>, <code>ContinueOnCapturedContext</code>, <code>SuppressThrowing</code>, <code>ForceYielding</code>. <code>Task</code> only, not <code>Task&lt;T&gt;</code></dd>
+    <dt>Await without throwing</dt>
+    <dd><code>await t.ConfigureAwait(ConfigureAwaitOptions.SuppressThrowing);</code> <span class="cmt">— marks the exception observed; replaces <code>t.ContinueWith(_ =&gt; { })</code></span></dd>
+    <dt>Always yield</dt>
+    <dd><code>ConfigureAwaitOptions.ForceYielding</code> <span class="cmt">— continue asynchronously even when the task is already complete; the <code>Task.Yield()</code> semantics, composed</span></dd>
+    <dt>Streams and disposal</dt>
+    <dd><code>await foreach (var x in src.ConfigureAwait(false))</code> · <code>await using (res.ConfigureAwait(false))</code></dd>
+    <dt>Enforce it</dt>
+    <dd><code>dotnet_diagnostic.CA2007.severity = warning</code> in <code>.editorconfig</code>; the VSTHRD010/VSTHRD110 analyzers go further</dd>
+    <dt>What it does <em>not</em> do</dt>
+    <dd>it does not stop <code>ExecutionContext</code> flow: <code>AsyncLocal&lt;T&gt;</code>, <code>Activity.Current</code> and the ambient <code>CultureInfo</code> still cross the await</dd>
+    <dt>ExecutionContext</dt>
+    <dd>flows ambient state and is copy-on-write; suppress deliberately with <code>ExecutionContext.SuppressFlow()</code> or <code>ThreadPool.UnsafeQueueUserWorkItem</code></dd>
+    <dt>Classic deadlock</dt>
+    <dd>UI or legacy ASP.NET thread calls <code>.Result</code> → context is occupied → the captured continuation can never run. One <code>ConfigureAwait(false)</code> missing anywhere in the chain is enough</dd>
+    <dt><span class="since">.NET 11</span></dt>
+    <dd>continuations that have nothing to restore skip the <code>ExecutionContext</code> capture/restore cycle entirely — free throughput for code that uses <code>ConfigureAwait(false)</code> and few <code>AsyncLocal&lt;T&gt;</code> values</dd>
+  </dl>
+  <pre><code class="language-csharp">// Library: no assumptions about the caller's context.
+public async Task&lt;byte[]&gt; DownloadAsync(Uri u, CancellationToken ct)
+{
+    using var rsp = await _http.GetAsync(u, ct).ConfigureAwait(false);
+    rsp.EnsureSuccessStatusCode();
+    return await rsp.Content.ReadAsByteArrayAsync(ct).ConfigureAwait(false);
+}
+
+// Await a task you do not want to throw at you (.NET 8+); the exception counts as observed.
+await logTask.ConfigureAwait(ConfigureAwaitOptions.SuppressThrowing);</code></pre>
+</section>
+
+<section class="unit" id="u07">
+  <header>
+    <h2><span class="n">07</span>Thread-pool behaviour</h2>
+    <span class="docs"><a href="https://learn.microsoft.com/dotnet/standard/threading/the-managed-thread-pool">docs: the managed thread pool</a> · <a href="https://learn.microsoft.com/dotnet/core/diagnostics/debug-threadpool-starvation">debug starvation</a></span>
+  </header>
+  <dl class="rows">
+    <dt>What <code>await</code> costs</dt>
+    <dd>zero threads while suspended. The continuation is a work item queued to the pool (or posted to the captured context) when the I/O completes</dd>
+    <dt>Pool sizing</dt>
+    <dd>worker threads start at <code>Environment.ProcessorCount</code>; beyond that the hill-climbing injector adds roughly <strong>1 thread per second</strong> — so starvation looks like a latency cliff at low CPU</dd>
+    <dt>Starvation signature</dt>
+    <dd>growing <code>ThreadPool Queue Length</code>, thread count creeping up ~1/s, CPU well under 100%, p99 in seconds. Almost always sync-over-async somewhere</dd>
+    <dt>Min threads, config</dt>
+    <dd><code>System.Threading.ThreadPool.MinThreads</code> in <code>runtimeconfig.json</code>, or <code>&lt;ThreadPoolMinThreads&gt;</code> in the csproj</dd>
+    <dt>Min threads, code</dt>
+    <dd><code>ThreadPool.SetMinThreads(workers, ioPorts);</code> <span class="cmt">— a shock absorber for bursts, never a fix for blocking</span></dd>
+    <dt>Windows thread pool</dt>
+    <dd><code>&lt;UseWindowsThreadPool&gt;true&lt;/UseWindowsThreadPool&gt;</code> / <code>System.Threading.ThreadPool.UseWindowsThreadPool</code> / <code>DOTNET_ThreadPool_UseWindowsThreadPool</code> <span class="cmt">— not configurable under NativeAOT</span></dd>
+    <dt>Queue depth at runtime</dt>
+    <dd><code>ThreadPool.PendingWorkItemCount</code> · <code>ThreadPool.ThreadCount</code> · <code>ThreadPool.CompletedWorkItemCount</code></dd>
+    <dt>Long blocking work</dt>
+    <dd><code>Task.Factory.StartNew(Loop, TaskCreationOptions.LongRunning)</code> — a dedicated thread, off the pool. The only defensible use of <code>StartNew</code> left</dd>
+    <dt>Allocation-free queueing</dt>
+    <dd><code>ThreadPool.UnsafeQueueUserWorkItem(item, preferLocal: true)</code> where <code>item : IThreadPoolWorkItem</code> <span class="cmt">— also skips <code>ExecutionContext</code> capture</span></dd>
+    <dt>Local vs global queue</dt>
+    <dd>continuations queued from a pool thread land on that thread's local (LIFO) queue and are work-stolen; <code>preferLocal: false</code> forces the global FIFO queue</dd>
+    <dt>Do not <code>Task.Run</code> a request</dt>
+    <dd>in ASP.NET Core the request already runs on a pool thread; wrapping handler work in <code>Task.Run</code> adds a hop and doubles pool pressure with no extra concurrency</dd>
+    <dt>Blocking detection</dt>
+    <dd>the pool's blocking-work heuristics (.NET 6+) inject faster when it can tell threads are blocked, but the injection ceiling is still <code>MaxThreads</code> (32767 by default)</dd>
+  </dl>
+  <div class="note"><p><strong>Incident playbook.</strong> Latency up, CPU flat, queue length climbing: take <code>dotnet-stack report</code> or a dump and look for pool threads parked in <code>Monitor.Wait</code>, <code>Task.Result</code>, <code>Wait()</code>, <code>SemaphoreSlim.Wait</code> or a sync <code>Stream.Read</code>. Bumping <code>MinThreads</code> buys minutes; removing the blocking call is the fix.</p></div>
+</section>
+
+<section class="unit" id="u08">
+  <header>
+    <h2><span class="n">08</span>Runtime Async <span class="since">.NET 11 preview</span></h2>
+    <span class="docs"><a href="https://learn.microsoft.com/dotnet/core/whats-new/dotnet-11/runtime">docs: what's new in the .NET 11 runtime</a></span>
+  </header>
+  <dl class="rows">
+    <dt>What changes</dt>
+    <dd>the compiler stops emitting state-machine classes; the runtime tracks suspension and resumption itself ("Runtime Async V2"). Your source does not change at all</dd>
+    <dt>Opt in</dt>
+    <dd><code>&lt;Features&gt;runtime-async=on&lt;/Features&gt;</code> in the csproj. A <code>net11.0</code> project no longer needs <code>&lt;EnablePreviewFeatures&gt;true&lt;/EnablePreviewFeatures&gt;</code></dd>
+    <dt>Opt out</dt>
+    <dd><code>&lt;UseRuntimeAsync&gt;false&lt;/UseRuntimeAsync&gt;</code>. The <code>DOTNET_RuntimeAsync</code> and <code>UNSUPPORTED_RuntimeAsync</code> environment variables were <strong>removed</strong> — scripts that set them silently do nothing</dd>
+    <dt>Already on</dt>
+    <dd>the .NET 11 runtime libraries themselves ship compiled with <code>runtime-async=on</code> and contain no compiler-generated state machines</dd>
+    <dt>Headline win</dt>
+    <dd>live stack traces: a three-deep async chain drops from <strong>13 frames</strong> of <code>AsyncMethodBuilderCore.Start</code> noise to <strong>5 real frames</strong>. Exception stack traces were already clean and are unchanged</dd>
+    <dt>Debugging</dt>
+    <dd>breakpoints bind inside runtime-async methods and stepping crosses <code>await</code> without diving into generated infrastructure</dd>
+    <dt>AOT and R2R</dt>
+    <dd>NativeAOT and ReadyToRun are supported; crossgen2 can now inline runtime-async methods, including the await-less synchronous fast path</dd>
+    <dt>Perf mechanics</dt>
+    <dd>tiered compilation for async bodies, cached/reused continuations, tail-merged suspension points, <code>Task</code>/<code>ValueTask</code> factory intrinsics, cheaper <code>await Task.Yield()</code></dd>
+    <dt>Covariant overrides</dt>
+    <dd>a derived <code>Task&lt;T&gt;</code> override of a base <code>Task</code> method now works through virtual dispatch via a generated thunk (JIT and NativeAOT)</dd>
+    <dt>Profilers</dt>
+    <dd>the async profiler instruments runtime-async and classic state machines with one event model, so tooling does not fork</dd>
+    <dt>Lead call</dt>
+    <dd>preview: do not ship production on it. Do build your libraries against it now and report throughput and size deltas — that is what the team is asking for before GA on <strong>2026-11-10</strong></dd>
+  </dl>
+  <pre><code class="language-xml">&lt;!-- opt a project in (preview) --&gt;
+&lt;PropertyGroup&gt;
+  &lt;TargetFramework&gt;net11.0&lt;/TargetFramework&gt;
+  &lt;Features&gt;runtime-async=on&lt;/Features&gt;
+&lt;/PropertyGroup&gt;</code></pre>
+</section>
+
+<section class="unit" id="u09">
+  <header>
+    <h2><span class="n">09</span>Commands &amp; diagnostics</h2>
+    <span class="docs"><a href="https://learn.microsoft.com/dotnet/core/diagnostics/">docs: .NET diagnostics tools</a> · <a href="https://learn.microsoft.com/dotnet/core/runtime-config/threading">threading config</a></span>
+  </header>
+  <dl class="rows">
+    <dt>Install the tools</dt>
+    <dd><code>dotnet tool install -g dotnet-counters dotnet-stack dotnet-dump dotnet-trace</code></dd>
+    <dt>Watch the pool live</dt>
+    <dd><code>dotnet-counters monitor -n MyApp --counters System.Runtime</code> <span class="cmt">— <code>threadpool-queue-length</code>, <code>threadpool-thread-count</code>, <code>threadpool-completed-items-count</code></span></dd>
+    <dt>Just the pool counters</dt>
+    <dd><code>dotnet-counters monitor -n MyApp --counters "System.Runtime[threadpool-queue-length,threadpool-thread-count]"</code></dd>
+    <dt>Who is blocked, right now</dt>
+    <dd><code>dotnet-stack report -n MyApp</code> <span class="cmt">— managed stacks of every thread, no dump needed</span></dd>
+    <dt>Capture a dump</dt>
+    <dd><code>dotnet-dump collect -p 1234</code> then <code>dotnet-dump analyze core_dump</code></dd>
+    <dt>Pending async chains</dt>
+    <dd>in the analyzer: <code>dumpasync -stacks</code> · <code>threadpool</code> · <code>clrthreads</code> · <code>syncblk</code></dd>
+    <dt>Trace await activity</dt>
+    <dd><code>dotnet-trace collect -n MyApp --providers Microsoft-Windows-DotNETRuntime:0x12:5</code> (ThreadingKeyword) or <code>--profile cpu-sampling</code></dd>
+    <dt>Containers</dt>
+    <dd><code>dotnet-monitor</code> sidecar: <code>/dump</code>, <code>/gcdump</code>, <code>/trace</code>, <code>/metrics</code> over HTTP without shelling in</dd>
+    <dt>Min threads</dt>
+    <dd><code>&lt;ThreadPoolMinThreads&gt;100&lt;/ThreadPoolMinThreads&gt;</code> or <code>"System.Threading.ThreadPool.MinThreads": 100</code> in <code>runtimeconfig.json</code></dd>
+    <dt>Async analyzers</dt>
+    <dd><code>CA2007</code> ConfigureAwait · <code>CA2012</code> ValueTask misuse · <code>CA2016</code> forward the token · <code>CA1849</code> call async in async · <code>CA2213</code>/<code>CA1001</code> disposal · <code>VSTHRD1xx</code> from <code>Microsoft.VisualStudio.Threading.Analyzers</code></dd>
+    <dt>Turn them on</dt>
+    <dd><code>&lt;AnalysisMode&gt;All&lt;/AnalysisMode&gt;</code> + <code>&lt;TreatWarningsAsErrors&gt;true&lt;/TreatWarningsAsErrors&gt;</code>, tuned per rule in <code>.editorconfig</code></dd>
+    <dt>Benchmark it</dt>
+    <dd><code>BenchmarkDotNet</code> with <code>[MemoryDiagnoser]</code>; an async method that allocates per call on the hot path is the <code>ValueTask</code> signal</dd>
+  </dl>
+  <pre><code class="language-bash"># Starvation triage, in order.
+dotnet-counters monitor -n MyApp --counters System.Runtime   # queue length climbing?
+dotnet-stack report -n MyApp | grep -E "Wait|Result|Sleep"   # who is blocking a pool thread?
+dotnet-dump collect -p $(pgrep -f MyApp) && dotnet-dump analyze core_*
+# then, inside the analyzer:  dumpasync -stacks</code></pre>
+</section>
+
+<section class="unit" id="u10">
+  <header>
+    <h2><span class="n">10</span>Idioms &amp; gotchas</h2>
+    <span class="docs"><a href="https://learn.microsoft.com/dotnet/csharp/asynchronous-programming/async-scenarios">docs: async scenarios</a> · <a href="https://github.com/davidfowl/AspNetCoreDiagnosticScenarios/blob/master/AsyncGuidance.md">Fowler: async guidance</a></span>
+  </header>
+  <dl class="rows">
+    <dt><code>async void</code></dt>
+    <dd>exceptions go to the <code>SynchronizationContext</code> and usually crash the process; nothing can await it. UI event handlers only</dd>
+    <dt>Accidental <code>async void</code></dt>
+    <dd><code>list.ForEach(async x =&gt; await F(x))</code> binds an async lambda to <code>Action&lt;T&gt;</code>. Any void-returning delegate parameter does this silently</dd>
+    <dt>Sync over async</dt>
+    <dd><code>.Result</code> / <code>.Wait()</code> deadlocks under a <code>SynchronizationContext</code>; in ASP.NET Core it "merely" burns a pool thread — at scale that <em>is</em> the outage</dd>
+    <dt>Async over sync</dt>
+    <dd><code>Task.Run(() =&gt; BlockingCall())</code> in a library fakes async, doubles the thread cost and hides the blocking. Expose the sync method instead</dd>
+    <dt>Eliding <code>async</code>/<code>await</code></dt>
+    <dd>returning the inner task saves a state machine but drops your frame from stack traces, changes when exceptions surface, and is wrong inside <code>using</code>/<code>try</code>. Keep <code>await</code> unless the method is a one-line pass-through</dd>
+    <dt>Argument validation</dt>
+    <dd>throws from an <code>async</code> method are captured in the task, not raised at the call site. Validate in a sync wrapper that then calls a private async local function</dd>
+    <dt>Constructors</dt>
+    <dd>no async constructors: use a <code>static async Task&lt;T&gt; CreateAsync(...)</code> factory, or an <code>InitializeAsync</code> called by the composition root</dd>
+    <dt><code>WhenAll</code> exceptions</dt>
+    <dd><code>await</code> rethrows only the first; read <code>whenAllTask.Exception</code> for all of them. Also: one throwing task does not cancel the others</dd>
+    <dt>Unbounded fan-out</dt>
+    <dd><code>Task.WhenAll</code> over 10k items exhausts connection pools and sockets long before the CPU. Bound with <code>Parallel.ForEachAsync</code> or a <code>SemaphoreSlim</code></dd>
+    <dt>Serial awaits in a loop</dt>
+    <dd><code>foreach { await ... }</code> is N round trips. Start the tasks first, then await the collection — but only if the dependency really is absent</dd>
+    <dt>Fire and forget</dt>
+    <dd><code>_ = FooAsync();</code> loses exceptions and dies with the request. Queue to a <code>Channel</code> drained by a <code>BackgroundService</code>, or at minimum attach a logging continuation</dd>
+    <dt><code>TaskCompletionSource</code></dt>
+    <dd>without <code>RunContinuationsAsynchronously</code> the whole continuation chain runs inline on the thread that calls <code>SetResult</code> — stack dives and surprise deadlocks</dd>
+    <dt>Async mutual exclusion</dt>
+    <dd><code>lock</code> cannot span an <code>await</code>. <code>SemaphoreSlim(1, 1)</code> can, is <em>not</em> reentrant, and must be released in <code>finally</code></dd>
+    <dt><code>CancellationTokenSource</code> leaks</dt>
+    <dd><code>CancelAfter</code> arms a timer; an undisposed CTS or an undisposed <code>ct.Register</code> on a long-lived token keeps objects alive for the token's lifetime</dd>
+    <dt>Missing <code>[EnumeratorCancellation]</code></dt>
+    <dd><code>WithCancellation(ct)</code> compiles and does nothing. The stream runs to completion after the caller has given up</dd>
+    <dt><code>ValueTask</code> reuse</dt>
+    <dd>awaiting twice, storing in a field, or <code>WhenAll</code>-ing them is undefined behaviour — <code>AsTask()</code> first</dd>
+    <dt><code>HttpClient</code></dt>
+    <dd>new instance per request exhausts sockets; a static one misses DNS changes. <code>IHttpClientFactory</code>, or a <code>SocketsHttpHandler</code> with <code>PooledConnectionLifetime</code></dd>
+    <dt>Startup blocking</dt>
+    <dd>blocking inside <code>IHostedService.StartAsync</code> stalls the whole host; long work belongs in <code>BackgroundService.ExecuteAsync</code></dd>
+    <dt><code>AsyncLocal</code> writes</dt>
+    <dd>a value set after the await point does not flow back to the caller — <code>ExecutionContext</code> is copy-on-write, one direction only</dd>
+    <dt>Disposal ordering</dt>
+    <dd><code>using</code> on an <code>IAsyncDisposable</code>-only type does not compile; on a type with both, it quietly picks the sync path. <code>await using</code></dd>
+  </dl>
+  <pre><code class="language-csharp">// Validate eagerly, run lazily.
+public Task&lt;Order&gt; GetAsync(int id, CancellationToken ct = default)
+{
+    ArgumentOutOfRangeException.ThrowIfNegativeOrZero(id);   // throws AT the call site
+    return Core(id, ct);
+
+    async Task&lt;Order&gt; Core(int id, CancellationToken ct) =&gt; await LoadAsync(id, ct);
+}
+
+// Bounded fan-out beats Task.WhenAll over a big collection.
+await Parallel.ForEachAsync(ids, new ParallelOptions
+{
+    MaxDegreeOfParallelism = 16, CancellationToken = ct
+}, async (id, ct) =&gt; await ProcessAsync(id, ct));</code></pre>
+</section>
+
+<section class="unit" id="u11">
+  <header>
+    <h2><span class="n">11</span>Modern vs legacy</h2>
+    <span class="docs"><a href="https://learn.microsoft.com/dotnet/standard/asynchronous-programming-patterns/">docs: async programming patterns (TAP, APM, EAP)</a></span>
+  </header>
+  <div class="tw">
+    <table class="grid">
+      <thead><tr><th>Task</th><th>Modern</th><th>Legacy still seen</th><th>Since</th></tr></thead>
+      <tbody>
+        <tr><td>Asynchronous API shape</td><td>TAP: a <code>Task</code>-returning method</td><td>APM (<code>BeginRead</code>/<code>EndRead</code>), EAP (<code>DownloadCompleted</code> event), <code>BackgroundWorker</code></td><td>.NET 4.5</td></tr>
+        <tr><td>Continue after a task</td><td><code>await</code></td><td><code>ContinueWith(..., TaskScheduler.Default)</code></td><td>C# 5</td></tr>
+        <tr><td>Offload work</td><td><code>Task.Run</code></td><td><code>Task.Factory.StartNew(f, ct, DenyChildAttach, TaskScheduler.Default).Unwrap()</code></td><td>.NET 4.5</td></tr>
+        <tr><td>Entry point</td><td><code>static async Task Main</code></td><td><code>MainAsync().GetAwaiter().GetResult()</code></td><td>C# 7.1</td></tr>
+        <tr><td>Timeout an operation</td><td><code>task.WaitAsync(timeout, ct)</code></td><td><code>Task.WhenAny(task, Task.Delay(timeout))</code> + timer leak</td><td>.NET 6</td></tr>
+        <tr><td>Process results as they land</td><td><code>Task.WhenEach(tasks)</code></td><td><code>while (list.Count &gt; 0) { var t = await Task.WhenAny(list); list.Remove(t); }</code></td><td>.NET 9</td></tr>
+        <tr><td>Bounded parallel I/O</td><td><code>Parallel.ForEachAsync</code></td><td><code>SemaphoreSlim</code> + <code>Task.WhenAll</code>; <code>Parallel.ForEach</code> over async work</td><td>.NET 6</td></tr>
+        <tr><td>Periodic work</td><td><code>PeriodicTimer.WaitForNextTickAsync</code></td><td><code>System.Threading.Timer</code>, or <code>while (true) { await Task.Delay(...); }</code></td><td>.NET 6</td></tr>
+        <tr><td>Cancel and await callbacks</td><td><code>await cts.CancelAsync()</code></td><td><code>cts.Cancel()</code> (runs registrations inline)</td><td>.NET 8</td></tr>
+        <tr><td>Swallow a task's exception</td><td><code>ConfigureAwaitOptions.SuppressThrowing</code></td><td><code>t.ContinueWith(_ =&gt; { })</code> / empty <code>catch</code></td><td>.NET 8</td></tr>
+        <tr><td>Testable time</td><td><code>TimeProvider</code> + <code>Task.Delay(d, tp, ct)</code></td><td><code>DateTime.UtcNow</code> and real <code>Task.Delay</code> in tests</td><td>.NET 8</td></tr>
+        <tr class="hi"><td>LINQ over <code>IAsyncEnumerable</code></td><td>in-box <code>System.Linq.AsyncEnumerable</code></td><td><code>System.Linq.Async</code> (Ix) package — now ambiguous with the in-box one</td><td>.NET 10</td></tr>
+        <tr><td>Producer/consumer</td><td><code>System.Threading.Channels</code></td><td><code>BlockingCollection&lt;T&gt;</code>, TPL Dataflow, hand-rolled queue + <code>ManualResetEvent</code></td><td>.NET Core 3.0</td></tr>
+        <tr><td>Streaming results</td><td><code>IAsyncEnumerable&lt;T&gt;</code> + <code>await foreach</code></td><td><code>Task&lt;List&lt;T&gt;&gt;</code>, <code>IObservable&lt;T&gt;</code> for pull-shaped data</td><td>.NET Core 3.0 / C# 8</td></tr>
+        <tr><td>Async cleanup</td><td><code>IAsyncDisposable</code> + <code>await using</code></td><td><code>Dispose()</code> doing blocking I/O</td><td>C# 8</td></tr>
+        <tr><td>Exclusive section (sync)</td><td><code>System.Threading.Lock</code></td><td><code>lock (object)</code> / <code>Monitor.Enter</code></td><td>.NET 9 / C# 13</td></tr>
+        <tr><td>Exclusive section (async)</td><td><code>SemaphoreSlim(1, 1).WaitAsync(ct)</code></td><td><code>lock</code> + <code>.Result</code> inside</td><td>.NET 4.5</td></tr>
+        <tr><td>Rate limiting</td><td><code>System.Threading.RateLimiting</code></td><td>hand-rolled semaphore + stopwatch</td><td>.NET 7</td></tr>
+        <tr><td>Retry / timeout policy</td><td><code>Microsoft.Extensions.Http.Resilience</code> (Polly v8)</td><td>Polly v7 <code>Policy.Handle&lt;&gt;.WaitAndRetryAsync</code>, hand-rolled loops</td><td>.NET 8</td></tr>
+        <tr><td>State machine</td><td>runtime-async <span class="since">preview</span></td><td>compiler-generated <code>IAsyncStateMachine</code> struct/class</td><td>.NET 11</td></tr>
+      </tbody>
+    </table>
+  </div>
+</section>
+
+<section class="unit" id="u12">
+  <header>
+    <h2><span class="n">12</span>Version timeline</h2>
+    <span class="docs"><a href="https://learn.microsoft.com/dotnet/core/whats-new/">docs: what's new in .NET</a> · <a href="https://dotnet.microsoft.com/platform/support/policy/dotnet-core">support policy</a></span>
+  </header>
+  <div class="tw">
+    <table class="grid">
+      <thead><tr><th>Version</th><th>Date</th><th>What changed for async</th></tr></thead>
+      <tbody>
+        <tr><td><code>.NET 11</code> / C# 15<br><span class="cmt">preview</span></td><td>GA 2026-11-10<br><span class="cmt">P7 2026-08; RC1 Sept</span></td><td><strong>Newly stable-ish:</strong> Runtime Async V2 opt-in with <code>&lt;Features&gt;runtime-async=on&lt;/Features&gt;</code>, no <code>EnablePreviewFeatures</code> needed on <code>net11.0</code>; the runtime libraries themselves are built with it. <strong>Newly default:</strong> continuations skip <code>ExecutionContext</code> capture when there is nothing to restore; tiered compilation and <code>Task</code>/<code>ValueTask</code> factory intrinsics for async bodies; NativeAOT + R2R support with inlining. <strong>Newly deprecated:</strong> <code>DOTNET_RuntimeAsync</code> and <code>UNSUPPORTED_RuntimeAsync</code> removed, replaced by <code>&lt;UseRuntimeAsync&gt;false&lt;/UseRuntimeAsync&gt;</code>. Libraries: <code>AsyncValidationAttribute</code>/<code>IAsyncValidatableObject</code>/<code>Validator.ValidateObjectAsync</code>, <code>AsyncEnumerable.FullJoin</code> and tuple <code>Join</code>/<code>GroupJoin</code>, <code>SerializeAsyncEnumerable</code> to <code>PipeWriter</code> and NDJSON</td></tr>
+        <tr class="hi"><td><code>.NET 10.0.11</code></td><td>2026-08-11</td><td>Current stable patch (security). The one to be on today; 10.0.0 shipped 2025-11-11</td></tr>
+        <tr><td><code>.NET 10</code> / C# 14<br><span class="cmt">LTS</span></td><td>2025-11-11</td><td><strong>Newly default:</strong> <code>System.Linq.AsyncEnumerable</code> in the box — LINQ over <code>IAsyncEnumerable&lt;T&gt;</code> with no package, and a <strong>breaking</strong> ambiguity with <code>System.Linq.Async</code>. Async ZIP APIs (<code>ZipFile.ExtractToDirectoryAsync</code>, <code>ZipArchive.CreateAsync</code>, …), <code>WebSocketStream</code>, JSON over <code>PipeReader</code>/<code>PipeWriter</code>. Runtime Async present but experimental. C# 14 adds extension members, <code>field</code>, partial constructors and events — no async-specific language change</td></tr>
+        <tr><td><code>.NET 9</code> / C# 13</td><td>2024-11-12<br><span class="cmt">EOL 2026-05-12</span></td><td><code>Task.WhenEach</code> → <code>IAsyncEnumerable&lt;Task&gt;</code>; <code>System.Threading.Lock</code> (and the compiler forbids <code>await</code> inside a <code>lock</code> on it); ref locals and <code>unsafe</code> allowed in async methods and iterators; built-in runtime metrics (<code>dotnet.thread_pool.queue.length</code> and friends)</td></tr>
+        <tr><td><code>.NET 8</code> / C# 12<br><span class="cmt">LTS</span></td><td>2023-11-14<br><span class="cmt">EOL 2026-11-10</span></td><td><code>ConfigureAwaitOptions</code> (<code>SuppressThrowing</code>, <code>ForceYielding</code>) on <code>Task</code>; <code>CancellationTokenSource.CancelAsync</code>; <code>TimeProvider</code> with <code>Task.Delay(TimeSpan, TimeProvider, CancellationToken)</code>; <code>IHostedLifecycleService</code>; keyed DI</td></tr>
+        <tr><td><code>.NET 7</code></td><td>2022-11-08</td><td><code>System.Threading.RateLimiting</code>; a broad async performance pass (fewer allocations in <code>WhenAll</code>, faster resumption); <code>Task.WhenAll</code>/<code>WhenAny</code> span overloads</td></tr>
+        <tr><td><code>.NET 6</code> / C# 10</td><td>2021-11-08</td><td><code>Task.WaitAsync(timeout, ct)</code>; <code>PeriodicTimer</code>; <code>Parallel.ForEachAsync</code>; <code>[AsyncMethodBuilder]</code> on methods; <code>PoolingAsyncValueTaskMethodBuilder</code>; thread-pool blocking-work heuristics</td></tr>
+        <tr><td><code>.NET 5</code></td><td>2020-11-10</td><td>Non-generic <code>TaskCompletionSource</code>; opt-in async <code>ValueTask</code> state-machine pooling via <code>DOTNET_SYSTEM_THREADING_POOLASYNCVALUETASKS=1</code></td></tr>
+        <tr><td><code>.NET Core 3.0</code> / C# 8</td><td>2019-09-23</td><td><code>IAsyncEnumerable&lt;T&gt;</code>, <code>await foreach</code>, <code>[EnumeratorCancellation]</code>, <code>IAsyncDisposable</code>, <code>await using</code>, <code>System.Threading.Channels</code>, the portable (managed) thread pool becomes the default</td></tr>
+        <tr><td><code>.NET Core 2.1</code></td><td>2018-05-30</td><td>Non-generic <code>ValueTask</code>, <code>IValueTaskSource&lt;T&gt;</code>, <code>ManualResetValueTaskSourceCore&lt;T&gt;</code> — zero-allocation async in the BCL</td></tr>
+        <tr><td>C# 7.1</td><td>2017-08-14</td><td><code>async Main</code></td></tr>
+        <tr><td>C# 5 / .NET Framework 4.5</td><td>2012-08-15</td><td><code>async</code>/<code>await</code> and TAP land; APM and EAP become legacy the same day. Still the shape of every codebase older than a decade</td></tr>
+      </tbody>
+    </table>
+  </div>
+  <div class="note"><p><strong>Support horizon.</strong> .NET 10 is the current LTS (support to Nov 2028). .NET 9 (STS) went out of support 2026-05-12 and .NET 8 LTS ends 2026-11-10 — the same week .NET 11 ships, so "upgrade to 10 now, evaluate 11" is the defensible plan for a team today.</p></div>
+</section>
+</main>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.11.1/highlight.min.js"></script>
+<script>
+(function () {
+  if (window.hljs) { try { hljs.highlightAll(); } catch (e) { /* highlighting is decoration */ } }
+
+  var toggle = document.querySelector('.navtoggle');
+  var side = document.getElementById('side');
+  if (toggle) {
+    toggle.addEventListener('click', function () {
+      var open = document.body.classList.toggle('nav-open');
+      toggle.setAttribute('aria-expanded', open ? 'true' : 'false');
+    });
+  }
+  if (side) {
+    side.addEventListener('click', function (e) {
+      if (e.target.closest('a')) {
+        document.body.classList.remove('nav-open');
+        if (toggle) toggle.setAttribute('aria-expanded', 'false');
+      }
+    });
+  }
+
+  var links = Array.prototype.slice.call(document.querySelectorAll('.units a'));
+  var units = links.map(function (a) { return document.getElementById(a.getAttribute('href').slice(1)); });
+  var ticking = false;
+  function spy() {
+    ticking = false;
+    var best = 0;
+    for (var i = 0; i < units.length; i++) {
+      if (units[i] && units[i].getBoundingClientRect().top <= 140) best = i;
+    }
+    for (var j = 0; j < links.length; j++) {
+      if (j === best) links[j].setAttribute('aria-current', 'true');
+      else links[j].removeAttribute('aria-current');
+    }
+  }
+  function onScroll() {
+    if (!ticking) { ticking = true; window.requestAnimationFrame(spy); }
+  }
+  window.addEventListener('scroll', onScroll, { passive: true });
+  window.addEventListener('resize', onScroll, { passive: true });
+  spy();
+})();
+</script>
+</body>
+</html>
