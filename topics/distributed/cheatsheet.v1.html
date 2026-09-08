@@ -1,0 +1,764 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Distributed systems &amp; messaging · cheatsheet · devbok</title>
+<link rel="preconnect" href="https://fonts.googleapis.com/">
+<link rel="preconnect" href="https://fonts.gstatic.com/" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Cascadia+Mono:wght@400;700&amp;display=swap">
+<style>
+:root { color-scheme: light;
+  --bg: #ffffff; --fg: #111111; --muted: #6b6b6b; --line: #111111; --soft: #f4f4f4; --border: #cccccc;
+  --accent: #c2410c; --accent-soft: color-mix(in srgb, var(--accent) 12%, var(--bg));
+  --code: color-mix(in srgb, var(--accent) 70%, var(--fg));
+  --hl-kw: #a626a4; --hl-str: #50a14f; --hl-num: #986801; --hl-cmt: #6b6b6b; --hl-type: #0184bc; --hl-fn: #4078f2; --hl-attr: #986801; }
+@media (prefers-color-scheme: dark) { :root { color-scheme: dark;
+  --bg: #222222; --fg: #cccccc; --muted: #8f8f8f; --line: #111111; --soft: #2c2c2c; --border: #4a4a4a;
+  --accent: #f5885c; --accent-soft: color-mix(in srgb, var(--accent) 16%, var(--bg));
+  --hl-kw: #c678dd; --hl-str: #98c379; --hl-num: #d19a66; --hl-cmt: #8f8f8f; --hl-type: #56b6c2; --hl-fn: #61afef; --hl-attr: #e5c07b; } }
+
+*, *::before, *::after { box-sizing: border-box; }
+html { -webkit-text-size-adjust: 100%; }
+body { margin: 0; background: var(--bg); color: var(--fg);
+  font-family: system-ui, sans-serif; font-size: 16px; line-height: 1.6; overflow-wrap: break-word; }
+h1, h2, h3 { font-family: system-ui, sans-serif; font-weight: 700; }
+h2 { font-size: 1.5em; }
+h3 { font-size: 1.17em; }
+a { color: var(--accent); }
+a:focus-visible, button:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+img { max-width: 100%; }
+
+code, kbd, pre, .mono, .chip, .since, .docs, .hero .meta, .side, dl.rows dd, table.grid { font-family: "Cascadia Mono", Consolas, monospace; font-size: 12px; }
+code { background: var(--soft); border: 1px solid var(--border); border-radius: 3px; padding: 0 .3em; color: var(--code); overflow-wrap: anywhere; }
+pre { background: var(--soft); border: 1px solid var(--border); border-radius: 4px; padding: 12px 14px; overflow-x: auto; line-height: 1.5; margin: 14px 0; max-width: 100%; }
+pre code { background: none; border: 0; border-radius: 0; padding: 0; color: inherit; white-space: pre; overflow-wrap: normal; }
+.hljs { color: var(--fg); background: transparent; }
+.hljs-keyword, .hljs-built_in, .hljs-literal, .hljs-selector-tag { color: var(--hl-kw); }
+.hljs-string, .hljs-regexp, .hljs-selector-attr { color: var(--hl-str); }
+.hljs-number, .hljs-symbol { color: var(--hl-num); }
+.hljs-comment, .hljs-quote, .hljs-doctag { color: var(--hl-cmt); font-style: italic; }
+.hljs-title, .hljs-title.class_, .hljs-type, .hljs-name, .hljs-section, .hljs-selector-class, .hljs-selector-pseudo { color: var(--hl-type); }
+.hljs-title.function_ { color: var(--hl-fn); }
+.hljs-meta, .hljs-attr, .hljs-attribute, .hljs-tag, .hljs-property, .hljs-variable { color: var(--hl-attr); }
+.hljs-template-tag, .hljs-template-variable { color: var(--hl-attr); }
+.hljs-code, .hljs-formula { color: var(--hl-cmt); }
+.hljs-operator, .hljs-subst, .hljs-punctuation, .hljs-params { color: var(--fg); }
+.hljs-emphasis { font-style: italic; } .hljs-strong { font-weight: 700; }
+
+.hero { margin: 0 0 24px; padding: 0 0 24px; border-bottom: 2px solid var(--line); }
+.hero h1 { margin: 0 0 8px; font-size: 2em; line-height: 1.2; font-weight: 700; }
+.hero .meta { margin: 0 0 12px; font-family: "Cascadia Mono", Consolas, monospace; font-size: 12px; color: var(--muted); }
+.hero .summary { margin: 0 0 12px; }
+.hero .chips { display: flex; flex-wrap: wrap; gap: 6px; margin: 0; }
+
+.side { position: fixed; top: 0; bottom: 0; left: 0; width: 260px; display: flex; flex-direction: column; background: var(--bg); border-right: 2px solid var(--line); font-family: "Cascadia Mono", Consolas, monospace; font-size: 12px; }
+.units { list-style: none; margin: 0; padding: 12px 0; overflow-y: auto; flex: 1; }
+.units a { display: grid; grid-template-columns: 2.5em 1fr; padding: 9px 20px; color: var(--fg); text-decoration: none; line-height: 1.4; }
+.units .n { color: var(--muted); }
+.units a:hover { background: var(--soft); }
+.units a[aria-current="true"] { background: var(--accent-soft); color: var(--accent); }
+.units a[aria-current="true"] .n { color: var(--accent); }
+.side footer { padding: 12px 20px; border-top: 2px solid var(--line); color: var(--muted); line-height: 1.5; }
+
+.content { margin-left: 260px; padding: 24px; max-width: 120ch; min-width: 0; }
+.unit { margin: 0 0 28px; padding: 0 0 4px; }
+.unit > header { display: flex; flex-wrap: wrap; align-items: baseline; gap: 4px 12px; border-bottom: 1px solid var(--border); padding-bottom: 6px; }
+.unit h2 { margin: 0; display: flex; align-items: baseline; }
+.unit h2 .n { font-family: "Cascadia Mono", Consolas, monospace; font-size: 12px; color: var(--muted); margin-right: 10px; }
+.docs { color: var(--muted); font-family: "Cascadia Mono", Consolas, monospace; font-size: 12px; }
+.docs a { color: var(--accent); text-decoration: none; }
+.docs a:hover { text-decoration: underline; }
+.unit h3 { margin: 16px 0 0; font-size: 1.17em; }
+
+dl.rows { display: grid; grid-template-columns: minmax(0, 34ch) minmax(0, 1fr);
+  margin: 12px 0 0; border-top: 1px solid var(--border); min-width: 0; }
+dl.rows dt { grid-column: 1; margin: 0; padding: 6px 14px 6px 0; border-bottom: 1px solid var(--border);
+  min-width: 0; line-height: 1.35; }
+dl.rows dd { grid-column: 2; margin: 0; padding: 7px 0 6px; border-bottom: 1px solid var(--border);
+  min-width: 0; line-height: 1.5; overflow-wrap: anywhere; }
+dl.rows dd code { background: none; border: 0; padding: 0; }
+.cmt { color: var(--muted); }
+
+.chip { display: inline-block; text-transform: uppercase; letter-spacing: .03em;
+  background: var(--soft); border: 1px solid var(--border); border-radius: 4px; padding: 2px 7px; }
+.since { display: inline-block; border: 1px solid var(--accent); border-radius: 4px;
+  padding: 0 5px; color: var(--accent); }
+.note { background: var(--soft); border-left: 3px solid var(--accent); padding: 8px 12px; margin: 12px 0 0; }
+.note p { margin: 0; }
+
+.tw { overflow-x: auto; margin: 12px 0 0; min-width: 0; }
+table.grid { border-collapse: collapse; width: 100%; }
+table.grid th { text-align: left; font-weight: 400; color: var(--muted);
+  border-bottom: 1px solid var(--border); padding: 6px 14px 6px 0; vertical-align: bottom; }
+table.grid td { border-bottom: 1px solid var(--border); padding: 6px 14px 6px 0; vertical-align: top; }
+table.grid td code { background: none; border: 0; padding: 0; }
+table.grid tr.hi td { background: var(--accent-soft); }
+
+ul.tight { margin: 12px 0 0; padding-left: 1.1em; }
+ul.tight li { margin: 0 0 3px; }
+
+.navtoggle { display: none; position: fixed; top: 10px; left: 10px; z-index: 30;
+  font-family: "Cascadia Mono", Consolas, monospace; font-size: 12px; color: var(--fg);
+  background: var(--bg); border: 1px solid var(--line); border-radius: 4px; padding: 6px 10px; cursor: pointer; }
+@media (max-width: 720px) {
+  .navtoggle { display: block; }
+  .side { width: min(260px, 84%); transform: translateX(-102%); transition: transform .15s ease; z-index: 25; }
+  body.nav-open .side { transform: none; }
+  .content { margin-left: 0; padding: 52px 16px 24px; }
+  dl.rows { grid-template-columns: minmax(0, 1fr); }
+  dl.rows dt { padding: 6px 0 0; border-bottom: 0; font-weight: 600; }
+  dl.rows dd { padding: 2px 0 7px; }
+}
+
+@media print {
+  :root { color-scheme: light;
+    --bg: #ffffff; --fg: #000000; --muted: #333333; --line: #000000; --soft: #ffffff; --border: #999999;
+    --accent: #000000; --accent-soft: #ffffff; --code: #000000; }
+  .side, .navtoggle { display: none !important; }
+  body { font-size: 8.5pt; line-height: 1.3; background: #fff; color: #000; }
+  .content { margin: 0; padding: 0; max-width: 100%; }
+  code, kbd, pre, .chip, .since, .docs, .hero .meta, dl.rows dd, table.grid { font-size: 7pt; }
+  .hero { padding-bottom: 8pt; margin-bottom: 10pt; border-bottom: 1pt solid #000; }
+  .hero h1 { font-size: 15pt; }
+  .unit { break-inside: avoid; page-break-inside: avoid; margin: 0 0 8pt; padding-top: 5pt; border-top: 1pt solid #000; }
+  .unit h2 { font-size: 10.5pt; }
+  dl.rows, table.grid, .tw { break-inside: avoid; page-break-inside: avoid; }
+  pre { background: #fff; border: 1pt solid #999; padding: 4pt 6pt; margin: 6pt 0; }
+  .note { background: #fff; border-left: 2pt solid #000; }
+  a, a:visited { color: #000; text-decoration: none; }
+  a[href]::after { content: ""; }
+  code, .hljs, .hljs span { color: #000 !important; background: transparent !important; }
+  @page { size: A4; margin: 10mm; }
+}
+</style>
+</head>
+<body>
+<!-- devbok
+slug: distributed
+kind: cheatsheet
+version: 1
+topic: "Distributed systems & messaging"
+prompt: cheatsheet.md@ccd2d4a9
+generated: 2026-09-08
+-->
+<button class="navtoggle" type="button" aria-expanded="false" aria-controls="side">units</button>
+<nav class="side" id="side" aria-label="Units">
+  <ol class="units">
+    <li><a href="#u01"><span class="n">01</span><span class="t">Delivery semantics &amp; idempotency</span></a></li>
+    <li><a href="#u02"><span class="n">02</span><span class="t">Kafka: CLI, config, client</span></a></li>
+    <li><a href="#u03"><span class="n">03</span><span class="t">RabbitMQ &amp; AMQP 1.0</span></a></li>
+    <li><a href="#u04"><span class="n">04</span><span class="t">NATS, Pulsar &amp; cloud brokers</span></a></li>
+    <li><a href="#u05"><span class="n">05</span><span class="t">Outbox, inbox &amp; CDC</span></a></li>
+    <li><a href="#u06"><span class="n">06</span><span class="t">Sagas &amp; durable execution</span></a></li>
+    <li><a href="#u07"><span class="n">07</span><span class="t">Consistency, consensus &amp; clocks</span></a></li>
+    <li><a href="#u08"><span class="n">08</span><span class="t">Retries, timeouts &amp; backpressure</span></a></li>
+    <li><a href="#u09"><span class="n">09</span><span class="t">Schemas, envelopes &amp; contracts</span></a></li>
+    <li><a href="#u10"><span class="n">10</span><span class="t">Observability &amp; ops numbers</span></a></li>
+    <li><a href="#u11"><span class="n">11</span><span class="t">Modern vs legacy</span></a></li>
+    <li><a href="#u12"><span class="n">12</span><span class="t">Version timeline</span></a></li>
+  </ol>
+  <footer>Distributed systems &amp; messaging · cheatsheet · version 1 · 2026-09-08</footer>
+</nav>
+<main class="content">
+<header class="hero">
+  <h1>Distributed systems &amp; messaging</h1>
+  <p class="meta">cheatsheet · reference broker Apache Kafka 4.2 (patch 4.2.1) · released 2026-02-17</p>
+  <p class="summary">The daily surface of building and running distributed systems, on one card: delivery semantics and idempotency, the Kafka / RabbitMQ / NATS / Pulsar and cloud-broker knobs and CLI actually typed, outbox-and-CDC plumbing, sagas and durable execution, consensus and clock rules, retry and backpressure defaults, schema and envelope contracts, and the metrics worth paging on. The topic is a field rather than one product, so the card is version-anchored on the mainstream broker set as of 2026-09-08 — Kafka 4.2.0 (2026-02-17), RabbitMQ 4.3 (2026-04-23), NATS 2.14 (2026-04-30), Pulsar 4.2.0 (2026-03-31) — and every row that depends on a version says which. Newest facts here: Kafka share groups (queues, KIP-932) reached GA in 4.2, and RabbitMQ 4.3 removed Mnesia entirely, making Khepri/Raft the only metadata store and cluster availability a majority-quorum property.</p>
+  <p class="chips"><span class="chip">Kafka 4.2.0 · 2026-02-17</span> <span class="chip">RabbitMQ 4.3 · 2026-04-23</span> <span class="chip">NATS 2.14 · 2026-04-30</span> <span class="chip">Pulsar 4.2.0 · 2026-03-31</span> <span class="chip">Flink 2.3.0 · 2026-06-25</span> <span class="chip">Debezium 3.5.1 · 2026-05-14</span> <span class="chip">AsyncAPI 3.1.0 · 2026-01-31</span> <span class="chip">verified 2026-09-08</span></p>
+</header>
+<section class="unit" id="u01">
+  <header>
+    <h2><span class="n">01</span>Delivery semantics &amp; idempotency</h2>
+    <span class="docs"><a href="https://kafka.apache.org/documentation/#semantics">docs: Kafka message delivery semantics</a></span>
+  </header>
+  <dl class="rows">
+    <dt>At-most-once</dt>
+    <dd>ack/commit <em>before</em> handling. Loses on crash. Only for metrics, traces, telemetry sampling.</dd>
+    <dt>At-least-once</dt>
+    <dd>ack/commit <em>after</em> handling. The default everywhere; duplicates are guaranteed, so the handler must be idempotent.</dd>
+    <dt>Effectively-once</dt>
+    <dd>at-least-once delivery + idempotent consumer (dedupe store). The only "exactly-once" that survives an external side effect.</dd>
+    <dt>Exactly-once (real)</dt>
+    <dd>only inside one transactional system: Kafka read-process-write (<code>processing.guarantee=exactly_once_v2</code>), Flink checkpoint + two-phase-commit sink. Never end-to-end into a third-party HTTP API.</dd>
+    <dt>Idempotency key</dt>
+    <dd>producer-chosen, stable across retries: <code>{aggregateId}:{eventType}:{version}</code>, not a random GUID per attempt. Put it in the message id / header, not the body.</dd>
+    <dt>Inbox dedupe</dt>
+    <dd><code>INSERT INTO inbox(message_id) ... ON CONFLICT DO NOTHING</code> in the same transaction as the side effect; row count 0 means "already handled, ack and drop".</dd>
+    <dt>Dedupe window</dt>
+    <dd>size it as <span class="cmt">max retry horizon + broker retention + replay budget</span>. 7 days is the common default; a 5-minute window is a bug waiting for a DLQ replay.</dd>
+    <dt>Poison message</dt>
+    <dd>bounded attempts, then park in a DLQ with the failure reason, headers and original topic — never <code>nack(requeue: true)</code> forever.</dd>
+    <dt>Ordering scope</dt>
+    <dd>ordering is per <em>partition key</em> / message group, never global. Key by the aggregate that must serialize (<code>orderId</code>), not by tenant, or one hot tenant serializes the topic.</dd>
+    <dt>Commutative &gt; idempotent</dt>
+    <dd>prefer <code>SET balance = 100</code> (absolute) over <code>balance += 10</code> (relative); an absolute state message is naturally replayable.</dd>
+  </dl>
+  <pre><code class="language-csharp">// Idempotent consumer: dedupe and side effect in ONE local transaction.
+await using var tx = await db.BeginTransactionAsync(ct);
+var fresh = await db.ExecuteAsync(
+    "INSERT INTO inbox (message_id, handler, seen_at) VALUES (@id, @h, now()) ON CONFLICT DO NOTHING",
+    new { id = msg.Headers["idempotency-key"], h = nameof(OrderPlacedHandler) });
+if (fresh == 0) { await tx.CommitAsync(ct); return Ack.Ok; }   // duplicate: ack, do nothing
+await Handle(msg, ct);                                          // must write through the same tx
+await tx.CommitAsync(ct);</code></pre>
+  <div class="note"><p><strong>Interview line.</strong> "Exactly-once delivery is impossible over an unreliable network (two-generals); exactly-once <em>processing</em> is achievable by pairing at-least-once delivery with an idempotent, transactional consumer." Say which of the two the question means before answering.</p></div>
+</section>
+
+<section class="unit" id="u02">
+  <header>
+    <h2><span class="n">02</span>Kafka: CLI, config, client</h2>
+    <span class="docs"><a href="https://kafka.apache.org/documentation/">docs: Apache Kafka 4.2</a></span>
+  </header>
+  <h3>Commands</h3>
+  <dl class="rows">
+    <dt>Create a topic</dt>
+    <dd><code>kafka-topics.sh --bootstrap-server b:9092 --create --topic orders --partitions 12 --replication-factor 3 --config min.insync.replicas=2</code></dd>
+    <dt>Describe / find under-replicated</dt>
+    <dd><code>kafka-topics.sh --describe --under-replicated-partitions</code> <span class="cmt">— first command in any Kafka incident</span></dd>
+    <dt>Add partitions</dt>
+    <dd><code>kafka-topics.sh --alter --topic orders --partitions 24</code> <span class="cmt">— repartitioning breaks key→partition affinity; ordering guarantees restart from now</span></dd>
+    <dt>Consumer group lag</dt>
+    <dd><code>kafka-consumer-groups.sh --describe --group billing</code> <span class="cmt">— <code>LAG</code> column per partition; <code>--all-groups</code> for a sweep</span></dd>
+    <dt>Reset offsets</dt>
+    <dd><code>kafka-consumer-groups.sh --group billing --topic orders --reset-offsets --to-datetime 2026-09-01T00:00:00.000 --execute</code> <span class="cmt">— group must be empty; <code>--dry-run</code> first</span></dd>
+    <dt>Share groups (queues)</dt>
+    <dd><code>kafka-share-groups.sh --bootstrap-server b:9092 --describe --group work</code> <span class="since">4.2 GA</span> <span class="cmt">— KIP-932</span></dd>
+    <dt>Consume with headers</dt>
+    <dd><code>kafka-console-consumer.sh --topic orders --from-beginning --property print.headers=true --property print.key=true</code></dd>
+    <dt>Cluster metadata (KRaft)</dt>
+    <dd><code>kafka-metadata-quorum.sh --bootstrap-server b:9092 describe --status</code> <span class="cmt">— controller quorum, leader, lag</span></dd>
+    <dt>Reassign partitions</dt>
+    <dd><code>kafka-reassign-partitions.sh --generate|--execute|--verify --throttle 50000000</code> <span class="cmt">— always throttle; unthrottled reassignment saturates the network</span></dd>
+    <dt>Standard CLI flags</dt>
+    <dd><span class="since">4.2</span> KIP-1147 standardised argument names across the tools; old spellings still parse but are deprecated.</dd>
+  </dl>
+  <h3>Config that decides your guarantees</h3>
+  <div class="tw">
+  <table class="grid">
+    <thead><tr><th>Setting</th><th>Set to</th><th>Why</th></tr></thead>
+    <tbody>
+      <tr class="hi"><td><code>acks</code></td><td><code>all</code></td><td>Default since 3.0. With <code>acks=1</code> a leader failover silently drops acknowledged writes.</td></tr>
+      <tr><td><code>enable.idempotence</code></td><td><code>true</code></td><td>Default since 3.0. Dedupes producer retries per partition; requires <code>acks=all</code>, <code>max.in.flight&lt;=5</code>.</td></tr>
+      <tr><td><code>min.insync.replicas</code></td><td><code>2</code> (with RF 3)</td><td>Topic-level. RF 3 + ISR 2 tolerates one broker loss without data loss and still accepts writes.</td></tr>
+      <tr><td><code>max.in.flight.requests…</code></td><td><code>5</code></td><td>Safe with idempotence on; &gt;5 disables the ordering guarantee.</td></tr>
+      <tr><td><code>linger.ms</code> / <code>batch.size</code></td><td><code>5–20</code> / <code>64–256 KB</code></td><td>Throughput knob. <code>linger.ms=0</code> is the biggest single cause of "Kafka is slow".</td></tr>
+      <tr><td><code>compression.type</code></td><td><code>zstd</code></td><td>Best ratio/CPU today; set on the producer so brokers can pass batches through untouched.</td></tr>
+      <tr><td><code>group.protocol</code></td><td><code>consumer</code></td><td>KIP-848 next-gen rebalance, GA in 4.0: incremental, broker-driven, no stop-the-world. Legacy value is <code>classic</code>.</td></tr>
+      <tr><td><code>enable.auto.commit</code></td><td><code>false</code></td><td>Auto-commit acks messages you have not processed. Commit explicitly after the side effect.</td></tr>
+      <tr><td><code>max.poll.interval.ms</code></td><td><code>300000</code></td><td>Exceeding it evicts the member mid-batch and replays it. Slow handler → smaller <code>max.poll.records</code>.</td></tr>
+      <tr><td><code>isolation.level</code></td><td><code>read_committed</code></td><td>Required to not see aborted transactional writes; default is <code>read_uncommitted</code>.</td></tr>
+      <tr><td><code>retention.ms</code> / <code>cleanup.policy</code></td><td><code>604800000</code> / <code>delete|compact</code></td><td><code>compact</code> keeps the latest value per key: the basis of log-backed state and CDC snapshots.</td></tr>
+    </tbody>
+  </table>
+  </div>
+  <pre><code class="language-csharp">// Confluent.Kafka — producer defaults worth writing down.
+var cfg = new ProducerConfig {
+    BootstrapServers = "b1:9092,b2:9092", Acks = Acks.All, EnableIdempotence = true,
+    CompressionType = CompressionType.Zstd, LingerMs = 10, MessageSendMaxRetries = int.MaxValue,
+    MaxInFlight = 5, EnableDeliveryReports = true };
+using var p = new ProducerBuilder&lt;string, byte[]&gt;(cfg).Build();
+var dr = await p.ProduceAsync("orders", new Message&lt;string, byte[]&gt; {
+    Key = order.Id,                                     // partition key == ordering scope
+    Value = payload,
+    Headers = new Headers { { "idempotency-key", Encoding.UTF8.GetBytes(key) },
+                            { "ce-type", Encoding.UTF8.GetBytes("com.acme.order.placed.v1") } } });</code></pre>
+  <dl class="rows">
+    <dt>Share groups vs consumer groups</dt>
+    <dd><span class="since">4.2</span> share groups give per-record acks and delivery counts with <em>more consumers than partitions</em> — a real work queue on Kafka. Consumer groups still own ordered, offset-based streaming.</dd>
+    <dt>Ack types (share groups)</dt>
+    <dd><code>ACCEPT</code> / <code>RELEASE</code> / <code>REJECT</code>, plus <code>RENEW</code> <span class="since">4.2, KIP-1222</span> to extend the lock for a long handler.</dd>
+    <dt>Streams DLQ</dt>
+    <dd><span class="since">4.2, KIP-1034</span> built-in dead-letter queue for Kafka Streams — no more hand-rolled <code>DeserializationExceptionHandler</code> plumbing.</dd>
+    <dt>ZooKeeper</dt>
+    <dd>gone. KRaft is the only mode <span class="since">4.0</span>; an upgrade from a ZK cluster must land on 3.9 first.</dd>
+    <dt>Partition sizing</dt>
+    <dd>partitions = max(target throughput / per-consumer throughput, peak consumer count). Over-partitioning costs memory, open files and recovery time; under-partitioning caps parallelism forever.</dd>
+  </dl>
+</section>
+
+<section class="unit" id="u03">
+  <header>
+    <h2><span class="n">03</span>RabbitMQ &amp; AMQP 1.0</h2>
+    <span class="docs"><a href="https://www.rabbitmq.com/docs">docs: RabbitMQ 4.3</a></span>
+  </header>
+  <dl class="rows">
+    <dt>Queue type: quorum</dt>
+    <dd>the default choice <span class="since">4.0</span>. Raft-replicated, durable, poison-message handling via <code>x-delivery-count</code>. Classic mirrored queues were <strong>removed</strong> in 4.0.</dd>
+    <dt>Queue type: stream</dt>
+    <dd>append-only log, non-destructive reads, replayable by offset — Kafka-shaped workloads inside RabbitMQ. <span class="since">4.2</span> AMQP 1.0 clients can push SQL-like filter expressions server-side.</dd>
+    <dt>Declare a quorum queue</dt>
+    <dd><code>x-queue-type=quorum</code>, <code>x-dead-letter-strategy=at-least-once</code>, <code>x-delivery-limit=5</code>, <code>x-max-in-memory-length</code></dd>
+    <dt>Exchange types</dt>
+    <dd><code>direct</code> (exact key) · <code>topic</code> (<code>order.*.eu</code>) · <code>fanout</code> (broadcast) · <code>headers</code> (rare) · <code>x-delayed-message</code> (plugin, for scheduling)</dd>
+    <dt>Publisher confirms</dt>
+    <dd>mandatory for durability: <code>channel.confirm_select()</code>, then wait for <code>basic.ack</code>. Without it a publish is fire-and-forget even to a durable queue.</dd>
+    <dt>Prefetch</dt>
+    <dd><code>basic_qos(prefetch_count=N)</code>. Unset means unlimited: one consumer grabs the whole queue and nothing else scales. Start at <code>N = ceil(target_rate × handler_p99)</code>, often 10–50.</dd>
+    <dt>Dead lettering</dt>
+    <dd><code>x-dead-letter-exchange</code> + <code>x-dead-letter-routing-key</code>. Reason lands in the <code>x-death</code> header (<code>rejected</code>, <code>expired</code>, <code>maxlen</code>, <code>delivery_limit</code>).</dd>
+    <dt>Delayed retry</dt>
+    <dd>classic trick: a per-delay queue with <code>x-message-ttl</code> + DLX pointing back at the work exchange. Retry ladder 5s / 30s / 2m / 10m, then park.</dd>
+    <dt>Khepri</dt>
+    <dd>default metadata store <span class="since">4.2</span>, the <em>only</em> one <span class="since">4.3</span>. Cluster availability now needs a node majority — a two-node cluster is no longer a cluster.</dd>
+    <dt>Native AMQP 1.0</dt>
+    <dd><span class="since">4.0</span> first-class alongside AMQP 0-9-1; over WebSocket and with filter expressions <span class="since">4.1</span>; rejection reasons carry the queue name <span class="since">4.3</span>.</dd>
+    <dt>Single Active Consumer</dt>
+    <dd><code>x-single-active-consumer=true</code> gives per-queue ordering with hot standby; <span class="since">4.3</span> AMQP 1.0 consumers are told when they become active.</dd>
+    <dt>Upgrade rule</dt>
+    <dd>4.3 is only supported from 4.2.x, and <code>khepri_db</code> should be enabled before the upgrade or the boot migrates Mnesia in place.</dd>
+  </dl>
+  <pre><code class="language-bash"># Ops commands worth memorising
+rabbitmqctl list_queues name type messages messages_unacknowledged consumers memory
+rabbitmqctl list_consumers | grep -c ''            # consumer count sanity check
+rabbitmq-diagnostics check_running check_local_alarms   # readiness, and flow-control alarms
+rabbitmq-diagnostics memory_breakdown               # who is holding the memory
+rabbitmqctl enable_feature_flag khepri_db           # required before upgrading to 4.3
+rabbitmqctl set_policy DLX ".*" '{"dead-letter-exchange":"dlx"}' --apply-to queues</code></pre>
+  <div class="note"><p><strong>Gotcha.</strong> A RabbitMQ memory or disk alarm does not fail publishes — it blocks the TCP connection. Symptom is a producer that hangs with no error. Watch <code>rabbitmq_alarms_*</code>, not just queue depth.</p></div>
+</section>
+
+<section class="unit" id="u04">
+  <header>
+    <h2><span class="n">04</span>NATS, Pulsar &amp; cloud brokers</h2>
+    <span class="docs"><a href="https://docs.nats.io/">docs: NATS</a> · <a href="https://pulsar.apache.org/docs/">Pulsar</a> · <a href="https://docs.aws.amazon.com/sqs/">SQS</a> · <a href="https://learn.microsoft.com/azure/service-bus-messaging/">Service Bus</a></span>
+  </header>
+  <h3>NATS / JetStream <span class="since">2.14, 2026-04-30</span></h3>
+  <dl class="rows">
+    <dt>Core vs JetStream</dt>
+    <dd>core NATS is at-most-once, no persistence, microsecond fan-out; JetStream adds streams, consumers, persistence and replay. Pick per subject, not per cluster.</dd>
+    <dt>Stream / consumer</dt>
+    <dd><code>nats stream add ORDERS --subjects 'orders.&gt;' --retention limits --replicas 3</code>; <code>nats consumer add ORDERS billing --ack explicit --max-deliver 5</code></dd>
+    <dt>Retention policies</dt>
+    <dd><code>limits</code> (log) · <code>interest</code> (drop once all consumers ack) · <code>workqueue</code> (drop on first ack — a real queue)</dd>
+    <dt>Delayed delivery</dt>
+    <dd>built-in message scheduler <span class="since">2.12</span>, extended <span class="since">2.14</span>: publish now with a future timestamp header, no external scheduler.</dd>
+    <dt>Atomic batch publish</dt>
+    <dd><span class="since">2.12</span> N messages staged and committed or rejected as one unit — the closest thing to a transaction in NATS.</dd>
+    <dt>Strict mode</dt>
+    <dd><span class="since">2.12</span> invalid JetStream requests are now <em>rejected</em>, not just logged. A silent 2.10-era bug becomes a hard error on upgrade.</dd>
+    <dt>Key-value / object store</dt>
+    <dd><code>nats kv add CONFIG --history 5</code> — KV is a compacted stream; watchers give you a change feed for free.</dd>
+  </dl>
+  <h3>Pulsar <span class="since">4.2.0, 2026-03-31</span></h3>
+  <dl class="rows">
+    <dt>Subscription types</dt>
+    <dd><code>Exclusive</code> · <code>Failover</code> (ordered with standby) · <code>Shared</code> (round-robin queue) · <code>Key_Shared</code> (per-key ordering <em>and</em> more consumers than partitions)</dd>
+    <dt>Why reach for it</dt>
+    <dd>tiered storage, geo-replication and multi-tenancy built in; broker/storage split (BookKeeper) lets you scale them independently. Cost: two systems to run.</dd>
+    <dt>Roadmap</dt>
+    <dd>5.0.0-M1 milestones are out; 5.0 GA expected later in 2026 — do not plan a migration on it yet.</dd>
+  </dl>
+  <h3>Cloud brokers</h3>
+  <div class="tw">
+  <table class="grid">
+    <thead><tr><th>Need</th><th>AWS</th><th>Azure</th><th>Note</th></tr></thead>
+    <tbody>
+      <tr><td>Work queue</td><td>SQS Standard</td><td>Service Bus Queue</td><td>SQS Standard is at-least-once and unordered; visibility timeout is the lock.</td></tr>
+      <tr><td>Ordered / dedup</td><td>SQS FIFO</td><td>Service Bus Session</td><td>FIFO: 300 msg/s per group (3 000 batched), 5-minute dedupe window.</td></tr>
+      <tr><td>Pub/sub fan-out</td><td>SNS</td><td>Service Bus Topic</td><td>SNS → SQS fan-out is the canonical durable fan-out; SNS alone drops on consumer failure.</td></tr>
+      <tr><td>Routing / filtering</td><td>EventBridge</td><td>Event Grid</td><td>EventBridge is at-least-once, retries with backoff up to 24 h, ~200 sources.</td></tr>
+      <tr><td>Log / stream</td><td>Kinesis, MSK</td><td>Event Hubs</td><td>Event Hubs speaks the Kafka protocol; Kinesis does not.</td></tr>
+      <tr class="hi"><td>Deprecation</td><td>—</td><td>SBMP + old SDKs</td><td><strong>2026-09-30:</strong> <code>WindowsAzure.ServiceBus</code>, <code>Microsoft.Azure.ServiceBus</code> and the SBMP protocol retire. Move to <code>Azure.Messaging.ServiceBus</code> over AMQP.</td></tr>
+    </tbody>
+  </table>
+  </div>
+  <dl class="rows">
+    <dt>SQS visibility timeout</dt>
+    <dd>set to <code>handler p99 × 3</code>; extend in-flight with <code>ChangeMessageVisibility</code> rather than picking one huge value, or a crash parks work for that long.</dd>
+    <dt>SQS long polling</dt>
+    <dd><code>--wait-time-seconds 20</code> — short polling multiplies empty-receive cost and latency for no benefit.</dd>
+    <dt>SQS redrive</dt>
+    <dd><code>RedrivePolicy: { maxReceiveCount: 5, deadLetterTargetArn }</code>; redrive back with <code>StartMessageMoveTask</code>.</dd>
+    <dt>Service Bus lock</dt>
+    <dd><code>PeekLock</code> (default; renew with <code>RenewMessageLockAsync</code>) vs <code>ReceiveAndDelete</code> (at-most-once). Max lock 5 min, max TTL by tier.</dd>
+    <dt>.NET client</dt>
+    <dd><code>ServiceBusProcessor</code> with <code>MaxConcurrentCalls</code> + <code>PrefetchCount</code>; prefetch &gt; concurrency × p99 rate silently expires locks.</dd>
+  </dl>
+</section>
+<section class="unit" id="u05">
+  <header>
+    <h2><span class="n">05</span>Outbox, inbox &amp; CDC</h2>
+    <span class="docs"><a href="https://debezium.io/documentation/reference/stable/transformations/outbox-event-router.html">docs: Debezium outbox event router</a></span>
+  </header>
+  <dl class="rows">
+    <dt>The problem</dt>
+    <dd>dual write: <code>db.Save()</code> then <code>bus.Publish()</code> can crash between the two. No amount of retry logic fixes it; only a shared transaction does.</dd>
+    <dt>Transactional outbox</dt>
+    <dd>write the event into an <code>outbox</code> table in the <em>same</em> transaction as the state change; a relay publishes it after commit. At-least-once by construction.</dd>
+    <dt>Outbox table shape</dt>
+    <dd><code>id uuid, aggregate_type, aggregate_id, type, payload jsonb, headers jsonb, created_at, processed_at null</code> — index on <code>(processed_at, created_at)</code>.</dd>
+    <dt>Relay: polling</dt>
+    <dd><code>SELECT ... WHERE processed_at IS NULL ORDER BY created_at FOR UPDATE SKIP LOCKED LIMIT 100</code>. Simple, no extra infra, adds poll-interval latency.</dd>
+    <dt>Relay: CDC (preferred at scale)</dt>
+    <dd>Debezium tails the WAL/binlog; zero query load on the primary, sub-second latency, survives app restarts.</dd>
+    <dt>Debezium</dt>
+    <dd>3.5.1.Final (2026-05-14) current; 3.6 in alpha. The Quarkus outbox extension needs Hibernate 7+ <span class="since">3.3</span>.</dd>
+    <dt>Postgres replication</dt>
+    <dd><code>wal_level=logical</code>, publication + slot per consumer. Unconsumed slots pin WAL and fill the disk — alert on <code>pg_replication_slots.confirmed_flush_lsn</code> lag.</dd>
+    <dt>Failover slots</dt>
+    <dd><span class="since">PG 17</span> <code>CREATE SUBSCRIPTION ... WITH (failover = true)</code> + <code>sync_replication_slots=on</code> on the standby, so a promotion does not lose the slot. Before 17, a failover meant a full re-snapshot.</dd>
+    <dt>Listen-to-yourself</dt>
+    <dd>alternative shape: publish first, and let your own consumer apply the state change. Removes the outbox but makes the write path async and the read-your-writes story harder.</dd>
+    <dt>Inbox</dt>
+    <dd>the consumer mirror of the outbox: dedupe table keyed by <code>message_id</code>, written in the handler transaction (see 01). Prune with a retention job, not by hand.</dd>
+    <dt>Ordering through CDC</dt>
+    <dd>route by aggregate id so all events for one aggregate land on one partition — Debezium's <code>outbox.event.router</code> with <code>route.by.field=aggregate_id</code>.</dd>
+    <dt>Snapshot cost</dt>
+    <dd>an initial Debezium snapshot locks/reads the whole table; use incremental snapshots (signal table) on anything over a few million rows.</dd>
+  </dl>
+  <pre><code class="language-sql">-- Outbox write and relay claim, Postgres.
+BEGIN;
+UPDATE orders SET status = 'placed' WHERE id = $1;
+INSERT INTO outbox (id, aggregate_type, aggregate_id, type, payload, headers)
+VALUES (gen_random_uuid(), 'order', $1, 'com.acme.order.placed.v1', $2,
+        jsonb_build_object('idempotency-key', $1 || ':placed:1', 'traceparent', $3));
+COMMIT;
+
+-- Relay: many workers, no contention, no double-send.
+UPDATE outbox SET processed_at = now()
+WHERE id IN (SELECT id FROM outbox WHERE processed_at IS NULL
+             ORDER BY created_at FOR UPDATE SKIP LOCKED LIMIT 100)
+RETURNING id, type, payload, headers;</code></pre>
+  <div class="note"><p><strong>Gotcha.</strong> An outbox relay that marks rows processed <em>before</em> the broker confirms turns at-least-once into at-most-once. Mark after the publisher confirm/delivery report, and accept the duplicate.</p></div>
+</section>
+
+<section class="unit" id="u06">
+  <header>
+    <h2><span class="n">06</span>Sagas &amp; durable execution</h2>
+    <span class="docs"><a href="https://docs.temporal.io/">docs: Temporal</a> · <a href="https://microservices.io/patterns/data/saga.html">saga pattern</a></span>
+  </header>
+  <dl class="rows">
+    <dt>Choreography</dt>
+    <dd>each service reacts to events, no coordinator. Cheap to start, no single point of failure; the flow exists only in everyone's heads and no one can answer "where is order 42 stuck?".</dd>
+    <dt>Orchestration</dt>
+    <dd>one workflow owns the steps and compensations. Visible state, easy timeouts and queries; the orchestrator is a component you now operate. Default to this past ~4 steps.</dd>
+    <dt>Compensation</dt>
+    <dd>semantic undo, not rollback: <code>RefundPayment</code>, not <code>DELETE</code>. Compensations must themselves be idempotent and retriable, and must tolerate "the thing was never done".</dd>
+    <dt>Pivot step</dt>
+    <dd>the first irreversible action (email sent, card captured). Order the saga so every retryable/compensatable step comes first and the pivot is last.</dd>
+    <dt>Durable execution</dt>
+    <dd>Temporal / Restate / Azure Durable Functions: workflow code is deterministic and replayed from an event history, so a process crash resumes mid-function. Replaces hand-written state machines.</dd>
+    <dt>Determinism rule</dt>
+    <dd>inside workflow code: no <code>DateTime.Now</code>, no <code>Guid.NewGuid()</code>, no I/O, no unordered iteration. Use <code>workflow.Now()</code>, side effects, and activities.</dd>
+    <dt>Activity vs workflow</dt>
+    <dd>activities do I/O and may run at-least-once (make them idempotent); workflows only decide. Activity timeouts: <code>StartToClose</code> is the one you must always set.</dd>
+    <dt>Worker versioning</dt>
+    <dd>Temporal pins running workflows to the worker build that started them, so a deploy cannot break in-flight executions — the modern replacement for <code>patched()</code> branches in workflow code.</dd>
+    <dt>Serverless workers</dt>
+    <dd>2026: Temporal Cloud can run workers on AWS Lambda, scaling and shutting them down from workload metrics. New enough to be a good "what have you read lately" answer.</dd>
+    <dt>Timeouts as first-class</dt>
+    <dd>every saga step needs a deadline and a timeout branch; an un-timed-out step is a stuck order that only a human ever finds.</dd>
+    <dt>Process manager</dt>
+    <dd>the older .NET name for the same thing (NServiceBus/MassTransit sagas) — correlated by a saga id, persisted per step. Still everywhere in existing code.</dd>
+  </dl>
+  <pre><code class="language-csharp">// Temporal-style workflow: compensations pushed on a stack, run in reverse.
+var comp = new Stack&lt;Func&lt;Task&gt;&gt;();
+try {
+    var res = await Workflow.ExecuteActivityAsync((Acts a) =&gt; a.ReserveStock(order), Opts);
+    comp.Push(() =&gt; Workflow.ExecuteActivityAsync((Acts a) =&gt; a.ReleaseStock(res.Id), Opts));
+    await Workflow.ExecuteActivityAsync((Acts a) =&gt; a.CapturePayment(order), Opts);  // pivot: last
+} catch (ActivityFailureException) {
+    while (comp.Count &gt; 0) await comp.Pop()();   // compensate in reverse order
+    throw;
+}</code></pre>
+  <div class="note"><p><strong>.NET note, 2026.</strong> MassTransit v9 ships under a commercial licence (v8 stays open source with security patches through 2026). MIT alternatives in active use: Wolverine and Rebus; NServiceBus if you are buying support anyway. This is now a real architecture decision, not trivia.</p></div>
+</section>
+
+<section class="unit" id="u07">
+  <header>
+    <h2><span class="n">07</span>Consistency, consensus &amp; clocks</h2>
+    <span class="docs"><a href="https://raft.github.io/">docs: Raft</a> · <a href="https://jepsen.io/consistency">Jepsen consistency models</a></span>
+  </header>
+  <dl class="rows">
+    <dt>CAP, stated properly</dt>
+    <dd>during a <em>partition</em>, choose consistency or availability. It says nothing about the non-partitioned case — that is PACELC's "else latency or consistency", the trade-off you actually make daily.</dd>
+    <dt>Linearizable</dt>
+    <dd>single-object, real-time order. Cost: a quorum round trip per read unless you use leases. Raft/Paxos give you this.</dd>
+    <dt>Serializable</dt>
+    <dd>multi-object, <em>some</em> serial order — not necessarily real-time. Serializable + linearizable = strict serializable (Spanner, CockroachDB).</dd>
+    <dt>Read-your-writes</dt>
+    <dd>the session guarantee users actually notice. Cheapest fix: route a user's reads to the leader (or the replica past their write LSN) for a few seconds after a write.</dd>
+    <dt>Quorum arithmetic</dt>
+    <dd><code>R + W &gt; N</code> for overlap; <code>W &gt; N/2</code> to avoid split writes. N=3,W=2,R=2 is the workhorse; RF3 + <code>min.insync=2</code> is the same idea in Kafka.</dd>
+    <dt>Raft in one line</dt>
+    <dd>leader election by randomised timeout, append-entries replication, commit once a majority persists. Used by etcd, Kafka KRaft, RabbitMQ quorum queues and Khepri, NATS JetStream, CockroachDB.</dd>
+    <dt>Even node counts</dt>
+    <dd>never. 3 tolerates 1 failure, 4 also tolerates only 1 — you paid for latency and got no extra fault tolerance. 5 tolerates 2.</dd>
+    <dt>Split brain</dt>
+    <dd>prevented by majority quorum + fencing tokens (monotonic epoch numbers checked by the storage layer). A lease alone is not a lock: a GC pause outlives it.</dd>
+    <dt>Logical clocks</dt>
+    <dd>Lamport = happens-before only; vector clocks detect concurrency at O(nodes) size; hybrid logical clocks (HLC) bound the skew and are what modern databases actually use.</dd>
+    <dt>Wall-clock rule</dt>
+    <dd>never order events, compute timeouts or generate ids from <code>DateTime.Now</code> across machines. NTP skew is 10–100 ms and can go backwards; use monotonic clocks for durations.</dd>
+    <dt>CRDTs</dt>
+    <dd>merge without coordination (G-counter, OR-set, LWW-register). Buy AP availability at the price of "last write wins" surprises; great for presence, carts, collaborative text.</dd>
+    <dt>Idempotent id generation</dt>
+    <dd>ULID/UUIDv7 (time-ordered, index-friendly) beat UUIDv4 for keys; Snowflake ids need a coordinated worker id.</dd>
+    <dt>Failure detection</dt>
+    <dd>phi-accrual / SWIM gossip beat fixed timeouts. Anything below ~2× the network p99 turns a GC pause into a topology change.</dd>
+  </dl>
+  <div class="note"><p><strong>Design-review question that pays.</strong> "What is the consistency requirement of <em>this specific read</em>?" Most reads in a system tolerate seconds of staleness; paying linearizable cost everywhere is the most common self-inflicted latency wound.</p></div>
+</section>
+<section class="unit" id="u08">
+  <header>
+    <h2><span class="n">08</span>Retries, timeouts &amp; backpressure</h2>
+    <span class="docs"><a href="https://www.pollydocs.org/">docs: Polly resilience strategies</a> · <a href="https://aws.amazon.com/builders-library/timeouts-retries-and-backoff-with-jitter/">AWS: backoff with jitter</a></span>
+  </header>
+  <dl class="rows">
+    <dt>Retry only what is safe</dt>
+    <dd>retry on connect/timeout/5xx/429 with an idempotency key. Never blind-retry a non-idempotent POST — that is how you double-charge.</dd>
+    <dt>Backoff formula</dt>
+    <dd>full jitter: <code>sleep = random(0, min(cap, base × 2^attempt))</code>. Base 100–200 ms, cap 20–30 s, 3–5 attempts. Without jitter you rebuild the thundering herd you were avoiding.</dd>
+    <dt>Retry budget</dt>
+    <dd>cap retries at ~10% of request volume (client-side token bucket). Per-call limits still let a whole fleet retry a dying dependency to death.</dd>
+    <dt>Retry amplification</dt>
+    <dd>3 retries × 3 layers = 27 calls. Retry at <em>one</em> layer — usually the outermost that owns the idempotency key — and pass a deadline down so inner layers stop.</dd>
+    <dt>Timeouts</dt>
+    <dd>every network call gets one. Set it from the dependency's p99, not a round number; total budget = sum of downstream timeouts, so propagate a deadline (<code>grpc-timeout</code>, <code>CancellationToken</code>).</dd>
+    <dt>Circuit breaker</dt>
+    <dd>open on failure <em>ratio</em> over a sampled window (e.g. &gt;50% of ≥20 calls in 30 s), half-open probe after 15–30 s. Count-based breakers trip on low-traffic noise.</dd>
+    <dt>Bulkhead</dt>
+    <dd>separate connection pools / concurrency limits per dependency so one slow downstream cannot consume every thread.</dd>
+    <dt>Load shedding</dt>
+    <dd>reject early with 429/503 + <code>Retry-After</code> when the queue is over its latency SLO. Shedding 5% keeps p99 for 95%; queueing everything keeps p99 for nobody.</dd>
+    <dt>Backpressure, pull</dt>
+    <dd>consumer-paced brokers (Kafka poll, SQS receive, JetStream pull) are naturally back-pressured; concurrency is the knob, prefetch is the trap.</dd>
+    <dt>Backpressure, push</dt>
+    <dd>bounded channels + <code>BoundedChannelFullMode.Wait</code> in .NET, <code>Flow</code> frames in AMQP 1.0, gRPC/HTTP-2 stream windows. Unbounded queues turn a latency problem into an OOM.</dd>
+    <dt>Little's Law</dt>
+    <dd><code>L = λ × W</code>: concurrency = arrival rate × latency. 500 rps × 200 ms ⇒ 100 in-flight. Size pools, prefetch and consumer counts from it instead of guessing.</dd>
+    <dt>Hedged requests</dt>
+    <dd>fire a second attempt at p95 latency; cuts tail latency for read-only, idempotent calls at ~5% extra load. Never hedge writes.</dd>
+    <dt>Retry ladder + DLQ</dt>
+    <dd>fast in-process retries (2–3, ms) → delayed topic/queue retries (s to min) → DLQ with reason. Alarm on DLQ depth &gt; 0, not on rate.</dd>
+  </dl>
+  <pre><code class="language-csharp">// Polly v8 pipeline: order matters — timeout inside retry, breaker outside.
+var pipeline = new ResiliencePipelineBuilder&lt;HttpResponseMessage&gt;()
+    .AddRetry(new RetryStrategyOptions&lt;HttpResponseMessage&gt; {
+        MaxRetryAttempts = 4, BackoffType = DelayBackoffType.Exponential,
+        UseJitter = true, Delay = TimeSpan.FromMilliseconds(200) })
+    .AddCircuitBreaker(new CircuitBreakerStrategyOptions&lt;HttpResponseMessage&gt; {
+        FailureRatio = 0.5, MinimumThroughput = 20,
+        SamplingDuration = TimeSpan.FromSeconds(30), BreakDuration = TimeSpan.FromSeconds(20) })
+    .AddTimeout(TimeSpan.FromSeconds(2))          // per-attempt
+    .Build();</code></pre>
+  <div class="note"><p><strong>Autoscaling.</strong> Scale consumers on queue depth or consumer lag, never CPU — a blocked consumer is idle. KEDA (CNCF graduated, 60+ scalers) does this on Kubernetes and scales to zero; pair it with a <code>maxReplicaCount</code> below the partition count for Kafka, since extra pods above it just idle.</p></div>
+</section>
+
+<section class="unit" id="u09">
+  <header>
+    <h2><span class="n">09</span>Schemas, envelopes &amp; contracts</h2>
+    <span class="docs"><a href="https://docs.confluent.io/platform/current/schema-registry/fundamentals/schema-evolution.html">docs: schema evolution &amp; compatibility</a> · <a href="https://cloudevents.io/">CloudEvents</a> · <a href="https://www.asyncapi.com/docs/reference/specification/v3.1.0">AsyncAPI 3.1.0</a></span>
+  </header>
+  <dl class="rows">
+    <dt>Format choice</dt>
+    <dd>Protobuf for RPC and high-volume topics · Avro where schema registry + big-data tooling dominates · JSON Schema when humans and heterogeneous consumers must read it.</dd>
+    <dt>Compatibility modes</dt>
+    <dd><code>BACKWARD</code> (default: new schema reads old data — upgrade consumers first) · <code>FORWARD</code> (old schema reads new data — upgrade producers first) · <code>FULL</code> · <code>*_TRANSITIVE</code> against all versions, not just the last.</dd>
+    <dt>Always-safe changes</dt>
+    <dd>add an optional field with a default; add an enum value <em>only</em> if consumers have an unknown-value branch; never rename, never change a type, never reuse a Protobuf field number.</dd>
+    <dt>Protobuf hygiene</dt>
+    <dd><code>reserved 4, 7; reserved "old_name";</code> after deleting a field. Field numbers 1–15 cost one byte — spend them on the hot fields.</dd>
+    <dt>Registry wire format</dt>
+    <dd>Confluent framing: magic byte <code>0x00</code> + 4-byte big-endian schema id + payload. A "corrupt Avro" bug is usually someone deserializing without stripping those 5 bytes.</dd>
+    <dt>Schema Registry 8.x</dt>
+    <dd>adds <code>guid</code>, <code>subject</code>, <code>ts</code>, <code>deleted</code> to JSON responses; clients older than 6.2 throw <code>UnrecognizedPropertyException</code> on <code>GET /schemas/ids/{id}</code>. Pin client versions when upgrading.</dd>
+    <dt>Envelope: CloudEvents 1.0</dt>
+    <dd>required <code>id</code>, <code>source</code>, <code>specversion</code>, <code>type</code>; useful optional <code>subject</code>, <code>time</code>, <code>datacontenttype</code>, <code>dataschema</code>. Binary mode maps them to <code>ce-*</code> headers — keeps the payload clean and lets brokers filter on them.</dd>
+    <dt>Versioning in the type</dt>
+    <dd><code>com.acme.order.placed.v1</code>. Bump to <code>v2</code> for a breaking change and publish both for one deprecation window; never mutate <code>v1</code>'s meaning.</dd>
+    <dt>AsyncAPI</dt>
+    <dd>3.1.0 (2026-01-31). 3.x separates <em>channels</em> from <em>operations</em>, so one channel can be sent to and received from. Generate docs and code from it; treat it as the event-side OpenAPI.</dd>
+    <dt>Event shape</dt>
+    <dd>event-carried state transfer (fat event, no callback, may be stale) vs notification (thin, forces a read, chattier). Pick per topic and write it down; mixing silently is what makes consumers fragile.</dd>
+    <dt>Consumer-driven contracts</dt>
+    <dd>Pact for message contracts, or registry compatibility checks in CI. A schema check that runs only at deploy is a schema check that fires in production.</dd>
+    <dt>PII</dt>
+    <dd>topics are replayable and long-retained. Crypto-shredding (per-subject key, delete the key) is the practical GDPR answer; compaction with tombstones alone does not delete history from every consumer.</dd>
+  </dl>
+  <pre><code class="language-json">{
+  "specversion": "1.0",
+  "id": "01J9Z8K2M4Q7X3",
+  "source": "/acme/orders",
+  "type": "com.acme.order.placed.v1",
+  "subject": "order/42",
+  "time": "2026-09-08T09:14:22.113Z",
+  "datacontenttype": "application/json",
+  "dataschema": "https://schemas.acme.io/order-placed/1.3.0",
+  "data": { "orderId": "42", "total": { "amount": "119.00", "currency": "EUR" } }
+}</code></pre>
+</section>
+
+<section class="unit" id="u10">
+  <header>
+    <h2><span class="n">10</span>Observability &amp; ops numbers</h2>
+    <span class="docs"><a href="https://opentelemetry.io/docs/specs/semconv/messaging/">docs: OpenTelemetry messaging semantic conventions</a></span>
+  </header>
+  <dl class="rows">
+    <dt>Trace propagation</dt>
+    <dd>put <code>traceparent</code> (and <code>tracestate</code>, <code>baggage</code>) in message headers, never the body. Producer span <code>send</code> links to consumer span <code>process</code> — a <em>link</em>, not a child, for batched consumption.</dd>
+    <dt>Span attributes</dt>
+    <dd><code>messaging.system</code>, <code>messaging.destination.name</code>, <code>messaging.operation.name</code> (<code>send</code>/<code>receive</code>/<code>process</code>/<code>settle</code>), <code>messaging.message.id</code>, <code>server.address</code>.</dd>
+    <dt>Semconv status</dt>
+    <dd>messaging conventions are still <em>development</em>, not stable. Opt in with <code>OTEL_SEMCONV_STABILITY_OPT_IN=messaging</code>, or <code>messaging/dup</code> to emit old and new during a migration.</dd>
+    <dt>Kafka-specific</dt>
+    <dd><code>messaging.kafka.offset</code>, <code>...message.key</code>, <code>...consumer.group</code>, and <code>messaging.kafka.cluster.id</code> (recent addition) — the last one saves you in multi-cluster estates.</dd>
+    <dt>The four signals to alert on</dt>
+    <dd>consumer <strong>lag</strong> (and lag <em>trend</em>), <strong>age of the oldest unprocessed message</strong>, <strong>DLQ depth</strong>, <strong>handler error ratio</strong>. Throughput alone hides a stopped consumer.</dd>
+    <dt>Lag vs latency</dt>
+    <dd>lag in records is meaningless across topics; alert on estimated time-to-drain = <code>lag / consume_rate</code>, or on record timestamp age.</dd>
+    <dt>Kafka broker metrics</dt>
+    <dd><code>UnderReplicatedPartitions</code> (must be 0), <code>OfflinePartitionsCount</code> (must be 0), <code>ActiveControllerCount</code> (exactly 1 cluster-wide), request queue time p99.</dd>
+    <dt>RabbitMQ metrics</dt>
+    <dd><code>rabbitmq_queue_messages_unacked</code> (stuck consumers), <code>rabbitmq_alarms_memory_used_watermark</code>, per-queue consumer count = 0 on a live queue.</dd>
+    <dt>Replay drill</dt>
+    <dd>practise it: reset the group to a timestamp, run in a shadow consumer group, compare outputs. A replay path first exercised during an incident is not a replay path.</dd>
+    <dt>Kill-switch</dt>
+    <dd>a per-consumer feature flag that pauses consumption without a deploy; the fastest safe action during a bad-message storm.</dd>
+    <dt>Capacity rules of thumb</dt>
+    <dd>Kafka: keep partitions per broker in the low thousands and a partition's retained data under ~50 GB to keep recovery fast. RabbitMQ: keep quorum queues in the thousands, and watch segment file counts (Prometheus endpoint <span class="since">4.2</span>).</dd>
+    <dt>Latency budget</dt>
+    <dd>same-AZ RTT ~0.5 ms, cross-AZ ~1–2 ms, cross-region 60–150 ms. A cross-region synchronous quorum write is a design decision, not a config value.</dd>
+  </dl>
+  <pre><code class="language-csharp">// .NET: propagate the trace context through headers, both ways.
+var ctx = Activity.Current?.Context ?? default;
+Propagators.DefaultTextMapPropagator.Inject(new PropagationContext(ctx, Baggage.Current),
+    msg.Headers, (h, k, v) =&gt; h.Add(k, Encoding.UTF8.GetBytes(v)));
+
+// consumer side
+var parent = Propagators.DefaultTextMapPropagator.Extract(default, msg.Headers,
+    (h, k) =&gt; h.TryGetLastBytes(k, out var b) ? new[] { Encoding.UTF8.GetString(b) } : []);
+using var act = Source.StartActivity("orders process", ActivityKind.Consumer, parent.ActivityContext);</code></pre>
+</section>
+<section class="unit" id="u11">
+  <header>
+    <h2><span class="n">11</span>Modern vs legacy</h2>
+    <span class="docs"><a href="https://kafka.apache.org/documentation/#upgrade">docs: Kafka upgrade notes</a> · <a href="https://www.rabbitmq.com/docs/4.0/whats-new">RabbitMQ 4.x what's new</a></span>
+  </header>
+  <div class="tw">
+  <table class="grid">
+    <thead><tr><th>Task</th><th>Modern</th><th>Legacy still seen</th><th>Since</th></tr></thead>
+    <tbody>
+      <tr class="hi"><td>Kafka cluster metadata</td><td>KRaft controller quorum</td><td>ZooKeeper ensemble</td><td>default 3.3, only mode 4.0 (2025-03-18)</td></tr>
+      <tr class="hi"><td>Queue semantics on Kafka</td><td>Share groups (<code>kafka-share-groups.sh</code>), per-record ack</td><td>One consumer group per worker + manual offset juggling, or a second broker just for queues</td><td>preview 4.1, GA 4.2 (2026-02-17)</td></tr>
+      <tr><td>Kafka consumer rebalance</td><td><code>group.protocol=consumer</code> (KIP-848), incremental, broker-driven</td><td><code>classic</code> eager rebalance, stop-the-world on every join</td><td>GA 4.0</td></tr>
+      <tr><td>Kafka Streams assignment</td><td>Broker-side group management (KIP-1071)</td><td>Client-side sticky assignor</td><td>GA 4.2</td></tr>
+      <tr><td>RabbitMQ HA queues</td><td>Quorum queues (Raft) + streams</td><td>Classic mirrored queues (<code>ha-mode: all</code>)</td><td>removed in 4.0 (2024-09)</td></tr>
+      <tr class="hi"><td>RabbitMQ metadata store</td><td>Khepri (Raft); majority quorum required</td><td>Mnesia</td><td>default 4.2, only store 4.3 (2026-04-23)</td></tr>
+      <tr><td>RabbitMQ protocol</td><td>Native AMQP 1.0 (filters, WebSocket, rejection reasons)</td><td>AMQP 0-9-1 only, plus the AMQP 1.0 shim plugin</td><td>4.0 → 4.3</td></tr>
+      <tr><td>Azure Service Bus client</td><td><code>Azure.Messaging.ServiceBus</code> over AMQP</td><td><code>WindowsAzure.ServiceBus</code>, <code>Microsoft.Azure.ServiceBus</code>, SBMP</td><td>legacy retires 2026-09-30</td></tr>
+      <tr><td>Publish-with-state-change</td><td>Transactional outbox, relayed by CDC</td><td><code>SaveChanges()</code> then <code>Publish()</code>; or a distributed transaction (MSDTC / XA)</td><td>outbox is the accepted default</td></tr>
+      <tr><td>Long-running business flow</td><td>Durable execution (Temporal, Restate, Durable Functions) or an orchestrated saga</td><td>Hand-rolled state machine in a table + a cron "stuck order" sweeper</td><td>mainstream since ~2023</td></tr>
+      <tr><td>Workflow code changes</td><td>Worker versioning: pin in-flight runs to their build</td><td><code>patched()</code> / <code>GetVersion()</code> branches accumulating in the workflow</td><td>Temporal, 2025–2026</td></tr>
+      <tr><td>.NET service bus</td><td>Wolverine or Rebus (MIT); MassTransit v9 under a commercial licence</td><td>MassTransit v8 free tier (security patches through 2026), or bespoke <code>IHostedService</code> consumers</td><td>v9 licence change, 2026</td></tr>
+      <tr><td>Event envelope</td><td>CloudEvents 1.0 in binary mode (<code>ce-*</code> headers)</td><td>Bespoke <code>{ meta, payload }</code> JSON wrappers, one per team</td><td>CNCF graduated</td></tr>
+      <tr><td>Event API contract</td><td>AsyncAPI 3.1 in the repo, checked in CI</td><td>A Confluence page and a shared Slack channel</td><td>3.0 (2024-03), 3.1 (2026-01-31)</td></tr>
+      <tr><td>Message tracing</td><td>W3C <code>traceparent</code> header + OTel messaging semconv</td><td>Home-grown <code>X-Correlation-Id</code>, logged but not linked</td><td>semconv still "development"; opt in</td></tr>
+      <tr><td>Retry policy (.NET)</td><td>Polly v8 <code>ResiliencePipeline</code>, jittered exponential</td><td>Polly v7 <code>Policy.Handle(...).WaitAndRetry</code>, fixed delays, no jitter</td><td>v8 (2023-10)</td></tr>
+      <tr><td>Consumer scaling</td><td>KEDA on lag/queue depth, scale to zero</td><td>HPA on CPU; a fixed replica count sized for peak</td><td>KEDA CNCF graduated</td></tr>
+      <tr><td>Logical-slot failover</td><td><code>CREATE SUBSCRIPTION ... (failover = true)</code> + <code>sync_replication_slots</code></td><td><code>pg_failover_slots</code> extension, or re-snapshot after every promotion</td><td>PostgreSQL 17</td></tr>
+      <tr><td>Compression</td><td><code>zstd</code></td><td><code>snappy</code>, <code>gzip</code>, or none</td><td>zstd since Kafka 2.1</td></tr>
+      <tr><td>Stream processing</td><td>Flink 2.x (disaggregated state), Kafka Streams with built-in DLQ</td><td>Flink 1.x DataSet API, Spark Streaming micro-batches for low-latency work</td><td>Flink 2.0 (2025-03)</td></tr>
+    </tbody>
+  </table>
+  </div>
+  <h3>Gotchas, one line each</h3>
+  <ul class="tight">
+    <li>Adding Kafka partitions rehashes keys: ordering per key is only preserved from that moment forward.</li>
+    <li><code>acks=all</code> with <code>min.insync.replicas=1</code> is <code>acks=1</code> wearing a costume.</li>
+    <li>A consumer that is slower than <code>max.poll.interval.ms</code> gets evicted and replays — every time, forever, until you cut the batch size.</li>
+    <li>RabbitMQ quorum queues keep the whole message index in memory: millions of tiny messages OOM a node long before disk fills.</li>
+    <li>Unlimited prefetch turns a fleet of consumers into one consumer with an audience.</li>
+    <li>SQS Standard can deliver a message twice even without a failure — dedupe is not optional.</li>
+    <li>An unread Postgres replication slot will fill the disk and take the primary down; alert on slot lag, not just disk.</li>
+    <li>A DLQ nobody has a replay tool for is a delete queue with extra storage cost.</li>
+    <li>Retrying a timeout on a non-idempotent endpoint is how a double payment is born; the timeout never told you the write failed.</li>
+    <li>Compacted topics never delete a key without an explicit <code>null</code> tombstone — and the tombstone itself expires after <code>delete.retention.ms</code>.</li>
+    <li>Two-node clusters (RabbitMQ 4.3, etcd, any Raft system) have <em>worse</em> availability than one node: either failure loses quorum.</li>
+    <li>Consumer lag of zero on a topic with no producers proves nothing; alert on message age too.</li>
+    <li>Scaling Kafka consumers above the partition count adds cost and no throughput — use share groups if you need more workers than partitions.</li>
+  </ul>
+</section>
+
+<section class="unit" id="u12">
+  <header>
+    <h2><span class="n">12</span>Version timeline</h2>
+    <span class="docs"><a href="https://kafka.apache.org/blog/releases/">docs: Kafka release announcements</a> · <a href="https://www.rabbitmq.com/release-information">RabbitMQ release information</a></span>
+  </header>
+  <div class="tw">
+  <table class="grid">
+    <thead><tr><th>Date</th><th>Release</th><th>What changed</th></tr></thead>
+    <tbody>
+      <tr><td>2026-09-30</td><td>Azure Service Bus <em>(upcoming)</em></td><td><strong>Newly deprecated → retired:</strong> <code>WindowsAzure.ServiceBus</code>, <code>Microsoft.Azure.ServiceBus</code>, <code>com.microsoft.azure.servicebus</code> and the SBMP protocol. Migrate to <code>Azure.Messaging.ServiceBus</code> over AMQP before the date.</td></tr>
+      <tr><td>2026-06-25</td><td>Apache Flink 2.3.0</td><td>Latest stable Flink; the 2.x line's disaggregated state and unified stream/batch API are now the baseline. 2.1.3 (2026-06-14) is the current 2.1 patch.</td></tr>
+      <tr><td>2026-05-30</td><td>Kafka 4.2.1</td><td>Current patch of the 4.2 line.</td></tr>
+      <tr><td>2026-05-14</td><td>Debezium 3.5.1.Final</td><td>Maintenance: stability, compatibility, performance. 3.6 in alpha adds quantile metrics across connectors and JDBC sink support in Debezium Server.</td></tr>
+      <tr><td>2026-04-30</td><td>NATS Server 2.14</td><td><strong>Newly stable:</strong> first-class high-throughput JetStream publishing, extended server-side message scheduling, sourcing/mirroring correctness fixes for Interest and WorkQueue streams.</td></tr>
+      <tr class="hi"><td>2026-04-23</td><td>RabbitMQ 4.3</td><td><strong>Newly default → only:</strong> Khepri replaces Mnesia entirely; cluster availability now follows Raft majority semantics. AMQP 1.0 rejection reasons carry the queue name; quorum queues notify AMQP 1.0 consumers of single-active-consumer state. Upgrade supported only from 4.2.x, with <code>khepri_db</code> enabled first.</td></tr>
+      <tr><td>2026-03-31</td><td>Apache Pulsar 4.2.0</td><td>Latest Pulsar feature release (4.2.2, 2026-06-08, is the current patch). 5.0.0-M1 milestones are out, GA expected later in 2026.</td></tr>
+      <tr class="hi"><td>2026-02-17</td><td>Apache Kafka 4.2.0</td><td><strong>Newly GA:</strong> Queues for Kafka / share groups (KIP-932), with <code>RENEW</code> acks (KIP-1222), adaptive coordinator batching (KIP-1224) and strict max-fetch enforcement (KIP-1206); Streams rebalance protocol (KIP-1071). <strong>New:</strong> Streams DLQ (KIP-1034), anchored wall-clock punctuation (KIP-1146), idle-ratio and feature-level metrics, standardised CLI args (KIP-1147), Java 25 support. <strong>Newly deprecated</strong> (removal in 5.0): <code>ConsumerGroupMetadata</code> constructors, MX4j, <code>BrokerNotFoundException</code>.</td></tr>
+      <tr><td>2026-01-31</td><td>AsyncAPI 3.1.0</td><td>Latest spec release of the 3.x line that split channels from operations.</td></tr>
+      <tr><td>2025-12-17</td><td>Kubernetes 1.35</td><td>Current platform baseline for consumer workloads; KEDA (CNCF graduated, 60+ scalers) is the standard lag-based autoscaler on top.</td></tr>
+      <tr><td>2025-10-28</td><td>RabbitMQ 4.2.0</td><td><strong>Newly default:</strong> Khepri for new deployments. SQL-like AMQP 1.0 filter expressions on streams, gradual quorum-queue leader elections at tens-of-thousands scale, segment-file metrics, local shovel protocol.</td></tr>
+      <tr><td>2025-10-01</td><td>Debezium 3.3.0.Final</td><td>Quarkus outbox extension on Hibernate 7+; OpenLineage across JDBC and MongoDB sinks.</td></tr>
+      <tr><td>2025-09-04</td><td>Apache Kafka 4.1.0</td><td>Queues for Kafka shipped as a <em>preview</em>; Streams group protocol early access.</td></tr>
+      <tr><td>2025-09</td><td>NATS Server 2.12</td><td><strong>New:</strong> atomic batch publish, JetStream message scheduler (header-driven delayed delivery). <strong>Newly default:</strong> strict mode — invalid JetStream requests are rejected, not just logged.</td></tr>
+      <tr><td>2025-04-15</td><td>RabbitMQ 4.1.0</td><td>AMQP 1.0 over WebSocket, AMQP 1.0 filter expressions.</td></tr>
+      <tr><td>2025-03-18</td><td>Apache Kafka 4.0.0</td><td><strong>Newly default → only:</strong> KRaft; ZooKeeper removed (upgrade via 3.9). KIP-848 consumer rebalance protocol GA. Clients and Streams need Java 11+, brokers Java 17+.</td></tr>
+      <tr><td>2024-09</td><td>RabbitMQ 4.0</td><td><strong>Newly stable:</strong> native AMQP 1.0, Khepri available. <strong>Removed:</strong> classic mirrored queues — quorum queues are the only replicated queue type.</td></tr>
+      <tr><td>2024-03</td><td>AsyncAPI 3.0.0</td><td>Channels split from operations; multi-channel operations and protocol bindings for Kafka, MQTT, AMQP, Pub/Sub.</td></tr>
+      <tr><td>2023–2024</td><td>PostgreSQL 16 / 17</td><td>PG 16: logical replication from a standby. PG 17: failover slots (<code>failover = true</code> + <code>sync_replication_slots</code>) — the fix that made CDC survive a primary promotion. PG 18 did not materially extend it.</td></tr>
+    </tbody>
+  </table>
+  </div>
+  <div class="note"><p><strong>Freshest thing to say out loud.</strong> Kafka 4.2 (2026-02-17) made share groups GA, so "use Kafka for streams and RabbitMQ/SQS for work queues" is no longer automatically true — and RabbitMQ 4.3 (2026-04-23) removed Mnesia, so RabbitMQ clusters now need an odd node count and a majority quorum just like Kafka's KRaft controllers. Both are recent enough that many teams' mental models are still on the old shape.</p></div>
+</section>
+
+</main>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.11.1/highlight.min.js"></script>
+<script>
+(function () {
+  if (window.hljs) { try { hljs.highlightAll(); } catch (e) { /* highlighting is decoration */ } }
+
+  var toggle = document.querySelector('.navtoggle');
+  var side = document.getElementById('side');
+  if (toggle) {
+    toggle.addEventListener('click', function () {
+      var open = document.body.classList.toggle('nav-open');
+      toggle.setAttribute('aria-expanded', open ? 'true' : 'false');
+    });
+  }
+  if (side) {
+    side.addEventListener('click', function (e) {
+      if (e.target.closest('a')) {
+        document.body.classList.remove('nav-open');
+        if (toggle) toggle.setAttribute('aria-expanded', 'false');
+      }
+    });
+  }
+
+  var links = Array.prototype.slice.call(document.querySelectorAll('.units a'));
+  var units = links.map(function (a) { return document.getElementById(a.getAttribute('href').slice(1)); });
+  var ticking = false;
+  function spy() {
+    ticking = false;
+    var best = 0;
+    for (var i = 0; i < units.length; i++) {
+      if (units[i] && units[i].getBoundingClientRect().top <= 140) best = i;
+    }
+    for (var j = 0; j < links.length; j++) {
+      if (j === best) links[j].setAttribute('aria-current', 'true');
+      else links[j].removeAttribute('aria-current');
+    }
+  }
+  function onScroll() {
+    if (!ticking) { ticking = true; window.requestAnimationFrame(spy); }
+  }
+  window.addEventListener('scroll', onScroll, { passive: true });
+  window.addEventListener('resize', onScroll, { passive: true });
+  spy();
+})();
+</script>
+</body>
+</html>

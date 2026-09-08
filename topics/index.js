@@ -97,7 +97,14 @@ window.DEVBOK_TOPICS = [
           "file": "topics/appsec/experience.v1.html"
         }
       ],
-      "interview": [],
+      "interview": [
+        {
+          "v": 1,
+          "generated": "2026-09-08",
+          "prompt": "880c04f3",
+          "file": "topics/appsec/interview.v1.html"
+        }
+      ],
       "cheatsheet": [
         {
           "v": 1,
@@ -248,7 +255,14 @@ window.DEVBOK_TOPICS = [
     "accent": "#c2410c",
     "created": "2026-09-08",
     "kinds": {
-      "study": [],
+      "study": [
+        {
+          "v": 1,
+          "generated": "2026-09-08",
+          "prompt": "3e395ac4",
+          "file": "topics/distributed/study.v1.html"
+        }
+      ],
       "experience": [
         {
           "v": 1,
@@ -257,7 +271,14 @@ window.DEVBOK_TOPICS = [
           "file": "topics/distributed/experience.v1.html"
         }
       ],
-      "interview": [],
+      "interview": [
+        {
+          "v": 1,
+          "generated": "2026-09-08",
+          "prompt": "880c04f3",
+          "file": "topics/distributed/interview.v1.html"
+        }
+      ],
       "cheatsheet": [
         {
           "v": 1,
@@ -269,11 +290,67 @@ window.DEVBOK_TOPICS = [
     }
   },
   {
+    "slug": "jsts",
+    "title": "JavaScript & TypeScript",
+    "topic": "JavaScript and TypeScript",
+    "category": "language",
+    "accent": "#3178c6",
+    "created": "2026-09-08",
+    "kinds": {
+      "study": [],
+      "experience": [],
+      "interview": [],
+      "cheatsheet": []
+    }
+  },
+  {
     "slug": "observability",
     "title": "Observability & prod debugging",
     "topic": "Observability & production debugging",
     "category": "ops",
     "accent": "#f5a800",
+    "created": "2026-09-08",
+    "kinds": {
+      "study": [
+        {
+          "v": 1,
+          "generated": "2026-09-08",
+          "prompt": "3e395ac4",
+          "file": "topics/observability/study.v1.html"
+        }
+      ],
+      "experience": [
+        {
+          "v": 1,
+          "generated": "2026-09-08",
+          "prompt": "f284a113",
+          "file": "topics/observability/experience.v1.html"
+        }
+      ],
+      "interview": [
+        {
+          "v": 1,
+          "generated": "2026-09-08",
+          "prompt": "880c04f3",
+          "file": "topics/observability/interview.v1.html"
+        }
+      ],
+      "cheatsheet": [
+        {
+          "v": 1,
+          "generated": "2026-09-08",
+          "prompt": "ccd2d4a9",
+          "file": "topics/observability/cheatsheet.v1.html"
+        }
+      ]
+    }
+  },
+  {
+    "slug": "react",
+    "title": "React",
+    "topic": "React",
+    "category": "frontend",
+    "accent": "#087ea4",
     "created": "2026-09-08",
     "kinds": {
       "study": [],
@@ -284,7 +361,7 @@ window.DEVBOK_TOPICS = [
           "v": 1,
           "generated": "2026-09-08",
           "prompt": "ccd2d4a9",
-          "file": "topics/observability/cheatsheet.v1.html"
+          "file": "topics/react/cheatsheet.v1.html"
         }
       ]
     }
