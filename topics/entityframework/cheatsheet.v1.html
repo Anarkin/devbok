@@ -30,11 +30,10 @@ a { color: var(--accent); }
 /* ---- sidebar (verbatim) ---- */
 .side { position: fixed; top: 0; bottom: 0; left: 0; width: 260px; display: flex; flex-direction: column; background: var(--bg); border-right: 2px solid var(--line); font-family: "Cascadia Mono", Consolas, monospace; font-size: 12px; }
 .units { list-style: none; margin: 0; padding: 12px 0; overflow-y: auto; flex: 1; }
-.units a { display: grid; grid-template-columns: 2.5em 1fr; padding: 9px 20px; color: var(--fg); text-decoration: none; line-height: 1.4; }
-.units .n { color: var(--muted); }
+.units a { display: grid; grid-template-columns: 2.5em 1fr; padding: 9px 20px 9px 17px; border-left: 3px solid transparent; color: var(--fg); text-decoration: none; line-height: 1.4; }
+.units .n { color: var(--muted); font-weight: 400; }
 .units a:hover { background: var(--soft); }
-.units a[aria-current="true"] { background: var(--accent-soft); color: var(--accent); }
-.units a[aria-current="true"] .n { color: var(--accent); }
+.units a[aria-current="true"] { background: var(--accent-soft); border-left-color: var(--accent); font-weight: 700; }
 .side footer { padding: 12px 20px; border-top: 2px solid var(--line); color: var(--muted); line-height: 1.5; }
 
 /* ---- layout ---- */

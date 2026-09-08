@@ -8,7 +8,7 @@ import os from 'node:os';
 import path from 'node:path';
 import { spawn, spawnSync } from 'node:child_process';
 import { fileURLToPath } from 'node:url';
-import { CATEGORIES } from './devbok.mjs';
+import { CATEGORIES, darkAccent } from './devbok.mjs';
 
 const SCRIPT = path.join(path.dirname(fileURLToPath(import.meta.url)), 'devbok.mjs');
 const KINDS = ['study', 'experience', 'interview', 'cheatsheet'];
@@ -461,6 +461,13 @@ describe('record', () => {
     assert.equal(r.recorded.forced, true);
     assert.equal(r.validation.ok, false);
     assert.equal(manifest('s').kinds.study.versions.length, 1);
+  });
+  test('the index carries the accent and the same dark tint the pages get', () => {
+    // The shell paints a topic in its own colour; the tint is derived here so no colour maths lives there.
+    ok(['init', 'a', '--title', 'A', '--topic', 'Topic A', '--accent', '#512bd4']);
+    const t = indexTopics().find((x) => x.slug === 'a');
+    assert.equal(t.accent, '#512bd4');
+    assert.equal(t.accentDark, darkAccent('#512bd4'));
   });
   test('index lists versions newest first', () => {
     initTopic('s');

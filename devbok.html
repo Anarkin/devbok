@@ -4,6 +4,8 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>devbok</title>
+<!-- An emoji drawn as an inline SVG: one line, no file to ship, and legible at 16px in a row of tabs. -->
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Ctext y='.9em' font-size='90'%3E🎓%3C/text%3E%3C/svg%3E">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Cascadia+Mono:wght@400..700&display=swap" rel="stylesheet">
@@ -18,15 +20,22 @@
   :root {
     color-scheme: light;
     --bg: #ffffff; --fg: #111111; --muted: #6b6b6b; --line: #111111; --soft: #f4f4f4; --accent: #a55da0;
-    --border: #cccccc; --active-slug: #bbbbbb; --backdrop: rgba(0, 0, 0, .45);
+    --border: #cccccc; --backdrop: rgba(0, 0, 0, .45);
     --code: color-mix(in srgb, var(--accent) 70%, var(--fg));
+    /* The open topic's own brand colour, or devbok's accent when none is open. The glue sets
+       --topic-light / --topic-dark from topics/index.js; the media query below picks the tint, so
+       the theme still switches in CSS alone. --topic-soft mirrors the pages' --accent-soft. */
+    --topic: var(--topic-light, var(--accent));
+    --topic-soft: color-mix(in srgb, var(--topic) 12%, var(--bg));
     --sidebar: 260px;
   }
   @media (prefers-color-scheme: dark) {
     :root {
       color-scheme: dark;
       --bg: #222222; --fg: #cccccc; --muted: #8f8f8f; --line: #111111; --soft: #2c2c2c; --accent: #c190be;
-      --border: #4a4a4a; --active-slug: #555555; --backdrop: rgba(0, 0, 0, .6);
+      --border: #4a4a4a; --backdrop: rgba(0, 0, 0, .6);
+      --topic: var(--topic-dark, var(--accent));
+      --topic-soft: color-mix(in srgb, var(--topic) 16%, var(--bg));
     }
   }
   * { box-sizing: border-box; }
@@ -63,10 +72,10 @@
   nav { position: relative; border-right: 2px solid var(--line); display: flex; flex-direction: column; min-height: 0; }
   /* Resizable sidebar: a 9px grab zone straddling the divider. Drag sets --sidebar; double-click resets it. */
   .resizer { position: absolute; top: 0; bottom: 0; right: -5px; width: 9px; cursor: col-resize; z-index: 1; }
-  .resizer:hover, body.resizing .resizer { background: var(--accent); opacity: .4; }
+  .resizer:hover, body.resizing .resizer { background: var(--topic); opacity: .4; }
   body.resizing { cursor: col-resize; user-select: none; }
   body.resizing iframe { pointer-events: none; }   /* otherwise the iframe swallows the drag */
-  .tab:focus-visible, select:focus-visible, a:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+  .tab:focus-visible, select:focus-visible, a:focus-visible { outline: 2px solid var(--topic); outline-offset: 2px; }
   nav ul { list-style: none; margin: 0; padding: 0; }
   nav > ul { padding: 12px 0; overflow: auto; flex: 1; }
   /* One section per category, its label muted and set apart by a hairline. The label is a heading rather
@@ -75,11 +84,13 @@
      sidebar to the pixel, so the hierarchy step has to come out of the margin, not out of the rows. */
   nav h2 { margin: 0; padding: 10px 20px 3px 12px; color: var(--muted); font-weight: 400; letter-spacing: .08em; text-transform: uppercase; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
   nav .group + .group h2 { margin-top: 14px; padding-top: 16px; border-top: 1px solid var(--border); }
-  nav li a { display: block; padding: 9px 20px; color: inherit; text-decoration: none; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  nav li a { display: block; padding: 9px 20px 9px 17px; border-left: 3px solid transparent; color: inherit; text-decoration: none; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
   nav li a:hover { background: var(--soft); }
-  nav li a.active { background: var(--fg); color: var(--bg); }
-  nav li a .slug { display: block; color: var(--muted); }
-  nav li a.active .slug { color: var(--active-slug); }
+  /* The open topic is marked in its own colour - a tinted row behind a solid bar. The label itself stays
+     --fg: a brand colour is any luminance (mongo green, observability yellow), and as text on a 12% tint
+     of itself half of them are unreadable. The colour marks the row, it does not carry the words. */
+  nav li a.active { background: var(--topic-soft); border-left-color: var(--topic); font-weight: 700; }
+  nav li a .slug { display: block; color: var(--muted); font-weight: 400; }
   nav .none { padding: 12px 20px; color: var(--muted); line-height: 1.6; }
   /* min-width: 0 so the column may be narrower than the tab row; without it a grid item never shrinks. */
   .content { display: grid; grid-template-rows: auto auto 1fr; min-height: 0; min-width: 0; }
@@ -97,7 +108,7 @@
   .tools select { font: inherit; padding: 3px 6px; background: var(--bg); color: var(--fg); border: 1px solid var(--border); border-radius: 4px; }
   /* The only way out of the iframe: a cheat sheet is meant to be printed or kept in a side window. */
   .tools .open { color: var(--muted); text-decoration: none; white-space: nowrap; }
-  .tools .open:hover { color: var(--fg); text-decoration: underline; }
+  .tools .open:hover { color: var(--topic); text-decoration: underline; }
   .crumb { margin: 0 24px; padding: 8px 0 6px; color: var(--fg); line-height: 1.5; min-height: 1.6em; }
   .pane { min-height: 0; position: relative; }
   iframe { position: absolute; inset: 0; width: 100%; height: 100%; border: 0; display: block; background: var(--bg); }
@@ -270,6 +281,10 @@ const devbokModel = (function () {
     return {
       ...s, message, sidebarNote, groups, tabs, options, title,
       frameTitle: s.ver ? label : 'artifact', // a screen reader announces the frame by this, not by "artifact"
+      // The open topic's colour pair, for the shell to paint itself in; null means devbok's own accent.
+      // accentDark is derived by scripts/devbok.mjs and carried in the index, so no colour maths lives here;
+      // an index written before it existed falls back to the brand colour in both themes.
+      accent: s.topic && s.topic.accent ? { light: s.topic.accent, dark: s.topic.accentDark || s.topic.accent } : null,
       crumb: s.topic ? s.topic.topic : '',
       src: s.ver ? s.ver.file : null,
       remember: s.topic ? s.kind : null, // the kind tab to reopen on next time; never the topic
@@ -305,9 +320,23 @@ const devbokModel = (function () {
   };
   const current = () => M.view(window.DEVBOK_TOPICS, location.hash, store.get('devbok:kind'), window.DEVBOK_CATEGORIES);
 
+  // The open topic paints the shell: --topic-light / --topic-dark feed the CSS above, where the media
+  // query picks the tint. Removing them falls everything back to devbok's own accent.
+  function paintTopic(accent) {
+    const root = document.documentElement.style;
+    if (accent) {
+      root.setProperty('--topic-light', accent.light);
+      root.setProperty('--topic-dark', accent.dark);
+    } else {
+      root.removeProperty('--topic-light');
+      root.removeProperty('--topic-dark');
+    }
+  }
+
   function render() {
     const v = current();
     if (v.remember) store.set('devbok:kind', v.remember);
+    paintTopic(v.accent);
     els.tabBar.hidden = !v.topic; // no tabs, version picker or topic line until a topic is chosen
     els.crumb.hidden = !v.topic;
     const link = (t) => `<li><a href="${t.href}" class="${t.active ? 'active' : ''}" title="${M.esc(t.topic)}">${M.esc(t.title)}<span class="slug">${M.esc(t.slug)}</span></a></li>`;

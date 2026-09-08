@@ -265,6 +265,9 @@ function buildIndex() {
       topic: m.topic,
       category: m.category,
       accent: m.accent,
+      // The dark tint travels with the index so the shell can paint a topic in its own colour without
+      // duplicating this file's colour maths - it is the same tint the topic's own pages are given.
+      accentDark: darkAccent(m.accent),
       created: m.created,
       kinds: Object.fromEntries(KINDS.map((k) => [k,
         [...m.kinds[k].versions].sort((a, b) => b.v - a.v).map((x) => ({

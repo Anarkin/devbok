@@ -251,6 +251,16 @@ describe('model: view', () => {
     const w = M.view([T[0]], '', null, CATS);
     assert.deepEqual(w.groups.map((g) => [g.category, g.label, g.topics.length]), [['language', null, 1]]);
   });
+  test('the open topic hands the shell its colour pair, or nothing', () => {
+    const withAccent = [{ ...T[0], accent: '#512bd4', accentDark: '#896fe2' }, T[1]];
+    assert.deepEqual(M.view(withAccent, '#csharp/study', null, CATS).accent, { light: '#512bd4', dark: '#896fe2' });
+    assert.equal(M.view(withAccent, '', null, CATS).accent, null, 'no topic open: devbok paints itself');
+    assert.equal(M.view(withAccent, '#nope/study', null, CATS).accent, null);
+    // an index written before accentDark existed must still show the brand colour, not fall back to purple
+    assert.deepEqual(M.view([{ ...T[0], accent: '#512bd4' }], '#csharp/study', null, CATS).accent,
+      { light: '#512bd4', dark: '#512bd4' });
+    assert.equal(M.view(T, '#csharp/study', null, CATS).accent, null, 'a topic with no accent at all: same');
+  });
   test('esc neutralises markup', () => {
     assert.equal(M.esc('<a href="x">&\'</a>'), '&lt;a href=&quot;x&quot;&gt;&amp;&#39;&lt;/a&gt;');
     assert.equal(M.esc(null), '');
@@ -294,6 +304,27 @@ describe('devbok.html structure', () => {
     assert.deepEqual(sizes, ['12px']);
     assert.match(css.match(/\n  body \{[\s\S]*?\n  \}/)[0], /font-size: 12px;/);
     assert.match(css, /h1, h2, code, button, select \{ font: inherit; \}/, 'UA defaults for headings, code and controls are neutralised');
+  });
+  test('the tab icon is an emoji drawn inline, not a file and not scripted', () => {
+    const link = HTML.match(/<link rel="icon"[^>]*>/)[0];
+    assert.match(link, /href="data:image\/svg\+xml,/, 'no favicon file to ship next to devbok.html');
+    assert.match(link, /\p{Extended_Pictographic}/u, 'the icon is an emoji');
+    assert.doesNotMatch(stripComments(HTML.match(/<script>([\s\S]*?)<\/script>/)[1]), /icon/i, 'static: the glue never touches it');
+  });
+  test('the open topic paints the shell, in CSS, from the index', () => {
+    const css = HTML.match(/<style>([\s\S]*?)<\/style>/)[1];
+    const glue = HTML.match(/<script>([\s\S]*?)<\/script>/)[1];
+    // one token, two theme-picked tints, falling back to devbok's own accent when no topic is open
+    assert.match(css, /--topic: var\(--topic-light, var\(--accent\)\);/);
+    assert.match(css.slice(css.indexOf('prefers-color-scheme: dark')), /--topic: var\(--topic-dark, var\(--accent\)\);/);
+    // and it is used where the open topic is what is being marked
+    const rule = (sel) => css.split('\n').find((l) => l.trim().startsWith(sel + ' {')) ?? '';
+    assert.match(rule('nav li a.active'), /background: var\(--topic-soft\);/);
+    assert.match(rule('nav li a.active'), /border-left-color: var\(--topic\);/);
+    // [^-] so border-left-color does not count: it is the text colour that must stay --fg
+    assert.doesNotMatch(rule('nav li a.active'), /[^-]color: var\(--topic/, 'a brand colour of any luminance cannot carry the label text');
+    assert.match(glue, /root\.setProperty\('--topic-light', accent\.light\);/);
+    assert.match(glue, /root\.removeProperty\('--topic-light'\);/, 'no topic open: the token goes away, the fallback takes over');
   });
   test('keeps every colour in the token blocks', () => {
     const css = HTML.match(/<style>([\s\S]*?)<\/style>/)[1];

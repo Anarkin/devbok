@@ -44,13 +44,14 @@ window.DEVBOK_TOPICS = [
     "topic": ".NET Aspire",
     "category": "ops",
     "accent": "#7c3aed",
+    "accentDark": "#9560f0",
     "created": "2026-09-08",
     "kinds": {
       "study": [
         {
           "v": 1,
           "generated": "2026-09-08",
-          "prompt": "84e02c7e",
+          "prompt": "e02cbdee",
           "file": "topics/aspire/study.v1.html"
         }
       ],
@@ -58,7 +59,7 @@ window.DEVBOK_TOPICS = [
         {
           "v": 1,
           "generated": "2026-09-08",
-          "prompt": "569c3816",
+          "prompt": "2bcfefa8",
           "file": "topics/aspire/experience.v1.html"
         }
       ],
@@ -66,7 +67,7 @@ window.DEVBOK_TOPICS = [
         {
           "v": 1,
           "generated": "2026-09-08",
-          "prompt": "9181f10e",
+          "prompt": "008cfc76",
           "file": "topics/aspire/interview.v1.html"
         }
       ],
@@ -74,7 +75,7 @@ window.DEVBOK_TOPICS = [
         {
           "v": 1,
           "generated": "2026-09-08",
-          "prompt": "86c6decb",
+          "prompt": "7ff70aff",
           "file": "topics/aspire/cheatsheet.v1.html"
         }
       ]
@@ -86,13 +87,14 @@ window.DEVBOK_TOPICS = [
     "topic": "Angular",
     "category": "frontend",
     "accent": "#dd0031",
+    "accentDark": "#ff5278",
     "created": "2026-09-08",
     "kinds": {
       "study": [
         {
           "v": 1,
           "generated": "2026-09-08",
-          "prompt": "84e02c7e",
+          "prompt": "e02cbdee",
           "file": "topics/angular/study.v1.html"
         }
       ],
@@ -100,7 +102,7 @@ window.DEVBOK_TOPICS = [
         {
           "v": 1,
           "generated": "2026-09-08",
-          "prompt": "569c3816",
+          "prompt": "2bcfefa8",
           "file": "topics/angular/experience.v1.html"
         }
       ],
@@ -108,7 +110,7 @@ window.DEVBOK_TOPICS = [
         {
           "v": 1,
           "generated": "2026-09-08",
-          "prompt": "9181f10e",
+          "prompt": "008cfc76",
           "file": "topics/angular/interview.v1.html"
         }
       ],
@@ -116,7 +118,7 @@ window.DEVBOK_TOPICS = [
         {
           "v": 1,
           "generated": "2026-09-08",
-          "prompt": "86c6decb",
+          "prompt": "7ff70aff",
           "file": "topics/angular/cheatsheet.v1.html"
         }
       ]
@@ -128,13 +130,14 @@ window.DEVBOK_TOPICS = [
     "topic": "Application security",
     "category": "practice",
     "accent": "#1d4ed8",
+    "accentDark": "#6689ea",
     "created": "2026-09-08",
     "kinds": {
       "study": [
         {
           "v": 1,
           "generated": "2026-09-08",
-          "prompt": "84e02c7e",
+          "prompt": "e02cbdee",
           "file": "topics/appsec/study.v1.html"
         }
       ],
@@ -142,7 +145,7 @@ window.DEVBOK_TOPICS = [
         {
           "v": 1,
           "generated": "2026-09-08",
-          "prompt": "569c3816",
+          "prompt": "2bcfefa8",
           "file": "topics/appsec/experience.v1.html"
         }
       ],
@@ -150,7 +153,7 @@ window.DEVBOK_TOPICS = [
         {
           "v": 1,
           "generated": "2026-09-08",
-          "prompt": "9181f10e",
+          "prompt": "008cfc76",
           "file": "topics/appsec/interview.v1.html"
         }
       ],
@@ -158,7 +161,7 @@ window.DEVBOK_TOPICS = [
         {
           "v": 1,
           "generated": "2026-09-08",
-          "prompt": "86c6decb",
+          "prompt": "7ff70aff",
           "file": "topics/appsec/cheatsheet.v1.html"
         }
       ]
@@ -170,13 +173,14 @@ window.DEVBOK_TOPICS = [
     "topic": "ASP.NET Core & .NET runtime (assume C# language features are already covered; focus on the framework and runtime)",
     "category": "backend",
     "accent": "#512bd4",
+    "accentDark": "#896fe2",
     "created": "2026-09-08",
     "kinds": {
       "study": [
         {
           "v": 1,
           "generated": "2026-09-08",
-          "prompt": "84e02c7e",
+          "prompt": "e02cbdee",
           "file": "topics/aspnet/study.v1.html"
         }
       ],
@@ -184,7 +188,7 @@ window.DEVBOK_TOPICS = [
         {
           "v": 1,
           "generated": "2026-09-08",
-          "prompt": "569c3816",
+          "prompt": "2bcfefa8",
           "file": "topics/aspnet/experience.v1.html"
         }
       ],
@@ -192,7 +196,7 @@ window.DEVBOK_TOPICS = [
         {
           "v": 1,
           "generated": "2026-09-08",
-          "prompt": "9181f10e",
+          "prompt": "008cfc76",
           "file": "topics/aspnet/interview.v1.html"
         }
       ],
@@ -200,7 +204,7 @@ window.DEVBOK_TOPICS = [
         {
           "v": 1,
           "generated": "2026-09-08",
-          "prompt": "86c6decb",
+          "prompt": "7ff70aff",
           "file": "topics/aspnet/cheatsheet.v1.html"
         }
       ]
@@ -212,13 +216,14 @@ window.DEVBOK_TOPICS = [
     "topic": "Azure cloud",
     "category": "ops",
     "accent": "#0078d4",
+    "accentDark": "#52b4ff",
     "created": "2026-09-08",
     "kinds": {
       "study": [
         {
           "v": 1,
           "generated": "2026-09-08",
-          "prompt": "84e02c7e",
+          "prompt": "e02cbdee",
           "file": "topics/azure/study.v1.html"
         }
       ],
@@ -226,7 +231,7 @@ window.DEVBOK_TOPICS = [
         {
           "v": 1,
           "generated": "2026-09-08",
-          "prompt": "569c3816",
+          "prompt": "2bcfefa8",
           "file": "topics/azure/experience.v1.html"
         }
       ],
@@ -234,7 +239,7 @@ window.DEVBOK_TOPICS = [
         {
           "v": 1,
           "generated": "2026-09-08",
-          "prompt": "9181f10e",
+          "prompt": "008cfc76",
           "file": "topics/azure/interview.v1.html"
         }
       ],
@@ -242,7 +247,7 @@ window.DEVBOK_TOPICS = [
         {
           "v": 1,
           "generated": "2026-09-08",
-          "prompt": "86c6decb",
+          "prompt": "7ff70aff",
           "file": "topics/azure/cheatsheet.v1.html"
         }
       ]
@@ -254,13 +259,14 @@ window.DEVBOK_TOPICS = [
     "topic": "C#",
     "category": "language",
     "accent": "#512bd4",
+    "accentDark": "#896fe2",
     "created": "2026-09-08",
     "kinds": {
       "study": [
         {
           "v": 1,
           "generated": "2026-09-08",
-          "prompt": "84e02c7e",
+          "prompt": "e02cbdee",
           "file": "topics/csharp/study.v1.html"
         }
       ],
@@ -268,7 +274,7 @@ window.DEVBOK_TOPICS = [
         {
           "v": 1,
           "generated": "2026-09-08",
-          "prompt": "569c3816",
+          "prompt": "2bcfefa8",
           "file": "topics/csharp/experience.v1.html"
         }
       ],
@@ -276,7 +282,7 @@ window.DEVBOK_TOPICS = [
         {
           "v": 1,
           "generated": "2026-09-08",
-          "prompt": "9181f10e",
+          "prompt": "008cfc76",
           "file": "topics/csharp/interview.v1.html"
         }
       ],
@@ -284,7 +290,7 @@ window.DEVBOK_TOPICS = [
         {
           "v": 1,
           "generated": "2026-09-08",
-          "prompt": "86c6decb",
+          "prompt": "7ff70aff",
           "file": "topics/csharp/cheatsheet.v1.html"
         }
       ]
@@ -296,13 +302,14 @@ window.DEVBOK_TOPICS = [
     "topic": "C# async/await and the Task-based asynchronous pattern (Task, ValueTask, cancellation, IAsyncEnumerable, ConfigureAwait, thread-pool behaviour; assume general C# syntax is known)",
     "category": "language",
     "accent": "#512bd4",
+    "accentDark": "#896fe2",
     "created": "2026-09-07",
     "kinds": {
       "study": [
         {
           "v": 3,
           "generated": "2026-09-08",
-          "prompt": "84e02c7e",
+          "prompt": "e02cbdee",
           "file": "topics/csharp-async/study.v3.html"
         }
       ],
@@ -310,7 +317,7 @@ window.DEVBOK_TOPICS = [
         {
           "v": 3,
           "generated": "2026-09-08",
-          "prompt": "569c3816",
+          "prompt": "2bcfefa8",
           "file": "topics/csharp-async/experience.v3.html"
         }
       ],
@@ -318,7 +325,7 @@ window.DEVBOK_TOPICS = [
         {
           "v": 3,
           "generated": "2026-09-08",
-          "prompt": "9181f10e",
+          "prompt": "008cfc76",
           "file": "topics/csharp-async/interview.v3.html"
         }
       ],
@@ -326,7 +333,7 @@ window.DEVBOK_TOPICS = [
         {
           "v": 3,
           "generated": "2026-09-08",
-          "prompt": "86c6decb",
+          "prompt": "7ff70aff",
           "file": "topics/csharp-async/cheatsheet.v3.html"
         }
       ]
@@ -338,13 +345,14 @@ window.DEVBOK_TOPICS = [
     "topic": "Distributed systems & messaging",
     "category": "architecture",
     "accent": "#c2410c",
+    "accentDark": "#f5885c",
     "created": "2026-09-08",
     "kinds": {
       "study": [
         {
           "v": 1,
           "generated": "2026-09-08",
-          "prompt": "84e02c7e",
+          "prompt": "e02cbdee",
           "file": "topics/distributed/study.v1.html"
         }
       ],
@@ -352,7 +360,7 @@ window.DEVBOK_TOPICS = [
         {
           "v": 1,
           "generated": "2026-09-08",
-          "prompt": "569c3816",
+          "prompt": "2bcfefa8",
           "file": "topics/distributed/experience.v1.html"
         }
       ],
@@ -360,7 +368,7 @@ window.DEVBOK_TOPICS = [
         {
           "v": 1,
           "generated": "2026-09-08",
-          "prompt": "9181f10e",
+          "prompt": "008cfc76",
           "file": "topics/distributed/interview.v1.html"
         }
       ],
@@ -368,7 +376,7 @@ window.DEVBOK_TOPICS = [
         {
           "v": 1,
           "generated": "2026-09-08",
-          "prompt": "86c6decb",
+          "prompt": "7ff70aff",
           "file": "topics/distributed/cheatsheet.v1.html"
         }
       ]
@@ -380,13 +388,14 @@ window.DEVBOK_TOPICS = [
     "topic": "Entity Framework",
     "category": "data",
     "accent": "#512bd4",
+    "accentDark": "#896fe2",
     "created": "2026-09-08",
     "kinds": {
       "study": [
         {
           "v": 1,
           "generated": "2026-09-08",
-          "prompt": "84e02c7e",
+          "prompt": "e02cbdee",
           "file": "topics/entityframework/study.v1.html"
         }
       ],
@@ -394,7 +403,7 @@ window.DEVBOK_TOPICS = [
         {
           "v": 1,
           "generated": "2026-09-08",
-          "prompt": "569c3816",
+          "prompt": "2bcfefa8",
           "file": "topics/entityframework/experience.v1.html"
         }
       ],
@@ -402,7 +411,7 @@ window.DEVBOK_TOPICS = [
         {
           "v": 1,
           "generated": "2026-09-08",
-          "prompt": "9181f10e",
+          "prompt": "008cfc76",
           "file": "topics/entityframework/interview.v1.html"
         }
       ],
@@ -410,7 +419,7 @@ window.DEVBOK_TOPICS = [
         {
           "v": 1,
           "generated": "2026-09-08",
-          "prompt": "86c6decb",
+          "prompt": "7ff70aff",
           "file": "topics/entityframework/cheatsheet.v1.html"
         }
       ]
@@ -422,13 +431,14 @@ window.DEVBOK_TOPICS = [
     "topic": "JavaScript and TypeScript",
     "category": "language",
     "accent": "#3178c6",
+    "accentDark": "#74a6dd",
     "created": "2026-09-08",
     "kinds": {
       "study": [
         {
           "v": 1,
           "generated": "2026-09-08",
-          "prompt": "84e02c7e",
+          "prompt": "e02cbdee",
           "file": "topics/jsts/study.v1.html"
         }
       ],
@@ -436,7 +446,7 @@ window.DEVBOK_TOPICS = [
         {
           "v": 1,
           "generated": "2026-09-08",
-          "prompt": "569c3816",
+          "prompt": "2bcfefa8",
           "file": "topics/jsts/experience.v1.html"
         }
       ],
@@ -444,7 +454,7 @@ window.DEVBOK_TOPICS = [
         {
           "v": 1,
           "generated": "2026-09-08",
-          "prompt": "9181f10e",
+          "prompt": "008cfc76",
           "file": "topics/jsts/interview.v1.html"
         }
       ],
@@ -452,7 +462,7 @@ window.DEVBOK_TOPICS = [
         {
           "v": 1,
           "generated": "2026-09-08",
-          "prompt": "86c6decb",
+          "prompt": "7ff70aff",
           "file": "topics/jsts/cheatsheet.v1.html"
         }
       ]
@@ -464,13 +474,14 @@ window.DEVBOK_TOPICS = [
     "topic": "Software Modernization for .NET+JS/TS+Database+Azure full-stack engineers",
     "category": "architecture",
     "accent": "#c2410c",
+    "accentDark": "#f5885c",
     "created": "2026-09-08",
     "kinds": {
       "study": [
         {
           "v": 1,
           "generated": "2026-09-08",
-          "prompt": "84e02c7e",
+          "prompt": "e02cbdee",
           "file": "topics/modernization/study.v1.html"
         }
       ],
@@ -478,7 +489,7 @@ window.DEVBOK_TOPICS = [
         {
           "v": 1,
           "generated": "2026-09-08",
-          "prompt": "569c3816",
+          "prompt": "2bcfefa8",
           "file": "topics/modernization/experience.v1.html"
         }
       ],
@@ -486,7 +497,7 @@ window.DEVBOK_TOPICS = [
         {
           "v": 1,
           "generated": "2026-09-08",
-          "prompt": "9181f10e",
+          "prompt": "008cfc76",
           "file": "topics/modernization/interview.v1.html"
         }
       ],
@@ -494,7 +505,7 @@ window.DEVBOK_TOPICS = [
         {
           "v": 1,
           "generated": "2026-09-08",
-          "prompt": "86c6decb",
+          "prompt": "7ff70aff",
           "file": "topics/modernization/cheatsheet.v1.html"
         }
       ]
@@ -506,13 +517,14 @@ window.DEVBOK_TOPICS = [
     "topic": "MongoDB",
     "category": "data",
     "accent": "#13aa52",
+    "accentDark": "#63ee9d",
     "created": "2026-09-08",
     "kinds": {
       "study": [
         {
           "v": 1,
           "generated": "2026-09-08",
-          "prompt": "84e02c7e",
+          "prompt": "e02cbdee",
           "file": "topics/mongo/study.v1.html"
         }
       ],
@@ -520,7 +532,7 @@ window.DEVBOK_TOPICS = [
         {
           "v": 1,
           "generated": "2026-09-08",
-          "prompt": "569c3816",
+          "prompt": "2bcfefa8",
           "file": "topics/mongo/experience.v1.html"
         }
       ],
@@ -528,7 +540,7 @@ window.DEVBOK_TOPICS = [
         {
           "v": 1,
           "generated": "2026-09-08",
-          "prompt": "9181f10e",
+          "prompt": "008cfc76",
           "file": "topics/mongo/interview.v1.html"
         }
       ],
@@ -536,7 +548,7 @@ window.DEVBOK_TOPICS = [
         {
           "v": 1,
           "generated": "2026-09-08",
-          "prompt": "86c6decb",
+          "prompt": "7ff70aff",
           "file": "topics/mongo/cheatsheet.v1.html"
         }
       ]
@@ -548,13 +560,14 @@ window.DEVBOK_TOPICS = [
     "topic": "Observability & production debugging",
     "category": "ops",
     "accent": "#f5a800",
+    "accentDark": "#ffc952",
     "created": "2026-09-08",
     "kinds": {
       "study": [
         {
           "v": 1,
           "generated": "2026-09-08",
-          "prompt": "84e02c7e",
+          "prompt": "e02cbdee",
           "file": "topics/observability/study.v1.html"
         }
       ],
@@ -562,7 +575,7 @@ window.DEVBOK_TOPICS = [
         {
           "v": 1,
           "generated": "2026-09-08",
-          "prompt": "569c3816",
+          "prompt": "2bcfefa8",
           "file": "topics/observability/experience.v1.html"
         }
       ],
@@ -570,7 +583,7 @@ window.DEVBOK_TOPICS = [
         {
           "v": 1,
           "generated": "2026-09-08",
-          "prompt": "9181f10e",
+          "prompt": "008cfc76",
           "file": "topics/observability/interview.v1.html"
         }
       ],
@@ -578,7 +591,7 @@ window.DEVBOK_TOPICS = [
         {
           "v": 1,
           "generated": "2026-09-08",
-          "prompt": "86c6decb",
+          "prompt": "7ff70aff",
           "file": "topics/observability/cheatsheet.v1.html"
         }
       ]
@@ -590,13 +603,14 @@ window.DEVBOK_TOPICS = [
     "topic": "React",
     "category": "frontend",
     "accent": "#087ea4",
+    "accentDark": "#5ad1f7",
     "created": "2026-09-08",
     "kinds": {
       "study": [
         {
           "v": 1,
           "generated": "2026-09-08",
-          "prompt": "84e02c7e",
+          "prompt": "e02cbdee",
           "file": "topics/react/study.v1.html"
         }
       ],
@@ -604,7 +618,7 @@ window.DEVBOK_TOPICS = [
         {
           "v": 1,
           "generated": "2026-09-08",
-          "prompt": "569c3816",
+          "prompt": "2bcfefa8",
           "file": "topics/react/experience.v1.html"
         }
       ],
@@ -612,7 +626,7 @@ window.DEVBOK_TOPICS = [
         {
           "v": 1,
           "generated": "2026-09-08",
-          "prompt": "9181f10e",
+          "prompt": "008cfc76",
           "file": "topics/react/interview.v1.html"
         }
       ],
@@ -620,7 +634,7 @@ window.DEVBOK_TOPICS = [
         {
           "v": 1,
           "generated": "2026-09-08",
-          "prompt": "86c6decb",
+          "prompt": "7ff70aff",
           "file": "topics/react/cheatsheet.v1.html"
         }
       ]
@@ -632,13 +646,14 @@ window.DEVBOK_TOPICS = [
     "topic": "SQL Server and PostgreSQL (if they differ, mention both separately)",
     "category": "data",
     "accent": "#336791",
+    "accentDark": "#7fadd2",
     "created": "2026-09-08",
     "kinds": {
       "study": [
         {
           "v": 1,
           "generated": "2026-09-08",
-          "prompt": "84e02c7e",
+          "prompt": "e02cbdee",
           "file": "topics/sql/study.v1.html"
         }
       ],
@@ -646,7 +661,7 @@ window.DEVBOK_TOPICS = [
         {
           "v": 1,
           "generated": "2026-09-08",
-          "prompt": "569c3816",
+          "prompt": "2bcfefa8",
           "file": "topics/sql/experience.v1.html"
         }
       ],
@@ -654,7 +669,7 @@ window.DEVBOK_TOPICS = [
         {
           "v": 1,
           "generated": "2026-09-08",
-          "prompt": "9181f10e",
+          "prompt": "008cfc76",
           "file": "topics/sql/interview.v1.html"
         }
       ],
@@ -662,7 +677,7 @@ window.DEVBOK_TOPICS = [
         {
           "v": 1,
           "generated": "2026-09-08",
-          "prompt": "86c6decb",
+          "prompt": "7ff70aff",
           "file": "topics/sql/cheatsheet.v1.html"
         }
       ]
@@ -674,13 +689,14 @@ window.DEVBOK_TOPICS = [
     "topic": "System design (as a full-stack .NET engineer, incl. JS FE, databases, and everything inbetween)",
     "category": "architecture",
     "accent": "#0e7c86",
+    "accentDark": "#62e3ef",
     "created": "2026-09-08",
     "kinds": {
       "study": [
         {
           "v": 1,
           "generated": "2026-09-08",
-          "prompt": "84e02c7e",
+          "prompt": "e02cbdee",
           "file": "topics/system-design/study.v1.html"
         }
       ],
@@ -688,7 +704,7 @@ window.DEVBOK_TOPICS = [
         {
           "v": 1,
           "generated": "2026-09-08",
-          "prompt": "569c3816",
+          "prompt": "2bcfefa8",
           "file": "topics/system-design/experience.v1.html"
         }
       ],
@@ -696,7 +712,7 @@ window.DEVBOK_TOPICS = [
         {
           "v": 1,
           "generated": "2026-09-08",
-          "prompt": "9181f10e",
+          "prompt": "008cfc76",
           "file": "topics/system-design/interview.v1.html"
         }
       ],
@@ -704,7 +720,7 @@ window.DEVBOK_TOPICS = [
         {
           "v": 1,
           "generated": "2026-09-08",
-          "prompt": "86c6decb",
+          "prompt": "7ff70aff",
           "file": "topics/system-design/cheatsheet.v1.html"
         }
       ]

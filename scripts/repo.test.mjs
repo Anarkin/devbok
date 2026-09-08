@@ -299,6 +299,25 @@ describe('shell and generated pages share one design', () => {
     assert.ok(page.includes(`--code: ${expr};`), `page.md must declare --code: ${expr};`);
     assert.match(page, /never one of its theme stylesheets/, 'page.md must forbid a cdnjs highlight.js theme, or pages drift back to four palettes');
   });
+  test('both sidebars mark the selected row the same way', () => {
+    // The shell's topic list and a page's unit list sit side by side, so "selected" has to look like one
+    // thing: a tinted row behind a 3px accent bar, with the label left in --fg. Colouring the label was
+    // the drift - readable for a purple accent, unreadable for mongo green or observability yellow.
+    const rule = (css, sel) => css.split('\n').map((l) => l.trim()).find((l) => l.startsWith(sel + ' {')) ?? '';
+    const shell = rule(shellCss, 'nav li a.active');
+    const unit = rule(page, '.units a[aria-current="true"]');
+    for (const [where, r, soft] of [['devbok.html', shell, '--topic-soft'], ['page.md', unit, '--accent-soft']]) {
+      assert.ok(r, `${where}: no rule for the selected row`);
+      assert.match(r, new RegExp(`background: var\\(${soft}\\);`), `${where} must tint the selected row`);
+      assert.match(r, /border-left-color: var\(--(topic|accent)\);/, `${where} must mark it with the accent bar`);
+      assert.match(r, /font-weight: 700;/, `${where}: the selected row is bold`);
+      assert.doesNotMatch(r, /[^-]color: var\(--(topic|accent)\)/, `${where} must not colour the label with the accent`);
+    }
+    // and the bar comes out of the row's own padding in both, so nothing shifts when it appears
+    for (const [where, css, sel] of [['devbok.html', shellCss, 'nav li a'], ['page.md', page, '.units a']]) {
+      assert.match(rule(css, sel), /border-left: 3px solid transparent;/, `${where}: every row reserves the bar`);
+    }
+  });
   test('mono font and sidebar width match', () => {
     const mono = shellCss.match(/font-family: "([^"]+)"/)[1];
     assert.ok(page.includes(`"${mono}"`), `page.md must name the shell's mono font "${mono}"`);
