@@ -31,7 +31,7 @@ Every devbok page shares one design, so the pages of a topic read as siblings of
         --accent: {{ACCENT_DARK}}; --accent-soft: color-mix(in srgb, var(--accent) 16%, var(--bg)); } }
 
   The accent is the topic's brand colour, chosen once per topic and identical on all of its pages. Use it for the active sidebar item, links, chip and callout borders and small markers — never for body text or large fills; `--accent-soft` is its only background use (the active sidebar item, a highlighted table row). Page and sidebar backgrounds are plain `--bg`, cards and code blocks `--soft`: no tinted surfaces. No theme toggle: the system setting decides.
-- **Typography** — prose in `Inter` (Google Fonts; fallback `system-ui, sans-serif`), 16px, line-height 1.6, headings weight 700 in the same family; code, chips, the sidebar and all metadata in `"Cascadia Mono"` (Google Fonts; fallback `Consolas, monospace`), 13px. No other families.
+- **Typography** — prose in `Inter` (Google Fonts; fallback `system-ui, sans-serif`), 16px, line-height 1.6, headings weight 700 in the same family; code, chips and all metadata in `"Cascadia Mono"` (Google Fonts; fallback `Consolas, monospace`), 13px; the sidebar in the same mono at 12px, the size the devbok index page uses for its own sidebar (see the CSS below). No other families.
 - **Layout** — a fixed left sidebar 260px wide (markup and CSS below, verbatim), then a content column with 24px padding and a max-width of 80ch (unless the kind-specific section says otherwise), hero first. Below 720px the sidebar becomes a toggle; add that media query yourself.
 - **Sidebar, verbatim** — every devbok page uses exactly this markup and CSS. Only the titles, the hrefs and the footer text differ between pages:
 

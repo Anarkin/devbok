@@ -225,6 +225,9 @@ describe('shell and generated pages share one design', () => {
     assert.ok(page.includes(`"${mono}"`), `page.md must name the shell's mono font "${mono}"`);
     const width = shellCss.match(/--sidebar: (\d+)px/)[1];
     assert.ok(page.includes(`${width}px wide`), `page.md must state the shell's sidebar width (${width}px)`);
+    const size = shellCss.match(/body \{[^}]*font-size: (\d+)px/)[1];
+    assert.ok(page.includes(`mono at ${size}px`), `page.md must state the shell's sidebar font size (${size}px) in the typography rule`);
+    assert.ok(page.includes(`.side {`) && page.match(/\.side \{[^}]*font-size: (\d+)px/)[1] === size, `the verbatim sidebar CSS must use ${size}px`);
   });
 });
 
