@@ -1,0 +1,696 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>React · cheatsheet · devbok</title>
+<link rel="preconnect" href="https://fonts.googleapis.com/">
+<link rel="preconnect" href="https://fonts.gstatic.com/" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Cascadia+Mono:wght@400;700&amp;display=swap">
+<style>
+:root { color-scheme: light;
+  --bg: #ffffff; --fg: #111111; --muted: #6b6b6b; --line: #111111; --soft: #f4f4f4; --border: #cccccc;
+  --accent: #087ea4; --accent-soft: color-mix(in srgb, var(--accent) 12%, var(--bg));
+  --code: color-mix(in srgb, var(--accent) 70%, var(--fg));
+  --hl-kw: #a626a4; --hl-str: #50a14f; --hl-num: #986801; --hl-cmt: #6b6b6b; --hl-type: #0184bc; --hl-fn: #4078f2; --hl-attr: #986801; }
+@media (prefers-color-scheme: dark) { :root { color-scheme: dark;
+  --bg: #222222; --fg: #cccccc; --muted: #8f8f8f; --line: #111111; --soft: #2c2c2c; --border: #4a4a4a;
+  --accent: #5ad1f7; --accent-soft: color-mix(in srgb, var(--accent) 16%, var(--bg));
+  --hl-kw: #c678dd; --hl-str: #98c379; --hl-num: #d19a66; --hl-cmt: #8f8f8f; --hl-type: #56b6c2; --hl-fn: #61afef; --hl-attr: #e5c07b; } }
+
+*, *::before, *::after { box-sizing: border-box; }
+html { -webkit-text-size-adjust: 100%; }
+body { margin: 0; background: var(--bg); color: var(--fg);
+  font-family: system-ui, sans-serif; font-size: 16px; line-height: 1.6; overflow-wrap: break-word; }
+h1, h2, h3 { font-family: system-ui, sans-serif; font-weight: 700; }
+h2 { font-size: 1.5em; }
+h3 { font-size: 1.17em; }
+a { color: var(--accent); }
+a:focus-visible, button:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+img { max-width: 100%; }
+
+code, kbd, pre, .mono, .chip, .since, .docs, .hero .meta, .side, dl.rows dd, table.grid { font-family: "Cascadia Mono", Consolas, monospace; font-size: 12px; }
+code { background: var(--soft); border: 1px solid var(--border); border-radius: 3px; padding: 0 .3em; color: var(--code); overflow-wrap: anywhere; }
+pre { background: var(--soft); border: 1px solid var(--border); border-radius: 4px; padding: 12px 14px; overflow-x: auto; line-height: 1.5; margin: 12px 0 0; max-width: 100%; }
+pre code { background: none; border: 0; border-radius: 0; padding: 0; color: inherit; white-space: pre; overflow-wrap: normal; }
+.hljs { color: var(--fg); background: transparent; }
+.hljs-keyword, .hljs-built_in, .hljs-literal, .hljs-selector-tag { color: var(--hl-kw); }
+.hljs-string, .hljs-regexp, .hljs-selector-attr { color: var(--hl-str); }
+.hljs-number, .hljs-symbol { color: var(--hl-num); }
+.hljs-comment, .hljs-quote, .hljs-doctag { color: var(--hl-cmt); font-style: italic; }
+.hljs-title, .hljs-title.class_, .hljs-type, .hljs-name, .hljs-section, .hljs-selector-class, .hljs-selector-pseudo { color: var(--hl-type); }
+.hljs-title.function_ { color: var(--hl-fn); }
+.hljs-meta, .hljs-attr, .hljs-attribute, .hljs-tag, .hljs-property, .hljs-variable { color: var(--hl-attr); }
+.hljs-template-tag, .hljs-template-variable { color: var(--hl-attr); }
+.hljs-code, .hljs-formula { color: var(--hl-cmt); }
+.hljs-operator, .hljs-subst, .hljs-punctuation, .hljs-params { color: var(--fg); }
+.hljs-emphasis { font-style: italic; }
+.hljs-strong { font-weight: 700; }
+
+.hero { margin: 0 0 24px; padding: 0 0 24px; border-bottom: 2px solid var(--line); }
+.hero h1 { margin: 0 0 8px; font-size: 2em; line-height: 1.2; font-weight: 700; }
+.hero .meta { margin: 0 0 12px; font-family: "Cascadia Mono", Consolas, monospace; font-size: 12px; color: var(--muted); }
+.hero .summary { margin: 0 0 12px; }
+.hero .chips { display: flex; flex-wrap: wrap; gap: 6px; margin: 0; }
+
+.side { position: fixed; top: 0; bottom: 0; left: 0; width: 260px; display: flex; flex-direction: column; background: var(--bg); border-right: 2px solid var(--line); font-family: "Cascadia Mono", Consolas, monospace; font-size: 12px; }
+.units { list-style: none; margin: 0; padding: 12px 0; overflow-y: auto; flex: 1; }
+.units a { display: grid; grid-template-columns: 2.5em 1fr; padding: 9px 20px; color: var(--fg); text-decoration: none; line-height: 1.4; }
+.units .n { color: var(--muted); }
+.units a:hover { background: var(--soft); }
+.units a[aria-current="true"] { background: var(--accent-soft); color: var(--accent); }
+.units a[aria-current="true"] .n { color: var(--accent); }
+.side footer { padding: 12px 20px; border-top: 2px solid var(--line); color: var(--muted); line-height: 1.5; }
+
+.content { margin-left: 260px; padding: 24px; max-width: 120ch; min-width: 0; }
+.unit { border-top: 2px solid var(--line); margin: 0 0 26px; padding: 14px 0 0; min-width: 0; }
+.unit > header { display: flex; flex-wrap: wrap; align-items: baseline; gap: 4px 14px; margin: 0 0 4px; min-width: 0; }
+.unit h2 { margin: 0; line-height: 1.25; }
+.unit h2 .n { font-family: "Cascadia Mono", Consolas, monospace; font-size: 12px; color: var(--muted); margin-right: 10px; }
+.docs { color: var(--muted); }
+.docs a { color: var(--accent); text-decoration: none; }
+.docs a:hover { text-decoration: underline; }
+
+dl.rows { display: grid; grid-template-columns: minmax(0, 28ch) minmax(0, 1fr);
+  margin: 12px 0 0; border-top: 1px solid var(--border); min-width: 0; }
+dl.rows dt { grid-column: 1; margin: 0; padding: 6px 14px 6px 0; border-bottom: 1px solid var(--border);
+  min-width: 0; line-height: 1.35; }
+dl.rows dd { grid-column: 2; margin: 0; padding: 7px 0 6px; border-bottom: 1px solid var(--border);
+  min-width: 0; line-height: 1.5; overflow-wrap: anywhere; }
+dl.rows dd code { background: none; border: 0; padding: 0; }
+.cmt { color: var(--muted); }
+
+.chip { display: inline-block; text-transform: uppercase; letter-spacing: .03em;
+  background: var(--soft); border: 1px solid var(--border); border-radius: 4px; padding: 2px 7px; }
+.since { display: inline-block; border: 1px solid var(--accent); border-radius: 4px;
+  padding: 0 5px; color: var(--accent); white-space: nowrap; }
+.note { background: var(--soft); border-left: 3px solid var(--accent); padding: 8px 12px; margin: 12px 0 0; }
+.note p { margin: 0; }
+
+.tw { overflow-x: auto; margin: 12px 0 0; min-width: 0; }
+table.grid { border-collapse: collapse; width: 100%; }
+table.grid th { text-align: left; font-weight: 400; color: var(--muted);
+  border-bottom: 1px solid var(--border); padding: 6px 14px 6px 0; vertical-align: bottom; }
+table.grid td { border-bottom: 1px solid var(--border); padding: 6px 14px 6px 0; vertical-align: top; }
+table.grid td code { background: none; border: 0; padding: 0; }
+table.grid tr.hi td { background: var(--accent-soft); }
+
+ul.tight { margin: 12px 0 0; padding-left: 1.1em; }
+ul.tight li { margin: 0 0 3px; }
+
+.navtoggle { display: none; position: fixed; top: 10px; left: 10px; z-index: 30;
+  font-family: "Cascadia Mono", Consolas, monospace; font-size: 12px; color: var(--fg);
+  background: var(--bg); border: 1px solid var(--line); border-radius: 4px; padding: 6px 10px; cursor: pointer; }
+@media (max-width: 720px) {
+  .navtoggle { display: block; }
+  .side { width: min(260px, 84%); transform: translateX(-102%); transition: transform .15s ease; z-index: 25; }
+  body.nav-open .side { transform: none; }
+  .content { margin-left: 0; padding: 52px 16px 24px; }
+  dl.rows { grid-template-columns: minmax(0, 1fr); }
+  dl.rows dt { padding: 6px 0 0; border-bottom: 0; font-weight: 600; }
+  dl.rows dd { padding: 2px 0 7px; }
+}
+
+@media print {
+  :root { color-scheme: light;
+    --bg: #ffffff; --fg: #000000; --muted: #444444; --line: #000000; --soft: #ffffff; --border: #999999;
+    --accent: #000000; --accent-soft: #ffffff; --code: #000000; }
+  .side, .navtoggle { display: none !important; }
+  body { font-size: 9pt; line-height: 1.3; background: #fff; color: #000; }
+  .content { margin: 0; padding: 0; max-width: 100%; }
+  code, kbd, pre, .chip, .since, .docs, .hero .meta, dl.rows dd, table.grid { font-size: 7.5pt; }
+  .hero { padding-bottom: 8pt; margin-bottom: 10pt; border-bottom: 1pt solid #000; }
+  .hero h1 { font-size: 16pt; }
+  .unit { break-inside: avoid; page-break-inside: avoid; margin: 0 0 8pt; padding-top: 6pt; border-top: 1pt solid #000; }
+  .unit h2 { font-size: 11pt; }
+  pre { background: #fff; border: 1pt solid #999; padding: 4pt 6pt; }
+  .note { background: #fff; border-left: 2pt solid #000; }
+  a, a:visited { color: #000; text-decoration: none; }
+  a[href]::after { content: ""; }
+  code, .hljs, .hljs span { color: #000 !important; background: transparent !important; }
+  @page { size: A4; margin: 11mm; }
+}
+</style>
+</head>
+<body>
+<!-- devbok
+slug: react
+kind: cheatsheet
+version: 1
+topic: "React"
+prompt: cheatsheet.md@ccd2d4a9
+generated: 2026-09-08
+-->
+<button class="navtoggle" type="button" aria-expanded="false" aria-controls="side">units</button>
+<nav class="side" id="side" aria-label="Units">
+  <ol class="units">
+    <li><a href="#u01"><span class="n">01</span><span class="t">JSX &amp; components</span></a></li>
+    <li><a href="#u02"><span class="n">02</span><span class="t">Hooks: state, memo, refs</span></a></li>
+    <li><a href="#u03"><span class="n">03</span><span class="t">Effects &amp; useEffectEvent</span></a></li>
+    <li><a href="#u04"><span class="n">04</span><span class="t">Suspense, use() &amp; errors</span></a></li>
+    <li><a href="#u05"><span class="n">05</span><span class="t">Transitions &amp; Activity</span></a></li>
+    <li><a href="#u06"><span class="n">06</span><span class="t">Forms, Actions, optimistic</span></a></li>
+    <li><a href="#u07"><span class="n">07</span><span class="t">Server Components</span></a></li>
+    <li><a href="#u08"><span class="n">08</span><span class="t">react-dom &amp; the document</span></a></li>
+    <li><a href="#u09"><span class="n">09</span><span class="t">Commands, compiler, lint</span></a></li>
+    <li><a href="#u10"><span class="n">10</span><span class="t">Idioms &amp; gotchas</span></a></li>
+    <li><a href="#u11"><span class="n">11</span><span class="t">Modern vs legacy</span></a></li>
+    <li><a href="#u12"><span class="n">12</span><span class="t">Version timeline</span></a></li>
+  </ol>
+  <footer>React · cheatsheet · version 1 · 2026-09-08</footer>
+</nav>
+<main class="content">
+<header class="hero">
+  <h1>React</h1>
+  <p class="meta">cheatsheet · React 19.2.8 · released 2026-07-21</p>
+  <p class="summary">The React surface reached for daily — JSX, the whole hook set, Suspense and <code>use()</code>, transitions and <code>&lt;Activity&gt;</code>, Actions and form hooks, Server Components and Server Functions, the <code>react-dom</code> APIs, and the compiler/lint toolchain — each row labelled with the version where it became true, plus a modern-vs-legacy table and a timeline. It reflects the 19.2 line: 19.2.0 on 2025-10-01, current patch 19.2.8 on 2026-07-21, with <code>useEffectEvent</code>, <code>&lt;Activity&gt;</code>, <code>cacheSignal</code> and partial pre-rendering stable, React Compiler 1.0 shipped, and <code>&lt;ViewTransition&gt;</code> still canary-only. "React" here is the web library on <code>react</code>/<code>react-dom</code>; React Native shares the reconciler and hooks but has its own release line (0.83 tracks React 19.2).</p>
+  <p class="chips"><span class="chip">React 19.2.8</span> <span class="chip">19.2.0 2025-10-01</span> <span class="chip">Compiler 1.0</span> <span class="chip">eslint-plugin-react-hooks 7.1.1</span> <span class="chip">React Foundation 2026-02-24</span> <span class="chip">verified 2026-09-08</span></p>
+</header>
+
+<section class="unit" id="u01">
+  <header>
+    <h2><span class="n">01</span>JSX &amp; components</h2>
+    <span class="docs"><a href="https://react.dev/learn/writing-markup-with-jsx">docs: writing markup with JSX</a></span>
+  </header>
+  <dl class="rows">
+    <dt>Component</dt>
+    <dd><code>function Row({ item, onPick }) { return &lt;li onClick={() =&gt; onPick(item.id)}&gt;{item.name}&lt;/li&gt;; }</code> <span class="cmt">— a plain function returning JSX; the name must be capitalised or JSX emits a DOM tag</span></dd>
+    <dt>Fragment</dt>
+    <dd><code>&lt;&gt;…&lt;/&gt;</code>, keyed form <code>&lt;Fragment key={id}&gt;…&lt;/Fragment&gt;</code></dd>
+    <dt>Lists</dt>
+    <dd><code>{items.map(i =&gt; &lt;Row key={i.id} item={i} /&gt;)}</code> <span class="cmt">— <code>key</code> must be stable and data-derived; index keys corrupt state on reorder</span></dd>
+    <dt>Conditionals</dt>
+    <dd><code>{open &amp;&amp; &lt;Panel /&gt;}</code> · <code>{n ? &lt;A /&gt; : &lt;B /&gt;}</code> <span class="cmt">— <code>{count &amp;&amp; …}</code> renders a literal <code>0</code>; write <code>count &gt; 0 &amp;&amp;</code></span></dd>
+    <dt>Props spread &amp; children</dt>
+    <dd><code>&lt;Input {...rest} /&gt;</code> · <code>function Card({ children, ...rest })</code> · render prop <code>&lt;List row={(i) =&gt; …} /&gt;</code></dd>
+    <dt>ref as a prop</dt>
+    <dd><code>function Input({ ref, ...p }) { return &lt;input ref={ref} {...p} /&gt;; }</code> <span class="since">19.0</span> <span class="cmt">— <code>forwardRef</code> is no longer needed; it still works but is slated for deprecation</span></dd>
+    <dt>Context provider</dt>
+    <dd><code>&lt;ThemeContext value={theme}&gt;…&lt;/ThemeContext&gt;</code> <span class="since">19.0</span> <span class="cmt">— <code>&lt;Context.Provider&gt;</code> still works, deprecated in a future major</span></dd>
+    <dt>Attribute names</dt>
+    <dd><code>className</code>, <code>htmlFor</code>, <code>onChange</code> (fires per keystroke), <code>defaultValue</code> for uncontrolled; <code>style={{ marginTop: 8 }}</code> camelCase, px by default</dd>
+    <dt>Custom elements</dt>
+    <dd><span class="since">19.0</span> full custom-element support <span class="cmt">— unknown lowercase tags take strings as attributes and objects/functions as properties</span></dd>
+    <dt>Types (TS)</dt>
+    <dd><code>type Props = { items: Item[]; onPick?: (id: string) =&gt; void };</code> <span class="cmt">— annotate the parameter, not <code>React.FC</code>; <code>ReactNode</code> for children, <code>ComponentProps&lt;'button'&gt;</code> to inherit DOM props</span></dd>
+  </dl>
+<pre><code class="language-jsx">// The whole component contract in one snippet.
+export default function Cart({ items, ref }) {          // ref is a prop (19.0)
+  const total = items.reduce((s, i) =&gt; s + i.price, 0); // derive, do not store
+  return (
+    &lt;section ref={ref}&gt;
+      &lt;h2&gt;Cart ({items.length})&lt;/h2&gt;
+      {items.length &gt; 0
+        ? &lt;ul&gt;{items.map(i =&gt; &lt;Row key={i.id} item={i} /&gt;)}&lt;/ul&gt;
+        : &lt;p&gt;Empty&lt;/p&gt;}
+      &lt;output&gt;{total.toFixed(2)}&lt;/output&gt;
+    &lt;/section&gt;
+  );
+}</code></pre>
+  <div class="note"><p><strong>Rules of React.</strong> Render must be pure: no mutation of props, state or module scope, no side effects, no conditional hook calls. React Compiler both relies on these rules and enforces them at lint time, so violations that used to be invisible now fail the build.</p></div>
+</section>
+
+<section class="unit" id="u02">
+  <header>
+    <h2><span class="n">02</span>Hooks: state, memo, refs</h2>
+    <span class="docs"><a href="https://react.dev/reference/react/hooks">docs: built-in hooks</a></span>
+  </header>
+  <dl class="rows">
+    <dt><code>useState</code></dt>
+    <dd><code>const [n, setN] = useState(0)</code> · updater form <code>setN(v =&gt; v + 1)</code> for consecutive updates · lazy init <code>useState(() =&gt; parse(json))</code> runs once</dd>
+    <dt><code>useReducer</code></dt>
+    <dd><code>const [state, dispatch] = useReducer(reducer, init)</code> <span class="cmt">— for state with several interdependent fields or an event vocabulary; the reducer is testable without React</span></dd>
+    <dt>Derived state</dt>
+    <dd>Compute during render: <code>const visible = items.filter(f)</code> <span class="cmt">— never mirror props into state; to reset state on a prop change use <code>key</code>, not an effect</span></dd>
+    <dt>Adjust state on prop change</dt>
+    <dd><code>if (item !== prev) { setPrev(item); setSel(null); }</code> during render <span class="cmt">— React re-runs the component immediately, before paint; rare but legal</span></dd>
+    <dt><code>useMemo</code> / <code>useCallback</code></dt>
+    <dd><code>useMemo(() =&gt; sort(rows), [rows])</code> · <code>useCallback(fn, deps)</code> <span class="cmt">— with React Compiler on, mostly unnecessary; keep only for genuinely expensive work or identity a third party depends on</span></dd>
+    <dt><code>memo</code></dt>
+    <dd><code>const Row = memo(function Row(p) {…})</code> <span class="cmt">— shallow prop compare; useless if the parent passes fresh object/array/closure literals</span></dd>
+    <dt><code>useRef</code></dt>
+    <dd><code>const el = useRef(null)</code> — mutable box, writes never re-render. Callback refs may return a cleanup <span class="since">19.0</span>: <code>ref={n =&gt; { obs.observe(n); return () =&gt; obs.unobserve(n); }}</code></dd>
+    <dt><code>useContext</code></dt>
+    <dd><code>const theme = useContext(ThemeContext)</code> <span class="cmt">— every consumer re-renders when the value identity changes; split the context or memoise the value</span></dd>
+    <dt><code>useSyncExternalStore</code></dt>
+    <dd><code>useSyncExternalStore(subscribe, getSnapshot, getServerSnapshot)</code> <span class="since">18.0</span> <span class="cmt">— tearing-free reads from a non-React store; what Redux and Zustand use internally</span></dd>
+    <dt><code>useId</code></dt>
+    <dd><code>const id = useId()</code> <span class="cmt">— SSR-safe ids for <code>htmlFor</code>/<code>aria-*</code>; default prefix <code>_r_</code> <span class="since">19.2</span> (was <code>«r»</code> in 19.1, <code>:r:</code> in 19.0). Never a list key</span></dd>
+    <dt><code>useImperativeHandle</code></dt>
+    <dd><code>useImperativeHandle(ref, () =&gt; ({ focus, scrollToRow }), [])</code> <span class="cmt">— expose a narrow API instead of a raw DOM node</span></dd>
+    <dt><code>useDebugValue</code></dt>
+    <dd><code>useDebugValue(online ? 'online' : 'offline')</code> <span class="cmt">— labels a custom hook in DevTools</span></dd>
+  </dl>
+<pre><code class="language-jsx">// Reducer + external store: the two hooks that scale past a handful of useStates.
+const [state, dispatch] = useReducer(cartReducer, { lines: [], coupon: null });
+
+const isOnline = useSyncExternalStore(
+  (cb) =&gt; {
+    window.addEventListener('online', cb); window.addEventListener('offline', cb);
+    return () =&gt; { window.removeEventListener('online', cb); window.removeEventListener('offline', cb); };
+  },
+  () =&gt; navigator.onLine,   // client snapshot — must be cached, not a fresh object
+  () =&gt; true                // server snapshot, required under SSR
+);</code></pre>
+</section>
+
+<section class="unit" id="u03">
+  <header>
+    <h2><span class="n">03</span>Effects &amp; useEffectEvent</h2>
+    <span class="docs"><a href="https://react.dev/reference/react/useEffectEvent">docs: useEffectEvent</a></span>
+  </header>
+  <dl class="rows">
+    <dt><code>useEffect</code></dt>
+    <dd><code>useEffect(() =&gt; { const s = connect(url); return () =&gt; s.close(); }, [url])</code> <span class="cmt">— only for synchronising with systems outside React. Runs after paint; anything that subscribes must return a cleanup</span></dd>
+    <dt><code>useEffectEvent</code></dt>
+    <dd><code>const onMsg = useEffectEvent(m =&gt; log(m, theme));</code> <span class="since">19.2</span> <span class="cmt">— always sees the latest props/state, is not a dependency, and the linter knows to skip it. Retires the "ref holding the latest callback" workaround</span></dd>
+    <dt><code>useLayoutEffect</code></dt>
+    <dd>Runs synchronously before paint <span class="cmt">— measuring and repositioning (tooltips, popovers) only; it blocks the frame and does not run on the server</span></dd>
+    <dt><code>useInsertionEffect</code></dt>
+    <dd>Fires before layout effects <span class="cmt">— for CSS-in-JS libraries injecting <code>&lt;style&gt;</code>; application code should never need it</span></dd>
+    <dt>Not an effect</dt>
+    <dd>Transforming data → compute in render · responding to an event → the handler · resetting on a prop change → <code>key</code> · app init once → module scope</dd>
+    <dt>Dependencies</dt>
+    <dd>Every reactive value read inside must be listed <span class="cmt">— never silence the rule; remove the dependency instead (Effect Event, ref, or hoist out of the component)</span></dd>
+    <dt>Strict Mode</dt>
+    <dd>Dev double-invokes render, effects and state updaters; ref callbacks too <span class="since">19.0</span> <span class="cmt">— an effect that breaks on mount → unmount → mount is missing cleanup</span></dd>
+    <dt>Cancelling fetches</dt>
+    <dd><code>const c = new AbortController(); fetch(u, { signal: c.signal }); return () =&gt; c.abort();</code> <span class="cmt">— or drop effect-fetching entirely for a framework loader, RSC, or a query library</span></dd>
+  </dl>
+<pre><code class="language-jsx">// Modern (19.2): the effect depends on roomId alone; a theme change no longer reconnects.
+function Chat({ roomId, theme }) {
+  const onConnected = useEffectEvent(() =&gt; showToast('Connected!', theme));
+
+  useEffect(() =&gt; {
+    const conn = createConnection(roomId);
+    conn.on('connected', onConnected);
+    conn.connect();
+    return () =&gt; conn.disconnect();
+  }, [roomId]);                        // ✅ theme is not a dependency
+}
+
+// Legacy still in codebases: the ref-latest dance, or theme in deps causing reconnect storms.
+const themeRef = useRef(theme);
+useEffect(() =&gt; { themeRef.current = theme; });</code></pre>
+</section>
+
+<section class="unit" id="u04">
+  <header>
+    <h2><span class="n">04</span>Suspense, use() &amp; errors</h2>
+    <span class="docs"><a href="https://react.dev/reference/react/Suspense">docs: Suspense</a></span>
+  </header>
+  <dl class="rows">
+    <dt><code>&lt;Suspense&gt;</code></dt>
+    <dd><code>&lt;Suspense fallback={&lt;Skeleton /&gt;}&gt;&lt;Rows /&gt;&lt;/Suspense&gt;</code> <span class="cmt">— the boundary for anything that suspends: <code>lazy</code>, <code>use()</code>, RSC streaming</span></dd>
+    <dt><code>use()</code></dt>
+    <dd><code>const data = use(promise)</code> / <code>const t = use(ThemeContext)</code> <span class="since">19.0</span> <span class="cmt">— not a hook: may be called conditionally and in loops. The promise must be stable — from a framework, an RSC, or a cache — never created during render</span></dd>
+    <dt><code>lazy</code></dt>
+    <dd><code>const Chart = lazy(() =&gt; import('./Chart'))</code> <span class="cmt">— declare at module scope and pair with a Suspense boundary</span></dd>
+    <dt>Error boundary</dt>
+    <dd>Class with <code>static getDerivedStateFromError</code> + <code>componentDidCatch</code> <span class="cmt">— still the only built-in mechanism (<code>react-error-boundary</code> is the usual wrapper). Does not catch event-handler or async errors</span></dd>
+    <dt>Root error hooks</dt>
+    <dd><code>createRoot(el, { onUncaughtError, onCaughtError, onRecoverableError })</code> <span class="since">19.0</span> <span class="cmt">— one place to pipe React errors into telemetry</span></dd>
+    <dt>Owner Stacks</dt>
+    <dd><code>captureOwnerStack()</code> <span class="since">19.1</span> <span class="cmt">— dev-only; the stack of components that <em>rendered</em> the element, far more useful in reports than the JS stack</span></dd>
+    <dt>Hydration errors</dt>
+    <dd><span class="since">19.0</span> one message with a server-vs-client diff <span class="cmt">— usual causes: <code>Date.now()</code>, <code>window</code>, locale formatting, extensions injecting nodes</span></dd>
+    <dt>SSR reveal batching</dt>
+    <dd><span class="since">19.2</span> streaming SSR briefly batches Suspense reveals <span class="cmt">— fewer layout pops, and server reveal order now matches the client</span></dd>
+    <dt>Sibling pre-warming</dt>
+    <dd><span class="since">19.0</span> when one child suspends, siblings still begin their work <span class="cmt">— removes a class of accidental request waterfalls</span></dd>
+  </dl>
+<pre><code class="language-jsx">// use() reads a promise created by the server or a loader, never by this render.
+function Comments({ commentsPromise }) {
+  const comments = use(commentsPromise);        // suspends until it resolves
+  return comments.map(c =&gt; &lt;p key={c.id}&gt;{c.body}&lt;/p&gt;);
+}
+
+&lt;ErrorBoundary fallback={&lt;Failed /&gt;}&gt;
+  &lt;Suspense fallback={&lt;Skeleton rows={5} /&gt;}&gt;
+    &lt;Comments commentsPromise={commentsPromise} /&gt;
+  &lt;/Suspense&gt;
+&lt;/ErrorBoundary&gt;</code></pre>
+  <div class="note"><p><strong>Never <code>use(fetch(...))</code> inline.</strong> A promise created during render is a new promise on every render, so the boundary re-suspends forever. Hoist it into a loader, a server component, or <code>cache()</code>.</p></div>
+</section>
+
+<section class="unit" id="u05">
+  <header>
+    <h2><span class="n">05</span>Transitions &amp; Activity</h2>
+    <span class="docs"><a href="https://react.dev/reference/react/Activity">docs: Activity</a></span>
+  </header>
+  <dl class="rows">
+    <dt><code>useTransition</code></dt>
+    <dd><code>const [isPending, startTransition] = useTransition()</code> <span class="since">18.0</span> <span class="cmt">— marks an update interruptible so typing stays responsive while a heavy list re-renders</span></dd>
+    <dt>Async transitions</dt>
+    <dd><code>startTransition(async () =&gt; { await save(f); setDone(true); })</code> <span class="since">19.0</span> <span class="cmt">— <code>isPending</code> stays true across the await; this is what Actions are built on</span></dd>
+    <dt><code>startTransition</code> (import)</dt>
+    <dd><code>import { startTransition } from 'react'</code> <span class="cmt">— same semantics without the pending flag, usable outside components</span></dd>
+    <dt><code>useDeferredValue</code></dt>
+    <dd><code>const q = useDeferredValue(query)</code>, with an initial value <code>useDeferredValue(query, '')</code> <span class="since">19.0</span> <span class="cmt">— render the expensive subtree from the lagging copy</span></dd>
+    <dt><code>&lt;Activity&gt;</code></dt>
+    <dd><code>&lt;Activity mode={visible ? 'visible' : 'hidden'}&gt;&lt;Tab /&gt;&lt;/Activity&gt;</code> <span class="since">19.2</span> <span class="cmt">— hidden keeps state and DOM, unmounts effects, and defers updates until React is idle. Pre-render the likely next screen; keep scroll and input state on back</span></dd>
+    <dt><code>&lt;ViewTransition&gt;</code></dt>
+    <dd><code>&lt;ViewTransition&gt;…&lt;/ViewTransition&gt;</code> + <code>addTransitionType()</code> <span class="cmt">— wraps the browser View Transition API; <strong>canary/experimental only</strong> as of 19.2, so <code>npm i react@canary</code>, not production-blessed</span></dd>
+    <dt>Performance Tracks</dt>
+    <dd><span class="since">19.2</span> Chrome DevTools performance profiles gain <em>Scheduler</em> and <em>Components</em> tracks <span class="cmt">— shows work by priority and which component blocked the frame; the first-stop profiling tool now</span></dd>
+    <dt>Priority model</dt>
+    <dd>Sync (discrete input) &gt; default &gt; transition &gt; Activity-hidden pre-render <span class="cmt">— transitions never block a keystroke; hidden Activity work is the lowest of all</span></dd>
+  </dl>
+<pre><code class="language-jsx">// Activity: keep the previous tab alive instead of unmounting it.
+&lt;Activity mode={tab === 'search' ? 'visible' : 'hidden'}&gt;
+  &lt;SearchTab /&gt;                {/* state, scroll and inputs survive; effects are unmounted */}
+&lt;/Activity&gt;
+
+// Transitions: urgent input, non-urgent list.
+const [isPending, startTransition] = useTransition();
+function onChange(e) {
+  setQuery(e.target.value);                        // urgent — the input updates now
+  startTransition(() =&gt; setResults(search(e.target.value))); // interruptible
+}</code></pre>
+  <div class="note"><p><strong>Activity vs conditional rendering vs CSS.</strong> <code>{show &amp;&amp; &lt;Tab /&gt;}</code> throws state away; <code>display: none</code> keeps state <em>and</em> keeps effects (sockets, timers) running. <code>&lt;Activity mode="hidden"&gt;</code> is the only option that keeps state while releasing effects.</p></div>
+</section>
+
+<section class="unit" id="u06">
+  <header>
+    <h2><span class="n">06</span>Forms, Actions, optimistic</h2>
+    <span class="docs"><a href="https://react.dev/reference/react/useActionState">docs: useActionState</a></span>
+  </header>
+  <dl class="rows">
+    <dt>Action on a form</dt>
+    <dd><code>&lt;form action={fn}&gt;</code> <span class="since">19.0</span> <span class="cmt">— <code>fn(formData)</code> runs inside a transition; React resets an uncontrolled form on success. Also <code>&lt;button formAction&gt;</code>, <code>&lt;input formAction&gt;</code></span></dd>
+    <dt><code>useActionState</code></dt>
+    <dd><code>const [state, action, isPending] = useActionState(fn, initialState, permalink?)</code> <span class="since">19.0</span> <span class="cmt">— <code>fn(prevState, formData)</code>; state carries validation errors back. Renamed from the canary <code>useFormState</code></span></dd>
+    <dt><code>useFormStatus</code></dt>
+    <dd><code>const { pending, data, method, action } = useFormStatus()</code> <span class="since">19.0</span> <span class="cmt">— from <code>react-dom</code>; must be in a component <em>inside</em> the <code>&lt;form&gt;</code>, not the one that renders it</span></dd>
+    <dt><code>useOptimistic</code></dt>
+    <dd><code>const [shown, addOptimistic] = useOptimistic(messages, (s, next) =&gt; [...s, next])</code> <span class="since">19.0</span> <span class="cmt">— React reverts automatically when the action settles or throws</span></dd>
+    <dt>Controlled input</dt>
+    <dd><code>&lt;input value={v} onChange={e =&gt; setV(e.target.value)} /&gt;</code> <span class="cmt">— <code>value</code> without <code>onChange</code> gives a read-only warning; <code>value={undefined}</code> silently switches the input to uncontrolled</span></dd>
+    <dt>Uncontrolled + FormData</dt>
+    <dd><code>&lt;input name="email" defaultValue={u.email} /&gt;</code> then read <code>formData.get('email')</code> <span class="cmt">— with Actions this is usually the simpler design; no state per field</span></dd>
+    <dt>Error surfacing</dt>
+    <dd>Return <code>{ error }</code> from the action and render <code>state.error</code> <span class="cmt">— a throw inside an action reaches the nearest error boundary instead</span></dd>
+  </dl>
+<pre><code class="language-jsx">'use client';
+function EditName({ current }) {
+  const [state, action, isPending] = useActionState(async (prev, formData) =&gt; {
+    const name = formData.get('name');
+    if (!name) return { error: 'Name is required' };
+    await updateName(name);                 // server function or fetch
+    return { error: null, name };
+  }, { error: null, name: current });
+
+  return (
+    &lt;form action={action}&gt;
+      &lt;input name="name" defaultValue={state.name} /&gt;
+      &lt;button disabled={isPending}&gt;{isPending ? 'Saving…' : 'Save'}&lt;/button&gt;
+      {state.error &amp;&amp; &lt;p role="alert"&gt;{state.error}&lt;/p&gt;}
+    &lt;/form&gt;
+  );
+}
+
+// Submit button that knows about its own form, anywhere in the subtree.
+function Submit() { const { pending } = useFormStatus(); return &lt;button disabled={pending}&gt;Send&lt;/button&gt;; }</code></pre>
+</section>
+
+<section class="unit" id="u07">
+  <header>
+    <h2><span class="n">07</span>Server Components</h2>
+    <span class="docs"><a href="https://react.dev/reference/rsc/server-components">docs: React Server Components</a></span>
+  </header>
+  <dl class="rows">
+    <dt>Default is server</dt>
+    <dd>In an RSC framework every component is a Server Component until a file says otherwise <span class="cmt">— they never ship JS, may be <code>async</code>, and can read the database directly</span></dd>
+    <dt><code>'use client'</code></dt>
+    <dd>First line of a file <span class="cmt">— marks the boundary where the client bundle begins; everything it imports is bundled too. Push it as deep in the tree as possible</span></dd>
+    <dt><code>'use server'</code></dt>
+    <dd>First line of a file (or of a function body) <span class="cmt">— exports become Server Functions callable from the client. <em>Not</em> the marker for Server Components; it creates an HTTP endpoint, so validate and authorise inside every one</span></dd>
+    <dt><code>cache()</code></dt>
+    <dd><code>const getUser = cache(async (id) =&gt; db.user(id))</code> <span class="cmt">— dedupes per request in RSC; not for Client Components</span></dd>
+    <dt><code>cacheSignal()</code></dt>
+    <dd><code>const signal = cacheSignal(); await fetch(u, { signal })</code> <span class="since">19.2</span> <span class="cmt">— aborts in-flight work once the cache lifetime ends (render aborted, response finished)</span></dd>
+    <dt>Passing data down</dt>
+    <dd>Props from a Server to a Client Component must be serialisable <span class="cmt">— plain data, JSX, promises and Server Functions are fine; class instances, <code>Date</code> methods and closures are not</span></dd>
+    <dt>Streaming a promise</dt>
+    <dd>Server: <code>&lt;Client rowsPromise={getRows()} /&gt;</code>, client: <code>use(rowsPromise)</code> <span class="cmt">— the shell streams first, data fills in, no waterfall</span></dd>
+    <dt>Partial pre-rendering</dt>
+    <dd><code>const { prelude, postponed } = await prerender(&lt;App /&gt;, { signal })</code>, later <code>resume()</code> / <code>resumeAndPrerender()</code> <span class="since">19.2</span> <span class="cmt">— cache the static shell at the CDN and resume the dynamic part per request</span></dd>
+    <dt>Taint APIs</dt>
+    <dd><code>taintObjectReference(msg, user)</code> · <code>taintUniqueValue(msg, obj, token)</code> <span class="cmt">— hard-fail the render if a secret crosses to the client; cheap defence in depth around auth objects</span></dd>
+  </dl>
+<pre><code class="language-jsx">// server.js — Server Component: async, zero client bytes, streams a promise down.
+export default async function Page({ id }) {
+  const user = await getUser(id);                 // cache()d, deduped per request
+  return &lt;Profile user={user} feedPromise={getFeed(id)} /&gt;;  // not awaited
+}
+
+// actions.js — every export is an HTTP endpoint. Authorise here, not in the caller.
+'use server';
+export async function deletePost(formData) {
+  const session = await auth();
+  if (!session?.canDelete) throw new Error('Forbidden');
+  await db.post.delete({ id: String(formData.get('id')) });
+}</code></pre>
+  <div class="note"><p><strong>Patch RSC before anything else on this card.</strong> CVE-2025-55182 ("React2Shell", CVSS 10.0, disclosed 2025-12-03) was an unauthenticated RCE in the RSC payload decoder of <code>react-server-dom-webpack</code> / <code>-turbopack</code> / <code>-parcel</code> 19.0–19.2.0, with public exploits within days; fixed in 19.0.1 / 19.1.2 / 19.2.1. The follow-ups found while auditing that patch — CVE-2025-55184 (DoS, 7.5) and CVE-2025-55183 (server-function source exposure, 5.3) — need 19.0.3 / 19.1.4 / 19.2.3 or later. Apps with no Server Functions endpoint were never exposed.</p></div>
+</section>
+
+<section class="unit" id="u08">
+  <header>
+    <h2><span class="n">08</span>react-dom &amp; the document</h2>
+    <span class="docs"><a href="https://react.dev/reference/react-dom/client/createRoot">docs: react-dom/client</a></span>
+  </header>
+  <dl class="rows">
+    <dt>Mount</dt>
+    <dd><code>createRoot(document.getElementById('root')).render(&lt;App /&gt;)</code> <span class="since">18.0</span> <span class="cmt">— <code>ReactDOM.render</code> was <strong>removed</strong> in 19.0, not just deprecated</span></dd>
+    <dt>Hydrate</dt>
+    <dd><code>hydrateRoot(document, &lt;App /&gt;)</code> <span class="cmt">— <code>ReactDOM.hydrate</code> and <code>unmountComponentAtNode</code> also removed in 19.0</span></dd>
+    <dt>Portal</dt>
+    <dd><code>createPortal(&lt;Modal /&gt;, document.body)</code> <span class="cmt">— DOM moves, React tree and event bubbling do not</span></dd>
+    <dt><code>flushSync</code></dt>
+    <dd><code>flushSync(() =&gt; setOpen(true)); node.focus();</code> <span class="cmt">— forces a synchronous re-render; a performance escape hatch, not a pattern</span></dd>
+    <dt>Server render</dt>
+    <dd><code>renderToPipeableStream</code> (Node) · <code>renderToReadableStream</code> (Web, and Node too <span class="since">19.2</span>) · <code>renderToString</code> for non-streaming <span class="cmt">— <code>react-dom/server</code></span></dd>
+    <dt>Static render</dt>
+    <dd><code>prerender</code> / <code>prerenderToNodeStream</code>, plus <code>resumeAndPrerender</code> <span class="since">19.2</span> <span class="cmt">— <code>react-dom/static</code>, for SSG and partial pre-rendering</span></dd>
+    <dt>Document metadata</dt>
+    <dd>Render <code>&lt;title&gt;</code>, <code>&lt;meta&gt;</code>, <code>&lt;link rel="canonical"&gt;</code> anywhere <span class="since">19.0</span> <span class="cmt">— React hoists them into <code>&lt;head&gt;</code>; <code>react-helmet</code> is now redundant</span></dd>
+    <dt>Stylesheets &amp; scripts</dt>
+    <dd><code>&lt;link rel="stylesheet" precedence="default" /&gt;</code> and <code>&lt;script async /&gt;</code> in the tree <span class="since">19.0</span> <span class="cmt">— deduped, hoisted, and Suspense waits for the stylesheet before revealing</span></dd>
+    <dt>Resource hints</dt>
+    <dd><code>preload(href, { as: 'font' })</code> · <code>preinit</code> · <code>prefetchDNS</code> · <code>preconnect</code> · <code>preloadModule</code> / <code>preinitModule</code> <span class="since">19.0</span> <span class="cmt">— from <code>react-dom</code>, callable in render or an event</span></dd>
+  </dl>
+<pre><code class="language-jsx">import { createRoot } from 'react-dom/client';
+import { preconnect, preload } from 'react-dom';
+
+createRoot(document.getElementById('root'), {
+  onUncaughtError: (err, info) =&gt; telemetry.report(err, info.componentStack),  // 19.0
+}).render(&lt;App /&gt;);
+
+function Product({ p }) {
+  preconnect('https://cdn.example.com');
+  preload(p.heroSrc, { as: 'image', fetchPriority: 'high' });
+  return (&lt;&gt;
+    &lt;title&gt;{p.name} — Shop&lt;/title&gt;               {/* hoisted to head (19.0) */}
+    &lt;meta name="description" content={p.blurb} /&gt;
+    &lt;img src={p.heroSrc} alt="" /&gt;
+  &lt;/&gt;);
+}</code></pre>
+</section>
+
+<section class="unit" id="u09">
+  <header>
+    <h2><span class="n">09</span>Commands, compiler, lint</h2>
+    <span class="docs"><a href="https://react.dev/learn/react-compiler">docs: React Compiler</a></span>
+  </header>
+  <dl class="rows">
+    <dt>New app (SPA)</dt>
+    <dd><code>npm create vite@latest app -- --template react-ts</code> <span class="cmt">— Create React App was sunset on 2025-02-14; a CRA project should migrate to Vite or a framework</span></dd>
+    <dt>New app (framework)</dt>
+    <dd><code>npx create-next-app@latest</code> · <code>npx create-react-router@latest</code> · <code>npx create-expo-app@latest</code> <span class="cmt">— react.dev recommends starting from a framework when you need routing, data loading or SSR</span></dd>
+    <dt>Pin the runtime</dt>
+    <dd><code>npm i react@19.2.8 react-dom@19.2.8</code> · types <code>npm i -D @types/react@19 @types/react-dom@19</code> <span class="cmt">— <code>react</code> and <code>react-dom</code> must always match exactly</span></dd>
+    <dt>Upgrade codemods</dt>
+    <dd><code>npx codemod@latest react/19/migration-recipe</code> <span class="cmt">— runs the whole React 19 set (<code>replace-reactdom-render</code>, <code>replace-string-ref</code>, <code>replace-act-import</code>, <code>prop-types-typescript</code>); review each diff</span></dd>
+    <dt>Two Reacts</dt>
+    <dd><code>npm ls react react-dom</code> <span class="cmt">— duplicate copies are the real cause of most "invalid hook call" errors; dedupe or alias in the bundler</span></dd>
+    <dt>Compiler: install</dt>
+    <dd><code>npm i -D --save-exact babel-plugin-react-compiler@1.0.0</code> <span class="since">1.0 · 2025-10-07</span> <span class="cmt">— pin exactly; memoisation changes between versions can shift behaviour in edge cases</span></dd>
+    <dt>Compiler: wire up</dt>
+    <dd>Next.js <code>experimental: { reactCompiler: true }</code> · Vite via <code>@vitejs/plugin-react</code> and the Babel preset · plain Babel: the plugin must run <em>first</em></dd>
+    <dt>Compiler: config</dt>
+    <dd><code>compilationMode: 'annotation'</code> (only <code>"use memo"</code> functions) · <code>target: '18'</code> or <code>'17'</code> plus <code>react-compiler-runtime</code> · <code>panicThreshold: 'none'</code> to skip rather than fail · <code>gating</code> for A/B rollout</dd>
+    <dt>Compiler: opt out</dt>
+    <dd><code>"use no memo";</code> as the first line of a function body <span class="cmt">— the escape hatch for a component that misbehaves under memoisation; treat each one as a bug to fix, not a fix</span></dd>
+    <dt>Compiler: audit</dt>
+    <dd><code>npx react-compiler-healthcheck@latest</code> <span class="cmt">— reports how many components compile, incompatible libraries, and Rules-of-React violations before you turn it on</span></dd>
+    <dt>Lint</dt>
+    <dd><code>npm i -D eslint-plugin-react-hooks@latest</code> (7.1.1) <span class="cmt">— v7 slimmed the presets to <code>recommended</code> and <code>recommended-latest</code>, enables the compiler-powered rules by default and supports ESLint 10; v6 shipped with 19.2 and made flat config the default</span></dd>
+    <dt>Key rules</dt>
+    <dd><code>rules-of-hooks</code> · <code>exhaustive-deps</code> · <code>set-state-in-render</code> · <code>set-state-in-effect</code> · <code>refs</code> · <code>error-boundaries</code> · purity checks <span class="cmt">— the compiler rules catch bugs no runtime test does</span></dd>
+    <dt>Profiling</dt>
+    <dd>DevTools <em>Profiler</em> tab, or Chrome performance with the <span class="since">19.2</span> Scheduler/Components tracks · <code>&lt;Profiler onRender&gt;</code> in code · standalone <code>npx react-devtools</code> for RN and iframes</dd>
+    <dt>Testing</dt>
+    <dd><code>@testing-library/react</code> + Vitest/Jest; <code>import { act } from 'react'</code> <span class="since">19.0</span> <span class="cmt">— <code>react-dom/test-utils</code> act was removed and <code>react-test-renderer</code> is deprecated; set <code>globalThis.IS_REACT_ACT_ENVIRONMENT = true</code></span></dd>
+  </dl>
+<pre><code class="language-js">// eslint.config.js — flat config, compiler rules on (v7 recommended preset).
+import reactHooks from 'eslint-plugin-react-hooks';
+export default [
+  reactHooks.configs.flat.recommended,
+];
+
+// vite.config.js — React Compiler through the Babel preset.
+import { defineConfig } from 'vite';
+import react from '@vitejs/plugin-react';
+export default defineConfig({
+  plugins: [react({ babel: { plugins: [['babel-plugin-react-compiler', {}]] } })],
+});</code></pre>
+  <div class="note"><p><strong>Ecosystem versions to quote (2026-09-08):</strong> Next.js 16.3.4, React Router 8.3.1, Vite 8.2.2, React Native 0.83 (the first RN line on React 19.2). Governance changed too: since 2026-02-24 React, React Native and JSX are owned by the <strong>React Foundation</strong> under the Linux Foundation — not Meta — with eight platinum members (Amazon, Callstack, Expo, Huawei, Meta, Microsoft, Software Mansion, Vercel) and a technical steering council separate from the board. The repositories now live under <code>github.com/react/react</code>.</p></div>
+</section>
+
+<section class="unit" id="u10">
+  <header>
+    <h2><span class="n">10</span>Idioms &amp; gotchas</h2>
+    <span class="docs"><a href="https://react.dev/reference/rules">docs: Rules of React</a></span>
+  </header>
+  <dl class="rows">
+    <dt>Reset state on identity change</dt>
+    <dd><code>&lt;Editor key={docId} /&gt;</code> <span class="cmt">— legacy: a <code>useEffect</code> that clears half a dozen <code>useState</code>s and flashes stale UI for one frame</span></dd>
+    <dt>Lift state, or push it down</dt>
+    <dd>Move state to the lowest common parent — or, when only one subtree cares, down into it <span class="cmt">— "state is too high" is the most common cause of a slow app</span></dd>
+    <dt>Composition beats context</dt>
+    <dd>Pass <code>children</code> so the expensive subtree is created by the parent <span class="cmt">— it does not re-render when the wrapper's state changes</span></dd>
+    <dt>Stale closure</dt>
+    <dd>A <code>setInterval</code> in an effect with <code>[]</code> deps sees the first render's state forever <span class="cmt">— fix with the updater form, or <code>useEffectEvent</code> <span class="since">19.2</span></span></dd>
+    <dt>Index keys</dt>
+    <dd><code>key={i}</code> on a reorderable/filterable list <span class="cmt">— checkbox state and focus attach to the wrong row; symptom is "the wrong item looks selected"</span></dd>
+    <dt>Objects in deps</dt>
+    <dd><code>useEffect(..., [{ id }])</code> re-runs every render <span class="cmt">— depend on primitives (<code>[id]</code>), never on freshly built objects</span></dd>
+    <dt>Controlled → uncontrolled</dt>
+    <dd><code>value={form.email}</code> where <code>email</code> is <code>undefined</code> <span class="cmt">— React warns once and the input goes rogue; default to <code>''</code></span></dd>
+    <dt>Mutating state</dt>
+    <dd><code>items.push(x); setItems(items)</code> does nothing <span class="cmt">— same reference. Use <code>setItems([...items, x])</code>, or Immer if the shape is deep</span></dd>
+    <dt>setState in render</dt>
+    <dd>Unconditional <code>setX()</code> during render is an infinite loop <span class="cmt">— <code>set-state-in-render</code> now catches it at lint time</span></dd>
+    <dt>Effect that should be a handler</dt>
+    <dd>Analytics/toasts fired from <code>useEffect</code> on a state change <span class="cmt">— fires twice in Strict Mode dev and on unrelated re-renders; put it in the event handler</span></dd>
+    <dt>Context value identity</dt>
+    <dd><code>&lt;Ctx value={{ user, logout }}&gt;</code> rebuilds every render <span class="cmt">— memoise it, or let the compiler do it; otherwise every consumer re-renders</span></dd>
+    <dt>Suspense fallback thrash</dt>
+    <dd>An update that re-suspends replaces content with the fallback <span class="cmt">— wrap the update in <code>startTransition</code> to keep the old UI while the new one loads</span></dd>
+    <dt>Hydration mismatch</dt>
+    <dd>Non-deterministic render output on server vs client <span class="cmt">— gate with <code>useSyncExternalStore</code>'s server snapshot or an effect; last resort <code>suppressHydrationWarning</code> on that node only</span></dd>
+    <dt><code>'use client'</code> too high</dt>
+    <dd>A <code>'use client'</code> at the layout root drags the whole tree into the bundle <span class="cmt">— the single biggest RSC bundle-size mistake</span></dd>
+    <dt>Unvalidated Server Function</dt>
+    <dd>Every <code>'use server'</code> export is a public HTTP endpoint <span class="cmt">— authorise and validate inside it; the client-side check is decoration. See the 19.x CVEs in unit 07</span></dd>
+    <dt>Premature <code>memo</code></dt>
+    <dd><code>memo</code>/<code>useMemo</code> everywhere adds allocation and comparison cost <span class="cmt">— measure first; with React Compiler most hand-memoisation is dead weight</span></dd>
+  </dl>
+</section>
+
+<section class="unit" id="u11">
+  <header>
+    <h2><span class="n">11</span>Modern vs legacy</h2>
+    <span class="docs"><a href="https://react.dev/blog/2024/04/25/react-19-upgrade-guide">docs: React 19 upgrade guide</a></span>
+  </header>
+  <div class="tw">
+  <table class="grid">
+    <thead><tr><th>Task</th><th>Modern</th><th>Legacy still seen</th><th>Since</th></tr></thead>
+    <tbody>
+      <tr><td>Mount the app</td><td><code>createRoot(el).render(&lt;App /&gt;)</code></td><td><code>ReactDOM.render(&lt;App /&gt;, el)</code> — <strong>removed</strong>, not just deprecated</td><td>18.0 / removed 19.0</td></tr>
+      <tr><td>Forward a ref</td><td><code>ref</code> is a normal prop</td><td><code>forwardRef((props, ref) =&gt; …)</code></td><td>19.0</td></tr>
+      <tr><td>Provide context</td><td><code>&lt;Ctx value={v}&gt;</code></td><td><code>&lt;Ctx.Provider value={v}&gt;</code>; class <code>contextTypes</code></td><td>19.0</td></tr>
+      <tr class="hi"><td>Non-reactive value in an effect</td><td><code>useEffectEvent</code></td><td>Ref holding the latest callback, or an eslint-disable on the deps array</td><td>19.2</td></tr>
+      <tr class="hi"><td>Keep a hidden subtree alive</td><td><code>&lt;Activity mode="hidden"&gt;</code></td><td><code>display: none</code> (effects keep running) or unmounting and losing state</td><td>19.2</td></tr>
+      <tr><td>Read async data</td><td><code>use(promise)</code> in a Suspense boundary; RSC <code>async</code> components</td><td><code>useEffect</code> + <code>useState</code> + a manual <code>loading</code>/<code>error</code> triple</td><td>19.0</td></tr>
+      <tr><td>Submit a form</td><td><code>&lt;form action={fn}&gt;</code> + <code>useActionState</code> + <code>useFormStatus</code></td><td><code>onSubmit</code> + <code>preventDefault</code> + hand-rolled <code>isSubmitting</code></td><td>19.0</td></tr>
+      <tr><td>Optimistic UI</td><td><code>useOptimistic</code></td><td>Manual shadow state plus rollback in a <code>catch</code></td><td>19.0</td></tr>
+      <tr class="hi"><td>Avoid re-renders</td><td>React Compiler (automatic)</td><td><code>memo</code> + <code>useMemo</code> + <code>useCallback</code> sprayed by hand</td><td>Compiler 1.0, 2025-10-07</td></tr>
+      <tr><td>Page title and meta</td><td><code>&lt;title&gt;</code>/<code>&lt;meta&gt;</code> rendered anywhere, hoisted</td><td><code>react-helmet</code>, <code>next/head</code>, manual <code>document.title</code></td><td>19.0</td></tr>
+      <tr><td>Subscribe to an external store</td><td><code>useSyncExternalStore</code></td><td><code>useEffect</code> + <code>useState</code> subscription (tears under concurrency)</td><td>18.0</td></tr>
+      <tr><td>Prop validation</td><td>TypeScript</td><td><code>propTypes</code> / <code>defaultProps</code> on functions — <strong>removed</strong></td><td>removed 19.0</td></tr>
+      <tr><td>Refs to DOM</td><td>Callback ref with a returned cleanup</td><td>String refs <code>ref="input"</code> — <strong>removed</strong></td><td>removed 19.0</td></tr>
+      <tr><td><code>act()</code> in tests</td><td><code>import { act } from 'react'</code></td><td><code>react-dom/test-utils</code>, <code>react-test-renderer</code> (deprecated)</td><td>19.0</td></tr>
+      <tr><td>Lint hooks + purity</td><td><code>eslint-plugin-react-hooks</code> v7, flat config, compiler rules on</td><td>v4/v5 legacy <code>.eslintrc</code>, separate <code>eslint-plugin-react-compiler</code></td><td>v6 with 19.2, v7 2026</td></tr>
+      <tr><td>Start a new project</td><td>Vite, or a framework (Next.js, React Router, Expo)</td><td><code>create-react-app</code> — sunset 2025-02-14</td><td>2025-02</td></tr>
+      <tr><td>Class components</td><td>Function components + hooks</td><td>Classes with lifecycles; still the only way to write an error boundary</td><td>16.8</td></tr>
+    </tbody>
+  </table>
+  </div>
+</section>
+
+<section class="unit" id="u12">
+  <header>
+    <h2><span class="n">12</span>Version timeline</h2>
+    <span class="docs"><a href="https://react.dev/versions">docs: React versions</a></span>
+  </header>
+  <div class="tw">
+  <table class="grid">
+    <thead><tr><th>Version</th><th>Date</th><th>What changed</th></tr></thead>
+    <tbody>
+      <tr class="hi"><td>19.2.8</td><td>2026-07-21</td><td>Current stable patch — the version to quote today. No 19.3 or 20 announced; 19.3 exists only as canary</td></tr>
+      <tr><td>19.2.4</td><td>2026-01-26</td><td>Backport line for the December security fixes (with 19.0.4 / 19.1.5) — the safe floor for anything running RSC</td></tr>
+      <tr><td>19.2.3</td><td>2025-12-11</td><td>Fixes CVE-2025-55184 (DoS, infinite loop in Server Function deserialisation, 7.5) and CVE-2025-55183 (server-function source exposure via <code>toString</code>, 5.3)</td></tr>
+      <tr class="hi"><td>19.2.1</td><td>2025-12-03</td><td>Fixes CVE-2025-55182 "React2Shell" — unauthenticated RCE in the RSC payload decoder, CVSS 10.0, exploited in the wild within days. Affected 19.0–19.2.0 of <code>react-server-dom-*</code></td></tr>
+      <tr><td>Compiler 1.0</td><td>2025-10-07</td><td><em>newly stable:</em> React Compiler — automatic memoisation, React 17+ via <code>target</code>, up to 12% faster loads and 2.5× faster interactions at Meta. Compiler lint rules folded into <code>eslint-plugin-react-hooks</code></td></tr>
+      <tr class="hi"><td>19.2.0</td><td>2025-10-01</td><td><em>newly stable:</em> <code>&lt;Activity&gt;</code>, <code>useEffectEvent</code>, <code>cacheSignal</code>, partial pre-rendering (<code>resume</code>, <code>resumeAndPrerender</code>), Web Streams on Node, Chrome DevTools Performance Tracks. <em>newly default:</em> batched Suspense reveals in streaming SSR, <code>useId</code> prefix <code>_r_</code>, flat ESLint config in <code>eslint-plugin-react-hooks</code> v6</td></tr>
+      <tr><td>19.1.0</td><td>2025-03-28</td><td><em>newly stable:</em> Owner Stacks (<code>captureOwnerStack</code>, dev only); better SSR and RSC error reporting</td></tr>
+      <tr class="hi"><td>19.0.0</td><td>2024-12-05</td><td><em>newly stable:</em> Actions and async transitions, <code>useActionState</code>, <code>useOptimistic</code>, <code>useFormStatus</code>, <code>use()</code>, <code>ref</code> as a prop, ref cleanup functions, <code>&lt;Context&gt;</code> as provider, document-metadata and stylesheet hoisting, <code>preload</code>/<code>preinit</code>, custom elements, root error callbacks. <em>removed:</em> <code>ReactDOM.render</code>/<code>hydrate</code>, string refs, legacy context, <code>propTypes</code>/<code>defaultProps</code> on functions, <code>react-dom/test-utils</code> act. <em>deprecated:</em> <code>react-test-renderer</code></td></tr>
+      <tr><td>18.3.1</td><td>2024-04-26</td><td>Final React 18 — identical to 18.2 plus the warnings that flag everything React 19 removes. The upgrade stepping stone</td></tr>
+      <tr><td>18.0.0</td><td>2022-03-29</td><td>Concurrent renderer, <code>createRoot</code>, automatic batching everywhere, <code>useTransition</code>/<code>useDeferredValue</code>, <code>useSyncExternalStore</code>, <code>useId</code>, streaming SSR with Suspense, Strict Mode double-invoking effects</td></tr>
+      <tr><td>17.0.0</td><td>2020-10-20</td><td>The "no new features" release: event delegation moved from <code>document</code> to the root container, enabling gradual multi-version upgrades</td></tr>
+      <tr><td>16.8.0</td><td>2019-02-06</td><td>Hooks — the pivot from classes to function components</td></tr>
+      <tr><td>16.0.0</td><td>2017-09-26</td><td>Fiber rewrite: error boundaries, fragments, portals, returning arrays and strings from render</td></tr>
+    </tbody>
+  </table>
+  </div>
+  <div class="note"><p><strong>Governance, 2026-02-24.</strong> React, React Native and JSX are now owned by the React Foundation, hosted by the Linux Foundation, after an intent announced at React Conf on 2025-10-07. Eight platinum founding members (Amazon, Callstack, Expo, Huawei, Meta, Microsoft, Software Mansion, Vercel) fund a board; technical direction stays with a separate steering council of maintainers, so the release cadence and roadmap are unchanged. Nothing in your <code>package.json</code> changes — but "who owns React now?" is a fair interview question in 2026, and the answer is no longer "Meta".</p></div>
+</section>
+
+</main>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.11.1/highlight.min.js"></script>
+<script>
+(function () {
+  if (window.hljs) { try { hljs.highlightAll(); } catch (e) { /* highlighting is decoration */ } }
+
+  var toggle = document.querySelector('.navtoggle');
+  var side = document.getElementById('side');
+  if (toggle) {
+    toggle.addEventListener('click', function () {
+      var open = document.body.classList.toggle('nav-open');
+      toggle.setAttribute('aria-expanded', open ? 'true' : 'false');
+    });
+  }
+  if (side) {
+    side.addEventListener('click', function (e) {
+      if (e.target.closest('a')) {
+        document.body.classList.remove('nav-open');
+        if (toggle) toggle.setAttribute('aria-expanded', 'false');
+      }
+    });
+  }
+
+  var links = Array.prototype.slice.call(document.querySelectorAll('.units a'));
+  var units = links.map(function (a) { return document.getElementById(a.getAttribute('href').slice(1)); });
+  var ticking = false;
+  function spy() {
+    ticking = false;
+    var best = 0;
+    for (var i = 0; i < units.length; i++) {
+      if (units[i] && units[i].getBoundingClientRect().top <= 140) best = i;
+    }
+    for (var j = 0; j < links.length; j++) {
+      if (j === best) links[j].setAttribute('aria-current', 'true');
+      else links[j].removeAttribute('aria-current');
+    }
+  }
+  function onScroll() {
+    if (!ticking) { ticking = true; window.requestAnimationFrame(spy); }
+  }
+  window.addEventListener('scroll', onScroll, { passive: true });
+  window.addEventListener('resize', onScroll, { passive: true });
+  spy();
+})();
+</script>
+</body>
+</html>

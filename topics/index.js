@@ -384,7 +384,14 @@ window.DEVBOK_TOPICS = [
       "study": [],
       "experience": [],
       "interview": [],
-      "cheatsheet": []
+      "cheatsheet": [
+        {
+          "v": 1,
+          "generated": "2026-09-08",
+          "prompt": "ccd2d4a9",
+          "file": "topics/modernization/cheatsheet.v1.html"
+        }
+      ]
     }
   },
   {
@@ -453,7 +460,14 @@ window.DEVBOK_TOPICS = [
           "file": "topics/react/experience.v1.html"
         }
       ],
-      "interview": [],
+      "interview": [
+        {
+          "v": 1,
+          "generated": "2026-09-08",
+          "prompt": "880c04f3",
+          "file": "topics/react/interview.v1.html"
+        }
+      ],
       "cheatsheet": [
         {
           "v": 1,
