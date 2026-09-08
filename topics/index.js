@@ -9,6 +9,12 @@ window.DEVBOK_TOPICS = [
     "kinds": {
       "study": [
         {
+          "v": 3,
+          "generated": "2026-09-08",
+          "prompt": "475abea6",
+          "file": "topics/csharp-async/study.v3.html"
+        },
+        {
           "v": 2,
           "generated": "2026-09-08",
           "prompt": "0b4185bd",
@@ -22,6 +28,12 @@ window.DEVBOK_TOPICS = [
         }
       ],
       "experience": [
+        {
+          "v": 3,
+          "generated": "2026-09-08",
+          "prompt": "4ab84a97",
+          "file": "topics/csharp-async/experience.v3.html"
+        },
         {
           "v": 2,
           "generated": "2026-09-08",
@@ -37,6 +49,12 @@ window.DEVBOK_TOPICS = [
       ],
       "interview": [
         {
+          "v": 3,
+          "generated": "2026-09-08",
+          "prompt": "c7153c25",
+          "file": "topics/csharp-async/interview.v3.html"
+        },
+        {
           "v": 2,
           "generated": "2026-09-08",
           "prompt": "c299b6a0",
@@ -51,6 +69,12 @@ window.DEVBOK_TOPICS = [
       ],
       "cheatsheet": [
         {
+          "v": 3,
+          "generated": "2026-09-08",
+          "prompt": "eef70255",
+          "file": "topics/csharp-async/cheatsheet.v3.html"
+        },
+        {
           "v": 2,
           "generated": "2026-09-08",
           "prompt": "c8cf7b15",
@@ -61,6 +85,47 @@ window.DEVBOK_TOPICS = [
           "generated": "2026-09-07",
           "prompt": "436d8839",
           "file": "topics/csharp-async/cheatsheet.v1.html"
+        }
+      ]
+    }
+  },
+  {
+    "slug": "system-design",
+    "title": "System design (.NET full-stack)",
+    "topic": "System design (as a full-stack .NET engineer, incl. JS FE, databases, and everything inbetween)",
+    "accent": "#0e7c86",
+    "created": "2026-09-08",
+    "kinds": {
+      "study": [
+        {
+          "v": 1,
+          "generated": "2026-09-08",
+          "prompt": "475abea6",
+          "file": "topics/system-design/study.v1.html"
+        }
+      ],
+      "experience": [
+        {
+          "v": 1,
+          "generated": "2026-09-08",
+          "prompt": "4ab84a97",
+          "file": "topics/system-design/experience.v1.html"
+        }
+      ],
+      "interview": [
+        {
+          "v": 1,
+          "generated": "2026-09-08",
+          "prompt": "c7153c25",
+          "file": "topics/system-design/interview.v1.html"
+        }
+      ],
+      "cheatsheet": [
+        {
+          "v": 1,
+          "generated": "2026-09-08",
+          "prompt": "eef70255",
+          "file": "topics/system-design/cheatsheet.v1.html"
         }
       ]
     }

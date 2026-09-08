@@ -1,0 +1,821 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>System design (.NET full-stack) · cheatsheet · devbok</title>
+<link rel="preconnect" href="https://fonts.googleapis.com/">
+<link rel="preconnect" href="https://fonts.gstatic.com/" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Cascadia+Mono:wght@400;700&amp;display=swap">
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.11.1/styles/github.min.css" media="(prefers-color-scheme: light)">
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.11.1/styles/github-dark.min.css" media="(prefers-color-scheme: dark)">
+<style>
+:root { color-scheme: light;
+  --bg: #ffffff; --fg: #111111; --muted: #6b6b6b; --line: #111111; --soft: #f4f4f4; --border: #cccccc;
+  --accent: #0e7c86; --accent-soft: color-mix(in srgb, var(--accent) 12%, var(--bg)); }
+@media (prefers-color-scheme: dark) { :root { color-scheme: dark;
+  --bg: #222222; --fg: #cccccc; --muted: #8f8f8f; --line: #111111; --soft: #2c2c2c; --border: #4a4a4a;
+  --accent: #62e3ef; --accent-soft: color-mix(in srgb, var(--accent) 16%, var(--bg)); } }
+
+*, *::before, *::after { box-sizing: border-box; }
+html { -webkit-text-size-adjust: 100%; }
+body { margin: 0; background: var(--bg); color: var(--fg);
+  font-family: system-ui, sans-serif; font-size: 16px; line-height: 1.6; overflow-wrap: break-word; }
+h1, h2, h3 { font-family: system-ui, sans-serif; font-weight: 700; }
+h2 { font-size: 1.5em; }
+h3 { font-size: 1.17em; }
+a { color: var(--accent); }
+a:focus-visible, button:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+img { max-width: 100%; }
+
+code, kbd, pre, .mono, .chip, .since, .docs, .hero .meta, .side, dl.rows dd, table.grid { font-family: "Cascadia Mono", Consolas, monospace; font-size: 12px; }
+code { background: var(--soft); border-radius: 3px; padding: 0 3px; overflow-wrap: anywhere; }
+pre { background: var(--soft); border: 1px solid var(--border); border-radius: 4px;
+  margin: 10px 0 0; padding: 10px 12px; overflow-x: auto; max-width: 100%; line-height: 1.5; }
+pre code { background: none; border: 0; padding: 0; white-space: pre; }
+pre code.hljs { background: transparent; padding: 0; }
+
+.hero { margin: 0 0 24px; padding: 0 0 24px; border-bottom: 2px solid var(--line); }
+.hero h1 { margin: 0 0 8px; font-size: 2em; line-height: 1.2; font-weight: 700; }
+.hero .meta { margin: 0 0 12px; font-family: "Cascadia Mono", Consolas, monospace; font-size: 12px; color: var(--muted); }
+.hero .summary { margin: 0 0 12px; }
+.hero .chips { display: flex; flex-wrap: wrap; gap: 6px; margin: 0; }
+
+.side { position: fixed; top: 0; bottom: 0; left: 0; width: 260px; display: flex; flex-direction: column; background: var(--bg); border-right: 2px solid var(--line); font-family: "Cascadia Mono", Consolas, monospace; font-size: 12px; }
+.units { list-style: none; margin: 0; padding: 12px 0; overflow-y: auto; flex: 1; }
+.units a { display: grid; grid-template-columns: 2.5em 1fr; padding: 9px 20px; color: var(--fg); text-decoration: none; line-height: 1.4; }
+.units .n { color: var(--muted); }
+.units a:hover { background: var(--soft); }
+.units a[aria-current="true"] { background: var(--accent-soft); color: var(--accent); }
+.units a[aria-current="true"] .n { color: var(--accent); }
+.side footer { padding: 12px 20px; border-top: 2px solid var(--line); color: var(--muted); line-height: 1.5; }
+
+.content { margin-left: 260px; padding: 24px; max-width: 120ch; min-width: 0; }
+.unit { border-top: 2px solid var(--line); margin: 0 0 26px; padding: 14px 0 0; min-width: 0; }
+.unit > header { display: flex; flex-wrap: wrap; align-items: baseline; gap: 4px 14px; margin: 0 0 4px; min-width: 0; }
+.unit h2 { margin: 0; line-height: 1.25; }
+.unit h2 .n { font-family: "Cascadia Mono", Consolas, monospace; font-size: 12px; color: var(--muted); margin-right: 10px; }
+.docs { color: var(--muted); }
+.docs a { color: var(--accent); text-decoration: none; }
+.docs a:hover { text-decoration: underline; }
+
+dl.rows { display: grid; grid-template-columns: minmax(0, 30ch) minmax(0, 1fr);
+  margin: 12px 0 0; border-top: 1px solid var(--border); min-width: 0; }
+dl.rows dt { grid-column: 1; margin: 0; padding: 6px 14px 6px 0; border-bottom: 1px solid var(--border);
+  min-width: 0; line-height: 1.35; }
+dl.rows dd { grid-column: 2; margin: 0; padding: 7px 0 6px; border-bottom: 1px solid var(--border);
+  min-width: 0; line-height: 1.5; overflow-wrap: anywhere; }
+dl.rows dd code { background: none; padding: 0; }
+.cmt { color: var(--muted); }
+
+.chip { display: inline-block; text-transform: uppercase; letter-spacing: .03em;
+  background: var(--soft); border: 1px solid var(--border); border-radius: 4px; padding: 2px 7px; }
+.since { display: inline-block; border: 1px solid var(--accent); border-radius: 4px;
+  padding: 0 5px; color: var(--accent); white-space: nowrap; }
+.note { background: var(--soft); border-left: 3px solid var(--accent); padding: 8px 12px; margin: 12px 0 0; }
+.note p { margin: 0; }
+
+.tw { overflow-x: auto; margin: 12px 0 0; min-width: 0; }
+table.grid { border-collapse: collapse; width: 100%; }
+table.grid th { text-align: left; font-weight: 400; color: var(--muted);
+  border-bottom: 1px solid var(--border); padding: 6px 14px 6px 0; vertical-align: bottom; }
+table.grid td { border-bottom: 1px solid var(--border); padding: 6px 14px 6px 0; vertical-align: top; }
+table.grid td code { background: none; padding: 0; }
+table.grid tr.hi td { background: var(--accent-soft); }
+
+ul.tight { margin: 12px 0 0; padding-left: 1.1em; }
+ul.tight li { margin: 0 0 3px; }
+
+.navtoggle { display: none; position: fixed; top: 10px; left: 10px; z-index: 30;
+  font-family: "Cascadia Mono", Consolas, monospace; font-size: 12px; color: var(--fg);
+  background: var(--bg); border: 1px solid var(--line); border-radius: 4px; padding: 6px 10px; cursor: pointer; }
+@media (max-width: 720px) {
+  .navtoggle { display: block; }
+  .side { width: min(260px, 84%); transform: translateX(-102%); transition: transform .15s ease; z-index: 25; }
+  body.nav-open .side { transform: none; }
+  .content { margin-left: 0; padding: 52px 16px 24px; }
+  dl.rows { grid-template-columns: minmax(0, 1fr); }
+  dl.rows dt { padding: 6px 0 0; border-bottom: 0; font-weight: 600; }
+  dl.rows dd { padding: 2px 0 7px; }
+}
+
+@media print {
+  :root { color-scheme: light;
+    --bg: #ffffff; --fg: #000000; --muted: #444444; --line: #000000; --soft: #ffffff; --border: #999999;
+    --accent: #000000; --accent-soft: #ffffff; }
+  .side, .navtoggle { display: none !important; }
+  body { font-size: 9pt; line-height: 1.3; background: #fff; color: #000; }
+  .content { margin: 0; padding: 0; max-width: 100%; }
+  code, kbd, pre, .chip, .since, .docs, .hero .meta, dl.rows dd, table.grid { font-size: 7.5pt; }
+  .hero { padding-bottom: 8pt; margin-bottom: 10pt; border-bottom: 1pt solid #000; }
+  .hero h1 { font-size: 16pt; }
+  .unit { break-inside: avoid; page-break-inside: avoid; margin: 0 0 8pt; padding-top: 6pt; border-top: 1pt solid #000; }
+  .unit h2 { font-size: 11pt; }
+  pre { background: #fff; border: 1pt solid #999; padding: 4pt 6pt; }
+  pre code.hljs, pre code.hljs span { color: #000 !important; background: transparent !important; }
+  .note { background: #fff; border-left: 2pt solid #000; }
+  a, a:visited { color: #000; text-decoration: none; }
+  a[href]::after { content: ""; }
+  @page { size: A4; margin: 11mm; }
+}
+</style>
+</head>
+<body>
+<!-- devbok
+slug: system-design
+kind: cheatsheet
+version: 1
+topic: "System design (as a full-stack .NET engineer, incl. JS FE, databases, and everything inbetween)"
+prompt: cheatsheet.md@eef70255
+generated: 2026-09-08
+-->
+<button class="navtoggle" type="button" aria-expanded="false" aria-controls="side">units</button>
+<nav class="side" id="side" aria-label="Units">
+  <ol class="units">
+    <li><a href="#u01"><span class="n">01</span><span class="t">Napkin numbers &amp; SLOs</span></a></li>
+    <li><a href="#u02"><span class="n">02</span><span class="t">API &amp; contract design</span></a></li>
+    <li><a href="#u03"><span class="n">03</span><span class="t">Data &amp; storage</span></a></li>
+    <li><a href="#u04"><span class="n">04</span><span class="t">Caching layers</span></a></li>
+    <li><a href="#u05"><span class="n">05</span><span class="t">Messaging &amp; workflow</span></a></li>
+    <li><a href="#u06"><span class="n">06</span><span class="t">Consistency &amp; coordination</span></a></li>
+    <li><a href="#u07"><span class="n">07</span><span class="t">Resilience &amp; traffic control</span></a></li>
+    <li><a href="#u08"><span class="n">08</span><span class="t">Scale-out &amp; delivery</span></a></li>
+    <li><a href="#u09"><span class="n">09</span><span class="t">Front end, edge &amp; auth</span></a></li>
+    <li><a href="#u10"><span class="n">10</span><span class="t">Observability &amp; ops commands</span></a></li>
+    <li><a href="#u11"><span class="n">11</span><span class="t">Gotchas that sink designs</span></a></li>
+    <li><a href="#u12"><span class="n">12</span><span class="t">Modern vs legacy</span></a></li>
+    <li><a href="#u13"><span class="n">13</span><span class="t">Version timeline</span></a></li>
+  </ol>
+  <footer>System design (.NET full-stack) · cheatsheet · version 1 · 2026-09-08</footer>
+</nav>
+<main class="content">
+<header class="hero">
+  <h1>System design (.NET full-stack)</h1>
+  <p class="meta">cheatsheet · reference stack .NET 10.0.11 (LTS) · released 2026-08-11</p>
+  <p class="summary">The numbers, formulas, contracts, commands and failure modes reached for when designing or reviewing a distributed .NET system — capacity and SLO math, API and data decisions, caching, messaging, consistency, resilience, delivery topology, the browser tier, and the diagnostic commands that settle an argument. System design has no version of its own, so every row is anchored to the current stable stack it would be built on today: .NET 10.0.11 / EF Core 10 (LTS, GA 2025-11-11), PostgreSQL 18.x, SQL Server 2025, Redis 8.2 / Valkey 9.1, Kafka 4.2, Kubernetes 1.36, React 19.2 with Next.js 16.3. Rows carry a <span class="since">version</span> marker where the answer changed recently; anything labelled .NET 11 or PostgreSQL 19 is still pre-GA on 2026-09-08 and is direction, not deployment.</p>
+  <p class="chips"><span class="chip">.NET 10.0.11 LTS</span> <span class="chip">EF Core 10</span> <span class="chip">PostgreSQL 18.x</span> <span class="chip">SQL Server 2025</span> <span class="chip">Kafka 4.2</span> <span class="chip">Redis 8.2 / Valkey 9.1.1</span> <span class="chip">Kubernetes 1.36.4</span> <span class="chip">React 19.2 · Next 16.3</span> <span class="chip">verified 2026-09-08</span></p>
+</header>
+
+<section class="unit" id="u01">
+  <header>
+    <h2><span class="n">01</span>Napkin numbers &amp; SLOs</h2>
+    <span class="docs"><a href="https://sre.google/sre-book/service-level-objectives/">docs: Google SRE, service level objectives</a></span>
+  </header>
+  <dl class="rows">
+    <dt>Latency ladder</dt>
+    <dd>L1 ~1&nbsp;ns · main memory ~100&nbsp;ns · NVMe read 50–100&nbsp;µs · same-AZ RTT ~0.5&nbsp;ms · cross-AZ ~1&nbsp;ms · EU↔US-East ~80–100&nbsp;ms · TLS 1.3 handshake 1&nbsp;RTT</dd>
+    <dt>Little's Law</dt>
+    <dd><code>concurrency = throughput × latency</code> <span class="cmt">— 2 000 rps × 50 ms = 100 requests in flight; that is your thread/connection/pod budget</span></dd>
+    <dt>Utilisation vs wait</dt>
+    <dd><code>wait ≈ service × ρ/(1−ρ)</code> — at ρ=0.8 queueing is 4× service time, at 0.95 it is 19×. Design steady state at <strong>60–70%</strong></dd>
+    <dt>Service throughput anchor</dt>
+    <dd>1 vCPU ASP.NET Core pod: ~5–15k rps trivial JSON, ~1–3k rps cached, <strong>100–500 rps</strong> DB-bound. Size from the DB, not the web tier</dd>
+    <dt>Availability budget</dt>
+    <dd>99.9% = 43m50s/month · 99.95% = 21m54s · 99.99% = 4m23s · 99.999% = 26s. Chained dependencies multiply: 4 × 99.9% = 99.6%</dd>
+    <dt>Error budget burn</dt>
+    <dd>budget = <code>1 − SLO</code>. Multiwindow alert: <strong>14.4×</strong> burn over 1h (2% of a 30-day budget), 6× over 6h, 1× over 3d</dd>
+    <dt>Tail amplification</dt>
+    <dd>a request fanning out to 10 backends sees roughly each backend's <strong>p99.9</strong>. Fan-out of 100 makes p99 of a dependency the common case</dd>
+    <dt>Storage math</dt>
+    <dd>1 KB row × 10M/day = 10 GB/day = 3.6 TB/yr; +25–40% for indexes, ×replicas, ×backup retention</dd>
+    <dt>Bandwidth math</dt>
+    <dd>1 Gbps = 125 MB/s ≈ 125k × 1 KB msgs/s. Cross-AZ and egress are billed — chatty service meshes show up on the invoice</dd>
+    <dt>Connection budget</dt>
+    <dd>DB pool ≈ <code>cores × 2 + effective_spindles</code>; Npgsql/SqlClient default <code>Max Pool Size=100</code> <span class="cmt">per process — 40 pods × 100 = 4 000 connections, well past a stock Postgres <code>max_connections=100</code></span></dd>
+    <dt>SLI shape</dt>
+    <dd>latency SLI = "% of requests &lt; 300 ms", never "average latency". Percentiles do not average — aggregate histograms, not p99s</dd>
+    <dt>Cost per request</dt>
+    <dd>rough: (monthly infra) ÷ (rps × 2.6M). If a design cannot state cost per request, it cannot defend a cache or a region</dd>
+  </dl>
+  <div class="tw">
+    <table class="grid">
+      <thead><tr><th>SLO</th><th>Downtime / 30 d</th><th>Downtime / week</th><th>Typical use</th></tr></thead>
+      <tbody>
+        <tr><td><code>99.0%</code></td><td>7h 12m</td><td>1h 41m</td><td>internal tools, batch</td></tr>
+        <tr class="hi"><td><code>99.9%</code></td><td>43m 50s</td><td>10m 5s</td><td>most business APIs — the default ask</td></tr>
+        <tr><td><code>99.95%</code></td><td>21m 54s</td><td>5m 2s</td><td>checkout, auth</td></tr>
+        <tr><td><code>99.99%</code></td><td>4m 23s</td><td>1m 0s</td><td>multi-AZ, automated failover, no manual step</td></tr>
+        <tr><td><code>99.999%</code></td><td>26s</td><td>6s</td><td>needs multi-region active-active; rarely worth it</td></tr>
+      </tbody>
+    </table>
+  </div>
+  <pre><code class="language-text">Capacity in five lines (write these on the whiteboard, in this order):
+  1. peak rps       = DAU × actions/day × peak_factor(3–10×) / 86 400
+  2. concurrency    = peak rps × p50 latency            # Little's Law
+  3. pods           = concurrency / per-pod concurrency + 30% headroom
+  4. storage/yr     = rows/day × row bytes × 365 × 1.35 × replicas
+  5. DB connections = pods × pool size  → must be &lt; max_connections (use PgBouncer)</code></pre>
+  <div class="note"><p><strong>Say the number, then the unit of failure.</strong> "2 000 rps peak, 100 in flight, 6 pods, one AZ loss costs 33% capacity" beats any amount of box-drawing. Every quantity above is a claim you can be asked to defend — round aggressively and show the arithmetic.</p></div>
+</section>
+
+<section class="unit" id="u02">
+  <header>
+    <h2><span class="n">02</span>API &amp; contract design</h2>
+    <span class="docs"><a href="https://learn.microsoft.com/aspnet/core/fundamentals/minimal-apis/overview">docs: minimal APIs</a> · <a href="https://www.rfc-editor.org/rfc/rfc9457.html">RFC 9457 Problem Details</a></span>
+  </header>
+  <dl class="rows">
+    <dt>Style choice</dt>
+    <dd>REST/JSON for public + browser · gRPC for internal chatty/streaming (HTTP/2, contract-first) · GraphQL only when clients genuinely differ in shape · webhooks + SSE for push out</dd>
+    <dt>Status codes that matter</dt>
+    <dd><code>201</code>+<code>Location</code> · <code>202</code> for accepted-async · <code>409</code> conflict · <code>412</code>/<code>428</code> preconditions · <code>422</code> semantic validation · <code>429</code>+<code>Retry-After</code> · <code>503</code>+<code>Retry-After</code> on shed</dd>
+    <dt>Errors</dt>
+    <dd><code>builder.Services.AddProblemDetails();</code> → RFC 9457 <code>application/problem+json</code> with a stable <code>type</code> URI and a <code>traceId</code>; never a bare 500 string</dd>
+    <dt>Idempotency</dt>
+    <dd>client sends <code>Idempotency-Key: &lt;uuid&gt;</code>; server stores key → (status, body) for 24h and replays it. Mandatory for payments, retries and at-least-once callers</dd>
+    <dt>Optimistic concurrency</dt>
+    <dd><code>ETag</code> + <code>If-Match</code> → <code>412</code>; EF Core <code>.IsRowVersion()</code> / <code>xmin</code> on Postgres <span class="cmt">— catches lost updates without locks</span></dd>
+    <dt>Pagination</dt>
+    <dd>keyset: <code>WHERE (created, id) &lt; (@c, @id) ORDER BY created DESC, id DESC LIMIT 50</code>, opaque cursor. <code>OFFSET 100000</code> scans 100 000 rows every time</dd>
+    <dt>Versioning</dt>
+    <dd>additive-only inside a version; break = new major (<code>/v2</code> or <code>Asp.Versioning.Http</code>). Never repurpose a field, never tighten validation in place</dd>
+    <dt>OpenAPI</dt>
+    <dd><code>AddOpenApi()</code> + <code>app.MapOpenApi()</code> <span class="since">.NET 9</span>, emits <strong>OpenAPI 3.1</strong> by default with YAML at <code>/openapi/v1.yaml</code> <span class="since">.NET 10</span> <span class="cmt">— Swashbuckle is no longer the default template</span></dd>
+    <dt>Validation</dt>
+    <dd><code>builder.Services.AddValidation();</code> <span class="since">.NET 10</span> — data-annotation and <code>IValidatableObject</code> validation for minimal APIs, AOT-friendly, returns <code>400</code> + problem details</dd>
+    <dt>Long-running work</dt>
+    <dd><code>202 Accepted</code> + <code>Location: /operations/{id}</code>, poll or webhook. Never hold an HTTP request open across a workflow</dd>
+    <dt>Bulk &amp; chatty</dt>
+    <dd>batch endpoint or <code>?include=</code> expansion beats 50 round trips at 1 ms cross-AZ; cap batch size and document partial-failure semantics (<code>207</code>-style per-item results)</dd>
+    <dt>Contract testing</dt>
+    <dd>consumer-driven contract or OpenAPI diff in CI; the schema is the deploy gate, not a wiki page</dd>
+    <dt>Payload rules</dt>
+    <dd>UTC ISO-8601 with offset · money as minor units or decimal string, never float · enums as strings · nullable ≠ absent · document the max page size</dd>
+  </dl>
+  <pre><code class="language-csharp">// Minimal API: validation, problem details, idempotency, optimistic concurrency, keyset paging.
+var builder = WebApplication.CreateBuilder(args);
+builder.Services.AddProblemDetails();
+builder.Services.AddValidation();                 // .NET 10: built-in minimal-API validation
+builder.Services.AddOpenApi();                    // .NET 10: OpenAPI 3.1, JSON + YAML
+var app = builder.Build();
+app.MapOpenApi();
+
+app.MapPost("/orders", async (CreateOrder cmd, [FromHeader(Name = "Idempotency-Key")] Guid key,
+                              IOrders orders, CancellationToken ct) =&gt;
+{
+    if (await orders.TryReplayAsync(key, ct) is { } prior) return prior;      // same key, same answer
+    var id = await orders.CreateAsync(cmd, key, ct);
+    return TypedResults.Created($"/orders/{id}", new { id });
+});
+
+app.MapGet("/orders", (DateTime? cursorAt, Guid? cursorId, IOrders o, CancellationToken ct) =&gt;
+    o.PageAsync(cursorAt, cursorId, size: 50, ct));                           // keyset, never OFFSET
+
+app.MapPut("/orders/{id}", async (Guid id, UpdateOrder cmd,
+                                  [FromHeader(Name = "If-Match")] string etag,
+                                  IOrders o, CancellationToken ct) =&gt;
+    await o.UpdateAsync(id, cmd, etag, ct)
+        ? Results.NoContent()
+        : TypedResults.Problem(statusCode: 412, title: "Order was modified by someone else"));</code></pre>
+</section>
+
+<section class="unit" id="u03">
+  <header>
+    <h2><span class="n">03</span>Data &amp; storage</h2>
+    <span class="docs"><a href="https://www.postgresql.org/docs/18/index.html">docs: PostgreSQL 18</a> · <a href="https://learn.microsoft.com/ef/core/what-is-new/ef-core-10.0/whatsnew">docs: what's new in EF Core 10</a></span>
+  </header>
+  <dl class="rows">
+    <dt>Pick the store</dt>
+    <dd>relational OLTP (Postgres 18 / SQL Server 2025) is the default · KV/cache (Redis 8.2, Valkey 9.1) · log (Kafka 4.2) · blob + CDN for files · search (OpenSearch) · columnar (ClickHouse) for analytics · <em>one</em> exotic store per design, justified</dd>
+    <dt>Primary keys</dt>
+    <dd><code>Guid.CreateVersion7()</code> <span class="since">.NET 9</span> / <code>uuidv7()</code> <span class="since">PG 18</span> — time-ordered, so inserts stay at the right edge of the B-tree; random v4 GUIDs fragment the index and bloat WAL</dd>
+    <dt>Index rule of thumb</dt>
+    <dd>composite order = <strong>equality, then range, then sort</strong>; add <code>INCLUDE</code> columns to make it covering; every FK used in a delete/join needs one</dd>
+    <dt>Isolation defaults</dt>
+    <dd>Postgres: Read Committed (MVCC, readers never block). SQL Server: Read Committed with <em>locks</em> — turn on <code>ALTER DATABASE db SET READ_COMMITTED_SNAPSHOT ON;</code> or live with blocking</dd>
+    <dt>Write skew</dt>
+    <dd>only <code>SERIALIZABLE</code> stops it (PG uses SSI and throws <code>40001</code> — the app <strong>must</strong> retry); the cheaper fix is a unique constraint or an explicit <code>SELECT … FOR UPDATE</code></dd>
+    <dt>Online DDL</dt>
+    <dd><code>CREATE INDEX CONCURRENTLY</code> · <code>ADD COLUMN … NOT NULL DEFAULT</code> is metadata-only <span class="since">PG 11+</span> · <code>ALTER TABLE … ADD NOT NULL … NOT VALID</code> then <code>VALIDATE</code> without a full scan <span class="since">PG 18</span> · always <code>SET lock_timeout</code> first</dd>
+    <dt>Schema change dance</dt>
+    <dd>expand → backfill → dual-write/dual-read → contract, each a separate deploy. A migration that must ship with its code is an outage waiting for traffic</dd>
+    <dt>EF Core 10 essentials</dt>
+    <dd><code>LeftJoin(…)</code> instead of <code>GroupJoin/SelectMany/DefaultIfEmpty</code> · complex types mapped to a JSON column and queried in LINQ · <code>ExecuteUpdateAsync(s =&gt; s.SetProperty(…))</code> now takes a plain lambda <span class="since">EF 10</span></dd>
+    <dt>EF read path</dt>
+    <dd><code>AsNoTracking()</code> on every query you do not save · <code>AsSplitQuery()</code> when two collection includes multiply rows · projections (<code>Select</code>) over full entities · compiled models for cold start</dd>
+    <dt>Connection pooling</dt>
+    <dd>PgBouncer in <em>transaction</em> mode (no session state, no prepared statements unless PgBouncer 1.21+) or Npgsql multiplexing; <code>Pooling=true;Max Pool Size=…</code> tuned per pod, not per developer</dd>
+    <dt>Partition &amp; shard</dt>
+    <dd>range-partition by time for retention (<code>DETACH</code> beats <code>DELETE</code>); shard only when one node's write path is the wall — pick a key with no hot tenant, and plan resharding before the first shard</dd>
+    <dt>Replicas &amp; lag</dt>
+    <dd>read replicas serve reports, not read-your-writes; route a user to the primary for N seconds after their write, or read from the write's returned snapshot/LSN</dd>
+    <dt>Vector / hybrid search</dt>
+    <dd>pgvector with HNSW index inside the OLTP DB, or SQL Server 2025 native <code>vector</code> type + <code>VECTOR_DISTANCE()</code> (type GA, DiskANN index still preview) <span class="since">2025-11-18</span> — a separate vector DB is now the exception</dd>
+    <dt>Retention &amp; PII</dt>
+    <dd>state a retention per table on day one; PII in a separate schema with crypto-shredding keys makes "delete me" a key drop, not a table scan</dd>
+  </dl>
+  <pre><code class="language-sql">-- Keyset page + covering index: the two things that keep a list endpoint flat as data grows.
+CREATE INDEX CONCURRENTLY ix_orders_customer_created
+  ON orders (customer_id, created_at DESC, id DESC) INCLUDE (status, total_cents);
+
+SELECT id, status, total_cents, created_at
+FROM orders
+WHERE customer_id = $1 AND (created_at, id) &lt; ($2, $3)
+ORDER BY created_at DESC, id DESC
+LIMIT 50;
+
+-- Read your own write without pinning every read to the primary.
+SELECT pg_current_wal_lsn();                    -- on the primary, after commit
+SELECT pg_last_wal_replay_lsn() &gt;= $1;          -- on the replica, before serving</code></pre>
+</section>
+
+<section class="unit" id="u04">
+  <header>
+    <h2><span class="n">04</span>Caching layers</h2>
+    <span class="docs"><a href="https://learn.microsoft.com/aspnet/core/performance/caching/hybrid">docs: HybridCache</a> · <a href="https://www.rfc-editor.org/rfc/rfc9111.html">RFC 9111 HTTP caching</a></span>
+  </header>
+  <dl class="rows">
+    <dt>The five layers</dt>
+    <dd>browser → CDN/edge → output cache (per response) → in-process L1 → distributed L2 (Redis/Valkey) → DB buffer pool. Name which one you mean before arguing about invalidation</dd>
+    <dt>Default choice</dt>
+    <dd><code>builder.Services.AddHybridCache();</code> <span class="since">.NET 9</span> — L1 memory + L2 <code>IDistributedCache</code>, <strong>stampede protection built in</strong>, tag invalidation via <code>RemoveByTagAsync</code>. Replaces the hand-rolled <code>IDistributedCache</code> + double-check pattern</dd>
+    <dt>Output caching</dt>
+    <dd><code>AddOutputCache()</code> + <code>.CacheOutput(p =&gt; p.Expire(TimeSpan.FromSeconds(30)).Tag("orders"))</code> <span class="since">.NET 7</span>, server-side and invalidatable — unlike the older client-driven ResponseCaching middleware</dd>
+    <dt>Patterns</dt>
+    <dd>cache-aside (default, explicit) · read-through (inside the client library) · write-through (consistent, slower writes) · write-behind (fast, loses data on crash — needs a durable buffer)</dd>
+    <dt>TTL and jitter</dt>
+    <dd>TTL plus <code>±10–20%</code> random jitter, always. Identical TTLs set at deploy time expire together and hand the database a synchronised stampede</dd>
+    <dt>Stampede control</dt>
+    <dd>single-flight per key (HybridCache does this), plus stale-while-revalidate: serve the stale value and refresh in the background rather than blocking N callers</dd>
+    <dt>Invalidation</dt>
+    <dd>prefer TTL plus event-driven eviction on the write path; version the key (<code>order:v3:{id}</code>) to invalidate a whole shape at deploy; tags for cross-cutting groups. Never <code>KEYS</code>-scan to invalidate</dd>
+    <dt>Negative caching</dt>
+    <dd>cache 404 and empty results for 5–30 s or a missing-key flood becomes a database scan; keep the TTL short so a later creation is not shadowed</dd>
+    <dt>HTTP headers</dt>
+    <dd><code>Cache-Control: public, max-age=60, stale-while-revalidate=300</code> for shared data · <code>private, no-store</code> for anything per-user · <code>ETag</code> + <code>If-None-Match</code> → <code>304</code> · always set <code>Vary</code> when content negotiates</dd>
+    <dt>Static assets</dt>
+    <dd>content-hashed filenames + <code>Cache-Control: public, max-age=31536000, immutable</code>; <code>app.MapStaticAssets()</code> <span class="since">.NET 9</span> does the fingerprinting, pre-compression and headers at build time</dd>
+    <dt>Redis / Valkey commands</dt>
+    <dd><code>SET k v EX 60 NX</code> (set-if-absent lease) · <code>SCAN 0 MATCH order:* COUNT 500</code> — never <code>KEYS</code> in production · <code>INFO stats</code> for <code>keyspace_hits/misses</code> · <code>SLOWLOG GET 10</code> · <code>redis-cli --latency-history</code></dd>
+    <dt>Eviction policy</dt>
+    <dd><code>maxmemory-policy allkeys-lru</code> for a pure cache; <code>noeviction</code> if the instance also holds queues or sessions — one instance doing both is the design smell</dd>
+    <dt>Hit-rate math</dt>
+    <dd>90% at 1 ms + 10% at 50 ms = 5.9 ms mean, but the p99 is still the miss path. A cache moves the mean; only capacity moves the tail</dd>
+    <dt>What not to cache</dt>
+    <dd>anything you cannot afford to serve stale (balances, permissions, stock at checkout), and anything cheaper to compute than to fetch over the network</dd>
+  </dl>
+  <pre><code class="language-csharp">// One call: L1 + L2, single-flight per key, tag-based invalidation. .NET 9+
+public sealed class Orders(HybridCache cache, IOrderRepo repo)
+{
+    public ValueTask&lt;Order&gt; GetAsync(Guid id, CancellationToken ct) =&gt;
+        cache.GetOrCreateAsync($"order:v3:{id}",
+            factory: async token =&gt; await repo.LoadAsync(id, token),
+            options: new HybridCacheEntryOptions
+            {
+                Expiration = TimeSpan.FromMinutes(5),           // L2, distributed
+                LocalCacheExpiration = TimeSpan.FromSeconds(20) // L1, bounds per-node drift
+            },
+            tags: ["orders", $"customer:{id}"], cancellationToken: ct);
+
+    public ValueTask InvalidateCustomerAsync(Guid customerId, CancellationToken ct) =&gt;
+        cache.RemoveByTagAsync($"customer:{customerId}", ct);
+}</code></pre>
+</section>
+
+<section class="unit" id="u05">
+  <header>
+    <h2><span class="n">05</span>Messaging &amp; workflow</h2>
+    <span class="docs"><a href="https://kafka.apache.org/documentation/">docs: Apache Kafka</a> · <a href="https://microservices.io/patterns/data/transactional-outbox.html">pattern: transactional outbox</a></span>
+  </header>
+  <dl class="rows">
+    <dt>Queue or log?</dt>
+    <dd>broker queue (Azure Service Bus, SQS, RabbitMQ): competing consumers, per-message ack, native DLQ, scheduled delivery. Log (Kafka): ordered partitions, replay from an offset, many independent readers, retention as a feature</dd>
+    <dt>Kafka today</dt>
+    <dd>4.0 removed ZooKeeper — <strong>KRaft only</strong> <span class="since">2025-03-18</span>; share groups (KIP-932) give per-message, queue-style consumption on a topic and reached production-ready <span class="since">Kafka 4.2, 2026-02-17</span>, so "we also need a separate queue broker" is a weaker argument than it was</dd>
+    <dt>Delivery semantics</dt>
+    <dd>at-least-once is what you get. "Exactly once" in practice = at-least-once + an idempotent consumer. Kafka EOS transactions hold only <em>inside</em> Kafka — the moment you write to SQL you are back to idempotency</dd>
+    <dt>Outbox</dt>
+    <dd>write the row and the message in <strong>one</strong> database transaction; a relay publishes and marks it sent. The alternative is CDC (Debezium) off the WAL. Dual-writing to DB and broker loses messages on every crash in between</dd>
+    <dt>Idempotent consumer</dt>
+    <dd><code>INSERT INTO processed(msg_id) VALUES (@id) ON CONFLICT DO NOTHING</code> in the same transaction as the effect; if it inserted 0 rows, skip. Prune the table by time</dd>
+    <dt>Ordering</dt>
+    <dd>partition or session key = the aggregate id (order id, tenant id). Ordering survives a retry only while it stays in the same partition — a retry topic or DLQ breaks it, deliberately</dd>
+    <dt>Poison messages</dt>
+    <dd>bounded retries with backoff, then DLQ (Service Bus <code>MaxDeliveryCount</code>, Kafka a <code>*.DLQ</code> topic). A DLQ with no alert and no replay tool is a data-loss queue</dd>
+    <dt>Backpressure</dt>
+    <dd>bound prefetch / <code>max.poll.records</code> / concurrent handlers; queue depth and consumer lag are the autoscaling signal (KEDA), not CPU</dd>
+    <dt>Sagas</dt>
+    <dd>choreography (events, no coordinator, hard to see) vs orchestration (MassTransit state machine, Dapr Workflow, Azure Durable Functions, Temporal). Every step needs a compensation, and compensations must be idempotent too</dd>
+    <dt>Schema evolution</dt>
+    <dd>a registry with backward compatibility (Avro, Protobuf, JSON Schema); add optional fields only, never renumber or repurpose. Consumers deploy before producers</dd>
+    <dt>In-process pipelines</dt>
+    <dd><code>System.Threading.Channels</code> for bounded in-memory hand-off (<code>BoundedChannelFullMode.Wait</code>) drained by a <code>BackgroundService</code>. Fine inside a process, never a substitute for durability</dd>
+    <dt>Kafka sizing</dt>
+    <dd>partitions ≥ maximum consumers; treat ~10 MB/s as a comfortable partition; <code>replication.factor=3</code>, <code>min.insync.replicas=2</code>, <code>acks=all</code> for anything you cannot lose</dd>
+    <dt>Ops commands</dt>
+    <dd><code>kafka-topics.sh --create --partitions 12 --replication-factor 3</code> · <code>kafka-consumer-groups.sh --describe --group billing</code> (the LAG column) · <code>--reset-offsets --to-datetime … --execute</code> · <code>kafka-configs.sh --alter --add-config retention.ms=…</code></dd>
+  </dl>
+  <pre><code class="language-csharp">// Outbox: one transaction, no dual write. The relay is the only thing that talks to the broker.
+using var tx = await db.Database.BeginTransactionAsync(ct);
+db.Orders.Add(order);
+db.Outbox.Add(new OutboxMessage(
+    Id: Guid.CreateVersion7(),                    // time-ordered id, so the relay scans in order
+    Type: "order.placed.v1",
+    Key: order.Id.ToString(),                     // partition key = aggregate id
+    Payload: JsonSerializer.Serialize(evt)));
+await db.SaveChangesAsync(ct);
+await tx.CommitAsync(ct);
+
+// Consumer: dedupe row and effect share a transaction, so a redelivery is a no-op.
+var first = await db.Database.ExecuteSqlAsync(
+    $"INSERT INTO processed (msg_id) VALUES ({msg.Id}) ON CONFLICT DO NOTHING", ct);
+if (first == 0) return;                           // already handled: ack and move on
+await ApplyAsync(msg, ct);
+await db.SaveChangesAsync(ct);</code></pre>
+</section>
+
+<section class="unit" id="u06">
+  <header>
+    <h2><span class="n">06</span>Consistency &amp; coordination</h2>
+    <span class="docs"><a href="https://jepsen.io/consistency">reference: Jepsen consistency models</a></span>
+  </header>
+  <dl class="rows">
+    <dt>PACELC beats CAP</dt>
+    <dd>if <strong>P</strong>artitioned, choose <strong>A</strong> or <strong>C</strong>; <strong>E</strong>lse choose <strong>L</strong>atency or <strong>C</strong>onsistency. The everyday trade-off is the "else" half — CAP only describes the bad day</dd>
+    <dt>The ladder</dt>
+    <dd>linearizable → sequential → causal → read-your-writes → monotonic reads → eventual. Name the level per <em>use case</em>: balance = linearizable, feed = eventual, profile edit = read-your-writes</dd>
+    <dt>Quorums</dt>
+    <dd><code>R + W &gt; N</code> for overlap (N=3, W=2, R=2). Losing a node then costs latency, not correctness; <code>W=1</code> is a data-loss setting with a flattering p99</dd>
+    <dt>Distributed transactions</dt>
+    <dd>avoid 2PC across services — the coordinator failing blocks every participant's locks. Use a saga with compensations, or move the boundary so the transaction is local again</dd>
+    <dt>Locks and leases</dt>
+    <dd>every distributed lock needs a TTL <em>and</em> a monotonically increasing <strong>fencing token</strong> that the resource checks; without it a GC pause or a stalled pod produces two live writers</dd>
+    <dt>Leader election</dt>
+    <dd>Kubernetes <code>Lease</code> objects, blob-lease singletons, etcd or ZooKeeper. Single-writer-per-shard turns most consistency problems back into local ones</dd>
+    <dt>Clocks</dt>
+    <dd>NTP skew is milliseconds and unbounded during failure — never order events by wall clock. Use sequence numbers, LSNs, hybrid logical clocks, or the database's own ordering</dd>
+    <dt>Anomalies to name</dt>
+    <dd>lost update (fix: ETag/rowversion) · write skew (fix: <code>SERIALIZABLE</code> or a constraint) · phantom read · read-your-writes violation on a replica · duplicate effect from at-least-once delivery</dd>
+    <dt>Uniqueness at scale</dt>
+    <dd>a unique index is a distributed lock you already own. "Check then insert" across two services is a race — let the constraint fail and map <code>23505</code> / <code>2627</code> to <code>409</code></dd>
+    <dt>Event ordering</dt>
+    <dd>per-key ordering is achievable and usually enough; global ordering costs a single writer. Decide which one is required before choosing a broker</dd>
+    <dt>Convergence</dt>
+    <dd>last-write-wins loses data silently; prefer append-only plus a fold, or a CRDT (counters, sets, collaborative text) when offline or multi-region writes are a real requirement</dd>
+    <dt>Cross-region writes</dt>
+    <dd>one writable region with failover is the honest default; active-active makes conflict resolution a product decision, not a database setting</dd>
+  </dl>
+  <div class="tw">
+    <table class="grid">
+      <thead><tr><th>Need</th><th>Cheapest mechanism that works</th><th>Cost</th></tr></thead>
+      <tbody>
+        <tr><td>Two writers must not both succeed</td><td>unique constraint, or conditional update on a version column</td><td>a retry and a <code>409</code></td></tr>
+        <tr class="hi"><td>An effect must happen once</td><td>idempotency key + dedupe table</td><td>one extra row per message</td></tr>
+        <tr><td>Reads must see the caller's own write</td><td>pin to primary for N seconds, or wait on the LSN</td><td>primary load, a little latency</td></tr>
+        <tr><td>Steps span services</td><td>saga with compensations</td><td>you must design the undo</td></tr>
+        <tr><td>Only one instance may run a job</td><td>lease + fencing token</td><td>a clock-independent token check</td></tr>
+        <tr><td>Global order over all events</td><td>single partition / single writer</td><td>a hard throughput ceiling</td></tr>
+      </tbody>
+    </table>
+  </div>
+</section>
+
+<section class="unit" id="u07">
+  <header>
+    <h2><span class="n">07</span>Resilience &amp; traffic control</h2>
+    <span class="docs"><a href="https://learn.microsoft.com/dotnet/core/resilience/http-resilience">docs: HTTP resilience (Polly v8)</a> · <a href="https://learn.microsoft.com/aspnet/core/performance/rate-limit">docs: rate limiting middleware</a></span>
+  </header>
+  <dl class="rows">
+    <dt>Standard handler</dt>
+    <dd><code>services.AddHttpClient&lt;T&gt;().AddStandardResilienceHandler();</code> <span class="since">.NET 8</span> — rate limiter → total timeout → retry → circuit breaker → attempt timeout, in that order, on Polly v8 pipelines</dd>
+    <dt>Timeout budget</dt>
+    <dd>every hop gets a timeout, and a hop's retries must fit inside the caller's budget: a 1 s caller cannot afford 3 attempts of 300 ms plus backoff. <code>HttpClient.Timeout</code> defaults to <strong>100 s</strong>, which is never the right answer</dd>
+    <dt>Retry rules</dt>
+    <dd>idempotent operations only (or with an idempotency key), exponential backoff <strong>with jitter</strong>, 2–3 attempts, and a retry budget under ~10% of traffic. Never retry a <code>4xx</code> except <code>408</code> and <code>429</code></dd>
+    <dt>Circuit breaker</dt>
+    <dd>typical: failure ratio 0.1, sampling 30 s, minimum throughput 100, break 5 s, half-open probe. It exists to stop <em>you</em> hammering a sick dependency, not to heal it</dd>
+    <dt>Bulkheads</dt>
+    <dd>separate pools and queues per dependency and per tenant class, so one slow downstream cannot consume every thread and connection in the process</dd>
+    <dt>Rate limiting</dt>
+    <dd><code>AddRateLimiter</code> <span class="since">.NET 7</span>: fixed window, sliding window, token bucket, concurrency. Partition by API key or tenant, keep <code>QueueLimit</code> small, reject with <code>429</code> + <code>Retry-After</code></dd>
+    <dt>Load shedding</dt>
+    <dd>shed at the edge on queue depth or latency, cheapest requests first; a fast <code>503</code> protects the SLO for the traffic you keep. An unbounded queue only relocates the outage</dd>
+    <dt>Health checks</dt>
+    <dd><code>MapHealthChecks("/health/live")</code> = process only; <code>"/health/ready"</code> = dependencies, filtered by <code>Predicate = c =&gt; c.Tags.Contains("ready")</code>. A liveness probe that pings the database restarts the whole fleet during a database blip</dd>
+    <dt>Graceful shutdown</dt>
+    <dd><code>HostOptions.ShutdownTimeout</code> longer than the longest request, plus a Kubernetes <code>preStop</code> sleep and <code>terminationGracePeriodSeconds</code>, so the load balancer stops sending before the app stops listening</dd>
+    <dt>Server-side timeouts</dt>
+    <dd><code>app.UseRequestTimeouts()</code> with <code>[RequestTimeout(2000)]</code> <span class="since">.NET 8</span> — a request nobody is waiting for should not keep holding a connection and a DB transaction</dd>
+    <dt>Fallbacks</dt>
+    <dd>stale cached value, degraded feature, or queue-for-later. Decide per endpoint what "degraded" means; returning 500 counts as a decision only when it was made deliberately</dd>
+    <dt>Failure modes to name</dt>
+    <dd>retry storm · thundering herd on cache expiry · cascading failure through a shared pool · <em>metastable</em> failure (load sustains itself after the trigger is gone; only shedding or a restart exits) · gray failure (healthy to probes, broken for users)</dd>
+    <dt>Prove it</dt>
+    <dd>load test to the knee (<code>k6 run --vus 200 --duration 5m</code>), then run a game day: kill an AZ, inject 200 ms of latency, return 500s. Untested failover is a hypothesis</dd>
+  </dl>
+  <pre><code class="language-csharp">// Explicit beats default when the budget matters: 1 s end-to-end, 2 retries, jittered.
+builder.Services.AddHttpClient&lt;PricingClient&gt;(c =&gt; c.BaseAddress = new(cfg["Pricing:Url"]!))
+    .AddResilienceHandler("pricing", b =&gt; b
+        .AddTimeout(TimeSpan.FromSeconds(1))                            // total budget
+        .AddRetry(new HttpRetryStrategyOptions
+        {
+            MaxRetryAttempts = 2, BackoffType = DelayBackoffType.Exponential,
+            UseJitter = true, Delay = TimeSpan.FromMilliseconds(100)
+        })
+        .AddCircuitBreaker(new HttpCircuitBreakerStrategyOptions
+        {
+            FailureRatio = 0.1, SamplingDuration = TimeSpan.FromSeconds(30),
+            MinimumThroughput = 100, BreakDuration = TimeSpan.FromSeconds(5)
+        })
+        .AddTimeout(TimeSpan.FromMilliseconds(300)));                   // per attempt
+
+builder.Services.AddRateLimiter(o =&gt;
+{
+    o.RejectionStatusCode = StatusCodes.Status429TooManyRequests;
+    o.AddTokenBucketLimiter("per-tenant", t =&gt;
+    {
+        t.TokenLimit = 200; t.TokensPerPeriod = 100;                    // 100 rps sustained, burst 200
+        t.ReplenishmentPeriod = TimeSpan.FromSeconds(1); t.QueueLimit = 0;
+    });
+});</code></pre>
+</section>
+
+<section class="unit" id="u08">
+  <header>
+    <h2><span class="n">08</span>Scale-out &amp; delivery</h2>
+    <span class="docs"><a href="https://kubernetes.io/docs/concepts/workloads/autoscaling/">docs: Kubernetes autoscaling</a> · <a href="https://learn.microsoft.com/aspnet/core/fundamentals/servers/yarp/">docs: YARP reverse proxy</a></span>
+  </header>
+  <dl class="rows">
+    <dt>Scale order</dt>
+    <dd>vertical first (a bigger node is free engineering time) → stateless horizontal → read replicas → cache → shard/partition → multi-region. Skipping to the last is how a design fails a review</dd>
+    <dt>Stateless services</dt>
+    <dd>no in-process session, no local files, no in-memory scheduler singleton. Sticky sessions are for WebSockets only, and even then with a backplane</dd>
+    <dt>Load balancing</dt>
+    <dd>L4 for raw TCP, L7 for routing/retries/mTLS. Prefer <strong>least-outstanding-requests</strong> over round robin: it routes around a slow instance, which is what actually kills the tail</dd>
+    <dt>Gateway / BFF</dt>
+    <dd>YARP as the .NET reverse proxy and BFF (routing, transforms, rate limits, auth offload); it is the current answer where Ocelot or IIS ARR used to be</dd>
+    <dt>Protocols</dt>
+    <dd>HTTP/1.1 at the edge, HTTP/2 for gRPC, HTTP/3 (QUIC) where the network is lossy — Kestrel supports HTTP/3 <span class="since">.NET 7</span>. Set <code>EnableMultipleHttp2Connections = true</code> on <code>SocketsHttpHandler</code> so one connection's stream limit is not the ceiling</dd>
+    <dt>Autoscaling signal</dt>
+    <dd>HPA on CPU lags an IO-bound API by minutes; scale on rps, in-flight concurrency or queue lag (KEDA scalers for Service Bus, Kafka, Redis). Always set <code>requests</code>/<code>limits</code> and a <code>PodDisruptionBudget</code></dd>
+    <dt>Pod sizing (.NET)</dt>
+    <dd>containers see limits automatically <span class="since">.NET 6+</span>; below ~1.5 vCPU consider <code>ServerGarbageCollection=false</code>, and prefer more small pods over few large ones for failure granularity</dd>
+    <dt>Kubernetes facts</dt>
+    <dd>1.36 "Haru" <span class="since">2026-04-22</span>, patch 1.36.4 (2026-08-20); supported: 1.34–1.36. Native sidecar containers (restartable init) are stable <span class="since">1.33</span> — the right home for a proxy or <code>dotnet-monitor</code></dd>
+    <dt>Deployment strategy</dt>
+    <dd>rolling by default; canary with metric gates (Argo Rollouts, Flagger) for risky changes; blue-green when a fast rollback matters more than cost. Feature flags (<code>Microsoft.FeatureManagement</code>) decouple deploy from release</dd>
+    <dt>Migrations and deploys</dt>
+    <dd>never ship a breaking migration with the code that needs it — expand/contract across two releases keeps rollback possible. <code>dotnet ef migrations bundle</code> for a reviewable, idempotent artefact</dd>
+    <dt>Multi-region</dt>
+    <dd>active-passive with stated <strong>RPO/RTO</strong> and a rehearsed failover, or cell-based architecture: many small independent cells, shuffle-shard tenants across them so one bad tenant cannot take down everyone</dd>
+    <dt>Local composition</dt>
+    <dd>Aspire AppHost for local orchestration, service discovery and OTel wiring (Aspire 13, <span class="since">2025-11</span>, dropped the ".NET" from its name; 13.5.x current) — replaces hand-written compose files for dev</dd>
+    <dt>Cost levers</dt>
+    <dd>right-size requests · spot/burstable for stateless workers · same-AZ pinning for chatty pairs · cache before compute · retention policies. Cost per request belongs in the design doc</dd>
+  </dl>
+  <pre><code class="language-yaml"># Scale on real work, not CPU; keep capacity during a drain.
+apiVersion: keda.sh/v1alpha1
+kind: ScaledObject
+spec:
+  scaleTargetRef: { name: order-worker }
+  minReplicaCount: 2
+  maxReplicaCount: 40
+  cooldownPeriod: 120
+  triggers:
+    - type: azure-servicebus
+      metadata: { queueName: orders, messageCount: "20" }   # ~20 msgs backlog per pod
+---
+apiVersion: policy/v1
+kind: PodDisruptionBudget
+spec:
+  minAvailable: 75%          # node drains cannot take the service below capacity</code></pre>
+</section>
+
+<section class="unit" id="u09">
+  <header>
+    <h2><span class="n">09</span>Front end, edge &amp; auth</h2>
+    <span class="docs"><a href="https://web.dev/articles/vitals">docs: Core Web Vitals</a> · <a href="https://learn.microsoft.com/aspnet/core/blazor/components/render-modes">docs: Blazor render modes</a></span>
+  </header>
+  <dl class="rows">
+    <dt>Rendering choice</dt>
+    <dd>SSG/ISR for content · SSR + streaming for first paint with data · CSR for app shells behind a login · React Server Components (React 19, Next 16) to keep data-fetching off the client · Blazor static SSR → Server → WebAssembly → Auto, chosen per component <span class="since">.NET 8</span></dd>
+    <dt>Core Web Vitals</dt>
+    <dd>at p75 on mobile: <strong>LCP ≤ 2.5 s</strong>, <strong>INP ≤ 200 ms</strong> (replaced FID in March 2024), <strong>CLS ≤ 0.1</strong>. These are the numbers a product owner will quote back at you</dd>
+    <dt>Budgets</dt>
+    <dd>~170–200 KB compressed JS for the initial route on mobile; route-level code splitting; <code>preconnect</code> to the API origin; images as AVIF/WebP with explicit dimensions to protect CLS</dd>
+    <dt>Current versions</dt>
+    <dd>React 19.2 (<code>&lt;Activity&gt;</code>, <code>useEffectEvent</code>, partial pre-rendering, <span class="since">2025-10-01</span>; latest patch 19.2.8, 2026-07) · Next.js 16.3 active LTS, 15.5 maintenance · no React 20 announced</dd>
+    <dt>Auth for a SPA</dt>
+    <dd>OIDC authorization code + <strong>PKCE</strong>; tokens stay server-side in a <strong>BFF</strong>, browser gets an <code>HttpOnly; Secure; SameSite=Lax</code> cookie. Implicit flow and JWTs in browser local storage are the pattern to remove, not to copy</dd>
+    <dt>Token hygiene</dt>
+    <dd>short-lived access tokens (5–15 min), refresh rotation with reuse detection, <code>aud</code>/<code>iss</code>/<code>exp</code> validated server-side, JWKS cached with rotation. Authorization decisions never in the browser</dd>
+    <dt>Passwordless</dt>
+    <dd>ASP.NET Core Identity ships passkeys (WebAuthn/FIDO2) <span class="since">.NET 10</span> — phishing-resistant by design and the current answer to "should we build MFA ourselves"</dd>
+    <dt>Real-time</dt>
+    <dd>SSE for server→client streams (plain HTTP, proxy-friendly; <code>TypedResults.ServerSentEvents</code> <span class="since">.NET 10</span>) · WebSocket/SignalR for duplex, with a Redis backplane or Azure SignalR · long polling only as a fallback</dd>
+    <dt>Cross-origin</dt>
+    <dd>a same-origin BFF removes CORS preflights and third-party-cookie problems entirely; if you must do CORS, pin origins and cache the preflight with <code>Access-Control-Max-Age</code></dd>
+    <dt>Uploads and downloads</dt>
+    <dd>pre-signed URLs straight to blob storage, never streamed through the API pod; virus-scan asynchronously; return a short-lived signed read URL</dd>
+    <dt>Security headers</dt>
+    <dd>CSP with per-request nonces (no <code>unsafe-inline</code>) · HSTS · <code>X-Content-Type-Options: nosniff</code> · <code>Referrer-Policy</code> · <code>Permissions-Policy</code> · CSRF token or <code>SameSite</code> for cookie auth</dd>
+    <dt>Client resilience</dt>
+    <dd>optimistic UI with reconciliation, request de-duplication, abort on unmount (<code>AbortController</code>), and a retry policy that respects <code>Retry-After</code> — the browser is a distributed-systems client too</dd>
+    <dt>Front-end telemetry</dt>
+    <dd>RUM for the vitals at p75 plus trace propagation (<code>traceparent</code>) from browser to API, so a slow page maps to a slow span, not a guess</dd>
+  </dl>
+  <pre><code class="language-http">GET /app/index.html HTTP/1.1
+&gt; Cache-Control: no-cache                       # HTML always revalidated
+&gt; Set-Cookie: __Host-sid=…; HttpOnly; Secure; SameSite=Lax; Path=/
+
+GET /assets/app.9f3c1b.js HTTP/1.1
+&gt; Cache-Control: public, max-age=31536000, immutable    # hashed name = safe forever
+
+GET /api/orders?cursorAt=…&amp;cursorId=… HTTP/1.1
+&gt; ETag: "e7f1"                                  # 304 on the next poll
+&gt; Cache-Control: private, max-age=0, must-revalidate
+&gt; traceparent: 00-4bf92f…-00f067aa0ba902b7-01   # one trace, browser to database</code></pre>
+</section>
+
+<section class="unit" id="u10">
+  <header>
+    <h2><span class="n">10</span>Observability &amp; ops commands</h2>
+    <span class="docs"><a href="https://opentelemetry.io/docs/specs/semconv/">docs: OpenTelemetry semantic conventions</a> · <a href="https://learn.microsoft.com/dotnet/core/diagnostics/">docs: .NET diagnostics tools</a></span>
+  </header>
+  <dl class="rows">
+    <dt>What to measure</dt>
+    <dd><strong>RED</strong> for services (rate, errors, duration) · <strong>USE</strong> for resources (utilisation, saturation, errors) · one SLI per user-visible journey. Dashboards follow the SLOs, not the other way round</dd>
+    <dt>Wire-up</dt>
+    <dd><code>builder.Services.AddOpenTelemetry().WithTracing(…).WithMetrics(…).UseOtlpExporter();</code> — ASP.NET Core, <code>HttpClient</code> and EF Core emit spans and metrics out of the box</dd>
+    <dt>Env knobs</dt>
+    <dd><code>OTEL_SERVICE_NAME</code> · <code>OTEL_EXPORTER_OTLP_ENDPOINT</code> · <code>OTEL_TRACES_SAMPLER=parentbased_traceidratio</code> + <code>OTEL_TRACES_SAMPLER_ARG=0.05</code> · <code>OTEL_RESOURCE_ATTRIBUTES=deployment.environment=prod</code></dd>
+    <dt>Stable conventions</dt>
+    <dd><code>http.server.request.duration</code> (histogram, seconds) stable since semconv 1.23 · database conventions with <code>db.system.name</code> stable since 1.33 (2025) · <code>gen_ai.*</code> is still <em>Development</em> status in 2026 — do not build alerts on it yet</dd>
+    <dt>Sampling</dt>
+    <dd>head sampling 1–10% for volume, tail sampling to keep every error and slow trace; always keep the exemplar linking a p99 bucket to a trace id</dd>
+    <dt>Logs</dt>
+    <dd>structured, with <code>trace_id</code>/<code>span_id</code>; log at the boundary, not per loop iteration; never log payloads with PII or secrets. An unsampled debug log is the fastest way to make telemetry cost more than compute</dd>
+    <dt>Alerting</dt>
+    <dd>page on symptoms and burn rate (14.4× / 1h, 6× / 6h), ticket on causes. An alert with no runbook link and no user impact is noise that trains people to ignore pages</dd>
+    <dt>.NET diagnostics</dt>
+    <dd><code>dotnet-counters monitor -n api --counters System.Runtime,Microsoft.AspNetCore.Hosting</code> · <code>dotnet-trace collect -p 1 --profile cpu-sampling</code> · <code>dotnet-gcdump collect -p 1</code> · <code>dotnet-dump collect -p 1</code> · <code>dotnet-monitor</code> as a sidecar for on-demand artefacts</dd>
+    <dt>Kubernetes triage</dt>
+    <dd><code>kubectl top pod</code> · <code>kubectl describe hpa api</code> · <code>kubectl get events --sort-by=.lastTimestamp</code> · <code>kubectl logs -f deploy/api --previous</code> · <code>kubectl rollout status/undo deploy/api</code></dd>
+    <dt>PostgreSQL triage</dt>
+    <dd><code>EXPLAIN (ANALYZE, BUFFERS, SETTINGS) …</code> · <code>SELECT * FROM pg_stat_statements ORDER BY total_exec_time DESC LIMIT 20;</code> · <code>SELECT pid, wait_event_type, query FROM pg_stat_activity WHERE state='active';</code> · <code>SELECT pg_blocking_pids(pid) …</code></dd>
+    <dt>SQL Server triage</dt>
+    <dd>Query Store regressed queries · <code>sys.dm_exec_requests</code> joined to <code>sys.dm_exec_sql_text</code> · <code>sys.dm_os_wait_stats</code> · <code>sp_WhoIsActive</code> · deadlock graph from the system_health XEvent session</dd>
+    <dt>Load and capacity</dt>
+    <dd><code>k6 run --vus 200 --duration 5m script.js</code> for the knee, then re-measure the SLI. Capacity claims without a load test are estimates, and estimates are how incidents start</dd>
+    <dt>Incident command</dt>
+    <dd>declare and name an IC · <strong>mitigate before diagnose</strong> (roll back, shed, fail over) · one comms channel, updates on a fixed cadence · timeline as you go · blameless review with one owner per action</dd>
+  </dl>
+  <pre><code class="language-csharp">builder.Services.AddOpenTelemetry()
+    .ConfigureResource(r =&gt; r.AddService("orders-api", serviceVersion: BuildInfo.Version))
+    .WithTracing(t =&gt; t.AddAspNetCoreInstrumentation(o =&gt; o.RecordException = true)
+                       .AddHttpClientInstrumentation()
+                       .AddEntityFrameworkCoreInstrumentation())
+    .WithMetrics(m =&gt; m.AddAspNetCoreInstrumentation()      // http.server.request.duration
+                       .AddHttpClientInstrumentation()
+                       .AddRuntimeInstrumentation())
+    .UseOtlpExporter();                                     // OTEL_EXPORTER_OTLP_ENDPOINT
+
+// One custom histogram beats ten counters: business latency, with low-cardinality tags only.
+var checkout = meter.CreateHistogram&lt;double&gt;("checkout.duration", "s");
+checkout.Record(sw.Elapsed.TotalSeconds,
+    new KeyValuePair&lt;string, object?&gt;("result", outcome));  // never a customer id: cardinality</code></pre>
+</section>
+
+<section class="unit" id="u11">
+  <header>
+    <h2><span class="n">11</span>Gotchas that sink designs</h2>
+    <span class="docs"><a href="https://aws.amazon.com/builders-library/">library: Amazon Builders' Library</a></span>
+  </header>
+  <ul class="tight">
+    <li>Retries without jitter and a budget synchronise into a storm; the system then stays down after the trigger is gone — a <em>metastable</em> failure that only shedding or a restart exits.</li>
+    <li>Alerting on averages hides the tail: a 40 ms mean can contain a 4 s p99 that is 100% of one tenant's traffic.</li>
+    <li>HPA on CPU for an IO-bound API scales after the queue has already backed up; scale on concurrency, rps or lag.</li>
+    <li>Default <code>HttpClient.Timeout</code> is 100 s, so one slow dependency silently holds threads, connections and memory for two minutes.</li>
+    <li><code>new HttpClient()</code> per request exhausts sockets; use <code>IHttpClientFactory</code> or a static client with <code>PooledConnectionLifetime</code> so DNS changes are still picked up.</li>
+    <li>Connection maths: 40 pods × <code>Max Pool Size=100</code> = 4 000 connections against a Postgres that allows 100. PgBouncer or a smaller pool, decided before launch.</li>
+    <li><code>OFFSET</code> pagination degrades linearly and double-counts under concurrent inserts; keyset pagination does neither.</li>
+    <li>Uniform TTLs expire together. Jitter every TTL, or accept a periodic self-inflicted DDoS on the database.</li>
+    <li>Dual-writing to the database and the broker loses messages on any crash in between — outbox or CDC, no third option.</li>
+    <li>An at-least-once consumer without a dedupe table will eventually charge a customer twice; it is a matter of redeliveries, not of luck.</li>
+    <li>Reading from a replica right after a write shows the user an empty list and generates the support ticket titled "my order disappeared".</li>
+    <li>A missing index on a foreign key turns a delete into a table scan and a lock convoy.</li>
+    <li>EF Core: a missing <code>AsNoTracking()</code> on read paths, lazy loading in a loop (N+1), and two collection <code>Include</code>s without <code>AsSplitQuery()</code> are the three that show up in every profile.</li>
+    <li>PostgreSQL <code>SERIALIZABLE</code> raises <code>40001</code> and expects the <em>application</em> to retry; without that loop, serializable is just an error generator.</li>
+    <li>Chatty cross-AZ calls: 200 sequential 1 ms hops is 200 ms of pure network, invisible in every single-service profile.</li>
+    <li>Kafka consumers that process longer than <code>max.poll.interval.ms</code> get kicked out, triggering a rebalance storm that looks like a broker problem.</li>
+    <li>Sticky sessions as a scaling crutch produce uneven load and painful deploys; keep session state out of the process.</li>
+    <li>Unbounded queues convert an overload into an out-of-memory kill; bound the queue and shed at the edge.</li>
+    <li>A liveness probe that checks the database turns a 30-second database blip into a full-fleet restart.</li>
+    <li>A distributed lock without a fencing token allows two writers after a GC pause or a network partition — the TTL alone does not protect the resource.</li>
+    <li>Promising "exactly once" end-to-end without idempotent effects; the phrase is a design smell in every interview and every incident review.</li>
+    <li>Multi-region active-active in front of a single writable database is active-passive with extra latency and a bigger bill.</li>
+    <li>High-cardinality metric tags (customer id, URL with ids) explode the time series and the invoice; put those on spans and logs instead.</li>
+    <li>No dead-letter alert and no replay tool: the DLQ becomes the place data goes to be forgotten.</li>
+    <li>Shipping a breaking migration together with the code that needs it removes the ability to roll back — the one control you always want during an incident.</li>
+  </ul>
+</section>
+
+<section class="unit" id="u12">
+  <header>
+    <h2><span class="n">12</span>Modern vs legacy</h2>
+    <span class="docs"><a href="https://learn.microsoft.com/aspnet/core/release-notes/aspnetcore-10.0">docs: what's new in ASP.NET Core 10</a></span>
+  </header>
+  <div class="tw">
+    <table class="grid">
+      <thead><tr><th>Task</th><th>Modern</th><th>Legacy still seen</th><th>Since</th></tr></thead>
+      <tbody>
+        <tr><td>Host and endpoints</td><td>minimal APIs on <code>WebApplication</code>, endpoint filters, typed results</td><td><code>Startup.cs</code> + MVC controllers for everything, <code>IApplicationBuilder</code> conventions</td><td>.NET 6</td></tr>
+        <tr class="hi"><td>Caching</td><td><code>HybridCache</code> — L1+L2, stampede-safe, tag invalidation</td><td><code>IDistributedCache</code> plus a hand-rolled double-check and no single-flight</td><td>.NET 9</td></tr>
+        <tr><td>Response caching</td><td><code>AddOutputCache()</code>, server-side and invalidatable</td><td>ResponseCaching middleware driven by client headers</td><td>.NET 7</td></tr>
+        <tr><td>Resilience</td><td><code>AddStandardResilienceHandler()</code> (Polly v8 pipelines)</td><td>Polly v7 <code>Policy.Handle&lt;…&gt;.WaitAndRetryAsync</code> glued into handlers</td><td>.NET 8</td></tr>
+        <tr><td>Rate limiting</td><td>built-in <code>AddRateLimiter</code> with token bucket / concurrency</td><td>AspNetCoreRateLimit package or bespoke middleware</td><td>.NET 7</td></tr>
+        <tr><td>API description</td><td><code>AddOpenApi()</code> emitting OpenAPI 3.1 (JSON + YAML)</td><td>Swashbuckle producing Swagger 2.0 / OpenAPI 3.0</td><td>.NET 9 (3.1: .NET 10)</td></tr>
+        <tr><td>Request validation</td><td><code>AddValidation()</code> for minimal APIs, AOT-friendly</td><td>FluentValidation wired by hand, or validation in the handler</td><td>.NET 10</td></tr>
+        <tr><td>Telemetry</td><td>OpenTelemetry SDK + OTLP, vendor-neutral</td><td>Application Insights SDK only, custom correlation ids</td><td>.NET 8</td></tr>
+        <tr><td>Gateway</td><td>YARP as reverse proxy and BFF</td><td>Ocelot, IIS ARR, or nginx config nobody owns</td><td>YARP 1.0 (2021)</td></tr>
+        <tr><td>Local composition</td><td>Aspire AppHost (service discovery, OTel, dashboards)</td><td>hand-maintained <code>docker-compose.yml</code> and a README</td><td>Aspire 13 (2025-11)</td></tr>
+        <tr><td>Primary keys</td><td><code>Guid.CreateVersion7()</code> / <code>uuidv7()</code>, time-ordered</td><td>random v4 GUID clustered keys, or hi/lo table generators</td><td>.NET 9 / PG 18</td></tr>
+        <tr class="hi"><td>Queue semantics</td><td>Kafka share groups (KIP-932) or a native broker queue</td><td>ZooKeeper-era Kafka plus a second broker "for queues"</td><td>Kafka 4.2 (2026-02)</td></tr>
+        <tr><td>Bulk data ops</td><td><code>ExecuteUpdateAsync</code> / <code>ExecuteDeleteAsync</code>, <code>LeftJoin</code></td><td>load-modify-save loops, <code>GroupJoin</code>+<code>DefaultIfEmpty</code></td><td>EF Core 7 / 10</td></tr>
+        <tr><td>Long-running work</td><td>durable workflow (Dapr, Temporal, Durable Functions) or outbox + worker</td><td>Windows Service with Quartz polling a status column</td><td>—</td></tr>
+        <tr><td>SPA auth</td><td>BFF cookie + auth code with PKCE; passkeys for sign-in</td><td>implicit flow, access token in browser local storage, password-only</td><td>OAuth 2.1 / .NET 10</td></tr>
+        <tr><td>Static assets</td><td><code>MapStaticAssets()</code> — fingerprinted, pre-compressed</td><td><code>UseStaticFiles()</code> with hand-written cache headers</td><td>.NET 9</td></tr>
+        <tr><td>Vector / semantic search</td><td>pgvector HNSW or SQL Server 2025 <code>vector</code> type in the OLTP store</td><td>a separate vector database bolted alongside for one feature</td><td>2025-11</td></tr>
+        <tr><td>Config and secrets</td><td>Key Vault references + <code>IOptionsMonitor</code> hot reload</td><td><code>web.config</code> transforms, secrets in <code>appsettings.Production.json</code></td><td>.NET 6</td></tr>
+        <tr><td>Async at the edge</td><td>SSE (<code>TypedResults.ServerSentEvents</code>) or SignalR over WebSocket</td><td>client polling every few seconds "because it is simpler"</td><td>.NET 10</td></tr>
+      </tbody>
+    </table>
+  </div>
+  <div class="note"><p><strong>Interview use.</strong> Name the modern default, then say which legacy pattern you would expect to find and what you would migrate first. "We are on Polly v7 policies, so the standard handler is a two-day change that also gives us the metrics" is a stronger answer than either column alone.</p></div>
+</section>
+
+<section class="unit" id="u13">
+  <header>
+    <h2><span class="n">13</span>Version timeline</h2>
+    <span class="docs"><a href="https://github.com/dotnet/core/blob/main/release-notes/10.0/README.md">docs: .NET 10 release notes</a> · <a href="https://kubernetes.io/releases/">docs: Kubernetes releases</a></span>
+  </header>
+  <div class="tw">
+    <table class="grid">
+      <thead><tr><th>Date</th><th>Release</th><th>What changed for a system designer</th></tr></thead>
+      <tbody>
+        <tr><td>2026-11-10<br><span class="cmt">scheduled</span></td><td><code>.NET 11</code> (STS)</td><td><span class="cmt">not shipped yet — preview 7 as of 2026-08.</span> Runtime async, end-to-end async validation, OpenAPI 3.2 with SSE, container publishing defaults. <strong>.NET 8 LTS goes end of life the same day</strong></td></tr>
+        <tr><td>2026-09/10<br><span class="cmt">expected</span></td><td><code>PostgreSQL 19</code></td><td>beta 3 on 2026-08-13, GA expected within weeks; <em>newly deprecated:</em> plan upgrades off PG 13 (EOL Nov 2025)</td></tr>
+        <tr class="hi"><td>2026-08-11</td><td><code>.NET 10.0.11</code></td><td>current patch of the LTS line — the version to quote today; LTS support runs to 2028-11-10</td></tr>
+        <tr><td>2026-08-20</td><td><code>Kubernetes 1.36.4</code></td><td>patch of 1.36 "Haru" (2026-04-22); supported skew 1.34–1.36, so 1.34 clusters are already in maintenance</td></tr>
+        <tr><td>2026-07-21</td><td><code>Valkey 9.1.1</code></td><td>Valkey 9 line (9.0, 2025-10) brought atomic slot migration, hash-field expiration and multi-database cluster mode; the default Redis-compatible choice on the major clouds</td></tr>
+        <tr><td>2026-02-17</td><td><code>Kafka 4.2</code> · <code>Redis 8.2</code></td><td><strong>newly stable:</strong> share groups (KIP-932) production-ready — queue semantics on a Kafka topic, with lag metrics and a RENEW ack. Redis 8.2 GA the same day (client-side caching upgrades, vector similarity metrics)</td></tr>
+        <tr><td>2025-11-18</td><td><code>SQL Server 2025</code></td><td><strong>newly stable:</strong> native <code>vector</code> type and functions; DiskANN vector indexing still preview. Regex functions, JSON type, REST/AI endpoints</td></tr>
+        <tr><td>2025-11-12</td><td><code>Aspire 13</code></td><td>renamed (no ".NET"), multi-language app model, container builds, <code>aspire do</code> pipelines; requires the .NET 10 SDK. 13.2 (2026-03) added the TypeScript AppHost preview; 13.5.3 current</td></tr>
+        <tr class="hi"><td>2025-11-11</td><td><code>.NET 10</code> LTS · <code>ASP.NET Core 10</code> · <code>EF Core 10</code></td><td><strong>newly default:</strong> OpenAPI 3.1 documents (YAML endpoints). <strong>Newly stable:</strong> minimal-API validation, passkeys in Identity, SSE results; EF Core 10 <code>LeftJoin</code>/<code>RightJoin</code>, complex types in JSON columns, lambda-based <code>ExecuteUpdateAsync</code></td></tr>
+        <tr><td>2025-10-01</td><td><code>React 19.2</code></td><td><code>&lt;Activity&gt;</code>, <code>useEffectEvent</code>, <code>cacheSignal</code>, partial pre-rendering, batched Suspense reveals in SSR; latest patch 19.2.8 (2026-07). Next.js 16.3 is the active LTS</td></tr>
+        <tr><td>2025-09-25</td><td><code>PostgreSQL 18</code></td><td>asynchronous I/O subsystem (<code>io_method</code>, <code>io_uring</code> on Linux, up to ~3× on read-heavy scans), <code>uuidv7()</code>, virtual generated columns, <code>RETURNING old/new</code>, OAuth auth, cheaper <code>NOT NULL</code> and <code>pg_upgrade</code></td></tr>
+        <tr><td>2025-04-23</td><td><code>Kubernetes 1.33</code></td><td><strong>newly stable:</strong> native sidecar containers — the supported home for proxies and diagnostics agents; in-place pod resize in beta</td></tr>
+        <tr><td>2025-03-18</td><td><code>Kafka 4.0</code></td><td><strong>newly removed:</strong> ZooKeeper. KRaft only, new consumer rebalance protocol (KIP-848), share groups in early access</td></tr>
+        <tr><td>2024-11-12</td><td><code>.NET 9</code> (STS)</td><td><code>HybridCache</code>, <code>Guid.CreateVersion7()</code>, <code>MapStaticAssets</code>, built-in OpenAPI document generation. <span class="cmt">Out of support since 2026-05-12 — treat any service still on it as an upgrade item</span></td></tr>
+        <tr><td>2023-11-14</td><td><code>.NET 8</code> LTS</td><td>keyed DI, <code>TimeProvider</code>, request timeouts, <code>Microsoft.Extensions.Http.Resilience</code>, Blazor render modes. <span class="cmt">EOL 2026-11-10</span></td></tr>
+      </tbody>
+    </table>
+  </div>
+  <div class="note"><p><strong>Support horizon on 2026-09-08.</strong> .NET 10 is the only supported LTS (to Nov 2028); .NET 9 went out of support 2026-05-12 and .NET 8 ends 2026-11-10, the same week .NET 11 ships. Kubernetes supports 1.34–1.36. "Standardise on .NET 10 now, pilot .NET 11 after GA, and get off .NET 8 before November" is the defensible plan for a team today.</p></div>
+</section>
+</main>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.11.1/highlight.min.js"></script>
+<script>
+(function () {
+  if (window.hljs) { try { hljs.highlightAll(); } catch (e) { /* highlighting is decoration */ } }
+
+  var toggle = document.querySelector('.navtoggle');
+  var side = document.getElementById('side');
+  if (toggle) {
+    toggle.addEventListener('click', function () {
+      var open = document.body.classList.toggle('nav-open');
+      toggle.setAttribute('aria-expanded', open ? 'true' : 'false');
+    });
+  }
+  if (side) {
+    side.addEventListener('click', function (e) {
+      if (e.target.closest('a')) {
+        document.body.classList.remove('nav-open');
+        if (toggle) toggle.setAttribute('aria-expanded', 'false');
+      }
+    });
+  }
+
+  var links = Array.prototype.slice.call(document.querySelectorAll('.units a'));
+  var units = links.map(function (a) { return document.getElementById(a.getAttribute('href').slice(1)); });
+  var ticking = false;
+  function spy() {
+    ticking = false;
+    var best = 0;
+    for (var i = 0; i < units.length; i++) {
+      if (units[i] && units[i].getBoundingClientRect().top <= 140) best = i;
+    }
+    for (var j = 0; j < links.length; j++) {
+      if (j === best) links[j].setAttribute('aria-current', 'true');
+      else links[j].removeAttribute('aria-current');
+    }
+  }
+  function onScroll() {
+    if (!ticking) { ticking = true; window.requestAnimationFrame(spy); }
+  }
+  window.addEventListener('scroll', onScroll, { passive: true });
+  window.addEventListener('resize', onScroll, { passive: true });
+  spy();
+})();
+</script>
+</body>
+</html>
