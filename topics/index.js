@@ -54,7 +54,14 @@ window.DEVBOK_TOPICS = [
           "file": "topics/aspire/study.v1.html"
         }
       ],
-      "experience": [],
+      "experience": [
+        {
+          "v": 1,
+          "generated": "2026-09-08",
+          "prompt": "f284a113",
+          "file": "topics/aspire/experience.v1.html"
+        }
+      ],
       "interview": [],
       "cheatsheet": [
         {
@@ -200,10 +207,38 @@ window.DEVBOK_TOPICS = [
     "accent": "#0078d4",
     "created": "2026-09-08",
     "kinds": {
-      "study": [],
-      "experience": [],
-      "interview": [],
-      "cheatsheet": []
+      "study": [
+        {
+          "v": 1,
+          "generated": "2026-09-08",
+          "prompt": "3e395ac4",
+          "file": "topics/azure/study.v1.html"
+        }
+      ],
+      "experience": [
+        {
+          "v": 1,
+          "generated": "2026-09-08",
+          "prompt": "f284a113",
+          "file": "topics/azure/experience.v1.html"
+        }
+      ],
+      "interview": [
+        {
+          "v": 1,
+          "generated": "2026-09-08",
+          "prompt": "880c04f3",
+          "file": "topics/azure/interview.v1.html"
+        }
+      ],
+      "cheatsheet": [
+        {
+          "v": 1,
+          "generated": "2026-09-08",
+          "prompt": "ccd2d4a9",
+          "file": "topics/azure/cheatsheet.v1.html"
+        }
+      ]
     }
   },
   {
@@ -508,7 +543,14 @@ window.DEVBOK_TOPICS = [
     "created": "2026-09-08",
     "kinds": {
       "study": [],
-      "experience": [],
+      "experience": [
+        {
+          "v": 1,
+          "generated": "2026-09-08",
+          "prompt": "f284a113",
+          "file": "topics/mongo/experience.v1.html"
+        }
+      ],
       "interview": [],
       "cheatsheet": [
         {

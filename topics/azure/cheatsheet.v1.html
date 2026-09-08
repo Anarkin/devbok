@@ -1,0 +1,948 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Azure cloud · cheatsheet · devbok</title>
+<link rel="preconnect" href="https://fonts.googleapis.com/">
+<link rel="preconnect" href="https://fonts.gstatic.com/" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Cascadia+Mono:wght@400;700&amp;display=swap">
+<style>
+:root { color-scheme: light;
+  --bg: #ffffff; --fg: #111111; --muted: #6b6b6b; --line: #111111; --soft: #f4f4f4; --border: #cccccc;
+  --accent: #0078d4; --accent-soft: color-mix(in srgb, var(--accent) 12%, var(--bg)); }
+@media (prefers-color-scheme: dark) { :root { color-scheme: dark;
+  --bg: #222222; --fg: #cccccc; --muted: #8f8f8f; --line: #111111; --soft: #2c2c2c; --border: #4a4a4a;
+  --accent: #52b4ff; --accent-soft: color-mix(in srgb, var(--accent) 16%, var(--bg)); } }
+
+*, *::before, *::after { box-sizing: border-box; }
+html { -webkit-text-size-adjust: 100%; }
+body { margin: 0; background: var(--bg); color: var(--fg);
+  font-family: system-ui, sans-serif; font-size: 16px; line-height: 1.6; overflow-wrap: break-word; }
+h1, h2, h3 { font-family: system-ui, sans-serif; font-weight: 700; }
+h2 { font-size: 1.5em; }
+h3 { font-size: 1.17em; }
+a { color: var(--accent); }
+a:focus-visible, button:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+img { max-width: 100%; }
+
+code, kbd, pre, .mono, .chip, .since, .docs, .hero .meta, .side, dl.rows dd, table.grid { font-family: "Cascadia Mono", Consolas, monospace; font-size: 12px; }
+code { background: var(--soft); border: 1px solid var(--border); border-radius: 3px; padding: 0 .3em; overflow-wrap: anywhere; }
+pre { background: var(--soft); border: 1px solid var(--border); border-radius: 4px;
+  margin: 10px 0 0; padding: 10px 12px; overflow-x: auto; max-width: 100%; line-height: 1.5; }
+pre code { background: none; border: 0; padding: 0; white-space: pre; }
+
+.hero { margin: 0 0 24px; padding: 0 0 24px; border-bottom: 2px solid var(--line); }
+.hero h1 { margin: 0 0 8px; font-size: 2em; line-height: 1.2; font-weight: 700; }
+.hero .meta { margin: 0 0 12px; font-family: "Cascadia Mono", Consolas, monospace; font-size: 12px; color: var(--muted); }
+.hero .summary { margin: 0 0 12px; }
+.hero .chips { display: flex; flex-wrap: wrap; gap: 6px; margin: 0; }
+
+.side { position: fixed; top: 0; bottom: 0; left: 0; width: 260px; display: flex; flex-direction: column; background: var(--bg); border-right: 2px solid var(--line); font-family: "Cascadia Mono", Consolas, monospace; font-size: 12px; }
+.units { list-style: none; margin: 0; padding: 12px 0; overflow-y: auto; flex: 1; }
+.units a { display: grid; grid-template-columns: 2.5em 1fr; padding: 9px 20px; color: var(--fg); text-decoration: none; line-height: 1.4; }
+.units .n { color: var(--muted); }
+.units a:hover { background: var(--soft); }
+.units a[aria-current="true"] { background: var(--accent-soft); color: var(--accent); }
+.units a[aria-current="true"] .n { color: var(--accent); }
+.side footer { padding: 12px 20px; border-top: 2px solid var(--line); color: var(--muted); line-height: 1.5; }
+
+.content { margin-left: 260px; padding: 24px; max-width: 120ch; min-width: 0; }
+.unit { border-top: 2px solid var(--line); margin: 0 0 26px; padding: 14px 0 0; min-width: 0; }
+.unit > header { display: flex; flex-wrap: wrap; align-items: baseline; gap: 4px 14px; margin: 0 0 4px; min-width: 0; }
+.unit h2 { margin: 0; line-height: 1.25; }
+.unit h2 .n { font-family: "Cascadia Mono", Consolas, monospace; font-size: 12px; color: var(--muted); margin-right: 10px; }
+.unit h3 { margin: 16px 0 0; }
+.unit > p { margin: 8px 0 0; }
+.docs { color: var(--muted); }
+.docs a { color: var(--accent); text-decoration: none; }
+.docs a:hover { text-decoration: underline; }
+
+dl.rows { display: grid; grid-template-columns: minmax(0, 32ch) minmax(0, 1fr);
+  margin: 12px 0 0; border-top: 1px solid var(--border); min-width: 0; }
+dl.rows dt { grid-column: 1; margin: 0; padding: 6px 14px 6px 0; border-bottom: 1px solid var(--border);
+  min-width: 0; line-height: 1.35; }
+dl.rows dd { grid-column: 2; margin: 0; padding: 7px 0 6px; border-bottom: 1px solid var(--border);
+  min-width: 0; line-height: 1.5; overflow-wrap: anywhere; }
+dl.rows dd code { background: none; border: 0; padding: 0; }
+.cmt { color: var(--muted); }
+
+.chip { display: inline-block; text-transform: uppercase; letter-spacing: .03em;
+  background: var(--soft); border: 1px solid var(--border); border-radius: 4px; padding: 2px 7px; }
+.since { display: inline-block; border: 1px solid var(--accent); border-radius: 4px;
+  padding: 0 5px; color: var(--accent); white-space: nowrap; }
+.note { background: var(--soft); border-left: 3px solid var(--accent); padding: 8px 12px; margin: 12px 0 0; }
+.note p { margin: 0; }
+
+.tw { overflow-x: auto; margin: 12px 0 0; min-width: 0; }
+table.grid { border-collapse: collapse; width: 100%; }
+table.grid th { text-align: left; font-weight: 400; color: var(--muted);
+  border-bottom: 1px solid var(--border); padding: 6px 14px 6px 0; vertical-align: bottom; }
+table.grid td { border-bottom: 1px solid var(--border); padding: 6px 14px 6px 0; vertical-align: top; }
+table.grid td code { background: none; border: 0; padding: 0; }
+table.grid tr.hi td { background: var(--accent-soft); }
+
+ul.tight { margin: 12px 0 0; padding-left: 1.1em; }
+ul.tight li { margin: 0 0 3px; }
+ul.tight code { overflow-wrap: anywhere; }
+
+.navtoggle { display: none; position: fixed; top: 10px; left: 10px; z-index: 30;
+  font-family: "Cascadia Mono", Consolas, monospace; font-size: 12px; color: var(--fg);
+  background: var(--bg); border: 1px solid var(--line); border-radius: 4px; padding: 6px 10px; cursor: pointer; }
+@media (max-width: 720px) {
+  .navtoggle { display: block; }
+  .side { width: min(260px, 84%); transform: translateX(-102%); transition: transform .15s ease; z-index: 25; }
+  body.nav-open .side { transform: none; }
+  .content { margin-left: 0; padding: 52px 16px 24px; }
+  dl.rows { grid-template-columns: minmax(0, 1fr); }
+  dl.rows dt { padding: 6px 0 0; border-bottom: 0; font-weight: 600; }
+  dl.rows dd { padding: 2px 0 7px; }
+}
+
+@media print {
+  :root { color-scheme: light;
+    --bg: #ffffff; --fg: #000000; --muted: #444444; --line: #000000; --soft: #ffffff; --border: #999999;
+    --accent: #000000; --accent-soft: #ffffff; }
+  .side, .navtoggle { display: none !important; }
+  body { font-size: 8.5pt; line-height: 1.3; background: #fff; color: #000; }
+  .content { margin: 0; padding: 0; max-width: 100%; }
+  code, kbd, pre, .chip, .since, .docs, .hero .meta, dl.rows dd, table.grid { font-size: 7pt; }
+  .hero { padding-bottom: 8pt; margin-bottom: 10pt; border-bottom: 1pt solid #000; }
+  .hero h1 { font-size: 16pt; }
+  .unit { break-inside: avoid; page-break-inside: avoid; margin: 0 0 8pt; padding-top: 6pt; border-top: 1pt solid #000; }
+  .unit h2 { font-size: 10.5pt; }
+  pre { background: #fff; border: 1pt solid #999; padding: 4pt 6pt; }
+  .note { background: #fff; border-left: 2pt solid #000; }
+  code { border: 0; padding: 0; }
+  a, a:visited { color: #000; text-decoration: none; }
+  a[href]::after { content: ""; }
+  @page { size: A4; margin: 10mm; }
+}
+</style>
+<style>
+/* devbok: the shared code palette (prompts/shared/page.md, "Code"). */
+:root {
+  --code: color-mix(in srgb, var(--accent) 70%, var(--fg));
+  --hl-kw: #a626a4; --hl-str: #50a14f; --hl-num: #986801; --hl-cmt: #6b6b6b; --hl-type: #0184bc; --hl-fn: #4078f2; --hl-attr: #986801;
+}
+@media (prefers-color-scheme: dark) {
+  :root { --hl-kw: #c678dd; --hl-str: #98c379; --hl-num: #d19a66; --hl-cmt: #8f8f8f; --hl-type: #56b6c2; --hl-fn: #61afef; --hl-attr: #e5c07b; }
+}
+code { background: var(--soft); border: 1px solid var(--border); border-radius: 3px; padding: 0 .3em; color: var(--code); overflow-wrap: anywhere; }
+pre code, pre code.hljs { background: none; border: 0; border-radius: 0; padding: 0; color: inherit; white-space: pre; overflow-wrap: normal; }
+.hljs { color: var(--fg); background: transparent; }
+.hljs-keyword, .hljs-built_in, .hljs-literal, .hljs-selector-tag { color: var(--hl-kw); }
+.hljs-string, .hljs-regexp, .hljs-selector-attr { color: var(--hl-str); }
+.hljs-number, .hljs-symbol { color: var(--hl-num); }
+.hljs-comment, .hljs-quote, .hljs-doctag { color: var(--hl-cmt); font-style: italic; }
+.hljs-title, .hljs-title.class_, .hljs-type, .hljs-name, .hljs-section, .hljs-selector-class, .hljs-selector-pseudo { color: var(--hl-type); }
+.hljs-title.function_ { color: var(--hl-fn); }
+.hljs-meta, .hljs-attr, .hljs-attribute, .hljs-tag, .hljs-property, .hljs-variable { color: var(--hl-attr); }
+.hljs-template-tag, .hljs-template-variable { color: var(--hl-attr); }
+.hljs-code, .hljs-formula { color: var(--hl-cmt); }
+.hljs-operator, .hljs-subst, .hljs-punctuation, .hljs-params { color: var(--fg); }
+.hljs-emphasis { font-style: italic; }
+.hljs-strong { font-weight: 700; }
+@media print { code, .hljs, .hljs span { color: #000 !important; background: transparent !important; } }
+</style>
+</head>
+<body>
+<!-- devbok
+slug: azure
+kind: cheatsheet
+version: 1
+topic: "Azure cloud"
+prompt: cheatsheet.md@ccd2d4a9
+generated: 2026-09-08
+-->
+<button class="navtoggle" type="button" aria-expanded="false" aria-controls="side">units</button>
+<nav class="side" id="side" aria-label="Units">
+  <ol class="units">
+    <li><a href="#u01"><span class="n">01</span><span class="t">Resource model &amp; scopes</span></a></li>
+    <li><a href="#u02"><span class="n">02</span><span class="t">Azure CLI daily driver</span></a></li>
+    <li><a href="#u03"><span class="n">03</span><span class="t">Bicep, stacks &amp; azd</span></a></li>
+    <li><a href="#u04"><span class="n">04</span><span class="t">Identity &amp; managed identity</span></a></li>
+    <li><a href="#u05"><span class="n">05</span><span class="t">RBAC, ABAC &amp; Policy</span></a></li>
+    <li><a href="#u06"><span class="n">06</span><span class="t">Choosing the compute host</span></a></li>
+    <li><a href="#u07"><span class="n">07</span><span class="t">App Service, Functions, ACA</span></a></li>
+    <li><a href="#u08"><span class="n">08</span><span class="t">AKS &amp; containers</span></a></li>
+    <li><a href="#u09"><span class="n">09</span><span class="t">Data: Storage, Cosmos, SQL</span></a></li>
+    <li><a href="#u10"><span class="n">10</span><span class="t">Messaging &amp; events</span></a></li>
+    <li><a href="#u11"><span class="n">11</span><span class="t">Networking &amp; private access</span></a></li>
+    <li><a href="#u12"><span class="n">12</span><span class="t">Secrets, config &amp; SDK idioms</span></a></li>
+    <li><a href="#u13"><span class="n">13</span><span class="t">Observability &amp; KQL</span></a></li>
+    <li><a href="#u14"><span class="n">14</span><span class="t">Resilience, cost &amp; limits</span></a></li>
+    <li><a href="#u15"><span class="n">15</span><span class="t">Gotchas, one line each</span></a></li>
+    <li><a href="#u16"><span class="n">16</span><span class="t">Modern vs legacy</span></a></li>
+    <li><a href="#u17"><span class="n">17</span><span class="t">Version timeline</span></a></li>
+  </ol>
+  <footer>Azure cloud · cheatsheet · version 1 · 2026-09-08</footer>
+</nav>
+<main class="content">
+<header class="hero">
+  <h1>Azure cloud</h1>
+  <p class="meta">cheatsheet · Azure CLI 2.90.0 · released 2026-09-01</p>
+  <p class="summary">The commands, resource shapes, SDK calls and KQL an engineer runs weekly on Azure: the resource model and CLI, Bicep / deployment stacks / azd, Entra identity and managed identity, RBAC and Policy, the compute hosts and how to choose between them, data and messaging, private networking, Key Vault and the SDK credential chain, Azure Monitor, plus a modern-vs-legacy table and a timeline. Verified 2026-09-08 against Azure CLI <strong>2.90.0</strong> (2026-09-01), Az PowerShell <strong>16.3.0</strong>, Bicep <strong>0.46.1</strong>, azd <strong>1.32.0</strong> and AKS <strong>1.34&ndash;1.36</strong>. Assumption: &ldquo;Azure cloud&rdquo; is read as the Azure platform an application engineer builds on &mdash; compute, data, identity, networking, IaC and operations &mdash; not Microsoft 365, Dynamics or Power Platform, and not certification-exam trivia.</p>
+  <p class="chips"><span class="chip">az 2.90.0</span> <span class="chip">Az PS 16.3.0</span> <span class="chip">Bicep 0.46.1</span> <span class="chip">azd 1.32.0</span> <span class="chip">AKS 1.34&ndash;1.36</span> <span class="chip">Azure.Identity 1.21</span> <span class="chip">ARM write MFA enforced</span> <span class="chip">verified 2026-09-08</span></p>
+</header>
+
+<section class="unit" id="u01">
+  <header>
+    <h2><span class="n">01</span>Resource model &amp; scopes</h2>
+    <span class="docs"><a href="https://learn.microsoft.com/en-us/azure/azure-resource-manager/management/overview">docs: Azure Resource Manager</a></span>
+  </header>
+  <p>Everything is an ARM resource with a canonical ID. Learn the ID shape and half of Azure debugging is reading a string.</p>
+  <pre><code class="language-plaintext">/subscriptions/{subId}/resourceGroups/{rg}/providers/{RP}/{type}/{name}[/{childType}/{childName}]
+/subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/rg-app-prod-weu/providers/Microsoft.Web/sites/app-orders</code></pre>
+  <dl class="rows">
+    <dt>Scope hierarchy</dt>
+    <dd>tenant &rarr; management group (6 levels max under root) &rarr; subscription &rarr; resource group &rarr; resource. RBAC, Policy and deployments all target a scope and <strong>inherit downward</strong>; nothing inherits sideways.</dd>
+    <dt>Resource group</dt>
+    <dd>a lifecycle + region-of-metadata boundary, not a security or network boundary. Resources may live in other regions than their RG. Delete the RG, delete the contents.</dd>
+    <dt>Subscription</dt>
+    <dd>the billing and <strong>quota</strong> boundary. Most limits (cores per region, public IPs, ARM writes) are per subscription per region &mdash; the usual reason to split, along with blast radius.</dd>
+    <dt>Provider / API version</dt>
+    <dd>every write pins an API version: <code>Microsoft.Web/sites@2024-11-01</code>. New properties simply do not exist on older versions &mdash; the #1 cause of &ldquo;the portal can do it, my template can&rsquo;t&rdquo;.</dd>
+    <dt>Tags</dt>
+    <dd>50 per resource, 512-char names, 256-char values; <strong>not</strong> inherited by default &mdash; use Policy <code>modify</code> with <code>inheritTagFromResourceGroup</code>.</dd>
+    <dt>Locks</dt>
+    <dd><code>CanNotDelete</code> and <code>ReadOnly</code>, inherited to children. <code>ReadOnly</code> breaks control-plane operations that look like reads (listing storage keys is a POST) &mdash; prefer <code>CanNotDelete</code>.</dd>
+    <dt>Correlation on failure</dt>
+    <dd>every ARM error carries a <code>x-ms-correlation-request-id</code>; quote it in support cases and join on it in Activity Log.</dd>
+  </dl>
+  <h3>Naming, regions, moves</h3>
+  <ul class="tight">
+    <li>Global-unique names: storage accounts (3&ndash;24, lowercase alphanumeric), Key Vault (3&ndash;24), App Service (<code>*.azurewebsites.net</code>), ACR, Cosmos DB, Service Bus namespaces. Everything else is unique per RG.</li>
+    <li><strong>Availability zones</strong> are per-subscription logical mappings; zone 1 in your subscription is not zone 1 in mine. Use <code>az vm list-skus --location westeurope --zone</code> to see real capability.</li>
+    <li>Move: <code>az resource move --destination-group</code> &mdash; source and target are locked for the duration; many resources (VNets with peerings, Key Vault with keys in use, ASE, managed identities) cannot move. Redeploying via IaC is usually faster than fighting a move.</li>
+    <li>Soft delete is on and non-optional for Key Vault (90 days default) and recoverable for Storage blobs/containers if enabled &mdash; a redeploy under the same name will fail with <code>ConflictError</code> until purged.</li>
+  </ul>
+  <div class="note"><p>Lead framing: pick the boundary by what you want to fail independently. One subscription per environment per platform team is the common landing-zone default; per-team subscriptions when quota or policy needs differ; RGs only for lifecycle grouping.</p></div>
+</section>
+
+<section class="unit" id="u02">
+  <header>
+    <h2><span class="n">02</span>Azure CLI daily driver</h2>
+    <span class="docs"><a href="https://learn.microsoft.com/en-us/cli/azure/reference-index">docs: az reference</a></span>
+  </header>
+  <p>Azure CLI <strong>2.90.0</strong> <span class="since">2026-09-01</span>. Every <code>az</code> command is <code>az &lt;group&gt; &lt;subgroup&gt; &lt;verb&gt;</code>, returns JSON, and supports <code>--query</code> (JMESPath) and <code>--output</code>.</p>
+  <pre><code class="language-bash"># sign in and pin context (interactive login now requires MFA for write ops)
+az login --tenant contoso.onmicrosoft.com
+az account set --subscription "prod-platform"
+az account show --query "{sub:name, id:id, tenant:tenantId}" -o table
+
+# the four flags that matter
+az webapp list -o table                       # human table
+az webapp list --query "[?state=='Running'].name" -o tsv    # scriptable
+az group create -n rg-demo -l westeurope --tags env=dev owner=me
+az vm create -g rg-demo -n vm1 --image Ubuntu2404 --no-wait  # fire and forget
+
+# JMESPath you will actually reuse
+az vm list --query "[].{name:name, size:hardwareProfile.vmSize, rg:resourceGroup}" -o table
+az role assignment list --all --query "[?principalName=='svc-deploy'].roleDefinitionName" -o tsv
+az resource list --tag env=prod --query "[].id" -o tsv | xargs -n1 az resource show --ids
+
+# generic escape hatch when a command group lags the API
+az resource update --ids $ID --set properties.publicNetworkAccess=Disabled
+az rest --method get --url "https://management.azure.com$ID?api-version=2024-11-01"</code></pre>
+  <dl class="rows">
+    <dt>Config once, save typing</dt>
+    <dd><code>az config set defaults.group=rg-demo defaults.location=westeurope core.output=table core.only_show_errors=true</code></dd>
+    <dt>Extensions</dt>
+    <dd><code>az extension add --name containerapp</code>; <code>az extension update --all</code>; <code>az config set extension.dynamic_install_allow_preview=true</code>. Extensions version independently of the CLI &mdash; a &ldquo;command not found&rdquo; is usually a missing or stale extension.</dd>
+    <dt>Deployment / async</dt>
+    <dd><code>--no-wait</code> then <code>az resource wait --ids $ID --created</code> / <code>--custom "properties.provisioningState=='Succeeded'"</code>.</dd>
+    <dt>Debugging a failure</dt>
+    <dd><code>az deployment operation group list -g rg -n dep --query "[?properties.provisioningState=='Failed'].properties.statusMessage"</code> &mdash; the top-level error is always useless; the operation list has the real one.</dd>
+    <dt>Activity log (who did it)</dt>
+    <dd><code>az monitor activity-log list -g rg --start-time 2026-09-07T00:00Z --query "[].{op:operationName.value, by:caller, status:status.value}" -o table</code></dd>
+    <dt>New in 2.90.0</dt>
+    <dd><code>az webapp exec</code> (interactive shell into a Linux container app), <code>az aks nodepool auto-scale add/update/delete</code>, Key Vault control plane on API <code>2026-02-01</code>, NAT64 on StandardV2 NAT gateways.</dd>
+    <dt>New in 2.88.0 <span class="since">2026-07</span></dt>
+    <dd><code>az functionapp flex-migration</code> (Linux Consumption &rarr; Flex), <code>az aks nodepool get-rollback-versions/rollback</code>; default VM <code>--size</code> changed <code>Standard_DS1_v2</code> &rarr; <code>Standard_D2s_v5</code>; Linux is the default OS for <code>az webapp create</code> unless <code>--hyper-v</code>.</dd>
+    <dt>Breaking in 2.92.0 <span class="since">2026-11</span></dt>
+    <dd><code>az blueprint</code> is removed (Blueprints are deprecated &mdash; move to deployment stacks / Azure Landing Zones), and <code>--access-keys-auth</code> flips its default from <code>Enabled</code> to <code>Disabled</code>.</dd>
+    <dt>PowerShell equivalent</dt>
+    <dd>Az <strong>16.3.0</strong> <span class="since">2026-08-31</span>: <code>Connect-AzAccount</code>, <code>Set-AzContext -Subscription</code>, <code>Get-AzResource -Tag @{env='prod'}</code>. AzureRM has been retired since 2024-02-29 &mdash; any <code>*-AzureRm*</code> cmdlet in a repo is dead code.</dd>
+  </dl>
+  <div class="note"><p>Automation gotcha: <code>az login</code> in CI must be non-interactive &mdash; OIDC federation (<code>az login --service-principal --username $CLIENT_ID --tenant $TENANT --federated-token $TOKEN</code>) or a managed identity (<code>az login --identity</code>). Client secrets in pipeline variables are the legacy pattern.</p></div>
+</section>
+
+<section class="unit" id="u03">
+  <header>
+    <h2><span class="n">03</span>Bicep, deployment stacks &amp; azd</h2>
+    <span class="docs"><a href="https://learn.microsoft.com/en-us/azure/azure-resource-manager/bicep/">docs: Bicep</a></span>
+  </header>
+  <p>Bicep <strong>0.46.1</strong> <span class="since">2026-07-31</span> is the first-party IaC language; ARM JSON is its compile target, not something you hand-write any more.</p>
+  <pre><code class="language-bicep">targetScope = 'resourceGroup'
+
+@description('Short environment name')
+@allowed(['dev', 'test', 'prod'])
+param env string
+param location string = resourceGroup().location
+@secure()
+param sqlAdminPassword string
+
+var name = 'app-orders-${env}-${uniqueString(resourceGroup().id)}'
+
+resource plan 'Microsoft.Web/serverfarms@2024-11-01' = {
+  name: 'plan-${env}'
+  location: location
+  sku: { name: env == 'prod' ? 'P1v4' : 'B1' }
+  properties: { reserved: true }   // reserved: true == Linux
+}
+
+@retryOn(['ResourceDeploymentFailure'], 3)   // 0.43+ : retry a flaky resource
+resource site 'Microsoft.Web/sites@2024-11-01' = {
+  name: name
+  location: location
+  identity: { type: 'SystemAssigned' }
+  properties: {
+    serverFarmId: plan.id
+    httpsOnly: true
+    siteConfig: { minTlsVersion: '1.2', ftpsState: 'Disabled', netFrameworkVersion: 'v10.0' }
+  }
+}
+
+module kv 'br/public:avm/res/key-vault/vault:0.11.0' = {
+  name: 'kv'
+  params: { name: 'kv-${env}-${uniqueString(resourceGroup().id)}', location: location, enableRbacAuthorization: true }
+}
+
+output principalId string = site.identity.principalId
+output url string = 'https://${site.properties.defaultHostName}'</code></pre>
+  <dl class="rows">
+    <dt>Preview a change</dt>
+    <dd><code>az deployment group what-if -g rg -f main.bicep -p main.bicepparam</code> &mdash; the single most useful command in the toolchain. <code>--result-format FullResourcePayload</code> when the summary lies.</dd>
+    <dt>Deploy</dt>
+    <dd><code>az deployment group create -g rg -f main.bicep -p main.bicepparam -n rel-$(date +%s)</code>. Default mode is <strong>Incremental</strong> (nothing is deleted); <code>--mode Complete</code> deletes anything in the RG not in the template.</dd>
+    <dt>Deployment stacks <span class="since">GA 2024</span></dt>
+    <dd>the modern answer to &ldquo;who cleans up?&rdquo;: <code>az stack group create -g rg -n app -f main.bicep --action-on-unmanage deleteAll --deny-settings-mode denyDelete</code>. The stack owns its resources, removes ones that leave the template, and can deny out-of-band changes. This is what replaced Blueprints.</dd>
+    <dt>Params file</dt>
+    <dd><code>.bicepparam</code> (not JSON): <code>using 'main.bicep'</code> then <code>param env = 'prod'</code>; <code>getSecret()</code> pulls from Key Vault at deploy time. <code>extends</code> layers a base param file; inherited params are optional since 2026-07.</dd>
+    <dt>Modules &amp; AVM</dt>
+    <dd>prefer <strong>Azure Verified Modules</strong> from the public registry: <code>br/public:avm/res/&lt;service&gt;/&lt;resource&gt;:&lt;ver&gt;</code>. Private registry: <code>az bicep publish --file m.bicep --target br:myacr.azurecr.io/bicep/m:1.0.0</code>.</dd>
+    <dt>Newer language bits</dt>
+    <dd><code>like()</code> and <code>distinct()</code> <span class="since">0.43.1, 2026-05</span>; user-defined types (<code>type sku = { name: string }</code>) and functions; <code>import</code>/<code>export</code> across files; <code>bicep snapshot</code> <span class="since">GA 0.41.2, 2026-03</span> for a normalised, diffable view of what a file will produce.</dd>
+    <dt>Lint &amp; format</dt>
+    <dd><code>az bicep lint --file main.bicep</code>, <code>az bicep format</code>; rules in <code>bicepconfig.json</code>. The <code>secure-params-in-parameters-file</code> rule <span class="since">2026-07</span> catches secrets checked into <code>.bicepparam</code>.</dd>
+    <dt>Terraform interop</dt>
+    <dd>plenty of shops run Terraform with <code>azurerm</code> (and <code>azapi</code> for un-covered resources). Both are fine; the argument to win in an interview is state management and drift, not syntax.</dd>
+  </dl>
+  <h3>azd &mdash; the app-centric wrapper</h3>
+  <pre><code class="language-bash">azd init --template todo-csharp-cosmos-sql   # azure.yaml + infra/ (Bicep)
+azd auth login --federated-credential-provider azure-pipelines
+azd up            # provision + build + deploy, one command
+azd provision --preview                      # what-if for the whole environment
+azd env set AZURE_LOCATION westeurope && azd env list
+azd pipeline config --provider github        # writes OIDC federated creds, no secrets</code></pre>
+  <p><strong>azd 1.32.0</strong> <span class="since">2026-08</span>: the extension framework went GA, Azure Functions can deploy a prebuilt container image (no local Docker step), and provisioning infers Bicep dependencies in layers. Use azd for greenfield app+infra repos; plain Bicep or Terraform for platform/landing-zone code.</p>
+</section>
+
+<section class="unit" id="u04">
+  <header>
+    <h2><span class="n">04</span>Identity &amp; managed identity</h2>
+    <span class="docs"><a href="https://learn.microsoft.com/en-us/entra/identity/managed-identities-azure-resources/overview">docs: Managed identities</a></span>
+  </header>
+  <p>Two planes, two token audiences: <strong>Entra ID</strong> issues tokens; <strong>ARM</strong> authorises control-plane calls; each data plane (Storage, Key Vault, SQL&hellip;) has its own resource URI and its own RBAC.</p>
+  <dl class="rows">
+    <dt>System-assigned MI</dt>
+    <dd>1:1 with the resource, dies with it. Zero secrets. <code>az webapp identity assign -g rg -n app</code> &rarr; returns <code>principalId</code>.</dd>
+    <dt>User-assigned MI <span class="chip">preferred at scale</span></dt>
+    <dd>its own resource, attach to many; survives redeploys, so role assignments are created once and stay valid. <code>az identity create -g rg -n id-orders</code>, then <code>az webapp identity assign --identities $UAMI_ID</code>. Also the way to pre-create the principal before granting.</dd>
+    <dt>Workload identity federation</dt>
+    <dd>no secrets for GitHub Actions / Azure DevOps / AKS / other clouds: <code>az identity federated-credential create --identity-name id-ci -g rg --issuer https://token.actions.githubusercontent.com --subject repo:org/repo:ref:refs/heads/main --audiences api://AzureADTokenExchange</code>. This is the modern replacement for SP client secrets and certificates.</dd>
+    <dt>AKS workload identity</dt>
+    <dd>projected service-account token federated to a UAMI &mdash; replaces the retired <strong>AAD Pod Identity</strong> (retired 2023-09). New in CLI 2.89.0: <code>az aks identity-binding</code> for trust-domain based binding.</dd>
+    <dt>App registration vs enterprise app</dt>
+    <dd>one <em>application</em> object (global, in its home tenant) + one <em>service principal</em> per tenant. Role assignments and consent hang off the service principal; API permissions off the application. Interview answer: &ldquo;app registration is the blueprint, the enterprise app is the instance.&rdquo;</dd>
+    <dt>Token endpoint (IMDS)</dt>
+    <dd><code>GET http://169.254.169.254/metadata/identity/oauth2/token?api-version=2018-02-01&amp;resource=https://vault.azure.net</code> with header <code>Metadata: true</code>. On App Service/Functions/ACA it is <code>IDENTITY_ENDPOINT</code> + <code>IDENTITY_HEADER</code> instead &mdash; the SDK handles both.</dd>
+    <dt>Easy Auth</dt>
+    <dd>App Service / Container Apps built-in auth: platform validates the token before your code runs, injects <code>X-MS-CLIENT-PRINCIPAL*</code> headers, <code>/.auth/me</code> returns claims. Free SSO, but it is authentication only &mdash; authorisation is still yours.</dd>
+    <dt>MFA at the ARM layer <span class="chip">enforced</span></dt>
+    <dd>since phase 2 (rollout from 2025-10-01, last postponement window ended 2026-07-01), any <em>create/update/delete</em> through CLI, PowerShell, REST, SDKs or IaC requires MFA; reads do not. Needs az &ge; 2.76 / Az &ge; 14.3. Service principals and managed identities are unaffected &mdash; which is another reason CI should not use user credentials.</dd>
+  </dl>
+  <div class="note"><p>Rule of thumb: a connection string in app settings is a finding. The only acceptable secrets left are third-party API keys, and those live in Key Vault referenced by a managed identity.</p></div>
+</section>
+
+<section class="unit" id="u05">
+  <header>
+    <h2><span class="n">05</span>RBAC, ABAC &amp; Policy</h2>
+    <span class="docs"><a href="https://learn.microsoft.com/en-us/azure/role-based-access-control/overview">docs: Azure RBAC</a></span>
+  </header>
+  <pre><code class="language-bash"># grant, always by resource id, always least-privilege
+az role assignment create --assignee-object-id $PRINCIPAL_ID --assignee-principal-type ServicePrincipal \
+  --role "Storage Blob Data Contributor" --scope $STORAGE_ID
+
+# who has what, here and above
+az role assignment list --scope $ID --include-inherited --include-groups -o table
+az role definition list --name "Key Vault Secrets User" --query "[0].permissions" -o json
+
+# custom role: start from a built-in, trim, then create
+az role definition create --role-definition @role.json</code></pre>
+  <dl class="rows">
+    <dt>The five you use daily</dt>
+    <dd><code>Storage Blob Data Contributor</code>, <code>Key Vault Secrets User</code>, <code>AcrPull</code>, <code>Azure Service Bus Data Sender/Receiver</code>, <code>Monitoring Metrics Publisher</code>. Note the pattern: <strong>control-plane</strong> roles (Contributor) never grant <strong>data-plane</strong> access.</dd>
+    <dt>Owner vs Contributor vs UAA</dt>
+    <dd>Contributor cannot grant roles; <code>User Access Administrator</code> can grant but not manage resources; <code>Role Based Access Control Administrator</code> is the narrower modern grant-only role &mdash; prefer it over UAA.</dd>
+    <dt>ABAC conditions</dt>
+    <dd>attach a condition to a data-plane assignment so it applies to a blob path or tag: <code>--condition "@Resource[Microsoft.Storage/storageAccounts/blobServices/containers:name] StringEquals 'public'" --condition-version 2.0</code>. Avoids inventing a role per container.</dd>
+    <dt>Deny assignments</dt>
+    <dd>read-only to you: created by Azure Managed Applications, Blueprints (deprecated) and deployment stacks&rsquo; <code>denySettings</code>. Deny beats allow, always.</dd>
+    <dt>PIM</dt>
+    <dd>eligible &ne; active. Standing Owner on prod is the finding; PIM activation with approval + justification + max duration is the answer. Entra ID P2.</dd>
+    <dt>Propagation</dt>
+    <dd>role assignments take up to ~5 minutes (occasionally 30) to reach every data plane. In IaC, a deploy that assigns a role and immediately uses it flakes &mdash; hence Bicep&rsquo;s <code>@retryOn</code> and CLI 2.88&rsquo;s fix to set <code>principalType</code> so fresh principals do not fail <code>PrincipalNotFound</code>.</dd>
+    <dt>Limits</dt>
+    <dd>4 000 role assignments per subscription (5 000 with the higher-limit flag), 5 000 custom roles per tenant. Assign to <strong>groups</strong>, not users.</dd>
+  </dl>
+  <h3>Azure Policy in four effects</h3>
+  <div class="tw">
+  <table class="grid">
+    <thead><tr><th>Effect</th><th>Use it for</th><th>Note</th></tr></thead>
+    <tbody>
+      <tr class="hi"><td><code>deny</code></td><td>hard guardrail: no public blob, no non-TLS, allowed regions</td><td>evaluated at ARM write &mdash; fails the deployment, so message text matters</td></tr>
+      <tr><td><code>audit</code> / <code>auditIfNotExists</code></td><td>measure before you enforce</td><td>compliance state only; the safe first ring</td></tr>
+      <tr><td><code>deployIfNotExists</code></td><td>auto-remediate: diagnostic settings, agents, backup</td><td>needs a managed identity with rights at scope; run <code>az policy remediation create</code> for existing resources</td></tr>
+      <tr><td><code>modify</code></td><td>add/inherit tags, set properties</td><td>the tag-inheritance answer</td></tr>
+    </tbody>
+  </table>
+  </div>
+  <pre><code class="language-bash">az policy assignment create --name deny-public-blob --scope $MG \
+  --policy /providers/Microsoft.Authorization/policyDefinitions/13502221-8df0-4414-9937-de9c5c4e396b
+az policy state summarize --resource-group rg --query "value[0].results" -o json
+az policy state list --filter "complianceState eq 'NonCompliant'" --query "[].resourceId" -o tsv</code></pre>
+  <p>Initiatives (policy sets) are how you ship: <strong>Microsoft Cloud Security Benchmark</strong> is assigned by default via Defender for Cloud; regulatory initiatives (PCI, ISO 27001, NIST 800-53) are add-ons. Exemptions are time-boxed and owned; a permanent exemption is a policy that should be rewritten.</p>
+</section>
+
+<section class="unit" id="u06">
+  <header>
+    <h2><span class="n">06</span>Choosing the compute host</h2>
+    <span class="docs"><a href="https://learn.microsoft.com/en-us/azure/architecture/guide/technology-choices/compute-decision-tree">docs: compute decision tree</a></span>
+  </header>
+  <div class="tw">
+  <table class="grid">
+    <thead><tr><th>Host</th><th>Reach for it when</th><th>Scale to zero</th><th>Cost model</th><th>Avoid when</th></tr></thead>
+    <tbody>
+      <tr class="hi"><td><strong>App Service</strong></td><td>a long-lived HTTP app, slots + easy auth + built-in TLS, no container appetite</td><td>no (except the retired Consumption tiers)</td><td>per plan instance-hour</td><td>you need per-request isolation or non-HTTP workloads</td></tr>
+      <tr><td><strong>Azure Functions (Flex Consumption)</strong></td><td>event-driven, spiky, glue; queue/blob/timer triggers</td><td><strong>yes</strong>, with VNet integration</td><td>per GB-s + executions, always-ready instances optional</td><td>steady high throughput (Premium/dedicated is cheaper) or &gt;10 min work without Durable</td></tr>
+      <tr class="hi"><td><strong>Container Apps</strong></td><td>containers without Kubernetes; KEDA scaling, Dapr, revisions, jobs</td><td><strong>yes</strong> (min replicas 0)</td><td>vCPU-s + GiB-s, or dedicated workload profiles</td><td>you need raw cluster control, DaemonSets, custom CNI plugins</td></tr>
+      <tr><td><strong>AKS</strong></td><td>you already run Kubernetes, need operators/service mesh/GPU fleets, multi-tenant platform</td><td>node pools to 0; pods via KEDA</td><td>node-hours (+ Uptime SLA per cluster)</td><td>one team, five services &mdash; you are buying an operating cost you do not need</td></tr>
+      <tr><td><strong>VMs / VMSS</strong></td><td>lift-and-shift, licence-bound software, custom kernels</td><td>no (scheduled scale only)</td><td>per VM-hour + disks</td><td>anything greenfield and stateless</td></tr>
+      <tr><td><strong>Static Web Apps</strong></td><td>SPA + a small managed API, PR preview environments</td><td>yes</td><td>free / standard per app</td><td>the API is more than a thin edge</td></tr>
+    </tbody>
+  </table>
+  </div>
+  <div class="note"><p>Lead framing worth saying out loud: the decision is rarely technical capability &mdash; all five can serve HTTP. It is who operates it at 3am, what the team already knows, and whether the workload&rsquo;s idle cost is acceptable. Container Apps is the current default for &ldquo;containers, no cluster to run&rdquo;; AKS is a platform-team decision, not an application-team one.</p></div>
+</section>
+
+<section class="unit" id="u07">
+  <header>
+    <h2><span class="n">07</span>App Service, Functions, Container Apps</h2>
+    <span class="docs"><a href="https://learn.microsoft.com/en-us/azure/app-service/">docs: App Service</a></span>
+  </header>
+  <h3>App Service</h3>
+  <pre><code class="language-bash">az appservice plan create -g rg -n plan --sku P1V4 --is-linux
+az webapp create -g rg -n app-orders --plan plan --runtime "DOTNETCORE:10.0"
+az webapp config set -g rg -n app-orders --min-tls-version 1.2 --ftps-state Disabled --http20-enabled true --always-on true
+az webapp config appsettings set -g rg -n app-orders --settings \
+  "ConnectionStrings__Sql=@Microsoft.KeyVault(SecretUri=https://kv.vault.azure.net/secrets/sql/)"
+
+# blue/green that actually warms up
+az webapp deployment slot create -g rg -n app-orders --slot staging
+az webapp deploy -g rg -n app-orders --slot staging --src-path app.zip --type zip --tag "rel-142"
+az webapp traffic-routing set -g rg -n app-orders --distribution staging=10   # canary
+az webapp deployment slot swap -g rg -n app-orders --slot staging --target-slot production
+
+az webapp exec -g rg -n app-orders                # 2.90.0: shell into the Linux container
+az webapp log tail -g rg -n app-orders
+az webapp troubleshoot collect network-capture -g rg -n app-orders   # 2.90.0</code></pre>
+  <ul class="tight">
+    <li><strong>Premium v4</strong> (P*v4) is GA and the current recommended production tier; <strong>Isolated v4</strong> on ASEv3 went GA at Build 2026. Pv2 is legacy pricing/hardware.</li>
+    <li>Slot settings: mark an app setting &ldquo;deployment slot setting&rdquo; (<code>--slot-settings</code>) or it swaps with the code &mdash; the classic &ldquo;staging now points at the prod database&rdquo; incident.</li>
+    <li>A swap restarts the target instances; <code>WEBSITE_SWAP_WARMUP_PING_PATH</code> + <code>Always On</code> avoid a cold first request.</li>
+    <li><strong>Sidecars</strong> (Linux) attach extra containers for OTel collectors, caches or local inference next to the main app.</li>
+    <li><code>WEBSITE_RUN_FROM_PACKAGE=1</code> is the modern read-only deployment; <code>az webapp deployment source config-zip</code> and FTP publishing are legacy.</li>
+  </ul>
+  <h3>Azure Functions</h3>
+  <pre><code class="language-bash">az functionapp create -g rg -n fn-orders --flexconsumption-location westeurope \
+  --runtime dotnet-isolated --runtime-version 10 --storage-account stfnorders \
+  --instance-memory 2048 --maximum-instance-count 100
+az functionapp flex-migration start -g rg -n fn-legacy    # CLI 2.88+: Linux Consumption -> Flex
+func start                                                # Core Tools, local</code></pre>
+  <pre><code class="language-csharp">// .NET 10 isolated worker: the only supported model going forward
+public class OrderFunctions(ILogger&lt;OrderFunctions&gt; log, ServiceBusClient bus)
+{
+    [Function(nameof(OnOrderPlaced))]
+    public async Task OnOrderPlaced(
+        [ServiceBusTrigger("orders", "billing", Connection = "Bus")] ServiceBusReceivedMessage msg,
+        CancellationToken ct)
+    {
+        log.LogInformation("order {Id}", msg.MessageId);
+        await Task.CompletedTask;
+    }
+
+    [Function("Health")]
+    public IActionResult Health([HttpTrigger(AuthorizationLevel.Anonymous, "get")] HttpRequest req)
+        =&gt; new OkObjectResult("ok");
+}
+// Connection = "Bus" resolves Bus__fullyQualifiedNamespace for identity-based binding (no connection string)</code></pre>
+  <ul class="tight">
+    <li><strong>In-process .NET ends support 2026-11-10</strong> &mdash; two months out. Isolated worker is the only model with .NET 10; migration is mostly <code>FunctionName</code>&rarr;<code>Function</code>, <code>Startup</code>&rarr;<code>Program.cs</code>, and swapping <code>Microsoft.Azure.WebJobs.*</code> for <code>Microsoft.Azure.Functions.Worker.*</code>.</li>
+    <li><strong>Flex Consumption</strong> is the modern serverless plan: scale-to-zero <em>with</em> VNet integration, per-instance memory choice (512 MB&ndash;4 GB), per-function scaling and <code>alwaysReady</code> instances for cold-start-sensitive endpoints. Linux Consumption is being retired &mdash; migrate.</li>
+    <li>Durable Functions for orchestration (fan-out/fan-in, human approval, &gt;10 min); the orchestrator must stay deterministic &mdash; no <code>DateTime.Now</code>, no <code>Guid.NewGuid()</code>, no direct I/O.</li>
+    <li>Every Function app still needs a storage account for leases and the host&rsquo;s own state &mdash; give it identity-based access (<code>AzureWebJobsStorage__accountName</code>) rather than a connection string.</li>
+  </ul>
+  <h3>Container Apps</h3>
+  <pre><code class="language-bash">az containerapp env create -g rg -n env --location westeurope --enable-workload-profiles
+az containerapp create -g rg -n api --environment env \
+  --image myacr.azurecr.io/api:1.4.2 --registry-server myacr.azurecr.io --registry-identity system \
+  --ingress external --target-port 8080 --min-replicas 0 --max-replicas 30 \
+  --scale-rule-name http --scale-rule-type http --scale-rule-http-concurrency 50 \
+  --cpu 0.5 --memory 1Gi
+az containerapp revision list -g rg -n api -o table
+az containerapp ingress traffic set -g rg -n api --revision-weight latest=20 api--rev-7=80
+az containerapp job create -g rg -n nightly --environment env --trigger-type Schedule --cron-expression "0 2 * * *"</code></pre>
+  <ul class="tight">
+    <li>Scaling is <strong>KEDA</strong>: HTTP concurrency, CPU/memory, or any KEDA scaler (Service Bus queue length, Kafka lag, cron). <code>--min-replicas 0</code> means cold start; set 1 for latency-sensitive APIs.</li>
+    <li>Revisions are immutable; single-revision mode = rolling replace, multiple-revision mode = weighted traffic split for canaries.</li>
+    <li><strong>Serverless GPUs are GA</strong> (per-second billing, scale to zero, NVIDIA NIM microservices supported) &mdash; the cheap way to host inference without an AKS GPU pool. <strong>Dynamic sessions</strong> give Hyper-V-isolated sandboxes for running untrusted or AI-generated code (Python; JavaScript in preview).</li>
+    <li>Workload profiles (Dedicated D/E series) when you need guaranteed compute, larger sizes or a fixed egress footprint inside the same environment.</li>
+  </ul>
+</section>
+
+<section class="unit" id="u08">
+  <header>
+    <h2><span class="n">08</span>AKS &amp; containers</h2>
+    <span class="docs"><a href="https://learn.microsoft.com/en-us/azure/aks/supported-kubernetes-versions">docs: AKS supported versions</a></span>
+  </header>
+  <p>AKS supports the current GA minor plus the two before it, 12 months each. As of 2026-09: <strong>1.34</strong> (EOL 2026-11), <strong>1.35</strong> (EOL 2027-03), <strong>1.36</strong> (EOL 2027-06); 1.37 lands ~2026-10. 1.32 and 1.33 are already out of support.</p>
+  <pre><code class="language-bash">az aks create -g rg -n aks-prod --tier standard \
+  --network-plugin azure --network-plugin-mode overlay --network-dataplane cilium \
+  --enable-managed-identity --enable-workload-identity --enable-oidc-issuer \
+  --enable-azure-rbac --enable-aad --disable-local-accounts \
+  --node-count 3 --zones 1 2 3 --enable-cluster-autoscaler --min-count 3 --max-count 20 \
+  --auto-upgrade-channel patch --node-os-upgrade-channel NodeImage \
+  --enable-azure-monitor-metrics --enable-addons monitoring
+
+az aks get-credentials -g rg -n aks-prod        # never --admin: that is the local account you disabled
+kubelogin convert-kubeconfig -l azurecli        # Entra device/CLI token instead of the deprecated legacy mode
+az aks nodepool add -g rg --cluster-name aks-prod -n spot --priority Spot \
+  --eviction-policy Delete --spot-max-price -1 --node-taints kubernetes.azure.com/scalesetpriority=spot:NoSchedule
+az aks upgrade -g rg -n aks-prod --kubernetes-version 1.36.0
+az aks nodepool get-rollback-versions -g rg --cluster-name aks-prod -n sys   # CLI 2.88+
+az aks command invoke -g rg -n aks-prod -c "kubectl get pods -A"             # private cluster, no jumpbox</code></pre>
+  <dl class="rows">
+    <dt>Networking choice</dt>
+    <dd><strong>Azure CNI Overlay + Cilium</strong> is the current default recommendation: pods get an overlay CIDR (no VNet IP exhaustion), nodes get VNet IPs, Cilium gives eBPF dataplane + network policy. <code>kubenet</code> is legacy and being retired; CNI &ldquo;node subnet&rdquo; mode burns a VNet IP per pod.</dd>
+    <dt>Identity into the cluster</dt>
+    <dd>Entra + <strong>Azure RBAC for Kubernetes</strong> (<code>--enable-azure-rbac</code>) so <code>az role assignment</code> drives <code>kubectl</code>; <code>--disable-local-accounts</code> kills the static admin kubeconfig. Workload identity for pod &rarr; Azure calls.</dd>
+    <dt>Scaling</dt>
+    <dd>cluster autoscaler for nodes, <strong>KEDA</strong> add-on for event-driven pods, <strong>Node Autoprovisioning</strong> (Karpenter-based) for SKU-agnostic node supply, <code>--tier standard</code> for the 99.95% control-plane SLA (Free tier has none).</dd>
+    <dt>Upgrades</dt>
+    <dd>control plane first, then node pools. <code>--auto-upgrade-channel patch</code> plus <code>--node-os-upgrade-channel NodeImage</code> plus a <strong>maintenance window</strong> and PDBs is the boring, correct setup. A PDB that can never be satisfied blocks drains forever &mdash; the most common stuck-upgrade cause.</dd>
+    <dt>Registry</dt>
+    <dd><code>az acr build -r myacr -t api:1.4.2 .</code> builds in Azure; attach with <code>az aks update --attach-acr myacr</code> (creates <code>AcrPull</code>). Use <code>az acr import</code> to promote a digest between registries &mdash; never rebuild between environments.</dd>
+    <dt>Cost control</dt>
+    <dd>spot node pools for batch, <code>Standard</code> tier only where the SLA is needed, requests/limits set (unset requests is why the autoscaler does nothing), and <code>az aks nodepool scale --node-count 0</code> for idle pools.</dd>
+  </dl>
+</section>
+
+<section class="unit" id="u09">
+  <header>
+    <h2><span class="n">09</span>Data: Storage, Cosmos DB, Azure SQL</h2>
+    <span class="docs"><a href="https://learn.microsoft.com/en-us/azure/storage/common/storage-introduction">docs: Azure Storage</a></span>
+  </header>
+  <h3>Storage</h3>
+  <pre><code class="language-bash">az storage account create -g rg -n storders --sku Standard_ZRS --kind StorageV2 \
+  --min-tls-version TLS1_2 --allow-blob-public-access false --allow-shared-key-access false \
+  --public-network-access Disabled --default-action Deny --https-only true
+
+# the modern way to talk to data: your own Entra identity, no keys
+az storage blob upload --account-name storders -c raw -n f.json -f ./f.json --auth-mode login
+az storage blob list --account-name storders -c raw --auth-mode login -o table
+az storage account generate-sas --account-name storders --permissions rl --expiry 2026-09-09T00:00Z \
+  --resource-types co --services b --https-only --auth-mode login --as-user   # user delegation SAS</code></pre>
+  <ul class="tight">
+    <li>Redundancy: <strong>LRS</strong> (one DC) &rarr; <strong>ZRS</strong> (3 zones, the sane default) &rarr; <strong>GRS/GZRS</strong> (paired region, async, RPO ~15 min) &rarr; <strong>RA-GRS/RA-GZRS</strong> adds a read-only secondary endpoint. Failover is <em>your</em> call and it is not instant.</li>
+    <li>Access keys are the legacy path: set <code>allowSharedKeyAccess=false</code> and use Entra. Azure CLI <strong>2.92.0</strong> <span class="since">2026-11</span> flips <code>--access-keys-auth</code> to <code>Disabled</code> by default. Prefer a <strong>user delegation SAS</strong> (signed by an Entra key, revocable, max 7 days) over an account SAS.</li>
+    <li>Tiers: Hot / Cool (30 d min) / Cold (90 d) / Archive (180 d, rehydrate in hours). Drive them with a lifecycle management policy, not code.</li>
+    <li>Scale target ~20 000 requests/s per account and 500 TB &mdash; shard across accounts before you hit it; <code>ServerBusy</code> (503) means back off, the SDK does it for you.</li>
+    <li>Data Lake Gen2 = hierarchical namespace on the same account: real directories, atomic rename, POSIX ACLs. Turn it on at creation or never.</li>
+  </ul>
+  <h3>Cosmos DB</h3>
+  <pre><code class="language-bash">az cosmosdb create -g rg -n cos-orders --locations regionName=westeurope failoverPriority=0 isZoneRedundant=true \
+  --default-consistency-level Session --enable-automatic-failover true --disable-local-auth true
+az cosmosdb sql container create -g rg -a cos-orders -d appdb -n orders \
+  --partition-key-path /tenantId --max-throughput 4000        # autoscale RU/s</code></pre>
+  <dl class="rows">
+    <dt>Partition key</dt>
+    <dd>the whole design. High cardinality, even write distribution, present in your hottest query. 20 GB per logical partition (hierarchical keys raise the effective limit). You cannot change it &mdash; only migrate.</dd>
+    <dt>Consistency</dt>
+    <dd>Strong / Bounded staleness / <strong>Session</strong> (default, right answer 90% of the time) / Consistent prefix / Eventual. Strong forbids multi-region writes across distant regions and doubles RU cost on reads.</dd>
+    <dt>RU/s</dt>
+    <dd>a 1 KB point read = 1 RU. Autoscale bills max(10% of max, actual) and is right for spiky; manual for steady. <code>429</code> = throttled, read <code>x-ms-retry-after-ms</code>; the SDK retries 9 times by default.</dd>
+    <dt>Change feed</dt>
+    <dd>the built-in outbox/CDC: Functions <code>CosmosDBTrigger</code> or the change-feed processor with a lease container. All-versions-and-deletes mode when you need deletes.</dd>
+    <dt>Costs to watch</dt>
+    <dd>cross-partition fan-out queries, unbounded indexing (exclude paths you never filter on), and TTL not set on log-like containers.</dd>
+  </dl>
+  <h3>Azure SQL</h3>
+  <ul class="tight">
+    <li><strong>SQL Database</strong> (single / elastic pool / Hyperscale) for new work; <strong>Managed Instance</strong> when you need SQL Agent, cross-database queries, CLR or a lift-and-shift.</li>
+    <li>Purchasing: <strong>vCore</strong> (General Purpose / Business Critical / Hyperscale) &mdash; DTU is the legacy model still seen in old subscriptions. <strong>Serverless</strong> auto-pauses for dev/test.</li>
+    <li>Entra-only auth: <code>az sql server ad-only-auth enable</code>; connect with <code>Authentication=Active Directory Default</code> in the connection string and <code>Microsoft.Data.SqlClient</code> (the <code>System.Data.SqlClient</code> package is legacy and has no Entra support worth using).</li>
+    <li>Retry transient errors (40197, 40501, 40613, 49918&hellip;) &mdash; <code>EnableRetryOnFailure()</code> in EF Core, or <code>ConnectRetryCount</code>. A cloud database <em>will</em> drop your connection during a maintenance failover.</li>
+    <li>Business Critical gives a free read replica (<code>ApplicationIntent=ReadOnly</code>); Hyperscale scales storage to 128 TB with near-instant restore.</li>
+  </ul>
+</section>
+
+<section class="unit" id="u10">
+  <header>
+    <h2><span class="n">10</span>Messaging &amp; events</h2>
+    <span class="docs"><a href="https://learn.microsoft.com/en-us/azure/event-grid/compare-messaging-services">docs: which messaging service</a></span>
+  </header>
+  <div class="tw">
+  <table class="grid">
+    <thead><tr><th>Service</th><th>Shape</th><th>Ordering / retention</th><th>Pick it for</th></tr></thead>
+    <tbody>
+      <tr class="hi"><td><strong>Service Bus</strong></td><td>queues + topics/subscriptions, competing consumers</td><td>FIFO per session; 14 d TTL max (Premium)</td><td>commands, workflows, exactly-once-ish with dedupe, DLQ, transactions</td></tr>
+      <tr><td><strong>Event Hubs</strong></td><td>partitioned log, consumer groups, offsets</td><td>ordered per partition; 1&ndash;90 d retention</td><td>telemetry, streams, replay; Kafka protocol endpoint included</td></tr>
+      <tr><td><strong>Event Grid</strong></td><td>push pub/sub of discrete events (+ MQTT and pull namespaces)</td><td>at-least-once, 24 h retry with exponential backoff</td><td>reacting to Azure resource events, webhooks, IoT</td></tr>
+      <tr><td><strong>Storage Queues</strong></td><td>simple queue on a storage account</td><td>no ordering; 7 d default</td><td>cheap, huge, no topics needed</td></tr>
+    </tbody>
+  </table>
+  </div>
+  <pre><code class="language-csharp">// identity-based, no connection string, one client registered as a singleton
+builder.Services.AddSingleton(new ServiceBusClient(
+    "sb-orders.servicebus.windows.net", new DefaultAzureCredential()));
+
+await using var processor = client.CreateProcessor("orders", "billing",
+    new ServiceBusProcessorOptions { MaxConcurrentCalls = 8, PrefetchCount = 32, AutoCompleteMessages = false });
+
+processor.ProcessMessageAsync += async args =&gt;
+{
+    try   { await Handle(args.Message, args.CancellationToken); await args.CompleteMessageAsync(args.Message); }
+    catch (PoisonException) { await args.DeadLetterMessageAsync(args.Message, "poison", "schema mismatch"); }
+    // no Abandon on transient failure: let the lock expire so delivery is retried with backoff
+};
+processor.ProcessErrorAsync += e =&gt; { log.LogError(e.Exception, "bus {Source}", e.ErrorSource); return Task.CompletedTask; };
+await processor.StartProcessingAsync();</code></pre>
+  <ul class="tight">
+    <li><strong>Sessions</strong> are the only way to get FIFO per key on Service Bus; they also serialise a key&rsquo;s processing, so a slow message blocks that session only.</li>
+    <li>Peek-lock (default) vs receive-and-delete: use peek-lock, renew the lock for long work (<code>MaxAutoLockRenewalDuration</code>), and make handlers idempotent &mdash; delivery is <em>at least once</em>.</li>
+    <li>Dead-letter reasons to check first: <code>MaxDeliveryCountExceeded</code> (default 10), <code>TTLExpiredException</code>, <code>HeaderSizeExceeded</code>. Always ship a DLQ alarm and a replay path.</li>
+    <li>Event Hubs partition count is fixed at creation for Standard (changeable on Premium/Dedicated); consumers &gt; partitions means idle consumers. Checkpoints live in a blob container.</li>
+    <li>Event Grid delivers <strong>CloudEvents 1.0</strong> schema for new topics; the legacy &ldquo;Event Grid schema&rdquo; is still what most built-in Azure system topics emit.</li>
+    <li>Service Bus <em>control-plane</em> API versions 2015/2017-era are being retired &mdash; if a script pins an old <code>api-version</code> for namespace management, update it.</li>
+  </ul>
+</section>
+
+<section class="unit" id="u11">
+  <header>
+    <h2><span class="n">11</span>Networking &amp; private access</h2>
+    <span class="docs"><a href="https://learn.microsoft.com/en-us/azure/private-link/private-endpoint-overview">docs: Private Endpoint</a></span>
+  </header>
+  <pre><code class="language-bash">az network vnet create -g rg -n vnet-app --address-prefixes 10.10.0.0/16 \
+  --subnet-name snet-app --subnet-prefixes 10.10.1.0/24
+az network private-endpoint create -g rg -n pe-kv --vnet-name vnet-app --subnet snet-pe \
+  --private-connection-resource-id $KV_ID --group-id vault --connection-name kv
+az network private-dns zone create -g rg -n privatelink.vaultcore.azure.net
+az network private-endpoint dns-zone-group create -g rg --endpoint-name pe-kv -n zg \
+  --private-dns-zone privatelink.vaultcore.azure.net --zone-name vault
+az network nsg rule create -g rg --nsg-name nsg-app -n allow-https --priority 100 \
+  --access Allow --protocol Tcp --destination-port-ranges 443 --source-address-prefixes Internet</code></pre>
+  <dl class="rows">
+    <dt>Private Endpoint vs Service Endpoint</dt>
+    <dd>PE = a private IP in your subnet for one PaaS resource, works across peering and on-prem, requires a <strong>private DNS zone</strong>. Service Endpoint = the traffic still goes to the public IP but is tagged with the subnet identity; cheaper, VNet-local only, no DNS change. PE is the modern default.</dd>
+    <dt>The PE failure mode</dt>
+    <dd>99% of &ldquo;private endpoint doesn&rsquo;t work&rdquo; is DNS: the client still resolves the public IP. Check with <code>nslookup kv.vault.azure.net</code> &mdash; it must return the 10.x address via the <code>privatelink.*</code> zone linked to the client&rsquo;s VNet.</dd>
+    <dt>Egress</dt>
+    <dd>default outbound access for new VMs is <strong>retired</strong> &mdash; give every subnet an explicit path: NAT Gateway (simplest, SNAT-port-safe), Standard LB outbound rule, or Azure Firewall. SNAT port exhaustion is the classic &ldquo;works at 10 rps, fails at 100&rdquo;.</dd>
+    <dt>L7 in front</dt>
+    <dd><strong>Front Door</strong> (global anycast, WAF, caching, TLS at edge) for internet-facing multi-region; <strong>Application Gateway v2</strong> (regional, WAF, mTLS, private) inside a region; both, chained, is a common enterprise shape. Traffic Manager is DNS-only failover &mdash; still useful for non-HTTP.</dd>
+    <dt>Peering vs hub-spoke</dt>
+    <dd>peering is non-transitive: spoke&harr;spoke needs a hub NVA/Firewall with UDRs, or Virtual WAN. Overlapping address spaces cannot peer &mdash; plan CIDR once, centrally.</dd>
+    <dt>NSG order</dt>
+    <dd>lowest priority number wins; default rules allow VNet-in/out and deny Internet-in. Service Tags (<code>AzureKeyVault</code>, <code>Storage.westeurope</code>, <code>AzureMonitor</code>) beat hard-coded IP lists. <code>az network watcher test-ip-flow</code> tells you which rule blocked you.</dd>
+    <dt>Retired basics</dt>
+    <dd>Basic Load Balancer and Basic (ARM) public IPs retired <strong>2025-09-30</strong>; from <strong>2026-03-31</strong> remaining Basic public IPs are billed at Standard rates. Standard SKU is zone-redundant and secure-by-default (deny inbound unless an NSG allows).</dd>
+  </dl>
+</section>
+
+<section class="unit" id="u12">
+  <header>
+    <h2><span class="n">12</span>Secrets, config &amp; SDK idioms</h2>
+    <span class="docs"><a href="https://learn.microsoft.com/en-us/dotnet/azure/sdk/authentication/">docs: Azure SDK authentication</a></span>
+  </header>
+  <pre><code class="language-csharp">// Azure.Identity 1.21 : one credential, every environment
+var cred = new DefaultAzureCredential(new DefaultAzureCredentialOptions
+{
+    ManagedIdentityClientId = builder.Configuration["AZURE_CLIENT_ID"], // pin the UAMI when several are attached
+    ExcludeInteractiveBrowserCredential = true
+});
+
+builder.Configuration.AddAzureAppConfiguration(o =&gt; o
+    .Connect(new Uri("https://appcfg-orders.azconfig.io"), cred)
+    .Select("orders:*", labelFilter: builder.Environment.EnvironmentName)
+    .ConfigureKeyVault(kv =&gt; kv.SetCredential(cred))
+    .ConfigureRefresh(r =&gt; r.Register("orders:sentinel", refreshAll: true)
+                            .SetRefreshInterval(TimeSpan.FromSeconds(30))));
+
+builder.Services.AddAzureClients(b =&gt;
+{
+    b.UseCredential(cred);                                   // share ONE credential, it caches tokens
+    b.AddBlobServiceClient(new Uri("https://storders.blob.core.windows.net"));
+    b.AddSecretClient(new Uri("https://kv-orders.vault.azure.net"));
+    b.ConfigureDefaults(o =&gt; o.Retry.MaxRetries = 5);
+});</code></pre>
+  <dl class="rows">
+    <dt>The credential chain</dt>
+    <dd><code>DefaultAzureCredential</code> tries, in order: Environment &rarr; Workload Identity &rarr; Managed Identity &rarr; Visual Studio &rarr; Azure CLI &rarr; Azure PowerShell &rarr; azd &rarr; interactive browser. <code>SharedTokenCacheCredential</code> has been dropped from the chain. In production, prefer an explicit <code>ManagedIdentityCredential</code> or <code>ChainedTokenCredential</code> &mdash; deterministic, and no 30-second probe when IMDS is absent.</dd>
+    <dt><code>AZURE_TOKEN_CREDENTIALS</code></dt>
+    <dd>set it to <code>dev</code>, <code>prod</code> or a single credential name to prune the chain without a code change; 1.21 also lets you name a custom environment variable in the constructor.</dd>
+    <dt>Key Vault</dt>
+    <dd><code>az keyvault create -g rg -n kv --enable-rbac-authorization true --enable-purge-protection true</code>. RBAC (<code>Key Vault Secrets User</code>) has replaced access policies &mdash; policies are the legacy model you will still find. Soft delete is mandatory; purge protection blocks even a purge for the retention period.</dd>
+    <dt>Key Vault references</dt>
+    <dd>App Service / Functions / Container Apps resolve <code>@Microsoft.KeyVault(SecretUri=&hellip;)</code> at startup with the app&rsquo;s managed identity &mdash; no SDK call, but a rotation needs a restart unless you read via the SDK.</dd>
+    <dt>App Configuration</dt>
+    <dd>the place for feature flags and non-secret config with labels per environment; use a <strong>sentinel key</strong> + <code>refreshAll</code> so one write reloads everything. Secrets stay in Key Vault, referenced.</dd>
+    <dt>Rate limits &amp; retries</dt>
+    <dd>Key Vault throttles at ~2 000 transactions / 10 s per vault: cache secrets in memory, never fetch per request. All Azure SDK clients retry with exponential backoff and jitter by default; make them singletons or you leak sockets and re-fetch tokens.</dd>
+    <dt>Deprecated packages</dt>
+    <dd><code>Microsoft.Azure.KeyVault</code>, <code>Microsoft.Azure.Storage.*</code>, <code>WindowsAzure.Storage</code>, <code>Microsoft.Azure.ServiceBus</code>, <code>Microsoft.Azure.DocumentDB</code>, <code>Microsoft.IdentityModel.Clients.ActiveDirectory</code> (ADAL, retired 2022) &mdash; all replaced by <code>Azure.*</code> track-2 packages and MSAL. Finding one in a repo is a migration ticket.</dd>
+  </dl>
+</section>
+
+<section class="unit" id="u13">
+  <header>
+    <h2><span class="n">13</span>Observability &amp; KQL</h2>
+    <span class="docs"><a href="https://learn.microsoft.com/en-us/azure/azure-monitor/overview">docs: Azure Monitor</a></span>
+  </header>
+  <p>One Log Analytics workspace per environment is the usual shape; Application Insights is workspace-based (the classic, standalone resource type is retired). Instrument with <strong>OpenTelemetry</strong>, not the classic SDK.</p>
+  <pre><code class="language-csharp">// the current .NET wiring: OTel in, Azure Monitor exporter out
+builder.Services.AddOpenTelemetry()
+    .ConfigureResource(r =&gt; r.AddService("orders-api", serviceVersion: "1.4.2"))
+    .WithTracing(t =&gt; t.AddAspNetCoreInstrumentation().AddHttpClientInstrumentation())
+    .WithMetrics(m =&gt; m.AddAspNetCoreInstrumentation().AddRuntimeInstrumentation())
+    .UseAzureMonitor(o =&gt; o.SamplingRatio = 0.2f);   // Azure.Monitor.OpenTelemetry.AspNetCore</code></pre>
+  <pre><code class="language-plaintext">// failures by operation, last hour
+requests
+| where timestamp &gt; ago(1h) and success == false
+| summarize failures = count(), p95 = percentile(duration, 95) by operation_Name, resultCode
+| order by failures desc
+
+// dependency latency: what is actually slow
+dependencies
+| where timestamp &gt; ago(6h)
+| summarize p50 = percentile(duration,50), p99 = percentile(duration,99), calls = count() by target, type
+| where calls &gt; 100 | order by p99 desc
+
+// trace one request end to end
+union requests, dependencies, traces, exceptions
+| where operation_Id == "8a1f..." | project timestamp, itemType, name, duration, message
+| order by timestamp asc
+
+// AKS: containers restarting
+KubePodInventory
+| where TimeGenerated &gt; ago(1d) | summarize restarts = max(PodRestartCount) by Name, Namespace
+| where restarts &gt; 3 | order by restarts desc
+
+// who changed prod
+AzureActivity
+| where TimeGenerated &gt; ago(7d) and ActivityStatusValue == "Success"
+| where OperationNameValue endswith "/write" or OperationNameValue endswith "/delete"
+| project TimeGenerated, Caller, OperationNameValue, _ResourceId</code></pre>
+  <dl class="rows">
+    <dt>KQL operators worth memorising</dt>
+    <dd><code>where</code> <code>project</code> <code>extend</code> <code>summarize &hellip; by bin(TimeGenerated, 5m)</code> <code>join kind=leftouter</code> <code>make-series</code> <code>parse</code> <code>mv-expand</code> <code>materialize()</code> <code>render timechart</code>. Filter first, then project &mdash; it is a columnar store.</dd>
+    <dt>Diagnostic settings</dt>
+    <dd>nothing is logged until you say so: <code>az monitor diagnostic-settings create --resource $ID -n toLaw --workspace $LAW --logs '[{"categoryGroup":"allLogs","enabled":true}]' --metrics '[{"category":"AllMetrics","enabled":true}]'</code>. Enforce it fleet-wide with a <code>deployIfNotExists</code> policy.</dd>
+    <dt>Alerts</dt>
+    <dd>metric alerts (cheap, near real-time) for platform signals; log/scheduled query alerts for business signals; <em>every</em> alert gets an action group and a runbook link. <code>az monitor metrics alert create --condition "avg Percentage CPU &gt; 80" --window-size 5m --evaluation-frequency 1m</code>.</dd>
+    <dt>Cost control</dt>
+    <dd>ingestion is the bill. Use <strong>Basic</strong> or <strong>Auxiliary</strong> table plans for chatty, rarely-queried logs, a commitment tier above ~100 GB/day, transformations in the DCR to drop noisy columns, and per-table retention. <code>Usage | summarize sum(Quantity) by DataType</code> finds the offender.</dd>
+    <dt>Agents</dt>
+    <dd><strong>Azure Monitor Agent</strong> + Data Collection Rules is the only supported agent; the Log Analytics agent (MMA/OMS) was retired 2024-08-31. Managed Prometheus + managed Grafana for container metrics; enable control-plane metrics with <code>az aks update --enable-control-plane-metrics</code> <span class="since">CLI 2.88</span>.</dd>
+    <dt>Sampling</dt>
+    <dd>adaptive sampling is on by default in App Insights &mdash; remember it when a count looks wrong; <code>itemCount</code> is the multiplier, and <code>summarize sum(itemCount)</code> is the honest count.</dd>
+  </dl>
+</section>
+
+<section class="unit" id="u14">
+  <header>
+    <h2><span class="n">14</span>Resilience, cost &amp; limits</h2>
+    <span class="docs"><a href="https://learn.microsoft.com/en-us/azure/reliability/overview">docs: Azure reliability</a></span>
+  </header>
+  <dl class="rows">
+    <dt>Composite SLA</dt>
+    <dd>serial dependencies multiply: 99.95% &times; 99.99% &times; 99.99% &asymp; 99.93% &asymp; 6 h/year. Adding a component lowers availability unless you add redundancy with it. Know this number for your own system &mdash; it is a standard principal-level question.</dd>
+    <dt>Zones vs regions</dt>
+    <dd>zone-redundant deployment is cheap and covers the common failure (one datacentre); multi-region is expensive and only pays off with an actual data strategy (async replica + accepted RPO, or active-active with conflict handling). Choose per RTO/RPO, not per ambition.</dd>
+    <dt>Paired vs flexible regions</dt>
+    <dd>classic region pairs give sequential updates and geo-replication targets; newer regions ship without a pair and rely on zones. Check before you promise a DR region.</dd>
+    <dt>Retry</dt>
+    <dd>exponential backoff + jitter, bounded; circuit breaker around the dependency; timeouts everywhere (<code>HttpClient</code> default is 100 s &mdash; far too long). In .NET, <code>Microsoft.Extensions.Http.Resilience</code> (<code>AddStandardResilienceHandler()</code>) is the current answer; Polly v7 pipelines built by hand are the legacy shape.</dd>
+    <dt>Cost levers, biggest first</dt>
+    <dd>right-size and shut down non-prod on a schedule &rarr; reservations (1/3 yr, ~40&ndash;60%) or a <strong>savings plan</strong> for compute (flexible across services/regions) &rarr; <strong>Azure Hybrid Benefit</strong> for Windows/SQL licences &rarr; spot for interruptible &rarr; storage tiering &rarr; log ingestion. Egress and cross-zone traffic are the invisible ones.</dd>
+    <dt>Seeing the money</dt>
+    <dd><code>az consumption usage list --start-date 2026-09-01 --end-date 2026-09-08 --query "[].{r:instanceName, c:pretaxCost}" -o table</code>; Cost Management exports to storage + a budget with an action group beats a monthly surprise. Tag <code>costCenter</code> from day one &mdash; retro-tagging never happens.</dd>
+    <dt>Limits you will actually hit</dt>
+    <dd>800 deployments per RG history (they auto-prune now, but a tight loop still errors), 250 resource groups&rsquo; worth of subscription-level assignments, 4 000 role assignments/sub, 1 000 VMs per VMSS, 65 000 ARM writes/hour/sub, 20 000 storage requests/s/account, 500 Key Vault ops/s. Ask for a quota increase <em>before</em> the launch, not during.</dd>
+  </dl>
+</section>
+
+<section class="unit" id="u15">
+  <header>
+    <h2><span class="n">15</span>Gotchas, one line each</h2>
+    <span class="docs"><a href="https://learn.microsoft.com/en-us/azure/azure-resource-manager/troubleshooting/common-deployment-errors">docs: common deployment errors</a></span>
+  </header>
+  <ul class="tight">
+    <li><strong>Incremental is not idempotent-safe:</strong> a property you removed from the template stays on the resource; only Complete mode or a deployment stack removes it.</li>
+    <li><strong>Role assignment propagation</strong> (up to ~5 min) makes deploy-then-use pipelines flaky &mdash; retry, or split provisioning from first use.</li>
+    <li><strong>Control plane &ne; data plane:</strong> <code>Contributor</code> on a storage account gives you no blob access once shared keys are off.</li>
+    <li><strong>Key Vault soft delete</strong> means a redeploy under the same name fails until <code>az keyvault purge</code> &mdash; and with purge protection on, you simply wait 90 days.</li>
+    <li><strong>Slot settings:</strong> app settings not marked as slot settings follow the swap; that is how staging ends up writing to prod.</li>
+    <li><strong>Always On off</strong> on a non-Consumption App Service means the app unloads after 20 idle minutes and the next request eats a cold start.</li>
+    <li><strong>Private endpoint but public DNS:</strong> if <code>nslookup</code> returns a public IP, the private DNS zone is not linked to the client&rsquo;s VNet.</li>
+    <li><strong>SNAT port exhaustion</strong> looks like random timeouts under load; the fix is a NAT Gateway and reusing <code>HttpClient</code>.</li>
+    <li><strong>VNet peering is not transitive</strong> &mdash; spoke-to-spoke needs the hub, plus UDRs, plus firewall rules.</li>
+    <li><strong>Cosmos 429s are normal</strong>, not an outage: read <code>x-ms-retry-after-ms</code>, and check for a cross-partition query before adding RU/s.</li>
+    <li><strong>The partition key is permanent.</strong> Changing it means a new container and a migration.</li>
+    <li><strong>App Insights adaptive sampling</strong> silently divides your counts; use <code>sum(itemCount)</code>.</li>
+    <li><strong>Nothing is logged by default</strong> &mdash; a resource with no diagnostic setting produces no platform logs, and you find out during the incident.</li>
+    <li><strong>Log Analytics ingestion is the bill</strong>, not retention; a chatty debug logger can outspend the compute it monitors.</li>
+    <li><strong>Managed identity with several UAMIs attached</strong> fails ambiguously unless you set the client ID explicitly.</li>
+    <li><strong>IMDS is not reachable from your laptop</strong> &mdash; local dev uses the CLI/VS credential in the chain; that is the whole point of <code>DefaultAzureCredential</code>.</li>
+    <li><strong>Availability zone numbers differ per subscription</strong>; do not compare &ldquo;zone 1&rdquo; across subscriptions when spreading resources.</li>
+    <li><strong>Resource moves</strong> lock both resource groups and silently exclude several resource types &mdash; redeploy instead.</li>
+    <li><strong>ARM write MFA</strong> now breaks unattended scripts running under a human&rsquo;s account; move them to a service principal or managed identity.</li>
+    <li><strong><code>ReadOnly</code> locks break listing storage keys and restarting apps</strong>, because those are POST operations.</li>
+    <li><strong>Tags are not inherited</strong>; a cost report grouped by tag is wrong until a <code>modify</code> policy fills them in.</li>
+    <li><strong>Soft-deleted App Service names</strong> and globally unique names stay reserved &mdash; naming collisions across environments are a design smell.</li>
+  </ul>
+</section>
+
+<section class="unit" id="u16">
+  <header>
+    <h2><span class="n">16</span>Modern vs legacy</h2>
+    <span class="docs"><a href="https://learn.microsoft.com/en-us/azure/advisor/advisor-workbook-service-retirement">docs: service retirement workbook</a></span>
+  </header>
+  <div class="tw">
+  <table class="grid">
+    <thead><tr><th>Task</th><th>Modern</th><th>Legacy still seen</th><th>Since</th></tr></thead>
+    <tbody>
+      <tr class="hi"><td>Author infrastructure</td><td>Bicep (or Terraform <code>azurerm</code>) + AVM modules</td><td>hand-written ARM JSON</td><td>Bicep GA 2020</td></tr>
+      <tr><td>Own the resource lifecycle</td><td>deployment stacks (<code>az stack group</code>) with deny settings</td><td>Azure Blueprints; Complete-mode deploys</td><td>stacks GA 2024; <code>az blueprint</code> removed 2.92.0 (2026-11)</td></tr>
+      <tr class="hi"><td>App &rarr; Azure auth</td><td>managed identity + <code>DefaultAzureCredential</code></td><td>connection strings, SP client secrets in app settings</td><td>MI 2017, Azure.Identity 2020</td></tr>
+      <tr><td>CI/CD &rarr; Azure auth</td><td>workload identity federation (OIDC), no secret</td><td>service principal secret/certificate in a pipeline variable</td><td>2022</td></tr>
+      <tr><td>Storage data access</td><td>Entra RBAC, <code>--auth-mode login</code>, user delegation SAS</td><td>account keys, account SAS, <code>AzureWebJobsStorage</code> conn string</td><td><code>--access-keys-auth Disabled</code> default in az 2.92.0 (2026-11)</td></tr>
+      <tr class="hi"><td>Key Vault permissions</td><td>Azure RBAC (<code>--enable-rbac-authorization</code>)</td><td>vault access policies</td><td>RBAC GA 2021</td></tr>
+      <tr><td>.NET Functions</td><td>isolated worker, .NET 10</td><td>in-process model</td><td>in-process support ends 2026-11-10</td></tr>
+      <tr><td>Serverless Functions plan</td><td>Flex Consumption (scale to zero + VNet)</td><td>Linux Consumption (Y1), Premium EP for VNet only</td><td>Flex GA 2025; <code>az functionapp flex-migration</code> in az 2.88</td></tr>
+      <tr class="hi"><td>Run containers</td><td>Container Apps / AKS</td><td>Azure Container Instances as an app host; Cloud Services</td><td>ACA GA 2022</td></tr>
+      <tr><td>AKS pod identity</td><td>workload identity (OIDC federation), <code>az aks identity-binding</code></td><td>AAD Pod Identity</td><td>Pod Identity retired 2023-09; identity-binding in az 2.89 (2026-08)</td></tr>
+      <tr><td>AKS networking</td><td>Azure CNI Overlay + Cilium dataplane</td><td>kubenet; CNI node-subnet IP-per-pod</td><td>overlay GA 2023; kubenet retiring</td></tr>
+      <tr class="hi"><td>Telemetry</td><td>OpenTelemetry + <code>UseAzureMonitor()</code></td><td>classic Application Insights SDK, <code>TelemetryClient</code></td><td>Azure Monitor OTel distro GA 2024</td></tr>
+      <tr><td>VM/agent logs</td><td>Azure Monitor Agent + Data Collection Rules</td><td>Log Analytics agent (MMA/OMS), diagnostics extension</td><td>MMA retired 2024-08-31</td></tr>
+      <tr><td>Load balancing / IPs</td><td>Standard LB, Standard public IP, NAT Gateway egress</td><td>Basic LB, Basic public IP, default outbound access</td><td>Basic retired 2025-09-30; Basic priced as Standard 2026-03-31</td></tr>
+      <tr class="hi"><td>PaaS network isolation</td><td>Private Endpoint + private DNS zone</td><td>service endpoints, IP allow-lists</td><td>Private Link GA 2020</td></tr>
+      <tr><td>Azure SQL client</td><td><code>Microsoft.Data.SqlClient</code>, <code>Authentication=Active Directory Default</code></td><td><code>System.Data.SqlClient</code>, SQL logins</td><td>2019</td></tr>
+      <tr><td>PowerShell module</td><td><code>Az</code> 16.x</td><td><code>AzureRM</code></td><td>AzureRM retired 2024-02-29</td></tr>
+      <tr class="hi"><td>Token library (.NET)</td><td>MSAL / <code>Azure.Identity</code></td><td>ADAL (<code>Microsoft.IdentityModel.Clients.ActiveDirectory</code>)</td><td>ADAL retired 2022-06-30</td></tr>
+      <tr><td>Directory API</td><td>Microsoft Graph</td><td>Azure AD Graph</td><td>AAD Graph retired 2023</td></tr>
+      <tr><td>AI platform naming</td><td>Microsoft Foundry (Foundry Tools, Agent Service)</td><td>Azure AI Foundry / Azure AI Studio / Azure AI Services</td><td>renamed at Ignite 2025-11-18</td></tr>
+    </tbody>
+  </table>
+  </div>
+</section>
+
+<section class="unit" id="u17">
+  <header>
+    <h2><span class="n">17</span>Version timeline</h2>
+    <span class="docs"><a href="https://learn.microsoft.com/en-us/cli/azure/release-notes-azure-cli">docs: Azure CLI release notes</a></span>
+  </header>
+  <p>Azure has no single version, so the timeline that matters is the toolchain plus the dated platform changes you are expected to have noticed. Latest first.</p>
+  <div class="tw">
+  <table class="grid">
+    <thead><tr><th>What</th><th>Date</th><th>Change</th></tr></thead>
+    <tbody>
+      <tr class="hi"><td><strong>Azure CLI 2.90.0</strong></td><td>2026-09-01</td><td><strong>current stable.</strong> <code>az webapp exec</code>, <code>az aks nodepool auto-scale</code>, Key Vault control plane API <code>2026-02-01</code>, NAT64 on StandardV2 NAT gateways, streaming ADLS Gen2 downloads.</td></tr>
+      <tr><td>Az PowerShell 16.3.0</td><td>2026-08-31</td><td>Az.Resources on API <code>2026-01-01</code>, new Policy enrolment cmdlets, clearer MSI/tenant mismatch error.</td></tr>
+      <tr><td>azd 1.32.0</td><td>2026-08</td><td>extension framework <strong>GA</strong>; Functions deploy from a prebuilt container image; layered Bicep dependency inference; documented Azure DevOps federated auth.</td></tr>
+      <tr><td>Azure CLI 2.89.0</td><td>2026-08-04</td><td><code>az aks identity-binding</code> (trust domains) <strong>new</strong>; AKS API bumped to <code>2026-05-01</code>; ACR writable cache repos.</td></tr>
+      <tr class="hi"><td>Bicep 0.46.1</td><td>2026-07-31</td><td><strong>current stable.</strong> Bicep console line navigation + undo/redo, optional inherited params in extended param files, <code>secure-params-in-parameters-file</code> linter rule <strong>new</strong>.</td></tr>
+      <tr><td>Entra MFA phase 2</td><td>2026-07-01</td><td>last postponement window closes: MFA required for <strong>every ARM create/update/delete</strong> via CLI, PowerShell, REST, SDK and IaC. Reads exempt; SPs and managed identities exempt.</td></tr>
+      <tr><td>Azure CLI 2.88.0</td><td>2026-07-07</td><td><code>az functionapp flex-migration</code>; AKS control-plane Prometheus metrics; VM default size &rarr; <code>Standard_D2s_v5</code> (<strong>breaking</strong>); Linux default for <code>az webapp create</code>.</td></tr>
+      <tr><td>App Service Build 2026</td><td>2026-06</td><td><strong>Isolated v4 on ASEv3 GA</strong>; App Service Managed Instance progress; &ldquo;Easy AI&rdquo; agent-ready endpoints.</td></tr>
+      <tr class="hi"><td>Azure CLI 2.87.0</td><td>2026-06-02</td><td>breaking-change release: <code>az webapp list-runtimes</code> output reshaped, ACR content-trust/Notary checks removed, <code>az postgres flexible-server --high-availability</code> &rarr; <code>--zonal-resiliency</code>.</td></tr>
+      <tr><td>Bicep 0.43.1</td><td>2026-05</td><td><code>like()</code> and <code>distinct()</code> functions <strong>new</strong>; <code>@retryOn</code> decorator; two new linter rules.</td></tr>
+      <tr><td>Basic public IP pricing</td><td>2026-03-31</td><td>remaining Basic (ARM) public IPs billed at Standard rates &mdash; the tail end of the 2025-09-30 retirement.</td></tr>
+      <tr><td>API Management</td><td>2026-03-15</td><td>trusted-service connectivity to Storage, Key Vault, Service Bus, Event Hubs and ACR <strong>retired</strong> &mdash; move to managed identity + private networking.</td></tr>
+      <tr><td>Bicep 0.41.2</td><td>2026-03</td><td><code>bicep snapshot</code> reaches <strong>GA</strong> (normalised, diffable resource snapshots).</td></tr>
+      <tr class="hi"><td>Microsoft Foundry</td><td>2025-11-18</td><td>Azure AI Foundry <strong>renamed</strong> Microsoft Foundry at Ignite; Azure AI Services brand becomes Foundry Tools; agents/workflows become first-class.</td></tr>
+      <tr><td>Basic SKU retirement</td><td>2025-09-30</td><td>Basic Load Balancer and Basic (ARM) public IP addresses <strong>retired</strong>; Standard is now the only choice.</td></tr>
+      <tr><td>Entra MFA phase 2 rollout</td><td>2025-10-01</td><td>ARM-layer MFA enforcement begins; az &ge; 2.76 / Az &ge; 14.3 required for a clean experience.</td></tr>
+      <tr><td>ACA serverless GPUs</td><td>2025</td><td><strong>GA</strong>: per-second GPU billing, scale to zero, NVIDIA NIM microservices; dynamic sessions add Hyper-V-isolated code interpreters.</td></tr>
+      <tr><td>Log Analytics agent</td><td>2024-08-31</td><td>MMA/OMS agent <strong>retired</strong>; Azure Monitor Agent + DCRs is the only supported path.</td></tr>
+      <tr><td>AzureRM PowerShell</td><td>2024-02-29</td><td><strong>retired</strong>; <code>Az</code> only.</td></tr>
+    </tbody>
+  </table>
+  </div>
+  <h3>Deadlines to have in your head</h3>
+  <ul class="tight">
+    <li><strong>2026-11-10</strong> &mdash; Azure Functions <strong>.NET in-process model end of support</strong>. Isolated worker or nothing.</li>
+    <li><strong>2026-11</strong> &mdash; Azure CLI <strong>2.92.0</strong>: <code>az blueprint</code> removed; <code>--access-keys-auth</code> defaults to <code>Disabled</code>.</li>
+    <li><strong>2026-11</strong> &mdash; AKS <strong>1.34</strong> reaches end of life; 1.37 GA lands ~2026-10.</li>
+    <li><strong>2026-09-30</strong> &mdash; NVv3 / NVv4 VM series retired, plus a batch of Service Bus control-plane API versions and older Azure Virtual Desktop surface.</li>
+    <li>Track your own tenant with the Azure Advisor <em>Service Retirement</em> workbook rather than a blog list &mdash; it is scoped to resources you actually own.</li>
+  </ul>
+</section>
+</main>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.11.1/highlight.min.js"></script>
+<script>
+(function () {
+  if (window.hljs) { try { hljs.highlightAll(); } catch (e) { /* highlighting is decoration */ } }
+
+  var toggle = document.querySelector('.navtoggle');
+  var side = document.getElementById('side');
+  if (toggle) {
+    toggle.addEventListener('click', function () {
+      var open = document.body.classList.toggle('nav-open');
+      toggle.setAttribute('aria-expanded', open ? 'true' : 'false');
+    });
+  }
+  if (side) {
+    side.addEventListener('click', function (e) {
+      if (e.target.closest('a')) {
+        document.body.classList.remove('nav-open');
+        if (toggle) toggle.setAttribute('aria-expanded', 'false');
+      }
+    });
+  }
+
+  var links = Array.prototype.slice.call(document.querySelectorAll('.units a'));
+  var units = links.map(function (a) { return document.getElementById(a.getAttribute('href').slice(1)); });
+  var ticking = false;
+  function spy() {
+    ticking = false;
+    var best = 0;
+    for (var i = 0; i < units.length; i++) {
+      if (units[i] && units[i].getBoundingClientRect().top <= 140) best = i;
+    }
+    for (var j = 0; j < links.length; j++) {
+      if (j === best) links[j].setAttribute('aria-current', 'true');
+      else links[j].removeAttribute('aria-current');
+    }
+  }
+  function onScroll() {
+    if (!ticking) { ticking = true; window.requestAnimationFrame(spy); }
+  }
+  window.addEventListener('scroll', onScroll, { passive: true });
+  window.addEventListener('resize', onScroll, { passive: true });
+  spy();
+})();
+</script>
+</body>
+</html>
