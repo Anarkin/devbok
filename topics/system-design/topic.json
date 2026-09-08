@@ -2,6 +2,7 @@
   "slug": "system-design",
   "title": "System design (.NET full-stack)",
   "topic": "System design (as a full-stack .NET engineer, incl. JS FE, databases, and everything inbetween)",
+  "category": "architecture",
   "accent": "#0e7c86",
   "created": "2026-09-08",
   "kinds": {

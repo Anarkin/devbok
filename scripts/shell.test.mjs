@@ -16,16 +16,19 @@ const M = vm.runInThisContext(`(function () {\n${modelSrc}\n;return devbokModel;
 const stripComments = (js) => js.replace(/\/\*[\s\S]*?\*\//g, '').replace(/^\s*\/\/.*$/gm, '');
 
 const v = (n, generated, slug, kind) => ({ v: n, generated, prompt: 'deadbeef', file: `topics/${slug}/${kind}.v${n}.html` });
+// The category vocabulary the shell receives from topics/index.js: order and labels, nothing else.
+const CATS = [{ id: 'language', label: 'Languages' }, { id: 'data', label: 'Data & storage' }, { id: 'other', label: 'Other' }];
+const topicsOf = (w) => w.groups.flatMap((g) => g.topics);
 const T = [
   {
-    slug: 'csharp', title: 'C#', topic: 'C# <the language> & "more"', created: '2026-09-07',
+    slug: 'csharp', title: 'C#', topic: 'C# <the language> & "more"', category: 'language', created: '2026-09-07',
     kinds: {
       study: [v(2, '2026-09-12', 'csharp', 'study'), v(1, '2026-09-07', 'csharp', 'study')],
       experience: [v(1, '2026-09-07', 'csharp', 'experience')],
       interview: [], cheatsheet: [],
     },
   },
-  { slug: 'sql', title: 'SQL', topic: 'SQL Server and PostgreSQL', created: '2026-09-08', kinds: { study: [], experience: [], interview: [], cheatsheet: [] } },
+  { slug: 'sql', title: 'SQL', topic: 'SQL Server and PostgreSQL', category: 'data', created: '2026-09-08', kinds: { study: [], experience: [], interview: [], cheatsheet: [] } },
 ];
 
 describe('model: parseHash / toHash', () => {
@@ -117,7 +120,7 @@ describe('model: view', () => {
     assert.match(w.message, /topics\/index\.js/);
     assert.match(w.message, /node scripts\/devbok\.mjs index/);
     assert.match(w.sidebarNote, /missing or invalid/);
-    assert.deepEqual(w.sidebar, []);
+    assert.deepEqual(w.groups, []);
     assert.ok(w.tabs.every((t) => t.disabled && t.latest === null));
     assert.equal(w.tabs.find((t) => t.kind === 'study').active, true);
     assert.deepEqual(w.options, []);
@@ -130,7 +133,7 @@ describe('model: view', () => {
     const w = M.view(T, '', null);
     assert.match(w.message, /Pick a topic on the left/);
     assert.doesNotMatch(w.message, /Unknown topic/);
-    assert.ok(w.sidebar.length === 2 && w.sidebar.every((t) => !t.active));
+    assert.ok(topicsOf(w).length === 2 && topicsOf(w).every((t) => !t.active));
     assert.ok(w.tabs.every((t) => t.disabled));
     assert.equal(w.src, null);
     assert.equal(w.remember, null);
@@ -199,12 +202,38 @@ describe('model: view', () => {
     ]);
   });
   test('sidebar links keep the current kind and mark the active topic', () => {
-    const w = M.view(T, '#sql/cheatsheet', null);
-    assert.deepEqual(w.sidebar.map((t) => [t.slug, t.href, t.active]), [
+    const w = M.view(T, '#sql/cheatsheet', null, CATS);
+    assert.deepEqual(topicsOf(w).map((t) => [t.slug, t.href, t.active]), [
       ['csharp', '#csharp/cheatsheet', false],
       ['sql', '#sql/cheatsheet', true],
     ]);
-    assert.equal(w.sidebar[0].topic, 'C# <the language> & "more"', 'raw text; the glue escapes when painting');
+    assert.equal(topicsOf(w)[0].topic, 'C# <the language> & "more"', 'raw text; the glue escapes when painting');
+  });
+  test('sidebar groups: vocabulary order and labels, unknown categories last, nothing hidden', () => {
+    const empty = { study: [], experience: [], interview: [], cheatsheet: [] };
+    const more = [
+      ...T,
+      { slug: 'k8s', title: 'Kubernetes', topic: 'k8s', category: 'ops', created: '2026-09-08', kinds: empty },
+      { slug: 'git', title: 'Git', topic: 'git', created: '2026-09-08', kinds: empty },
+    ];
+    const w = M.view(more, '', null, CATS);
+    assert.deepEqual(w.groups.map((g) => [g.category, g.label, g.topics.map((t) => t.slug)]), [
+      ['language', 'Languages', ['csharp']],
+      ['data', 'Data & storage', ['sql']],
+      ['other', 'Other', ['git']],          // no category at all falls into the vocabulary's own "other"
+      ['ops', 'ops', ['k8s']],              // named by nothing: its own group, last, labelled by its id
+    ]);
+  });
+  test('sidebar groups: a stale or missing vocabulary still shows every topic', () => {
+    for (const cats of [undefined, [], 'nonsense']) {
+      const w = M.view(T, '', null, cats);
+      assert.deepEqual(topicsOf(w).map((t) => t.slug).sort(), ['csharp', 'sql'], `categories: ${JSON.stringify(cats)}`);
+      assert.deepEqual(w.groups.map((g) => g.label), ['data', 'language'], 'unlabelled groups fall back to the raw id, in a stable order');
+    }
+  });
+  test('sidebar groups: one group is no grouping - the lone header is dropped', () => {
+    const w = M.view([T[0]], '', null, CATS);
+    assert.deepEqual(w.groups.map((g) => [g.category, g.label, g.topics.length]), [['language', null, 1]]);
   });
   test('esc neutralises markup', () => {
     assert.equal(M.esc('<a href="x">&\'</a>'), '&lt;a href=&quot;x&quot;&gt;&amp;&#39;&lt;/a&gt;');
@@ -348,6 +377,17 @@ describe('devbok.html structure', () => {
   test('no 100vw or 100vh: the shell holds itself to the rule it sets for artifacts', () => {
     // validate warns about 100vw in a generated page; the index page is the reference implementation.
     assert.doesNotMatch(HTML.match(/<style>([\s\S]*?)<\/style>/)[1], /\b100v[wh]\b/);
+  });
+  test('the sidebar paints one labelled section per category, using the generated vocabulary', () => {
+    const glue = HTML.match(/<script>\s*\(function \(\) \{[\s\S]*?<\/script>/)[0];
+    assert.match(glue, /window\.DEVBOK_CATEGORIES/, 'order and labels come from topics/index.js, never from this file');
+    assert.match(glue, /v\.groups\.map/);
+    assert.match(glue, /<li class="group">/);
+    const css = HTML.match(/<style>([\s\S]*?)<\/style>/)[1];
+    const rule = (sel) => css.split('\n').find((l) => l.trim().startsWith(sel + ' {')) ?? '';
+    assert.match(rule('nav h2'), /color: var\(--muted\);/, 'a section label is muted, like the slug under a topic');
+    assert.match(rule('nav > ul'), /overflow: auto;/, 'the outer list scrolls; the per-category lists do not');
+    assert.match(rule('nav ul'), /padding: 0;/);
   });
   test('the model block has no DOM or browser dependencies', () => {
     assert.doesNotMatch(stripComments(modelSrc), /\b(document|window|location|localStorage)\b/);

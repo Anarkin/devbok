@@ -16,11 +16,24 @@ Create a new devbok topic from: `$ARGUMENTS`
 - Sanitize it: `node scripts/devbok.mjs slug "<proposed>"` and use the printed value.
 - Choose a display title of at most 40 characters for the sidebar, for example `System design (.NET full-stack)`. The topic text itself is stored verbatim and is what the prompts receive, so never shorten or "improve" it.
 - Choose the topic's accent colour: one 6-digit hex, the real brand colour of the technology (for example C# / .NET `#512bd4`, Angular `#dd0031`, PostgreSQL `#336791`, Redis `#dc382d`, TypeScript `#3178c6`). For a topic without a brand (system design, observability), pick a colour that feels like the topic. All four pages of the topic will use it, so decide it once here.
+- Choose the topic's category: exactly one of these, the single axis the sidebar groups by. Ask "where would I go looking for this?", not "what is this technically about?" - EF Core is `data` because you revise it next to SQL, Kubernetes is `ops` even though the good questions about it are architectural.
+
+  | category | what belongs there |
+  |---|---|
+  | `language` | a language itself: C#, TypeScript, JavaScript, and language-level topics like async/await |
+  | `backend` | server-side runtimes and frameworks: ASP.NET Core, .NET internals, REST/gRPC/GraphQL APIs, Node |
+  | `frontend` | browser-side: Angular, React, CSS, accessibility, front-end performance |
+  | `data` | stores and access: SQL Server, PostgreSQL, MongoDB, Redis, EF Core, data modelling |
+  | `architecture` | design in the large: system design, distributed systems, messaging, DDD/CQRS, microservices |
+  | `ops` | cloud and delivery: Azure, containers and Kubernetes, CI/CD, Terraform, observability |
+  | `ai` | AI engineering: LLM and agent fundamentals, RAG, MCP, evals, agentic SDLC |
+  | `practice` | cross-cutting craft, tied to no stack: testing, application security, git, code review |
+  | `other` | genuinely nothing above - rare; prefer the closest fit, since this group sorts last |
 
 ## 2. Register the topic
 
 ```
-node scripts/devbok.mjs init <slug> --title "<title>" --topic "<topic text verbatim>" --accent "#rrggbb"
+node scripts/devbok.mjs init <slug> --title "<title>" --topic "<topic text verbatim>" --category "<category>" --accent "#rrggbb"
 ```
 
 If it fails because the slug already exists, stop and tell the user to run `/devbok-update <slug>` instead (or pick another slug with `/devbok-new other-slug: <topic>`).

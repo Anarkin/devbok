@@ -67,7 +67,14 @@
   body.resizing { cursor: col-resize; user-select: none; }
   body.resizing iframe { pointer-events: none; }   /* otherwise the iframe swallows the drag */
   .tab:focus-visible, select:focus-visible, a:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
-  nav ul { list-style: none; margin: 0; padding: 12px 0; overflow: auto; flex: 1; }
+  nav ul { list-style: none; margin: 0; padding: 0; }
+  nav > ul { padding: 12px 0; overflow: auto; flex: 1; }
+  /* One section per category, its label muted and set apart by a hairline. The label is a heading rather
+     than a styled span so the grouping is real structure for a screen reader, not just a look. */
+  /* The label is outdented rather than the topics indented: the longest title already fills the default
+     sidebar to the pixel, so the hierarchy step has to come out of the margin, not out of the rows. */
+  nav h2 { margin: 0; padding: 10px 20px 3px 12px; color: var(--muted); font-weight: 400; letter-spacing: .08em; text-transform: uppercase; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  nav .group + .group h2 { margin-top: 14px; padding-top: 16px; border-top: 1px solid var(--border); }
   nav li a { display: block; padding: 9px 20px; color: inherit; text-decoration: none; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
   nav li a:hover { background: var(--soft); }
   nav li a.active { background: var(--fg); color: var(--bg); }
@@ -187,6 +194,24 @@ const devbokModel = (function () {
     return '#' + [slug, kind, v === 'draft' ? 'draft' : v ? 'v' + v : null].filter(Boolean).join('/');
   }
 
+  // The sidebar is grouped by the topic's one category. Both the order and the labels come from
+  // topics/index.js (window.DEVBOK_CATEGORIES), so this file never learns what the categories are.
+  // A topic whose category the vocabulary does not name still gets a group of its own, last: a stale
+  // or missing index may leave a section unlabelled, but it can never hide a topic.
+  function groupTopics(topics, categories) {
+    const vocab = Array.isArray(categories) ? categories : [];
+    const label = new Map(vocab.map((c) => [c.id, c.label]));
+    const rank = new Map(vocab.map((c, i) => [c.id, i]));
+    const groups = new Map();
+    for (const t of topics) {
+      const id = t.category || 'other';
+      if (!groups.has(id)) groups.set(id, { category: id, label: label.get(id) ?? id, topics: [] });
+      groups.get(id).topics.push(t);
+    }
+    const at = (g) => (rank.has(g.category) ? rank.get(g.category) : vocab.length);
+    return [...groups.values()].sort((a, b) => at(a) - at(b) || a.category.localeCompare(b.category));
+  }
+
   // topics: window.DEVBOK_TOPICS (array), or anything else when index.js is missing.
   // hash: location.hash.  lastKind: the kind tab used on the previous visit (or null).
   // Only the hash selects a topic: the landing page never picks one on its own.
@@ -204,8 +229,8 @@ const devbokModel = (function () {
     return { slug, kind, topic, versions, ver };
   }
 
-  // Everything the glue needs to paint the page, derived from the same three inputs.
-  function view(topics, hash, lastKind) {
+  // Everything the glue needs to paint the page, derived from the same inputs.
+  function view(topics, hash, lastKind, categories) {
     const s = resolve(topics, hash, lastKind);
     const list = Array.isArray(topics) ? topics : null;
     let message = null;
@@ -216,7 +241,11 @@ const devbokModel = (function () {
     else if (!s.ver) message = `No <b>${esc(s.kind)}</b> artifact for <b>${esc(s.topic.title)}</b> yet. Run <code>/devbok-update ${esc(s.slug)} ${esc(s.kind)}</code>.`;
     const sidebarNote = !list ? 'topics/index.js is missing or invalid.<br>Run <code>node scripts/devbok.mjs index</code>.'
       : (!list.length ? 'No topics yet.<br>In Claude Code run <code>/devbok-new &lt;topic&gt;</code>.' : null);
-    const sidebar = (list || []).map((t) => ({ slug: t.slug, title: t.title, topic: t.topic, href: toHash(t.slug, s.kind), active: t.slug === s.slug }));
+    const groups = groupTopics(
+      (list || []).map((t) => ({ slug: t.slug, title: t.title, topic: t.topic, category: t.category, href: toHash(t.slug, s.kind), active: t.slug === s.slug })),
+      categories,
+    );
+    if (groups.length === 1) groups[0].label = null; // one group is no grouping: the single header would say nothing
     const tabs = KINDS.map((k) => {
       const vs = s.topic ? (s.topic.kinds[k] || []) : [];
       return { kind: k, active: k === s.kind, latest: vs.length ? vs[0].v : null, disabled: !s.topic };
@@ -228,7 +257,7 @@ const devbokModel = (function () {
     ];
     const title = !s.topic ? 'devbok' : (s.ver ? `${s.topic.title} · ${s.kind} ${isDraft ? 'draft' : 'v' + s.ver.v} · devbok` : `${s.topic.title} · devbok`);
     return {
-      ...s, message, sidebarNote, sidebar, tabs, options, title,
+      ...s, message, sidebarNote, groups, tabs, options, title,
       crumb: s.topic ? s.topic.topic : '',
       src: s.ver ? s.ver.file : null,
       remember: s.topic ? s.kind : null, // the kind tab to reopen on next time; never the topic
@@ -246,7 +275,7 @@ const devbokModel = (function () {
     return Math.round(Math.min(Math.max(px, SIDEBAR_MIN), max));
   }
 
-  return { KINDS, esc, parseHash, toHash, resolve, view, pickVersion, clampSidebar, SIDEBAR_DEFAULT, SIDEBAR_MIN };
+  return { KINDS, esc, parseHash, toHash, resolve, view, groupTopics, pickVersion, clampSidebar, SIDEBAR_DEFAULT, SIDEBAR_MIN };
 })();
 </script>
 <script>
@@ -262,16 +291,17 @@ const devbokModel = (function () {
     set(k, v) { try { localStorage.setItem(k, v); } catch { /* storage unavailable */ } },
     del(k) { try { localStorage.removeItem(k); } catch { /* storage unavailable */ } },
   };
-  const current = () => M.view(window.DEVBOK_TOPICS, location.hash, store.get('devbok:kind'));
+  const current = () => M.view(window.DEVBOK_TOPICS, location.hash, store.get('devbok:kind'), window.DEVBOK_CATEGORIES);
 
   function render() {
     const v = current();
     if (v.remember) store.set('devbok:kind', v.remember);
     els.tabBar.hidden = !v.topic; // no tabs, version picker or topic line until a topic is chosen
     els.crumb.hidden = !v.topic;
+    const link = (t) => `<li><a href="${t.href}" class="${t.active ? 'active' : ''}" title="${M.esc(t.topic)}">${M.esc(t.title)}<span class="slug">${M.esc(t.slug)}</span></a></li>`;
     els.list.innerHTML = v.sidebarNote
       ? `<li class="none">${v.sidebarNote}</li>`
-      : v.sidebar.map((t) => `<li><a href="${t.href}" class="${t.active ? 'active' : ''}" title="${M.esc(t.topic)}">${M.esc(t.title)}<span class="slug">${M.esc(t.slug)}</span></a></li>`).join('');
+      : v.groups.map((g) => `<li class="group">${g.label ? `<h2>${M.esc(g.label)}</h2>` : ''}<ul>${g.topics.map(link).join('')}</ul></li>`).join('');
     for (const b of els.tabs) {
       const t = v.tabs.find((x) => x.kind === b.dataset.kind);
       b.classList.toggle('active', t.active);

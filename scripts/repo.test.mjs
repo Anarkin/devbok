@@ -8,7 +8,7 @@ import path from 'node:path';
 import vm from 'node:vm';
 import { spawnSync } from 'node:child_process';
 import { fileURLToPath } from 'node:url';
-import { darkAccent } from './devbok.mjs';
+import { darkAccent, CATEGORIES } from './devbok.mjs';
 
 const ROOT = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..');
 const SCRIPT = path.join(ROOT, 'scripts', 'devbok.mjs');
@@ -59,6 +59,31 @@ describe('kinds agree everywhere', () => {
     for (const s of ['devbok-new', 'devbok-update']) {
       assert.match(frontmatter(s).body, /one `Agent` subagent \(`general-purpose`\) per prepared kind/, `${s} must launch one subagent per prepared kind`);
       assert.match(frontmatter(s).body, /not devbok-ready/, `${s} must explain how a not-ready prompt is skipped`);
+    }
+  });
+});
+
+describe('categories agree everywhere', () => {
+  // scripts/devbok.mjs owns the vocabulary. devbok-new has to know it to choose one, AGENTS.md documents
+  // it, and the shell must know none of it (the labels reach devbok.html through topics/index.js).
+  const ids = Object.keys(CATEGORIES);
+  test('devbok-new offers exactly these categories, in the same order, and passes the flag', () => {
+    const body = frontmatter('devbok-new').body;
+    const offered = [...body.matchAll(/^ *\| `([a-z]+)` +\|/gm)].map((m) => m[1]);
+    assert.deepEqual(offered, ids, 'the category table in devbok-new/SKILL.md must match scripts/devbok.mjs');
+    assert.match(body, /--category "?<category>"?/, 'init must be called with the chosen category');
+  });
+  test('AGENTS.md documents the same categories in the same order', () => {
+    const line = read('AGENTS.md').split('\n').find((l) => l.startsWith('The **category**'));
+    assert.ok(line, 'AGENTS.md must describe what a category is');
+    assert.deepEqual([...new Set([...line.matchAll(/`([a-z]+)`/g)].map((m) => m[1]))], ids);
+  });
+  test('the shell knows no category of its own', () => {
+    const html = read('devbok.html');
+    for (const [id, label] of Object.entries(CATEGORIES)) {
+      if (id === 'other') continue; // the shell's own fallback bucket for a topic whose manifest names none
+      assert.ok(!html.includes(label), `devbok.html names the category "${label}"; the vocabulary travels in topics/index.js`);
+      assert.ok(!html.includes(`'${id}'`), `devbok.html hard-codes the category id "${id}"`);
     }
   });
 });
