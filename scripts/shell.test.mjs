@@ -273,10 +273,11 @@ describe('devbok.html structure', () => {
     for (const d of ['flex: 1;', 'border-bottom: 2px solid var(--line);']) assert.ok(rule('.tools').includes(d), '.tools needs ' + d);
   });
   test('no orientation labels: the list and the tab row explain themselves', () => {
-    assert.match(HTML, /<nav aria-label="Topics">\s*<ul id="topics">/);
+    assert.match(HTML, /<nav id="nav" aria-label="Topics">\s*<ul id="topics">/);
     assert.match(HTML, /<div class="tabs" id="tabs" role="group" aria-label="[^"]+">\s*<button class="tab"/);
     assert.doesNotMatch(HTML, /nav-label|tabs-label/);
-    assert.doesNotMatch(HTML, /<header>[\s\S]*?<button[\s\S]*?<\/header>/, 'the header holds no controls');
+    const headerButtons = [...HTML.match(/<header>[\s\S]*?<\/header>/)[0].matchAll(/<button[^>]*\bid="([^"]+)"/g)].map((m) => m[1]);
+    assert.deepEqual(headerButtons, ['menu'], 'the header holds no control but the narrow-viewport drawer toggle');
   });
   test('the "add more topics" button at the foot of the sidebar opens a native dialog', () => {
     assert.match(HTML, /<ul id="topics"><\/ul>\s*<button class="add" id="help" type="button">\+ add more topics<\/button>\s*(?:<div class="resizer"[^>]*><\/div>\s*)?<\/nav>/);
@@ -325,6 +326,24 @@ describe('devbok.html structure', () => {
     const rule = (sel) => css.split('\n').find((l) => l.trim().startsWith(sel + ' {')) ?? '';
     assert.match(rule('.tabs'), /overflow-x: auto;/);
     assert.match(rule('.content'), /min-width: 0;/, 'a grid item never shrinks below its content without this');
+  });
+  test('below 720px the topic list is a drawer, not a block above the artifact', () => {
+    // The list grows with every topic, so stacking it above the pane would push the artifact off a phone screen.
+    const css = HTML.match(/<style>([\s\S]*?)<\/style>/)[1];
+    const narrow = css.match(/@media \(max-width: 720px\) \{[\s\S]*?\n  \}/)[0];
+    assert.match(narrow, /nav \{[^}]*position: absolute;[^}]*transform: translateX\(-100%\);/, 'off-canvas until opened');
+    assert.match(narrow, /main \{[^}]*position: relative;/, 'the drawer covers the pane, not the header');
+    assert.match(narrow, /body\.nav-open nav \{ transform: none; \}/);
+    assert.match(narrow, /body\.nav-open \.scrim \{ display: block; \}/);
+    assert.match(narrow, /\.menu \{ display: block; \}/, 'the toggle exists only in the drawer layout');
+    assert.doesNotMatch(narrow, /max-height: 40vh/, 'the stacked list is gone');
+    assert.match(HTML, /<button class="menu" id="menu" type="button" aria-label="Topics" aria-expanded="false" aria-controls="nav">/);
+    assert.match(HTML, /<div class="scrim" id="scrim"><\/div>/);
+    const glue = HTML.match(/<script>\s*\(function \(\) \{[\s\S]*?<\/script>/)[0];
+    assert.match(glue, /classList\.toggle\('nav-open'/);
+    // it opens only on request, and closes on anything that means "show me the artifact"
+    for (const closer of [/#scrim'\)\.addEventListener\('click', \(\) => setNav\(false\)\)/, /e\.key === 'Escape'/, /innerWidth > 720/, /closest\('a'\)/])
+      assert.match(glue, closer, `the drawer must close on ${closer}`);
   });
   test('no 100vw or 100vh: the shell holds itself to the rule it sets for artifacts', () => {
     // validate warns about 100vw in a generated page; the index page is the reference implementation.

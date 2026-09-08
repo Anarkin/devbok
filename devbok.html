@@ -38,6 +38,9 @@
     display: grid; grid-template-rows: auto 1fr; overflow: hidden;
   }
   header { display: flex; align-items: baseline; gap: 14px; padding: 14px 24px; border-bottom: 2px solid var(--line); }
+  /* The only control in the header, and only below 720px: the topic drawer's toggle. */
+  .menu { display: none; border: 1px solid var(--border); border-radius: 4px; background: none; color: var(--fg); padding: 2px 9px; cursor: pointer; }
+  .scrim { display: none; position: absolute; inset: 0; background: var(--backdrop); z-index: 2; }
   header h1 { margin: 0; font-weight: 700; letter-spacing: .02em; }
   header h1 a { color: inherit; text-decoration: none; }   /* clicking the name returns to the landing state */
   header .sub { color: var(--muted); }
@@ -84,27 +87,35 @@
   .tab[disabled] { cursor: default; }
   .tools { flex: 1; display: flex; align-items: center; justify-content: flex-end; gap: 12px; color: var(--muted); padding: 0 24px 0 12px; border-bottom: 2px solid var(--line); }
   .tools select { font: inherit; padding: 3px 6px; background: var(--bg); color: var(--fg); border: 1px solid var(--border); border-radius: 4px; }
-  .crumb { margin: 0 24px; padding: 8px 0 6px; color: var(--muted); line-height: 1.5; min-height: 1.6em; }
+  .crumb { margin: 0 24px; padding: 8px 0 6px; color: var(--fg); line-height: 1.5; min-height: 1.6em; }
   .pane { min-height: 0; position: relative; }
   iframe { position: absolute; inset: 0; width: 100%; height: 100%; border: 0; display: block; background: var(--bg); }
   .empty { padding: 40px 24px; color: var(--muted); max-width: 64ch; line-height: 1.7; }
   .empty code { background: var(--soft); padding: 1px 6px; border-radius: 3px; color: var(--fg); }
   [hidden] { display: none !important; }
+  /* Below 720px the topic list would eat the screen and grows with every topic, so it becomes a drawer:
+     off-canvas on the left, opened by the header's toggle, closed by a pick, the scrim or Escape.
+     It slides over the pane, not the header, so the toggle that opened it also closes it. */
   @media (max-width: 720px) {
-    main { grid-template-columns: 1fr; grid-template-rows: auto 1fr; }
-    nav { border-right: 0; border-bottom: 2px solid var(--line); max-height: 40vh; }
+    main { grid-template-columns: 1fr; position: relative; }
+    nav { position: absolute; top: 0; bottom: 0; left: 0; z-index: 3; width: min(var(--sidebar), 82%); background: var(--bg); transform: translateX(-100%); transition: transform .2s ease; }
+    body.nav-open nav { transform: none; }
+    body.nav-open .scrim { display: block; }
+    .menu { display: block; }
     .resizer { display: none; }
     .tab { padding: 11px 12px; }
   }
+  @media (prefers-reduced-motion: reduce) { nav { transition: none; } }
 </style>
 </head>
 <body>
 <header>
+  <button class="menu" id="menu" type="button" aria-label="Topics" aria-expanded="false" aria-controls="nav">☰</button>
   <h1><a id="home" href="#" title="Back to the topic list">devbok</a></h1>
   <span class="sub">Developer's Body of Knowledge</span>
 </header>
 <main>
-  <nav aria-label="Topics">
+  <nav id="nav" aria-label="Topics">
     <ul id="topics"></ul>
     <button class="add" id="help" type="button">+ add more topics</button>
     <div class="resizer" id="resizer" title="Drag to resize the topic list; double-click to reset"></div>
@@ -125,6 +136,7 @@
       <div class="empty" id="empty"></div>
     </div>
   </section>
+  <div class="scrim" id="scrim"></div>
 </main>
 <dialog id="howto" aria-labelledby="howto-title">
   <div class="howto">
@@ -268,7 +280,7 @@ const devbokModel = (function () {
     }
     els.version.innerHTML = v.options.map((o) => `<option value="${o.v}"${o.selected ? ' selected' : ''}>${M.esc(o.label)}</option>`).join('');
     els.version.hidden = !v.options.length;
-    els.crumb.textContent = v.crumb ? `“${v.crumb}”` : '';
+    els.crumb.textContent = v.crumb;
     els.crumb.title = v.crumb;
     if (v.message) {
       els.frame.hidden = true;
@@ -285,7 +297,7 @@ const devbokModel = (function () {
   els.tabs.forEach((b) => b.addEventListener('click', () => { const v = current(); if (v.slug) location.hash = M.toHash(v.slug, b.dataset.kind); }));
   els.version.addEventListener('change', () => { const v = current(); location.hash = M.toHash(v.slug, v.kind, M.pickVersion(els.version.value)); });
   const howto = $('#howto');
-  $('#help').addEventListener('click', () => howto.showModal());
+  $('#help').addEventListener('click', () => { setNav(false); howto.showModal(); });
   $('#howto-close').addEventListener('click', () => howto.close());
   howto.addEventListener('click', (e) => { if (e.target === howto) howto.close(); }); // click on the backdrop closes; Escape is native
   $('#home').addEventListener('click', (e) => { // same as a clean reload: drop the hash, select nothing
@@ -319,6 +331,18 @@ const devbokModel = (function () {
     resizer.addEventListener('pointercancel', end);
   });
   resizer.addEventListener('dblclick', () => { document.documentElement.style.removeProperty('--sidebar'); store.del(SIDEBAR_KEY); });
+  // Narrow viewports: the topic list is a drawer. Opening it is explicit; picking a topic, the scrim,
+  // Escape and growing back past the media query all close it, so it never lingers over the artifact.
+  const menu = $('#menu');
+  function setNav(open) {
+    document.body.classList.toggle('nav-open', open);
+    menu.setAttribute('aria-expanded', String(open));
+  }
+  menu.addEventListener('click', () => setNav(!document.body.classList.contains('nav-open')));
+  $('#scrim').addEventListener('click', () => setNav(false));
+  els.list.addEventListener('click', (e) => { if (e.target.closest('a')) setNav(false); });
+  document.addEventListener('keydown', (e) => { if (e.key === 'Escape') setNav(false); });
+  window.addEventListener('resize', () => { if (innerWidth > 720) setNav(false); });
   window.addEventListener('hashchange', render);
   render();
 })();
