@@ -24,7 +24,7 @@ For each selected kind (append `--draft` for a dry run):
 node scripts/devbok.mjs prepare <slug> <kind>
 ```
 
-Each successful call prints JSON with `version` (the new, never-reused number), `output` (the exact HTML path to write) and `prompt` (the rendered prompt file). If a call fails with "not devbok-ready", that kind's prompt has not been refactored yet: skip the kind and tell the user. Any other failure: stop, show the message verbatim, and launch nothing. If no kind could be prepared, report that and stop.
+Each successful call prints JSON with `version` (the new, never-reused number), `output` (the exact HTML path to write) and `prompt` (the rendered prompt file). If a call fails with "not devbok-ready", that kind's prompt does not fill every slot the template declares: skip the kind and tell the user, so a half-finished prompt edit cannot block the others. Any other failure: stop, show the message verbatim, and launch nothing. If no kind could be prepared, report that and stop.
 
 ## 3. Generate the prepared kinds in parallel
 
