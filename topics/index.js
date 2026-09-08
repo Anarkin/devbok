@@ -50,7 +50,7 @@ window.DEVBOK_TOPICS = [
         {
           "v": 1,
           "generated": "2026-09-08",
-          "prompt": "3e395ac4",
+          "prompt": "84e02c7e",
           "file": "topics/aspire/study.v1.html"
         }
       ],
@@ -58,7 +58,7 @@ window.DEVBOK_TOPICS = [
         {
           "v": 1,
           "generated": "2026-09-08",
-          "prompt": "f284a113",
+          "prompt": "569c3816",
           "file": "topics/aspire/experience.v1.html"
         }
       ],
@@ -66,7 +66,7 @@ window.DEVBOK_TOPICS = [
         {
           "v": 1,
           "generated": "2026-09-08",
-          "prompt": "880c04f3",
+          "prompt": "9181f10e",
           "file": "topics/aspire/interview.v1.html"
         }
       ],
@@ -74,7 +74,7 @@ window.DEVBOK_TOPICS = [
         {
           "v": 1,
           "generated": "2026-09-08",
-          "prompt": "ccd2d4a9",
+          "prompt": "86c6decb",
           "file": "topics/aspire/cheatsheet.v1.html"
         }
       ]
@@ -92,7 +92,7 @@ window.DEVBOK_TOPICS = [
         {
           "v": 1,
           "generated": "2026-09-08",
-          "prompt": "475abea6",
+          "prompt": "84e02c7e",
           "file": "topics/angular/study.v1.html"
         }
       ],
@@ -100,7 +100,7 @@ window.DEVBOK_TOPICS = [
         {
           "v": 1,
           "generated": "2026-09-08",
-          "prompt": "4ab84a97",
+          "prompt": "569c3816",
           "file": "topics/angular/experience.v1.html"
         }
       ],
@@ -108,7 +108,7 @@ window.DEVBOK_TOPICS = [
         {
           "v": 1,
           "generated": "2026-09-08",
-          "prompt": "c7153c25",
+          "prompt": "9181f10e",
           "file": "topics/angular/interview.v1.html"
         }
       ],
@@ -116,7 +116,7 @@ window.DEVBOK_TOPICS = [
         {
           "v": 1,
           "generated": "2026-09-08",
-          "prompt": "eef70255",
+          "prompt": "86c6decb",
           "file": "topics/angular/cheatsheet.v1.html"
         }
       ]
@@ -134,7 +134,7 @@ window.DEVBOK_TOPICS = [
         {
           "v": 1,
           "generated": "2026-09-08",
-          "prompt": "3e395ac4",
+          "prompt": "84e02c7e",
           "file": "topics/appsec/study.v1.html"
         }
       ],
@@ -142,7 +142,7 @@ window.DEVBOK_TOPICS = [
         {
           "v": 1,
           "generated": "2026-09-08",
-          "prompt": "f284a113",
+          "prompt": "569c3816",
           "file": "topics/appsec/experience.v1.html"
         }
       ],
@@ -150,7 +150,7 @@ window.DEVBOK_TOPICS = [
         {
           "v": 1,
           "generated": "2026-09-08",
-          "prompt": "880c04f3",
+          "prompt": "9181f10e",
           "file": "topics/appsec/interview.v1.html"
         }
       ],
@@ -158,7 +158,7 @@ window.DEVBOK_TOPICS = [
         {
           "v": 1,
           "generated": "2026-09-08",
-          "prompt": "ccd2d4a9",
+          "prompt": "86c6decb",
           "file": "topics/appsec/cheatsheet.v1.html"
         }
       ]
@@ -176,7 +176,7 @@ window.DEVBOK_TOPICS = [
         {
           "v": 1,
           "generated": "2026-09-08",
-          "prompt": "3e395ac4",
+          "prompt": "84e02c7e",
           "file": "topics/aspnet/study.v1.html"
         }
       ],
@@ -184,7 +184,7 @@ window.DEVBOK_TOPICS = [
         {
           "v": 1,
           "generated": "2026-09-08",
-          "prompt": "f284a113",
+          "prompt": "569c3816",
           "file": "topics/aspnet/experience.v1.html"
         }
       ],
@@ -192,7 +192,7 @@ window.DEVBOK_TOPICS = [
         {
           "v": 1,
           "generated": "2026-09-08",
-          "prompt": "880c04f3",
+          "prompt": "9181f10e",
           "file": "topics/aspnet/interview.v1.html"
         }
       ],
@@ -200,7 +200,7 @@ window.DEVBOK_TOPICS = [
         {
           "v": 1,
           "generated": "2026-09-08",
-          "prompt": "ccd2d4a9",
+          "prompt": "86c6decb",
           "file": "topics/aspnet/cheatsheet.v1.html"
         }
       ]
@@ -218,7 +218,7 @@ window.DEVBOK_TOPICS = [
         {
           "v": 1,
           "generated": "2026-09-08",
-          "prompt": "3e395ac4",
+          "prompt": "84e02c7e",
           "file": "topics/azure/study.v1.html"
         }
       ],
@@ -226,7 +226,7 @@ window.DEVBOK_TOPICS = [
         {
           "v": 1,
           "generated": "2026-09-08",
-          "prompt": "f284a113",
+          "prompt": "569c3816",
           "file": "topics/azure/experience.v1.html"
         }
       ],
@@ -234,7 +234,7 @@ window.DEVBOK_TOPICS = [
         {
           "v": 1,
           "generated": "2026-09-08",
-          "prompt": "880c04f3",
+          "prompt": "9181f10e",
           "file": "topics/azure/interview.v1.html"
         }
       ],
@@ -242,7 +242,7 @@ window.DEVBOK_TOPICS = [
         {
           "v": 1,
           "generated": "2026-09-08",
-          "prompt": "ccd2d4a9",
+          "prompt": "86c6decb",
           "file": "topics/azure/cheatsheet.v1.html"
         }
       ]
@@ -260,7 +260,7 @@ window.DEVBOK_TOPICS = [
         {
           "v": 1,
           "generated": "2026-09-08",
-          "prompt": "475abea6",
+          "prompt": "84e02c7e",
           "file": "topics/csharp/study.v1.html"
         }
       ],
@@ -268,7 +268,7 @@ window.DEVBOK_TOPICS = [
         {
           "v": 1,
           "generated": "2026-09-08",
-          "prompt": "4ab84a97",
+          "prompt": "569c3816",
           "file": "topics/csharp/experience.v1.html"
         }
       ],
@@ -276,7 +276,7 @@ window.DEVBOK_TOPICS = [
         {
           "v": 1,
           "generated": "2026-09-08",
-          "prompt": "c7153c25",
+          "prompt": "9181f10e",
           "file": "topics/csharp/interview.v1.html"
         }
       ],
@@ -284,7 +284,7 @@ window.DEVBOK_TOPICS = [
         {
           "v": 1,
           "generated": "2026-09-08",
-          "prompt": "eef70255",
+          "prompt": "86c6decb",
           "file": "topics/csharp/cheatsheet.v1.html"
         }
       ]
@@ -302,80 +302,32 @@ window.DEVBOK_TOPICS = [
         {
           "v": 3,
           "generated": "2026-09-08",
-          "prompt": "475abea6",
+          "prompt": "84e02c7e",
           "file": "topics/csharp-async/study.v3.html"
-        },
-        {
-          "v": 2,
-          "generated": "2026-09-08",
-          "prompt": "0b4185bd",
-          "file": "topics/csharp-async/study.v2.html"
-        },
-        {
-          "v": 1,
-          "generated": "2026-09-07",
-          "prompt": "6b29eaac",
-          "file": "topics/csharp-async/study.v1.html"
         }
       ],
       "experience": [
         {
           "v": 3,
           "generated": "2026-09-08",
-          "prompt": "4ab84a97",
+          "prompt": "569c3816",
           "file": "topics/csharp-async/experience.v3.html"
-        },
-        {
-          "v": 2,
-          "generated": "2026-09-08",
-          "prompt": "7074fd8c",
-          "file": "topics/csharp-async/experience.v2.html"
-        },
-        {
-          "v": 1,
-          "generated": "2026-09-07",
-          "prompt": "891dff1c",
-          "file": "topics/csharp-async/experience.v1.html"
         }
       ],
       "interview": [
         {
           "v": 3,
           "generated": "2026-09-08",
-          "prompt": "c7153c25",
+          "prompt": "9181f10e",
           "file": "topics/csharp-async/interview.v3.html"
-        },
-        {
-          "v": 2,
-          "generated": "2026-09-08",
-          "prompt": "c299b6a0",
-          "file": "topics/csharp-async/interview.v2.html"
-        },
-        {
-          "v": 1,
-          "generated": "2026-09-07",
-          "prompt": "6fbc2cc4",
-          "file": "topics/csharp-async/interview.v1.html"
         }
       ],
       "cheatsheet": [
         {
           "v": 3,
           "generated": "2026-09-08",
-          "prompt": "eef70255",
+          "prompt": "86c6decb",
           "file": "topics/csharp-async/cheatsheet.v3.html"
-        },
-        {
-          "v": 2,
-          "generated": "2026-09-08",
-          "prompt": "c8cf7b15",
-          "file": "topics/csharp-async/cheatsheet.v2.html"
-        },
-        {
-          "v": 1,
-          "generated": "2026-09-07",
-          "prompt": "436d8839",
-          "file": "topics/csharp-async/cheatsheet.v1.html"
         }
       ]
     }
@@ -392,7 +344,7 @@ window.DEVBOK_TOPICS = [
         {
           "v": 1,
           "generated": "2026-09-08",
-          "prompt": "3e395ac4",
+          "prompt": "84e02c7e",
           "file": "topics/distributed/study.v1.html"
         }
       ],
@@ -400,7 +352,7 @@ window.DEVBOK_TOPICS = [
         {
           "v": 1,
           "generated": "2026-09-08",
-          "prompt": "f284a113",
+          "prompt": "569c3816",
           "file": "topics/distributed/experience.v1.html"
         }
       ],
@@ -408,7 +360,7 @@ window.DEVBOK_TOPICS = [
         {
           "v": 1,
           "generated": "2026-09-08",
-          "prompt": "880c04f3",
+          "prompt": "9181f10e",
           "file": "topics/distributed/interview.v1.html"
         }
       ],
@@ -416,7 +368,7 @@ window.DEVBOK_TOPICS = [
         {
           "v": 1,
           "generated": "2026-09-08",
-          "prompt": "ccd2d4a9",
+          "prompt": "86c6decb",
           "file": "topics/distributed/cheatsheet.v1.html"
         }
       ]
@@ -434,7 +386,7 @@ window.DEVBOK_TOPICS = [
         {
           "v": 1,
           "generated": "2026-09-08",
-          "prompt": "3e395ac4",
+          "prompt": "84e02c7e",
           "file": "topics/entityframework/study.v1.html"
         }
       ],
@@ -442,7 +394,7 @@ window.DEVBOK_TOPICS = [
         {
           "v": 1,
           "generated": "2026-09-08",
-          "prompt": "f284a113",
+          "prompt": "569c3816",
           "file": "topics/entityframework/experience.v1.html"
         }
       ],
@@ -450,7 +402,7 @@ window.DEVBOK_TOPICS = [
         {
           "v": 1,
           "generated": "2026-09-08",
-          "prompt": "880c04f3",
+          "prompt": "9181f10e",
           "file": "topics/entityframework/interview.v1.html"
         }
       ],
@@ -458,7 +410,7 @@ window.DEVBOK_TOPICS = [
         {
           "v": 1,
           "generated": "2026-09-08",
-          "prompt": "ccd2d4a9",
+          "prompt": "86c6decb",
           "file": "topics/entityframework/cheatsheet.v1.html"
         }
       ]
@@ -476,7 +428,7 @@ window.DEVBOK_TOPICS = [
         {
           "v": 1,
           "generated": "2026-09-08",
-          "prompt": "3e395ac4",
+          "prompt": "84e02c7e",
           "file": "topics/jsts/study.v1.html"
         }
       ],
@@ -484,7 +436,7 @@ window.DEVBOK_TOPICS = [
         {
           "v": 1,
           "generated": "2026-09-08",
-          "prompt": "f284a113",
+          "prompt": "569c3816",
           "file": "topics/jsts/experience.v1.html"
         }
       ],
@@ -492,7 +444,7 @@ window.DEVBOK_TOPICS = [
         {
           "v": 1,
           "generated": "2026-09-08",
-          "prompt": "880c04f3",
+          "prompt": "9181f10e",
           "file": "topics/jsts/interview.v1.html"
         }
       ],
@@ -500,7 +452,7 @@ window.DEVBOK_TOPICS = [
         {
           "v": 1,
           "generated": "2026-09-08",
-          "prompt": "ccd2d4a9",
+          "prompt": "86c6decb",
           "file": "topics/jsts/cheatsheet.v1.html"
         }
       ]
@@ -518,7 +470,7 @@ window.DEVBOK_TOPICS = [
         {
           "v": 1,
           "generated": "2026-09-08",
-          "prompt": "3e395ac4",
+          "prompt": "84e02c7e",
           "file": "topics/modernization/study.v1.html"
         }
       ],
@@ -526,7 +478,7 @@ window.DEVBOK_TOPICS = [
         {
           "v": 1,
           "generated": "2026-09-08",
-          "prompt": "f284a113",
+          "prompt": "569c3816",
           "file": "topics/modernization/experience.v1.html"
         }
       ],
@@ -534,7 +486,7 @@ window.DEVBOK_TOPICS = [
         {
           "v": 1,
           "generated": "2026-09-08",
-          "prompt": "880c04f3",
+          "prompt": "9181f10e",
           "file": "topics/modernization/interview.v1.html"
         }
       ],
@@ -542,7 +494,7 @@ window.DEVBOK_TOPICS = [
         {
           "v": 1,
           "generated": "2026-09-08",
-          "prompt": "ccd2d4a9",
+          "prompt": "86c6decb",
           "file": "topics/modernization/cheatsheet.v1.html"
         }
       ]
@@ -560,7 +512,7 @@ window.DEVBOK_TOPICS = [
         {
           "v": 1,
           "generated": "2026-09-08",
-          "prompt": "3e395ac4",
+          "prompt": "84e02c7e",
           "file": "topics/mongo/study.v1.html"
         }
       ],
@@ -568,7 +520,7 @@ window.DEVBOK_TOPICS = [
         {
           "v": 1,
           "generated": "2026-09-08",
-          "prompt": "f284a113",
+          "prompt": "569c3816",
           "file": "topics/mongo/experience.v1.html"
         }
       ],
@@ -576,7 +528,7 @@ window.DEVBOK_TOPICS = [
         {
           "v": 1,
           "generated": "2026-09-08",
-          "prompt": "880c04f3",
+          "prompt": "9181f10e",
           "file": "topics/mongo/interview.v1.html"
         }
       ],
@@ -584,7 +536,7 @@ window.DEVBOK_TOPICS = [
         {
           "v": 1,
           "generated": "2026-09-08",
-          "prompt": "ccd2d4a9",
+          "prompt": "86c6decb",
           "file": "topics/mongo/cheatsheet.v1.html"
         }
       ]
@@ -602,7 +554,7 @@ window.DEVBOK_TOPICS = [
         {
           "v": 1,
           "generated": "2026-09-08",
-          "prompt": "3e395ac4",
+          "prompt": "84e02c7e",
           "file": "topics/observability/study.v1.html"
         }
       ],
@@ -610,7 +562,7 @@ window.DEVBOK_TOPICS = [
         {
           "v": 1,
           "generated": "2026-09-08",
-          "prompt": "f284a113",
+          "prompt": "569c3816",
           "file": "topics/observability/experience.v1.html"
         }
       ],
@@ -618,7 +570,7 @@ window.DEVBOK_TOPICS = [
         {
           "v": 1,
           "generated": "2026-09-08",
-          "prompt": "880c04f3",
+          "prompt": "9181f10e",
           "file": "topics/observability/interview.v1.html"
         }
       ],
@@ -626,7 +578,7 @@ window.DEVBOK_TOPICS = [
         {
           "v": 1,
           "generated": "2026-09-08",
-          "prompt": "ccd2d4a9",
+          "prompt": "86c6decb",
           "file": "topics/observability/cheatsheet.v1.html"
         }
       ]
@@ -644,7 +596,7 @@ window.DEVBOK_TOPICS = [
         {
           "v": 1,
           "generated": "2026-09-08",
-          "prompt": "3e395ac4",
+          "prompt": "84e02c7e",
           "file": "topics/react/study.v1.html"
         }
       ],
@@ -652,7 +604,7 @@ window.DEVBOK_TOPICS = [
         {
           "v": 1,
           "generated": "2026-09-08",
-          "prompt": "f284a113",
+          "prompt": "569c3816",
           "file": "topics/react/experience.v1.html"
         }
       ],
@@ -660,7 +612,7 @@ window.DEVBOK_TOPICS = [
         {
           "v": 1,
           "generated": "2026-09-08",
-          "prompt": "880c04f3",
+          "prompt": "9181f10e",
           "file": "topics/react/interview.v1.html"
         }
       ],
@@ -668,7 +620,7 @@ window.DEVBOK_TOPICS = [
         {
           "v": 1,
           "generated": "2026-09-08",
-          "prompt": "ccd2d4a9",
+          "prompt": "86c6decb",
           "file": "topics/react/cheatsheet.v1.html"
         }
       ]
@@ -686,7 +638,7 @@ window.DEVBOK_TOPICS = [
         {
           "v": 1,
           "generated": "2026-09-08",
-          "prompt": "3e395ac4",
+          "prompt": "84e02c7e",
           "file": "topics/sql/study.v1.html"
         }
       ],
@@ -694,7 +646,7 @@ window.DEVBOK_TOPICS = [
         {
           "v": 1,
           "generated": "2026-09-08",
-          "prompt": "f284a113",
+          "prompt": "569c3816",
           "file": "topics/sql/experience.v1.html"
         }
       ],
@@ -702,7 +654,7 @@ window.DEVBOK_TOPICS = [
         {
           "v": 1,
           "generated": "2026-09-08",
-          "prompt": "880c04f3",
+          "prompt": "9181f10e",
           "file": "topics/sql/interview.v1.html"
         }
       ],
@@ -710,7 +662,7 @@ window.DEVBOK_TOPICS = [
         {
           "v": 1,
           "generated": "2026-09-08",
-          "prompt": "ccd2d4a9",
+          "prompt": "86c6decb",
           "file": "topics/sql/cheatsheet.v1.html"
         }
       ]
@@ -728,7 +680,7 @@ window.DEVBOK_TOPICS = [
         {
           "v": 1,
           "generated": "2026-09-08",
-          "prompt": "475abea6",
+          "prompt": "84e02c7e",
           "file": "topics/system-design/study.v1.html"
         }
       ],
@@ -736,7 +688,7 @@ window.DEVBOK_TOPICS = [
         {
           "v": 1,
           "generated": "2026-09-08",
-          "prompt": "4ab84a97",
+          "prompt": "569c3816",
           "file": "topics/system-design/experience.v1.html"
         }
       ],
@@ -744,7 +696,7 @@ window.DEVBOK_TOPICS = [
         {
           "v": 1,
           "generated": "2026-09-08",
-          "prompt": "c7153c25",
+          "prompt": "9181f10e",
           "file": "topics/system-design/interview.v1.html"
         }
       ],
@@ -752,7 +704,7 @@ window.DEVBOK_TOPICS = [
         {
           "v": 1,
           "generated": "2026-09-08",
-          "prompt": "eef70255",
+          "prompt": "86c6decb",
           "file": "topics/system-design/cheatsheet.v1.html"
         }
       ]

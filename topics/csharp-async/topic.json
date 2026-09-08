@@ -10,22 +10,11 @@
       "next": 4,
       "versions": [
         {
-          "v": 1,
-          "generated": "2026-09-07",
-          "prompt": "6b29eaac",
-          "file": "study.v1.html"
-        },
-        {
-          "v": 2,
-          "generated": "2026-09-08",
-          "prompt": "0b4185bd",
-          "file": "study.v2.html"
-        },
-        {
           "v": 3,
           "generated": "2026-09-08",
-          "prompt": "475abea6",
-          "file": "study.v3.html"
+          "prompt": "84e02c7e",
+          "file": "study.v3.html",
+          "restamped": "2026-09-08"
         }
       ],
       "pending": []
@@ -34,22 +23,11 @@
       "next": 4,
       "versions": [
         {
-          "v": 1,
-          "generated": "2026-09-07",
-          "prompt": "891dff1c",
-          "file": "experience.v1.html"
-        },
-        {
-          "v": 2,
-          "generated": "2026-09-08",
-          "prompt": "7074fd8c",
-          "file": "experience.v2.html"
-        },
-        {
           "v": 3,
           "generated": "2026-09-08",
-          "prompt": "4ab84a97",
-          "file": "experience.v3.html"
+          "prompt": "569c3816",
+          "file": "experience.v3.html",
+          "restamped": "2026-09-08"
         }
       ],
       "pending": []
@@ -58,22 +36,11 @@
       "next": 4,
       "versions": [
         {
-          "v": 1,
-          "generated": "2026-09-07",
-          "prompt": "6fbc2cc4",
-          "file": "interview.v1.html"
-        },
-        {
-          "v": 2,
-          "generated": "2026-09-08",
-          "prompt": "c299b6a0",
-          "file": "interview.v2.html"
-        },
-        {
           "v": 3,
           "generated": "2026-09-08",
-          "prompt": "c7153c25",
-          "file": "interview.v3.html"
+          "prompt": "9181f10e",
+          "file": "interview.v3.html",
+          "restamped": "2026-09-08"
         }
       ],
       "pending": []
@@ -82,22 +49,11 @@
       "next": 4,
       "versions": [
         {
-          "v": 1,
-          "generated": "2026-09-07",
-          "prompt": "436d8839",
-          "file": "cheatsheet.v1.html"
-        },
-        {
-          "v": 2,
-          "generated": "2026-09-08",
-          "prompt": "c8cf7b15",
-          "file": "cheatsheet.v2.html"
-        },
-        {
           "v": 3,
           "generated": "2026-09-08",
-          "prompt": "eef70255",
-          "file": "cheatsheet.v3.html"
+          "prompt": "86c6decb",
+          "file": "cheatsheet.v3.html",
+          "restamped": "2026-09-08"
         }
       ],
       "pending": []
