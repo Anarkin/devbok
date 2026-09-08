@@ -484,9 +484,90 @@ describe('record', () => {
   test('rejects bad version syntax and stray arguments', () => {
     initTopic('s');
     bad(['record', 's', 'study', 'latest'], /invalid version/);
-    bad(['record', 's', 'study'], /invalid version/);
+    bad(['record', 's', 'study'], /usage: record/); // a missing version is an arity problem, not a bad number
     bad(['record', 's', 'study', 'v0'], /invalid version/); // versions start at 1
     bad(['record', 's', 'study', 'v1', 'please'], /usage: record/);
+  });
+});
+
+// ---------------------------------------------------------------- restamp
+describe('restamp', () => {
+  // The case this exists for: a prompt change lands, the artifact is brought onto it by hand instead of by
+  // a half-hour regeneration, and `list` would otherwise star it forever.
+  const stale = (slug, kind = 'study') => {
+    ok(['prepare', slug, kind]);
+    writeArtifact(slug, kind, 1);
+    ok(['record', slug, kind, 'v1']);
+    fs.writeFileSync(p('prompts', kind + '.md'), readyPrompt(kind) + '\nand one more requirement\n');
+  };
+  test('stamps a hand-patched artifact with the current prompt hash and clears the star', () => {
+    initTopic('s');
+    stale('s');
+    const isStale = (kind) => JSON.parse(run(['list', '--json']).out)[0][kind].stale;
+    assert.equal(isStale('study'), true, 'the prompt changed, so it starts out stale');
+    const before = manifest('s').kinds.study.versions.at(-1).prompt;
+    const r = ok(['restamp', 's']).json();
+    const study = r.restamped.find((x) => x.kind === 'study');
+    assert.equal(study.version, 1);
+    assert.equal(study.from, before);
+    const after = manifest('s').kinds.study.versions.at(-1);
+    assert.equal(after.prompt, study.to);
+    assert.notEqual(after.prompt, before);
+    assert.equal(after.restamped, TODAY);
+    assert.equal(isStale('study'), false, 'nothing is stale any more');
+    assert.equal(indexTopics()[0].kinds.study[0].prompt, after.prompt, 'the index carries the new hash');
+  });
+  test('leaves the file alone: provenance is history, the manifest hash is conformance', () => {
+    initTopic('s');
+    stale('s');
+    const file = p('topics', 's', 'study.v1.html');
+    const before = fs.readFileSync(file, 'utf8');
+    ok(['restamp', 's', 'study']);
+    assert.equal(fs.readFileSync(file, 'utf8'), before);
+  });
+  test('refuses to stamp a page that fails validate, and exits 1', () => {
+    initTopic('s');
+    stale('s');
+    fs.writeFileSync(p('topics', 's', 'study.v1.html'), artifactHtml('s', 'study', 1).replace('<p class="summary">s</p>', ''));
+    const before = manifest('s').kinds.study.versions.at(-1).prompt;
+    const r = bad(['restamp', 's', 'study']);
+    const j = JSON.parse(r.out);
+    assert.deepEqual(j.restamped, []);
+    assert.match(j.skipped[0].why, /fails validate/);
+    assert.ok(j.skipped[0].errors.some((e) => /summary/.test(e)));
+    assert.equal(manifest('s').kinds.study.versions.at(-1).prompt, before, 'the hash is untouched');
+    assert.equal(fs.existsSync(p('.devbok', '.lock')), false, 'exiting non-zero must still release the lock');
+  });
+  test('says why nothing happened: already current, or no version at all', () => {
+    initTopic('s');
+    ok(['prepare', 's', 'study']);
+    writeArtifact('s', 'study', 1);
+    ok(['record', 's', 'study', 'v1']);
+    const j = ok(['restamp', 's']).json();
+    assert.deepEqual(j.restamped, []);
+    assert.match(j.skipped.find((x) => x.kind === 'study').why, /already stamped/);
+    assert.match(j.skipped.find((x) => x.kind === 'interview').why, /no recorded version/);
+  });
+  test('only the named kind, and only the latest version: older ones keep their own history', () => {
+    initTopic('s');
+    for (const v of [1, 2]) {
+      ok(['prepare', 's', 'study']);
+      writeArtifact('s', 'study', v);
+      ok(['record', 's', 'study', `v${v}`]);
+    }
+    stale('s', 'experience');
+    const old = manifest('s').kinds.study.versions[0].prompt;
+    const j = ok(['restamp', 's', 'experience']).json();
+    assert.deepEqual(j.restamped.map((x) => x.kind), ['experience']);
+    assert.equal(manifest('s').kinds.study.versions[0].prompt, old, 'v1 was genuinely made by the older prompt');
+    assert.equal(manifest('s').kinds.study.versions[0].restamped, undefined);
+  });
+  test('rejects unknown topics and kinds, and stray arguments', () => {
+    initTopic('s');
+    bad(['restamp'], /usage: restamp/);
+    bad(['restamp', 's', 'study', 'v1'], /usage: restamp/);
+    bad(['restamp', 'nope'], /no such topic/);
+    bad(['restamp', 's', 'notes'], /invalid kind/);
   });
 });
 
@@ -560,6 +641,16 @@ describe('validate', () => {
   test('accepts a correctly prefixed localStorage key', () => {
     const r = ok(['validate', file('ls.html', html({ extra: '<script>localStorage.setItem("devbok:s:study:v1:progress", "1")</script>' }))]).json();
     assert.deepEqual(r.warnings, []);
+  });
+  test('a page that only shows localStorage or a checkbox in a sample is not warned about using them', () => {
+    // The case from the real corpus: an application-security cheat sheet quotes localStorage in prose and
+    // prints an <input type="checkbox"> inside a code block. Neither is the page keeping state or tracking
+    // progress, so neither may warn - the checks read the page with its code samples removed.
+    const extra = '<p>Never keep a token in <code>localStorage.setItem("jwt", t)</code>.</p>'
+      + '<pre><code class="language-html">&lt;input type="checkbox"&gt; mark as studied</code></pre>';
+    const r = ok(['validate', file('samples.html', html({ extra }))]).json();
+    assert.deepEqual(r.warnings, []);
+    assert.equal(r.counts.checkboxes, 0);
   });
   test('reports a missing file', () => {
     const j = JSON.parse(bad(['validate', 'missing.html']).out);

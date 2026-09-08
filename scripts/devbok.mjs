@@ -8,6 +8,7 @@
  *   node scripts/devbok.mjs init <slug> --title T --topic X [--category C] [--accent #rrggbb]   create topics/<slug>/topic.json
  *   node scripts/devbok.mjs prepare <slug> <kind> [--draft]      reserve next version, render the brief -> .devbok/ (draft: dry run, no version)
  *   node scripts/devbok.mjs record <slug> <kind> v<N> [--force]  validate written HTML, add to manifest, rebuild index
+ *   node scripts/devbok.mjs restamp <slug> [<kind>]              re-validate the latest artifact(s) and stamp them with the current prompt hash
  *   node scripts/devbok.mjs validate <file> [--draft]            check a generated file against the artifact contract (JSON); --draft relaxes the size floor
  *   node scripts/devbok.mjs delete <slug> [<kind> v<N>]          delete a whole topic, or one version of one kind
  *   node scripts/devbok.mjs list [--json]                        overview with staleness markers
@@ -349,6 +350,11 @@ function checkDesign(html, id, r) {
   if (missing.length) err(`the code palette is missing ${missing.join(', ')} - the tokens and the .hljs rules are verbatim in ${page}`);
 }
 
+// The page as its own markup and behaviour, with the contents of code samples removed. A page that
+// *teaches* localStorage or shows a checkbox in an example must not be warned about doing either itself
+// (an application-security cheat sheet quoting `localStorage` in prose was the case that found this).
+const withoutSamples = (s) => String(s).replace(/<pre\b[\s\S]*?<\/pre>/gi, '').replace(/<code\b[\s\S]*?<\/code>/gi, '');
+
 function validateHtml(file, { minBytes = MIN_BYTES } = {}) {
   const abs = path.resolve(ROOT, file);
   const id = identify(abs);
@@ -356,6 +362,7 @@ function validateHtml(file, { minBytes = MIN_BYTES } = {}) {
   if (!fs.existsSync(abs)) { r.errors.push('file not found'); return r; }
   const html = fs.readFileSync(abs, 'utf8');
   const count = (re) => (html.match(re) ?? []).length;
+  const own = withoutSamples(html); // for the two checks that must not fire on a sample about them
   r.bytes = Buffer.byteLength(html);
   if (r.bytes < minBytes) r.errors.push(`only ${r.bytes} bytes - a real artifact is far larger; looks truncated or a stub`);
   if (!/^\s*<!doctype html>/i.test(html)) r.errors.push('must start with <!doctype html>');
@@ -368,7 +375,7 @@ function validateHtml(file, { minBytes = MIN_BYTES } = {}) {
   }
   r.counts.h2 = count(/<h2\b/gi);
   r.counts.h3 = count(/<h3\b/gi);
-  r.counts.checkboxes = count(/type=["']checkbox["']/gi);
+  r.counts.checkboxes = (own.match(/type=["']checkbox["']/gi) ?? []).length;
   if (r.counts.checkboxes) r.warnings.push(`${r.counts.checkboxes} checkbox(es) - progress tracking ("mark as studied") is not wanted; the page partial forbids it`);
   r.external = [...html.matchAll(/<(?:script|link)\b[^>]*?\b(?:src|href)=["'](https?:\/\/[^"']+)["']/gi)].map((m) => m[1]);
   const offHost = r.external.filter((u) => !/^https:\/\/(cdnjs\.cloudflare\.com|fonts\.googleapis\.com|fonts\.gstatic\.com)\//.test(u));
@@ -396,7 +403,7 @@ function validateHtml(file, { minBytes = MIN_BYTES } = {}) {
       if (got !== want) r.errors.push(`provenance ${k}: ${got === undefined ? 'missing' : `"${got}"`} - the file is ${want}`);
     }
   }
-  if (/localStorage/.test(html)) {
+  if (/localStorage\s*(?:\.\s*(?:get|set|remove)Item|\[)/.test(own)) {
     const prefix = id ? `devbok:${id.slug}:${id.kind}:v${id.version}:` : 'devbok:';
     if (!html.includes(prefix)) r.warnings.push(`uses localStorage without the "${prefix}" key prefix`);
   }
@@ -487,7 +494,7 @@ function cmdPrepare(args) {
 function cmdRecord(args) {
   const force = args.includes('--force');
   const rest = args.filter((a) => a !== '--force');
-  if (rest.length > 3) fail('usage: record <slug> <kind> v<N> [--force]');
+  if (rest.length !== 3) fail('usage: record <slug> <kind> v<N> [--force]');
   const [slug, kind, vArg] = rest;
   const m = readManifest(requireSlug(slug));
   requireKind(kind);
@@ -557,6 +564,46 @@ function removeRenderedPrompts(slug, kind, v) {
   }
 }
 
+// A hand-patched artifact is a real case: a prompt change lands, the pages are brought onto it by hand
+// instead of by a half-hour regeneration, and `list` still stars them forever because the hash recorded at
+// prepare time is old. `restamp` is the honest way to clear that: it re-validates the latest version of a
+// kind and, only if it passes today's contract, records the current prompt hash against it.
+//
+// The two hashes answer different questions and are meant to disagree after a restamp: the provenance
+// comment inside the file says what generated it (history, never rewritten), while the manifest's `prompt`
+// says which prompt version the file is known to satisfy - which is what staleness is about.
+function cmdRestamp(args) {
+  const { rest } = parseOpts(args);
+  if (rest.length < 1 || rest.length > 2) fail('usage: restamp <slug> [<kind>]   (latest version of every kind, or of one)');
+  const [slug, kind] = rest;
+  const m = readManifest(requireSlug(slug));
+  if (kind !== undefined) requireKind(kind);
+  const done = [];
+  const skipped = [];
+  for (const k of (kind ? [kind] : KINDS)) {
+    const latest = m.kinds[k].versions.at(-1);
+    const at = (why, extra) => skipped.push({ kind: k, version: latest?.v ?? null, why, ...extra });
+    if (!latest) { at('no recorded version'); continue; }
+    const want = currentPromptHash(k);
+    if (want === null) { at(`prompts/${k}.md does not render (not devbok-ready?)`); continue; }
+    if (latest.prompt === want) { at('already stamped with the current prompt'); continue; }
+    const res = validateHtml(path.join(topicDir(slug), latest.file ?? artifactName(k, latest.v)));
+    if (!res.ok) { at('fails validate, so it does not satisfy the current prompt', { errors: res.errors }); continue; }
+    done.push({ kind: k, version: latest.v, from: latest.prompt ?? null, to: want });
+    latest.prompt = want;
+    latest.restamped = today();
+  }
+  if (done.length) {
+    writeManifest(m);
+    buildIndex();
+  }
+  json({ slug, restamped: done, skipped });
+  // Only a page that failed validate is an error worth an exit code: you asked to certify it as current
+  // and it is not. Fix it (or regenerate) and run restamp again - it is idempotent. Release the lock first,
+  // the way fail() does: process.exit skips withLock's finally, and a leaked lock blocks the next command.
+  if (skipped.some((s) => s.errors)) { releaseLock(); process.exit(1); }
+}
+
 function cmdList(args) {
   // Grouped the way the sidebar groups, so the table and the shell tell the same story.
   const rank = Object.keys(CATEGORIES);
@@ -585,7 +632,7 @@ function cmdList(args) {
   console.log(line(header));
   console.log(widths.map((w) => '-'.repeat(w)).join('  '));
   for (const t of table) console.log(line(t));
-  console.log('\n* = latest version was generated by an older prompt file   (n) = versions kept   pending = prepared but not recorded');
+  console.log('\n* = latest version does not match the current prompt file (regenerate, or restamp a page you patched by hand)   (n) = versions kept   pending = prepared but not recorded');
 }
 
 function cmdIndex() {
@@ -595,7 +642,7 @@ function cmdIndex() {
 
 // Mutating commands run under the lock; slug/validate/list only read (atomic writes keep their reads consistent).
 const locked = (fn) => (args) => withLock(() => fn(args));
-const COMMANDS = { slug: cmdSlug, init: locked(cmdInit), prepare: locked(cmdPrepare), record: locked(cmdRecord), validate: cmdValidate, delete: locked(cmdDelete), list: cmdList, index: locked(cmdIndex) };
+const COMMANDS = { slug: cmdSlug, init: locked(cmdInit), prepare: locked(cmdPrepare), record: locked(cmdRecord), restamp: locked(cmdRestamp), validate: cmdValidate, delete: locked(cmdDelete), list: cmdList, index: locked(cmdIndex) };
 const USAGE = fs.readFileSync(fileURLToPath(import.meta.url), 'utf8').match(/\/\*\*([\s\S]*?)\*\//)[1].replace(/^ \* ?/gm, '');
 
 // Only act as a command line when run as one: scripts/repo.test.mjs imports darkAccent from here to
