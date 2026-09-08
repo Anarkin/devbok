@@ -32,7 +32,27 @@ Every devbok page shares one design, so the pages of a topic read as siblings of
 
   The accent is the topic's brand colour, chosen once per topic and identical on all of its pages. Use it for the active sidebar item, links, chip and callout borders and small markers — never for body text or large fills; `--accent-soft` is its only background use (the active sidebar item, a highlighted table row). Page and sidebar backgrounds are plain `--bg`, cards and code blocks `--soft`: no tinted surfaces. No theme toggle: the system setting decides.
 - **Typography** — prose in `Inter` (Google Fonts; fallback `system-ui, sans-serif`), 16px, line-height 1.6, headings weight 700 in the same family; code, chips, the sidebar and all metadata in `"Cascadia Mono"` (Google Fonts; fallback `Consolas, monospace`), 13px. No other families.
-- **Layout** — a fixed left sidebar 260px wide, full height, `--bg` background with a 2px `--line` right border. The sidebar starts with the numbered unit list and nothing else — no title block, kind label or note above it; the units are in the mono font with the active one in `--accent`. Anything else the page wants in the sidebar (a topic or kind label, a draft note, counters) goes in a small `--muted` footer pinned to the bottom. Then a content column with 24px padding and a max-width of 80ch (unless the kind-specific section says otherwise), hero first. Below 720px the sidebar becomes a toggle.
+- **Layout** — a fixed left sidebar 260px wide (markup and CSS below, verbatim), then a content column with 24px padding and a max-width of 80ch (unless the kind-specific section says otherwise), hero first. Below 720px the sidebar becomes a toggle; add that media query yourself.
+- **Sidebar, verbatim** — every devbok page uses exactly this markup and CSS. Only the titles, the hrefs and the footer text differ between pages:
+
+      <nav class="side" aria-label="Units">
+        <ol class="units">
+          <li><a href="#u01"><span class="n">01</span><span class="t">First unit title</span></a></li>
+          <li><a href="#u02"><span class="n">02</span><span class="t">Second unit title</span></a></li>
+        </ol>
+        <footer>{{TITLE}} · {{KIND}} · version {{VERSION}} · {{DATE}}</footer>
+      </nav>
+
+      .side { position: fixed; top: 0; bottom: 0; left: 0; width: 260px; display: flex; flex-direction: column; background: var(--bg); border-right: 2px solid var(--line); font-family: "Cascadia Mono", Consolas, monospace; font-size: 12px; }
+      .units { list-style: none; margin: 0; padding: 12px 0; overflow-y: auto; flex: 1; }
+      .units a { display: grid; grid-template-columns: 2.5em 1fr; padding: 9px 20px; color: var(--fg); text-decoration: none; line-height: 1.4; }
+      .units .n { color: var(--muted); }
+      .units a:hover { background: var(--soft); }
+      .units a[aria-current="true"] { background: var(--accent-soft); color: var(--accent); }
+      .units a[aria-current="true"] .n { color: var(--accent); }
+      .side footer { padding: 12px 20px; border-top: 2px solid var(--line); color: var(--muted); font-size: 11px; line-height: 1.5; }
+
+  The entries are the page's units in document order, numbered `01`, `02`, … with two digits, the closing sections included: there are no unnumbered entries and no `0`. The hero and everything in it (chips, a coverage or topic-map table) are not units and do not appear. Each unit's own heading carries the same number (`01 First unit title`) and the id its link targets. Scrollspy sets `aria-current="true"` on the link of the unit in view. Nothing else goes in the sidebar.
 - **Components** — chips: mono, uppercase, `--soft` background, 1px `--border`, 4px radius. Callouts (gotchas, "what the interviewer is really probing"): `--soft` background with a 3px `--accent` left border. `<details>` self-quiz blocks: 1px `--border` box, bold summary, marker in `--accent`. Tables: 1px `--border` row lines, header text in `--muted`.
 - **No horizontal scrolling, ever** — the document must never be wider than its viewport, at any width from 360px up. Block code scrolls inside its own `<pre>` (`overflow-x: auto`); every table sits in a wrapper with `overflow-x: auto`; inline `<code>` in running text wraps (`overflow-wrap: anywhere`, and never `white-space: nowrap`); every grid or flex item that can hold code or a table has `min-width: 0`; never use `100vw`.
 - Responsive down to mobile, focus-visible outlines in `--accent`. The page is displayed inside an iframe by the devbok index and also opened on its own: no top-level navigation, no assumptions about window size.

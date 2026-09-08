@@ -9,6 +9,12 @@ window.DEVBOK_TOPICS = [
     "kinds": {
       "study": [
         {
+          "v": 2,
+          "generated": "2026-09-08",
+          "prompt": "0b4185bd",
+          "file": "topics/csharp-async/study.v2.html"
+        },
+        {
           "v": 1,
           "generated": "2026-09-07",
           "prompt": "6b29eaac",
@@ -16,6 +22,12 @@ window.DEVBOK_TOPICS = [
         }
       ],
       "experience": [
+        {
+          "v": 2,
+          "generated": "2026-09-08",
+          "prompt": "7074fd8c",
+          "file": "topics/csharp-async/experience.v2.html"
+        },
         {
           "v": 1,
           "generated": "2026-09-07",
@@ -25,6 +37,12 @@ window.DEVBOK_TOPICS = [
       ],
       "interview": [
         {
+          "v": 2,
+          "generated": "2026-09-08",
+          "prompt": "c299b6a0",
+          "file": "topics/csharp-async/interview.v2.html"
+        },
+        {
           "v": 1,
           "generated": "2026-09-07",
           "prompt": "6fbc2cc4",
@@ -32,6 +50,12 @@ window.DEVBOK_TOPICS = [
         }
       ],
       "cheatsheet": [
+        {
+          "v": 2,
+          "generated": "2026-09-08",
+          "prompt": "c8cf7b15",
+          "file": "topics/csharp-async/cheatsheet.v2.html"
+        },
         {
           "v": 1,
           "generated": "2026-09-07",

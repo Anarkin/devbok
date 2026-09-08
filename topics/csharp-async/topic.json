@@ -13,15 +13,15 @@
           "generated": "2026-09-07",
           "prompt": "6b29eaac",
           "file": "study.v1.html"
-        }
-      ],
-      "pending": [
+        },
         {
           "v": 2,
+          "generated": "2026-09-08",
           "prompt": "0b4185bd",
-          "started": "2026-09-08"
+          "file": "study.v2.html"
         }
-      ]
+      ],
+      "pending": []
     },
     "experience": {
       "next": 3,
@@ -31,15 +31,15 @@
           "generated": "2026-09-07",
           "prompt": "891dff1c",
           "file": "experience.v1.html"
-        }
-      ],
-      "pending": [
+        },
         {
           "v": 2,
+          "generated": "2026-09-08",
           "prompt": "7074fd8c",
-          "started": "2026-09-08"
+          "file": "experience.v2.html"
         }
-      ]
+      ],
+      "pending": []
     },
     "interview": {
       "next": 3,
@@ -49,15 +49,15 @@
           "generated": "2026-09-07",
           "prompt": "6fbc2cc4",
           "file": "interview.v1.html"
-        }
-      ],
-      "pending": [
+        },
         {
           "v": 2,
+          "generated": "2026-09-08",
           "prompt": "c299b6a0",
-          "started": "2026-09-08"
+          "file": "interview.v2.html"
         }
-      ]
+      ],
+      "pending": []
     },
     "cheatsheet": {
       "next": 3,
@@ -67,15 +67,15 @@
           "generated": "2026-09-07",
           "prompt": "436d8839",
           "file": "cheatsheet.v1.html"
-        }
-      ],
-      "pending": [
+        },
         {
           "v": 2,
+          "generated": "2026-09-08",
           "prompt": "c8cf7b15",
-          "started": "2026-09-08"
+          "file": "cheatsheet.v2.html"
         }
-      ]
+      ],
+      "pending": []
     }
   }
 }
