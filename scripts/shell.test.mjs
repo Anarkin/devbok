@@ -51,6 +51,13 @@ describe('model: parseHash / toHash', () => {
     assert.equal(M.parseHash('#system%2Ddesign/study').slug, 'system-design');
     assert.deepEqual(M.parseHash(null), { slug: null, kind: null, v: null });
   });
+  test('a malformed percent-escape is read literally instead of throwing', () => {
+    // decodeURIComponent throws URIError on a stray %, and parseHash runs on every render: a mistyped
+    // link used to leave the shell blank - no sidebar, no message, no clue.
+    assert.deepEqual(M.parseHash('#c%'), { slug: 'c%', kind: null, v: null });
+    assert.deepEqual(M.parseHash('#50%/study/v1'), { slug: '50%', kind: 'study', v: 1 });
+    assert.equal(M.view(T, '#c%', 'study', CATS).message, 'Unknown topic <code>c%</code>. Pick one on the left.');
+  });
   test('toHash round-trips', () => {
     assert.equal(M.toHash('csharp', 'study', 2), '#csharp/study/v2');
     assert.equal(M.toHash('csharp', 'study'), '#csharp/study');
@@ -186,6 +193,15 @@ describe('model: view', () => {
       { v: 1, label: 'v1 · 2026-09-07', selected: false },
     ]);
   });
+  test('the iframe is named after what it shows, not "artifact"', () => {
+    // The frame's accessible name is all a screen reader gets for the whole artifact.
+    const w = M.view(T, '#csharp/study', null, CATS);
+    assert.equal(w.frameTitle, 'C# · study v2');
+    assert.equal(w.title, 'C# · study v2 · devbok', 'the tab title is the same label plus devbok');
+    assert.equal(M.view(T, '#csharp/study/draft', null, CATS).frameTitle, 'C# · study draft');
+    assert.equal(M.view(T, '#sql/study', null, CATS).frameTitle, 'artifact', 'nothing on screen, nothing to name');
+    assert.match(HTML.match(/<script>([\s\S]*?)<\/script>/)[1], /els\.frame\.title = v\.frameTitle;/);
+  });
   test('explicit older version selects it', () => {
     const w = M.view(T, '#csharp/study/v1', null);
     assert.equal(w.src, 'topics/csharp/study.v1.html');
@@ -285,8 +301,18 @@ describe('devbok.html structure', () => {
     assert.deepEqual(outsideTokens, []);
   });
   test('has the parts the glue script binds to', () => {
-    for (const id of ['topics', 'version', 'frame', 'empty', 'crumb', 'help', 'howto', 'howto-close']) assert.match(HTML, new RegExp(`id="${id}"`));
-    assert.doesNotMatch(HTML, /id="(filter|open|count)"/, 'removed controls stay removed');
+    for (const id of ['topics', 'version', 'open', 'frame', 'empty', 'crumb', 'help', 'howto', 'howto-close']) assert.match(HTML, new RegExp(`id="${id}"`));
+    assert.doesNotMatch(HTML, /id="(filter|count)"/, 'removed controls stay removed');
+  });
+  test('the version picker sits beside a link out of the frame', () => {
+    // A cheat sheet has a @media print stylesheet and is meant to be kept in a side window; inside the
+    // iframe neither is reachable, and printing devbok.html prints the shell, not the artifact.
+    const tools = HTML.match(/<div class="tools">[\s\S]*?<\/div>/)[0];
+    assert.match(tools, /<select id="version"/);
+    assert.match(tools, /<a class="open" id="open" target="_blank" rel="noopener"/);
+    const glue = HTML.match(/<script>([\s\S]*?)<\/script>/)[1];
+    assert.match(glue, /els\.open\.hidden = !v\.src;/, 'hidden until an artifact is on screen');
+    assert.match(glue, /els\.open\.href = v\.src;/, 'points at the artifact the iframe shows');
   });
   test('the active tab breaks the bar\'s bottom line', () => {
     // No overlapping borders (they misalign at fractional zoom): the bar has no line, each tab and the spacer draw their own.

@@ -95,6 +95,9 @@
   .tab[disabled] { cursor: default; }
   .tools { flex: 1; display: flex; align-items: center; justify-content: flex-end; gap: 12px; color: var(--muted); padding: 0 24px 0 12px; border-bottom: 2px solid var(--line); }
   .tools select { font: inherit; padding: 3px 6px; background: var(--bg); color: var(--fg); border: 1px solid var(--border); border-radius: 4px; }
+  /* The only way out of the iframe: a cheat sheet is meant to be printed or kept in a side window. */
+  .tools .open { color: var(--muted); text-decoration: none; white-space: nowrap; }
+  .tools .open:hover { color: var(--fg); text-decoration: underline; }
   .crumb { margin: 0 24px; padding: 8px 0 6px; color: var(--fg); line-height: 1.5; min-height: 1.6em; }
   .pane { min-height: 0; position: relative; }
   iframe { position: absolute; inset: 0; width: 100%; height: 100%; border: 0; display: block; background: var(--bg); }
@@ -136,6 +139,7 @@
       <button class="tab" data-kind="cheatsheet">cheatsheet</button>
       <div class="tools">
         <select id="version" aria-label="Version"></select>
+        <a class="open" id="open" target="_blank" rel="noopener" title="Open this page on its own, outside the frame (to print it, or keep it in a side window)">open ↗</a>
       </div>
     </div>
     <div class="crumb" id="crumb"></div>
@@ -156,7 +160,7 @@
       <tbody>
         <tr>
           <td><code>/devbok-new [slug:] &lt;topic&gt;</code></td>
-          <td>Registers a topic and generates version 1 of every kind, in parallel. The optional <code>slug:</code> prefix fixes the short name in the sidebar; the rest is the full topic text the prompts receive, so be as specific as you like. Examples: <code>/devbok-new c#</code>, <code>/devbok-new dotnet: ASP.NET Core &amp; .NET runtime (focus on the framework, not the language)</code>.</td>
+          <td>Registers a topic and generates version 1 of every kind, in parallel. The optional <code>slug:</code> prefix fixes the short name in the sidebar; the rest is the full topic text the prompts receive, so be as specific as you like. Examples: <code>/devbok-new c#</code>, <code>/devbok-new aspnet: ASP.NET Core &amp; .NET runtime (focus on the framework, not the language)</code>.</td>
         </tr>
         <tr>
           <td><code>/devbok-update &lt;slug&gt; [kind] [draft]</code></td>
@@ -187,7 +191,12 @@ const devbokModel = (function () {
   // "#slug/kind/vN" -> { slug, kind, v }; every part optional, unknown kinds and malformed versions become null.
   // "#slug/kind/draft" -> v: 'draft', the dry-run artifact from `prepare --draft` (lives in .devbok/, never recorded).
   function parseHash(hash) {
-    const [slug, kind, v] = decodeURIComponent(String(hash || '').replace(/^#/, '')).split('/');
+    // A stray percent sign ("#100%") makes decodeURIComponent throw, and this runs on every render:
+    // a link someone mistyped must not take the whole shell down, so it is read literally instead.
+    const raw = String(hash || '').replace(/^#/, '');
+    let text = raw;
+    try { text = decodeURIComponent(raw); } catch { /* not valid percent-encoding */ }
+    const [slug, kind, v] = text.split('/');
     return { slug: slug || null, kind: KINDS.includes(kind) ? kind : null, v: v === 'draft' ? 'draft' : /^v\d+$/.test(v || '') ? Number(v.slice(1)) : null };
   }
   function toHash(slug, kind, v) {
@@ -235,7 +244,7 @@ const devbokModel = (function () {
     const list = Array.isArray(topics) ? topics : null;
     let message = null;
     if (!list) message = 'Nothing to show until <code>topics/index.js</code> exists. Run <code>node scripts/devbok.mjs index</code>.';
-    else if (!list.length) message = 'No topics yet. In Claude Code run <code>/devbok-new &lt;topic&gt;</code>, for example <code>/devbok-new c#</code> or <code>/devbok-new dotnet: ASP.NET Core &amp; .NET runtime (focus on the framework)</code>.';
+    else if (!list.length) message = 'No topics yet. In Claude Code run <code>/devbok-new &lt;topic&gt;</code>, for example <code>/devbok-new c#</code> or <code>/devbok-new aspnet: ASP.NET Core &amp; .NET runtime (focus on the framework)</code>.';
     else if (!s.slug) message = 'Pick a topic on the left.';
     else if (!s.topic) message = `Unknown topic <code>${esc(s.slug)}</code>. Pick one on the left.`;
     else if (!s.ver) message = `No <b>${esc(s.kind)}</b> artifact for <b>${esc(s.topic.title)}</b> yet. Run <code>/devbok-update ${esc(s.slug)} ${esc(s.kind)}</code>.`;
@@ -255,9 +264,12 @@ const devbokModel = (function () {
       ...s.versions.map((x) => ({ v: x.v, label: `v${x.v} · ${x.generated}`, selected: !!s.ver && x.v === s.ver.v })),
       ...(isDraft ? [{ v: 'draft', label: 'draft · dry run', selected: true }] : []),
     ];
-    const title = !s.topic ? 'devbok' : (s.ver ? `${s.topic.title} · ${s.kind} ${isDraft ? 'draft' : 'v' + s.ver.v} · devbok` : `${s.topic.title} · devbok`);
+    // What is on screen, named once: the tab title appends devbok, the iframe's accessible name does not.
+    const label = !s.topic ? null : s.ver ? `${s.topic.title} · ${s.kind} ${isDraft ? 'draft' : 'v' + s.ver.v}` : s.topic.title;
+    const title = label ? `${label} · devbok` : 'devbok';
     return {
       ...s, message, sidebarNote, groups, tabs, options, title,
+      frameTitle: s.ver ? label : 'artifact', // a screen reader announces the frame by this, not by "artifact"
       crumb: s.topic ? s.topic.topic : '',
       src: s.ver ? s.ver.file : null,
       remember: s.topic ? s.kind : null, // the kind tab to reopen on next time; never the topic
@@ -284,7 +296,7 @@ const devbokModel = (function () {
   const $ = (s) => document.querySelector(s);
   const els = {
     list: $('#topics'), tabBar: $('#tabs'), tabs: [...document.querySelectorAll('.tab')],
-    version: $('#version'), frame: $('#frame'), empty: $('#empty'), crumb: $('#crumb'),
+    version: $('#version'), open: $('#open'), frame: $('#frame'), empty: $('#empty'), crumb: $('#crumb'),
   };
   const store = {
     get(k) { try { return localStorage.getItem(k); } catch { return null; } },
@@ -311,6 +323,8 @@ const devbokModel = (function () {
     }
     els.version.innerHTML = v.options.map((o) => `<option value="${o.v}"${o.selected ? ' selected' : ''}>${M.esc(o.label)}</option>`).join('');
     els.version.hidden = !v.options.length;
+    els.open.hidden = !v.src; // nothing to open until an artifact is on screen
+    if (v.src) els.open.href = v.src;
     els.crumb.textContent = v.crumb;
     els.crumb.title = v.crumb;
     if (v.message) {
@@ -320,6 +334,7 @@ const devbokModel = (function () {
     } else {
       els.empty.hidden = true;
       els.frame.hidden = false;
+      els.frame.title = v.frameTitle;
       if (els.frame.getAttribute('src') !== v.src) els.frame.src = v.src;
     }
     document.title = v.title;
