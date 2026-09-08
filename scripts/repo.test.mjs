@@ -167,6 +167,14 @@ describe('skills', () => {
       assert.match(body, /\$ARGUMENTS/);
     }
   });
+  test('the generating skills namespace subagent scratch files per kind', () => {
+    // Four kinds generate in parallel into one shared session scratchpad; identical generic
+    // part-file names clobbered each other during distributed v1.
+    for (const s of ['devbok-new', 'devbok-update']) {
+      assert.match(frontmatter(s).body, /<slug>-<kind>\//,
+        `${s}: the subagent brief must give each kind its own scratch subdirectory`);
+    }
+  });
   test('delete is a single script call with the arguments passed through', () => {
     const { fm, body } = frontmatter('devbok-delete');
     assert.equal(fm['allowed-tools'], 'Bash(node scripts/devbok.mjs delete:*)');

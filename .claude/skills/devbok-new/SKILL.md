@@ -52,7 +52,7 @@ Each successful call prints JSON with `version`, `output` (the exact HTML path t
 
 Launch one `Agent` subagent (`general-purpose`) per prepared kind, all in ONE message so they run concurrently. Give each exactly this brief, with the paths from step 3 filled in:
 
-> Read `<prompt path>` and follow it exactly. It is a complete, self-contained brief with the topic already filled in. Its only deliverable is the single HTML file at `<output>`; write it there, in parts if it is large. Do not ask questions: state assumptions and proceed. When done, run `node scripts/devbok.mjs validate "<output>"`, fix anything it reports under `errors`, and reply with the final validation JSON plus a 2-3 line summary of what the file contains.
+> Read `<prompt path>` and follow it exactly. It is a complete, self-contained brief with the topic already filled in. Its only deliverable is the single HTML file at `<output>`; write it there, in parts if it is large. Sibling agents for the other kinds are generating at the same time and share your scratchpad directory: keep every intermediate file in a `<slug>-<kind>/` subdirectory of it, never at the top level under a generic name like `p00.html`. Do not ask questions: state assumptions and proceed. When done, run `node scripts/devbok.mjs validate "<output>"`, fix anything it reports under `errors`, and reply with the final validation JSON plus a 2-3 line summary of what the file contains.
 
 Wait for all of them to finish. Do not generate any of them yourself if one fails; report instead.
 
