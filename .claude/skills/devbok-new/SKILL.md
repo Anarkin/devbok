@@ -12,7 +12,7 @@ Create a new devbok topic from: `$ARGUMENTS`
 ## 1. Parse the arguments
 
 - If the text starts with `<word>:` and `<word>` matches `^[a-z0-9-]+$`, then `<word>` is the slug and everything after the colon (trimmed) is the topic text.
-- Otherwise the whole text is the topic. Propose a short slug: 1-3 words, lowercase, hyphenated, no filler words. Examples: `c#` -> `csharp`; `ASP.NET Core & .NET runtime (assume C# is covered ...)` -> `dotnet`; `System design interviews (as a full-stack .NET engineer ...)` -> `system-design`; `SQL Server and PostgreSQL (...)` -> `sql`.
+- Otherwise the whole text is the topic. Propose a short slug: 1-3 words, lowercase, hyphenated, no filler words. Examples: `c#` -> `csharp`; `ASP.NET Core & .NET runtime (assume C# is covered ...)` -> `aspnet`; `System design interviews (as a full-stack .NET engineer ...)` -> `system-design`; `SQL Server and PostgreSQL (...)` -> `sql`.
 - Sanitize it: `node scripts/devbok.mjs slug "<proposed>"` and use the printed value.
 - Choose a display title of at most 40 characters for the sidebar, for example `System design (.NET full-stack)`. The topic text itself is stored verbatim and is what the prompts receive, so never shorten or "improve" it.
 - Choose the topic's accent colour: one 6-digit hex, the real brand colour of the technology (for example C# / .NET `#512bd4`, Angular `#dd0031`, PostgreSQL `#336791`, Redis `#dc382d`, TypeScript `#3178c6`). For a topic without a brand (system design, observability), pick a colour that feels like the topic. All four pages of the topic will use it, so decide it once here.

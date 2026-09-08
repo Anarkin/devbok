@@ -9,7 +9,7 @@ Personal interview-prep knowledge base. One **topic** (e.g. `csharp`) has four *
 | `interview`  | `prompts/interview.md`  | question bank: sub-areas ordered by how often they are asked, each question with answer, example, follow-ups and the wrong answer |
 | `cheatsheet` | `prompts/cheatsheet.md` | dense, printable reference card: syntax/APIs, commands and flags, modern-vs-legacy, version timeline |
 
-Artifacts go stale (`*` in `/devbok-list`) whenever the template, a partial or a kind prompt changes; regenerate with `/devbok-update`. A kind prompt that does not fill every slot the template declares is refused by `prepare` and skipped by the generating skills, so a half-finished prompt edit cannot produce a broken artifact.
+Artifacts go stale (`*` in `/devbok-list`) whenever the template, a partial or a kind prompt changes; regenerate with `/devbok-update` - or, when a page was brought onto the new prompt by hand, clear the marker with `node scripts/devbok.mjs restamp <slug>`. A kind prompt that does not fill every slot the template declares is refused by `prepare` and skipped by the generating skills, so a half-finished prompt edit cannot produce a broken artifact.
 
 ## Layout
 
@@ -23,6 +23,8 @@ topics/
     experience.v1.html
     interview.v1.html
     cheatsheet.v1.html
+README.md                      the short front door: what devbok is, how to read it, how to generate more
+AGENTS.md                      this file: the always-loaded map, contracts and conventions (CLAUDE.md just includes it)
 PROMPTS.md                     the prompt contract: how a brief is assembled and what a prompt file may contain
 prompts/<kind>.md              one content file per kind: only the blocks that fill the template's slots
 prompts/shared/template.md     the shape of every brief: TOPIC line, {{include:name}} partials, {{slot:name}} declarations
@@ -38,20 +40,20 @@ package.json                   exists only for `npm test`; no dependencies
 
 ## Commands
 
-All four are user-invoked slash commands. Generation is slow and expensive (up to four parallel web-researched HTML builds), so **never generate, regenerate or edit artifact HTML on your own initiative** - only when the user runs `/devbok-new` or `/devbok-update`.
+All four are slash commands. The three that write (`/devbok-new`, `/devbok-update`, `/devbok-delete`) are user-only - they set `disable-model-invocation`, so an agent cannot start one; `/devbok-list` only reads, so the model may run it too. Generation is slow and expensive (up to four parallel web-researched HTML builds), so **never generate, regenerate or edit artifact HTML on your own initiative** - only when the user runs `/devbok-new` or `/devbok-update`.
 
 | command                                  | does                                                                                   |
 |------------------------------------------|----------------------------------------------------------------------------------------|
 | `/devbok-new [slug:] <topic text>`       | registers the topic, then generates **v1 of every kind** in parallel (kinds whose prompt is not ready are skipped and reported) |
 | `/devbok-update <slug> [kind] [draft]`   | generates the **next version** of every kind, or of one kind. Deletes nothing. `draft` = dry run: two-unit pages into `.devbok/`, nothing recorded, minutes instead of half an hour; open as `devbok.html#<slug>/<kind>/draft` |
 | `/devbok-delete <slug> [<kind> v<N>]`    | deletes a whole topic, or one version. Pure script, no model judgment.                  |
-| `/devbok-list`                           | table of topics, latest versions, stale markers (`*` = prompt changed since generation) |
+| `/devbok-list`                           | table of topics, latest versions, stale markers (`*` = the latest version does not match the current prompt) |
 
-The **slug** is the short identifier used everywhere (`csharp`, `dotnet`, `system-design`). The **topic** is the full text the prompts receive, e.g. `System design interviews (as a full-stack .NET engineer, incl. JS FE, databases, and everything inbetween)`. It lives once in `topic.json`; `update` re-reads it, so it never has to be retyped. The **accent** is the topic's brand colour, chosen once by `/devbok-new` and shared by all of the topic's pages (the rest of the design is fixed, see the `page` partial). To rephrase a topic, recategorize it or change its colour, edit `topic.json` by hand (no regeneration needed for the last two: rebuild the index with `node scripts/devbok.mjs index`).
+The **slug** is the short identifier used everywhere (`csharp`, `aspnet`, `system-design`). The **topic** is the full text the prompts receive, e.g. `System design interviews (as a full-stack .NET engineer, incl. JS FE, databases, and everything inbetween)`. It lives once in `topic.json`; `update` re-reads it, so it never has to be retyped. The **accent** is the topic's brand colour, chosen once by `/devbok-new` and shared by all of the topic's pages (the rest of the design is fixed, see the `page` partial). To rephrase a topic, recategorize it or change its colour, edit `topic.json` by hand (no regeneration needed for the last two: rebuild the index with `node scripts/devbok.mjs index`).
 
 The **category** is the topic's one grouping axis - `language`, `backend`, `frontend`, `data`, `architecture`, `ops`, `ai`, `practice`, `other` - chosen by `/devbok-new` the same way the accent is. The sidebar renders one section per category in exactly that order, and a topic whose category is missing or unknown lands in `other`, last; nothing is ever hidden. The vocabulary lives in `CATEGORIES` in `scripts/devbok.mjs` and reaches the shell through `topics/index.js` (`window.DEVBOK_CATEGORIES`), so `devbok.html` never knows a category name. Add one there and in the table in `.claude/skills/devbok-new/SKILL.md`; `scripts/repo.test.mjs` fails if the two, or this list, disagree.
 
-The script is usable directly and prints its own usage: `node scripts/devbok.mjs --help`. Three things that block is too terse to say: `prepare` reserves the next version and renders the brief into `.devbok/`, while `prepare --draft` reserves nothing and writes the dry run to `.devbok/<slug>.<kind>.draft.html`; `record` re-validates the written HTML before it touches the manifest, and `record --force` records a version whose HTML fails `validate` (an escape hatch - the errors are real); `validate --draft` only lowers the size floor, every other check still applies.
+The script is usable directly and prints its own usage: `node scripts/devbok.mjs --help`. Four things that block is too terse to say: `prepare` reserves the next version and renders the brief into `.devbok/`, while `prepare --draft` reserves nothing and writes the dry run to `.devbok/<slug>.<kind>.draft.html`; `record` re-validates the written HTML before it touches the manifest, and `record --force` records a version whose HTML fails `validate` (an escape hatch - the errors are real); `validate --draft` only lowers the size floor, every other check still applies; and `restamp` re-validates the latest version of each kind and, only if it passes, records today's prompt hash against it - the way to clear a `*` you have already fixed by hand, since it changes the manifest and never the file.
 
 ## Hard rules for agents
 
@@ -120,6 +122,8 @@ before editing anything under `prompts/`.
 ```
 
 `pending` holds versions that were prepared but not (yet) recorded, e.g. a generation that failed; they never appear in `index.js`. Clean up with `/devbok-delete <slug> <kind> v<N>` or record them once the file exists.
+
+A version that `restamp` has stamped also carries `restamped: <date>`. Its `prompt` is then the prompt the file is known to *satisfy*, while the provenance comment inside the HTML still names the prompt that *generated* it: after a hand-patch the two are meant to disagree, and only the manifest one decides staleness.
 
 ## Viewing
 
