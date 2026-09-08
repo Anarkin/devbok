@@ -8,6 +8,7 @@ import path from 'node:path';
 import vm from 'node:vm';
 import { spawnSync } from 'node:child_process';
 import { fileURLToPath } from 'node:url';
+import { darkAccent } from './devbok.mjs';
 
 const ROOT = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..');
 const SCRIPT = path.join(ROOT, 'scripts', 'devbok.mjs');
@@ -26,10 +27,14 @@ function frontmatter(skill) {
   const src = read('.claude', 'skills', skill, 'SKILL.md');
   const m = src.match(/^---\n([\s\S]*?)\n---\n([\s\S]*)$/);
   assert.ok(m, `${skill}/SKILL.md must start with a frontmatter block`);
-  const fm = Object.fromEntries(m[1].split('\n').filter(Boolean).map((line) => {
-    const i = line.indexOf(':');
-    return [line.slice(0, i).trim(), line.slice(i + 1).trim()];
-  }));
+  // Enough YAML for a skill frontmatter: `key: value`, with wrapped continuation lines folded in.
+  // Splitting every line on its first colon turned a wrapped description into a bogus key silently.
+  const fm = {};
+  let key = null;
+  for (const line of m[1].split('\n')) {
+    const kv = /^([A-Za-z][\w-]*):[ \t]?(.*)$/.exec(line);
+    if (kv) { key = kv[1]; fm[key] = kv[2].trim(); } else if (key && line.trim()) fm[key] = `${fm[key]} ${line.trim()}`.trim();
+  }
   return { fm, body: m[2] };
 }
 
@@ -83,10 +88,32 @@ describe('shared prompt partials', () => {
     }
     for (const n of partials()) assert.ok(used.has(n), `prompts/shared/${n}.md is not included by any prompt`);
   });
-  test('partials are documented in AGENTS.md', () => {
-    const agents = read('AGENTS.md');
-    assert.match(agents, /\{\{include:name\}\}/);
-    for (const n of partials()) assert.ok(agents.includes(`\`${n}\``), `AGENTS.md must describe the partial \`${n}\``);
+  test('partials are documented in PROMPTS.md', () => {
+    const doc = read('PROMPTS.md');
+    assert.match(doc, /\{\{include:name\}\}/);
+    for (const n of partials()) assert.ok(doc.includes(`\`${n}\``), `PROMPTS.md must describe the partial \`${n}\``);
+  });
+  test('no shared prompt file mentions something only some kinds have', () => {
+    // The drift this catches: experience-only wording ("what the interviewer is really probing") and a
+    // <details> styling rule the cheat sheet has no use for, both of which had settled into `page`.
+    const lines = read('PROMPTS.md').split('\n');
+    const at = lines.findIndex((l) => l.startsWith('Not shared, on purpose'));
+    assert.ok(at >= 0, 'PROMPTS.md must carry the "Not shared, on purpose" list');
+    const terms = [];
+    for (let i = at + 1; i < lines.length; i++) {
+      if (/^ {4}\S/.test(lines[i])) terms.push(lines[i].trim());
+      else if (terms.length) break;
+    }
+    assert.ok(terms.length >= 5, `expected an indented list of terms, got: ${terms.join(', ')}`);
+    for (const f of fs.readdirSync(sharedDir).filter((n) => n.endsWith('.md'))) {
+      const text = read('prompts', 'shared', f).toLowerCase();
+      for (const t of terms) {
+        assert.ok(!text.includes(t.toLowerCase()), `prompts/shared/${f} mentions "${t}" - at least one kind has none of it, so it belongs in the kind prompts that do`);
+      }
+    }
+    // and each term is actually used by a kind prompt, or it has no business on the list
+    const kindText = scriptKinds.map((k) => read('prompts', `${k}.md`)).join('\n').toLowerCase();
+    for (const t of terms) assert.ok(kindText.includes(t.toLowerCase()), `no kind prompt uses "${t}"; drop it from the list`);
   });
 });
 
@@ -138,17 +165,26 @@ describe('skills', () => {
 });
 
 describe('prompt contract', () => {
-  test('AGENTS.md lists the placeholders the script substitutes', () => {
+  test('PROMPTS.md lists the placeholders the script substitutes', () => {
     const vars = [...read('scripts', 'devbok.mjs').match(/const vars = \{([\s\S]*?)\};/)[1].matchAll(/\b([A-Z_]+):/g)].map((m) => m[1]);
-    const agents = read('AGENTS.md');
-    for (const v of vars) assert.ok(agents.includes(`\`{{${v}}}\``), `AGENTS.md must document {{${v}}}`);
+    const doc = read('PROMPTS.md');
+    for (const v of vars) assert.ok(doc.includes(`\`{{${v}}}\``), `PROMPTS.md must document {{${v}}}`);
     for (const r of requiredPlaceholders()) assert.ok(vars.includes(r), `required placeholder ${r} must be substituted`);
+  });
+  test('AGENTS.md stays the short always-loaded file and points at the rest', () => {
+    // CLAUDE.md pulls AGENTS.md into every session, so the reference material lives next door.
+    const agents = read('AGENTS.md');
+    assert.ok(exists('PROMPTS.md'), 'PROMPTS.md must exist');
+    assert.match(agents, /\[PROMPTS\.md\]\(PROMPTS\.md\)/, 'AGENTS.md must link the prompt contract');
+    assert.doesNotMatch(agents, /^## Prompt contract/m, 'the contract lives in PROMPTS.md');
+    assert.match(agents, /record --force/, '--force records an artifact that fails validate; say so where agents read');
+    assert.match(agents, /#<slug>\/<kind>\/draft/);
   });
   test('template.md owns the shape: declares the documented slots, includes every partial, adds no headings', () => {
     const tpl = read('prompts', 'shared', 'template.md');
     const slots = [...new Set([...tpl.matchAll(/\{\{slot:([a-z0-9-]+)\}\}/g)].map((m) => m[1]))];
     assert.deepEqual(slots, ['goal', 'design', 'content']);
-    for (const s of slots) assert.ok(read('AGENTS.md').includes(`{{slot:${s}}}`), `AGENTS.md must document {{slot:${s}}}`);
+    for (const s of slots) assert.ok(read('PROMPTS.md').includes(`{{slot:${s}}}`), `PROMPTS.md must document {{slot:${s}}}`);
     for (const n of partials()) assert.ok(tpl.includes(`{{include:${n}}}`), `template.md must include every partial (${n})`);
     assert.doesNotMatch(tpl, /^#{1,2} /m, 'the template has no headings of its own; partials and slots bring theirs');
     assert.match(tpl, /^TOPIC: \{\{TOPIC\}\}/, 'the brief starts with the topic line');
@@ -158,9 +194,8 @@ describe('prompt contract', () => {
     assert.match(draft, /^## Draft mode/);
     assert.doesNotMatch(draft, /\{\{include:/);
     assert.match(draft, /--draft/, 'tells the agent to validate with --draft');
-    const agents = read('AGENTS.md');
-    assert.match(agents, /prepare <slug> <kind> \[--draft\]/);
-    assert.match(agents, /#<slug>\/<kind>\/draft/);
+    assert.match(read('PROMPTS.md'), /`prepare --draft`/);
+    assert.match(read('AGENTS.md'), /#<slug>\/<kind>\/draft/);
     assert.match(frontmatter('devbok-update').fm.description, /\[draft\]/);
   });
   test('kind prompts in slot form are pure content: no TOPIC line, no includes', () => {
@@ -221,6 +256,7 @@ describe('shell and generated pages share one design', () => {
     assert.match(page, /--accent: \{\{ACCENT_DARK\}\}/);
     const defaultAccent = read('scripts', 'devbok.mjs').match(/const DEFAULT_ACCENT = '(#[0-9a-f]{6})'/)[1];
     assert.equal(defaultAccent, shellLight.accent, "the script's default accent is the shell's own accent");
+    assert.equal(shellDark.accent, darkAccent(defaultAccent), "the shell's dark accent must be the tint the script derives, or devbok's own page and a topic page using the same accent look different");
   });
   test('mono font and sidebar width match', () => {
     const mono = shellCss.match(/font-family: "([^"]+)"/)[1];
@@ -270,7 +306,9 @@ describe('repo integrity', () => {
         }
         for (const x of kk.pending) { known.add(`${k}.v${x.v}.html`); assert.ok(x.v < kk.next); }
       }
-      for (const f of fs.readdirSync(path.join(ROOT, 'topics', slug)).filter((f) => f.endsWith('.html'))) {
+      for (const f of fs.readdirSync(path.join(ROOT, 'topics', slug))) {
+        if (f === 'topic.json') continue;
+        assert.match(f, /^[a-z]+\.v\d+\.html$/, `topics/${slug}/${f}: only topic.json and <kind>.v<N>.html belong here (a *.tmp is a crashed atomic write)`);
         assert.ok(known.has(f), `topics/${slug}/${f} is on disk but neither recorded nor pending`);
       }
     }

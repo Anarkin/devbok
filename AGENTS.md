@@ -6,10 +6,10 @@ Personal interview-prep knowledge base. One **topic** (e.g. `csharp`) has four *
 |--------------|-------------------------|---------------------------------------------------------------------|
 | `study`      | `prompts/study.md`      | in-depth study guide: curriculum sections, code, gotchas, Q&A       |
 | `experience` | `prompts/experience.md` | behavioural story bank: STAR scaffolds, recall prompts, drill chains |
-| `interview`  | `prompts/interview.md`  | question bank: topic map ordered by how often each sub-area is asked, then every question with answer, example, follow-ups and the wrong answer, plus judgment calls and design exercises |
-| `cheatsheet` | `prompts/cheatsheet.md` | dense, printable reference card kept open while coding: syntax/APIs, commands and flags, modern-vs-legacy table, version timeline |
+| `interview`  | `prompts/interview.md`  | question bank: sub-areas ordered by how often they are asked, each question with answer, example, follow-ups and the wrong answer |
+| `cheatsheet` | `prompts/cheatsheet.md` | dense, printable reference card: syntax/APIs, commands and flags, modern-vs-legacy, version timeline |
 
-Status: all four kind prompts are devbok-ready (see "Prompt contract") and the pipeline runs end to end. Artifacts go stale (`*` in `/devbok-list`) whenever a partial or kind prompt changes; regenerate with `/devbok-update`. `prepare` refuses a prompt that is not ready, and the generating skills skip such kinds.
+Artifacts go stale (`*` in `/devbok-list`) whenever the template, a partial or a kind prompt changes; regenerate with `/devbok-update`. A kind prompt that does not fill every slot the template declares is refused by `prepare` and skipped by the generating skills, so a half-finished prompt edit cannot produce a broken artifact.
 
 ## Layout
 
@@ -23,6 +23,7 @@ topics/
     experience.v1.html
     interview.v1.html
     cheatsheet.v1.html
+PROMPTS.md                     the prompt contract: how a brief is assembled and what a prompt file may contain
 prompts/<kind>.md              one content file per kind: only the blocks that fill the template's slots
 prompts/shared/template.md     the shape of every brief: TOPIC line, {{include:name}} partials, {{slot:name}} declarations
 prompts/shared/<name>.md       partials shared by every kind (persona, delivery, research, page, quality)
@@ -31,7 +32,7 @@ scripts/devbok.mjs             all deterministic operations (Node, no dependenci
 scripts/*.test.mjs             tests: script (devbok.test), shell view-model (shell.test), cross-file agreements (repo.test)
 package.json                   exists only for `npm test`; no dependencies
 .claude/skills/devbok-*/       the four slash commands
-.claude/launch.json            preview-server config for the desktop app's Browser pane (python http.server on 8765)
+.claude/launch.json            preview-server config for the desktop app's Browser pane (python http.server on 8765); optional, the shell also works from file://
 .devbok/                       rendered briefs, drafts and the lock; git-ignored
 ```
 
@@ -48,18 +49,7 @@ All four are user-invoked slash commands. Generation is slow and expensive (up t
 
 The **slug** is the short identifier used everywhere (`csharp`, `dotnet`, `system-design`). The **topic** is the full text the prompts receive, e.g. `System design interviews (as a full-stack .NET engineer, incl. JS FE, databases, and everything inbetween)`. It lives once in `topic.json`; `update` re-reads it, so it never has to be retyped. The **accent** is the topic's brand colour, chosen once by `/devbok-new` and shared by all of the topic's pages (the rest of the design is fixed, see the `page` partial). To rephrase a topic or change its colour, edit `topic.json` by hand and run `/devbok-update`.
 
-Underlying script (usable directly):
-
-```
-node scripts/devbok.mjs slug <text>
-node scripts/devbok.mjs init <slug> --title "<short title>" --topic "<full topic text>" [--accent "#rrggbb"]
-node scripts/devbok.mjs prepare <slug> <kind> [--draft]  # reserves v<N>, renders the brief to .devbok/, prints JSON; --draft reserves nothing, output goes to .devbok/<slug>.<kind>.draft.html
-node scripts/devbok.mjs record <slug> <kind> v<N>        # validates the HTML, records it, rebuilds index.js, removes the rendered brief
-node scripts/devbok.mjs validate <file.html> [--draft]   # --draft lowers the size floor for dry runs
-node scripts/devbok.mjs delete <slug> [<kind> v<N>]
-node scripts/devbok.mjs list [--json]
-node scripts/devbok.mjs index
-```
+The script is usable directly and prints its own usage: `node scripts/devbok.mjs --help`. Three things that block is too terse to say: `prepare` reserves the next version and renders the brief into `.devbok/`, while `prepare --draft` reserves nothing and writes the dry run to `.devbok/<slug>.<kind>.draft.html`; `record` re-validates the written HTML before it touches the manifest, and `record --force` records a version whose HTML fails `validate` (an escape hatch - the errors are real); `validate --draft` only lowers the size floor, every other check still applies.
 
 ## Hard rules for agents
 
@@ -67,6 +57,7 @@ node scripts/devbok.mjs index
 - `devbok.html` is static and topic-agnostic. Do not bake topic data or per-topic styling into it.
 - `devbok-new` and `devbok-update` must run in the main context (no `context: fork` in their frontmatter): a forked skill runs as a subagent, and subagents cannot spawn the parallel generation subagents.
 - Version numbers per kind only ever increase (`next` in the manifest), even after deletes. Never renumber files.
+- Editing anything under `prompts/`? Read `PROMPTS.md` first - it is the contract `prepare` and the tests enforce.
 - Do not commit `.devbok/`.
 - Concurrent runs are fine: two sessions may run `/devbok-update` (even on the same topic) at the same time. Every mutating script command holds a lock (`.devbok/.lock`, stale after 2 minutes) and writes manifests and the index atomically, so version numbers are never handed out twice and readers never see half-written files. The only shared cost is API rate limits.
 
@@ -75,11 +66,13 @@ node scripts/devbok.mjs index
 - **Commits follow Conventional Commits**: `type(scope): summary`, imperative, lower-case. Types: `feat`, `fix`, `refactor`, `test`, `docs`, `chore`. Scopes: `shell` (devbok.html), `script` (scripts/devbok.mjs), `skills`, `prompts`, `agents` (AGENTS.md); omit the scope when a change spans several. Generated artifacts are committed as `feat(topics): <slug> v1` or `feat(topics): <slug> <kind> v<N>`.
 - **Tests are part of every change.** `npm test` must pass before committing. Behaviour changes in `scripts/devbok.mjs`, in the `devbok-model` block of `devbok.html`, in a skill's frontmatter, or to the kind list come with updated or new tests in the matching `scripts/*.test.mjs` file. Node's built-in runner, no dependencies; tests never write to the real `topics/`, they work in temp roots via `DEVBOK_ROOT`.
 - **Keep the shell testable**: everything that decides *what* to show lives in the `<script id="devbok-model">` block (pure functions, no DOM); the glue script below it only paints and wires events.
-- **The shell and the generated pages share one design.** `prompts/shared/page.md` restates the shell's colour tokens (light and dark), mono font and sidebar width for the generating agents; `scripts/repo.test.mjs` fails when they drift. Change both together, and expect every artifact to go stale (`*` in `/devbok-list`) because the `page` partial changed.
+- **The shell and the generated pages share one design.** `prompts/shared/page.md` restates the shell's colour tokens (light and dark), accent pair, mono font and sidebar width for the generating agents; `scripts/repo.test.mjs` fails when the two drift, and `validate` fails a generated page that does not implement the verbatim parts. Change both together, and expect every artifact to go stale (`*` in `/devbok-list`) because the `page` partial changed.
 
-## Prompt contract (`prompts/<kind>.md`)
+## Prompts
 
-`prompts/shared/template.md` gives every brief its shape. It is the only file that pulls in the shared partials (`{{include:name}}` → `prompts/shared/<name>.md`; partials may include partials, cycles are refused, a missing partial fails `prepare` before anything changes), and it declares the slots a kind prompt fills:
+A brief is `prompts/shared/template.md` (the shape: `{{include:name}}` partials from `prompts/shared/`, and
+the slots a kind fills) plus `prompts/<kind>.md` (pure content: blocks introduced by `{{slot:name}}` marker
+lines), with `{{PLACEHOLDERS}}` substituted by `prepare`:
 
 ```
 TOPIC: {{TOPIC}}
@@ -87,74 +80,24 @@ TOPIC: {{TOPIC}}
 {{include:persona}}  {{include:delivery}}  {{include:research}}
 {{slot:design}}               the kind's own design section, with its own ## heading
 {{include:page}}
-{{slot:content}}              what the artifact must contain, with its own ## heading, incl. kind-specific quality items
+{{slot:content}}              what the artifact must contain, with its own ## heading
 {{include:quality}}
 ```
 
-`prompts/shared/draft.md` is the dry-run banner: `prepare --draft` prepends it to the assembled brief (two units, no research, no browser, `validate --draft`). Like the template it is not a partial, so the include-all rule does not apply to it; it still starts with one `## ` heading.
-
-A kind prompt (`prompts/<kind>.md`) is pure content: blocks introduced by a marker line `{{slot:name}}`, nothing before the first marker, no `TOPIC:` line, no includes (placeholders such as `{{TOPIC}}` may be used inside a block). See `prompts/study.md` for the reference. A kind prompt is **devbok-ready** when it fills every slot the template declares; a free-form prompt (no markers) or one with an unfilled slot is refused with "not devbok-ready" and the generating skills skip that kind. An unknown slot, a duplicate slot, or text before the first marker is a hard error. The "stale" hash is computed on the assembled text (template + partials + kind file), so editing any of them marks the affected artifacts stale.
-
-Two rules for `prompts/shared/`, both enforced by `scripts/repo.test.mjs`:
-
-- A partial holds only text that applies to **every** kind. Anything true for just some kinds lives in those kind prompts, even if that repeats a few lines. Only the template includes partials, so this holds by construction.
-- Every partial starts with exactly one `## ` heading on its first line and contains no other `#`/`##` heading (H3 and below are fine), so the assembled brief has one consistent heading level.
-
-| partial    | heading        | provides                                                                                                   |
-|------------|----------------|------------------------------------------------------------------------------------------------------------|
-| `persona`  | Who I am       | level calibration: lead/principal engineer, ceiling visible up to principal                                |
-| `delivery` | How to deliver | unattended, never ask, one file at `{{OUTPUT}}`, run `validate`, report                                    |
-| `research` | Research first | web research before writing: latest version, modern vs legacy, dated with `{{DATE}}`                       |
-| `page`     | The page       | what every artifact page shares: self-contained file, provenance comment, hero, sidebar nav with scrollspy, localStorage key prefix for any state, code and tables, and the fixed design system (the shell's colour tokens in light and dark, system sans + Cascadia Mono, a verbatim hero with `{{TITLE}}` as the h1, a verbatim 260px sidebar, chips/callouts/details/tables) with the topic's accent via `{{ACCENT}}` / `{{ACCENT_DARK}}` |
-| `quality`  | Quality bar    | topic decides the shape, modern-first legacy-aware, version precision, specific over vague, official-doc links, no assumptions about me |
-
-Not shared, on purpose: self-quiz `<details>` with spoken-ready answers, "depth over breadth", "teach for transfer". A cheat sheet has none of these, so they live in the kind prompts that want them. Not wanted anywhere: progress tracking ("mark as studied" checkboxes, progress bars); the `page` partial forbids it.
-
-`prepare` substitutes these placeholders in the assembled text; the template (with its partials) must contain the required ones:
-
-| placeholder       | required | value                                                             |
-|-------------------|----------|-------------------------------------------------------------------|
-| `{{TOPIC}}`       | yes      | full topic text, verbatim from `topic.json`                       |
-| `{{OUTPUT}}`      | yes      | absolute path of the HTML file to write, e.g. `C:/Code/devbok/topics/csharp/study.v2.html` |
-| `{{TITLE}}`       |          | short display title                                               |
-| `{{SLUG}}`        |          | slug                                                              |
-| `{{KIND}}`        |          | `study` / `experience` / `interview` / `cheatsheet`               |
-| `{{VERSION}}`     |          | version number, e.g. `2`                                          |
-| `{{DATE}}`        |          | today, `YYYY-MM-DD`                                               |
-| `{{PROMPT_FILE}}` |          | `study.md` etc.                                                   |
-| `{{PROMPT_HASH}}` |          | 8-hex hash of the prompt file that produced this render           |
-| `{{ACCENT}}`      |          | the topic's accent colour from `topic.json`, e.g. `#512bd4`; shared by all of the topic's pages |
-| `{{ACCENT_DARK}}` |          | a lighter tint of it for dark backgrounds, derived by the script  |
-
-Every brief must also satisfy the following; the template's partials (`delivery`, `research`, `page`) take care of it, so a kind prompt only fills its slots:
-
-- be **non-interactive**: it is executed by a subagent that cannot ask the user anything, so "ask clarifying questions first" must become "state assumptions and proceed"; the topic text is the disambiguation.
-- name **one deliverable**: write the single file to `{{OUTPUT}}` (no "provide as a download", no streaming HTML into chat).
-- ask for web research where the original did (subagents have `WebSearch`), and for the programmatic validation step, pointing at `node scripts/devbok.mjs validate {{OUTPUT}}`.
-- produce HTML that satisfies the artifact contract below.
+The full contract - slot rules, the two rules for `prompts/shared/`, what each partial provides, every
+placeholder, and the list of things a partial may not mention - is in **[PROMPTS.md](PROMPTS.md)**. Read it
+before editing anything under `prompts/`.
 
 ## Artifact contract (every generated HTML file)
 
-- One self-contained file, starting with `<!doctype html>` and ending with `</html>`. Allowed external resources: highlight.js from `https://cdnjs.cloudflare.com` and the Cascadia Mono Google Font. Nothing else.
-- Provenance comment immediately after `<body>`:
+`prompts/shared/page.md` is the specification, because it is the text the generating agents actually receive; change it there, not here. What has to hold:
 
-  ```html
-  <!-- devbok
-  slug: {{SLUG}}
-  kind: {{KIND}}
-  version: {{VERSION}}
-  topic: "{{TOPIC}}"
-  prompt: {{PROMPT_FILE}}@{{PROMPT_HASH}}
-  generated: {{DATE}}
-  -->
-  ```
-
-- No progress tracking: no "mark as studied" checkboxes, no progress bar. Any state a page does keep (open/closed blocks, say) **may use localStorage** - the old "not supported" restriction came from claude.ai artifacts and does not apply here. Every key must start with `devbok:{{SLUG}}:{{KIND}}:v{{VERSION}}:` so topics and versions never collide (all `file://` pages share one storage in Chrome).
-- Must render standalone and inside the `devbok.html` iframe: no top-level navigation, no assumptions about window size, fixed sidebars are fine.
-- Never scrolls horizontally, at any viewport width: block code scrolls inside its `<pre>`, tables sit in an `overflow-x: auto` wrapper, inline code wraps (no `white-space: nowrap`), grid/flex items that hold code get `min-width: 0`, no `100vw`. `validate` warns about the known offending CSS patterns.
+- One self-contained file, `<!doctype html>` to `</html>`. The only external resources allowed are highlight.js from `https://cdnjs.cloudflare.com` and the Cascadia Mono Google Font.
+- A `<!-- devbok ... -->` provenance comment immediately after `<body>`, naming the slug, kind, version, topic, prompt file and hash, and the date; exact shape in `page.md`.
+- No progress tracking: no "mark as studied" checkboxes, no progress bar. State a page does keep (which blocks are open, say) may use localStorage, under keys starting with `devbok:{{SLUG}}:{{KIND}}:v{{VERSION}}:` so topics and versions never collide (all `file://` pages share one storage in Chrome).
+- Renders standalone and inside the `devbok.html` iframe (no top-level navigation, no assumptions about window size), follows the system theme via `prefers-color-scheme` with no selector, and never scrolls horizontally at any width from 360px up.
 - `cheatsheet` additionally needs a `@media print` stylesheet; it is meant to be printed or kept in a side window.
-- Like the shell, artifacts should follow the system theme via `prefers-color-scheme` (light and dark, no selector UI).
-- `node scripts/devbok.mjs validate <file>` must report no `errors` (doctype, closing tag, balanced `details`/`section`/`table`/`div`/`script`/`style`/`pre`, size sanity); `warnings` should be addressed when reasonable.
+- `node scripts/devbok.mjs validate <file>` must report no `errors`; `warnings` should be addressed when reasonable. Any file is checked for the doctype, the closing tag, balanced `details`/`section`/`table`/`div`/`script`/`style`/`pre`, size sanity, external hosts, the provenance comment and the CSS patterns that cause horizontal scrolling. A file at `topics/<slug>/<kind>.v<N>.html` (or a draft in `.devbok/`) also carries its own identity, so `validate` reads the manifest and enforces the mechanical half of `prompts/shared/page.md` as errors: the `<title>`, the hero `<h1>`, the hero's `meta` / `summary` / `chips`, `<nav class="side">` with `<ol class="units">`, two-digit `<span class="n">` numbers, `aria-current` for the scrollspy, `@media print` for a cheatsheet, and a provenance comment whose slug, kind and version match the file.
 
 ## Manifest (`topics/<slug>/topic.json`)
 
@@ -166,11 +109,9 @@ Every brief must also satisfy the following; the template's partials (`delivery`
   "accent": "#336791",
   "created": "2026-09-07",
   "kinds": {
-    "study":      { "next": 3, "versions": [ { "v": 1, "generated": "2026-09-07", "prompt": "a1b2c3d4", "file": "study.v1.html" },
-                                             { "v": 2, "generated": "2026-09-12", "prompt": "e5f6a7b8", "file": "study.v2.html" } ], "pending": [] },
-    "experience": { "next": 2, "versions": [ { "v": 1, "generated": "2026-09-07", "prompt": "0c1d2e3f", "file": "experience.v1.html" } ], "pending": [] },
-    "interview":  { "next": 2, "versions": [], "pending": [ { "v": 1, "prompt": "4a5b6c7d", "started": "2026-09-07" } ] },
-    "cheatsheet": { "next": 1, "versions": [], "pending": [] }
+    "study":     { "next": 3, "versions": [ { "v": 1, "generated": "2026-09-07", "prompt": "a1b2c3d4", "file": "study.v1.html" },
+                                            { "v": 2, "generated": "2026-09-12", "prompt": "e5f6a7b8", "file": "study.v2.html" } ], "pending": [] },
+    "interview": { "next": 2, "versions": [], "pending": [ { "v": 1, "prompt": "4a5b6c7d", "started": "2026-09-07" } ] }
   }
 }
 ```
