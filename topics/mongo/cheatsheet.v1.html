@@ -1,0 +1,585 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>MongoDB · cheatsheet · devbok</title>
+<link rel="preconnect" href="https://fonts.googleapis.com/">
+<link rel="preconnect" href="https://fonts.gstatic.com/" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Cascadia+Mono:wght@400;700&display=swap">
+<style>
+:root { color-scheme: light;
+  --bg: #ffffff; --fg: #111111; --muted: #6b6b6b; --line: #111111; --soft: #f4f4f4; --border: #cccccc;
+  --accent: #13aa52; --accent-soft: color-mix(in srgb, var(--accent) 12%, var(--bg));
+  --code: color-mix(in srgb, var(--accent) 70%, var(--fg));
+  --hl-kw: #a626a4; --hl-str: #50a14f; --hl-num: #986801; --hl-cmt: #6b6b6b; --hl-type: #0184bc; --hl-fn: #4078f2; --hl-attr: #986801; }
+@media (prefers-color-scheme: dark) { :root { color-scheme: dark;
+  --bg: #222222; --fg: #cccccc; --muted: #8f8f8f; --line: #111111; --soft: #2c2c2c; --border: #4a4a4a;
+  --accent: #63ee9d; --accent-soft: color-mix(in srgb, var(--accent) 16%, var(--bg));
+  --hl-kw: #c678dd; --hl-str: #98c379; --hl-num: #d19a66; --hl-cmt: #8f8f8f; --hl-type: #56b6c2; --hl-fn: #61afef; --hl-attr: #e5c07b; } }
+
+* { box-sizing: border-box; }
+html { -webkit-text-size-adjust: 100%; }
+body { margin: 0; background: var(--bg); color: var(--fg);
+  font-family: system-ui, sans-serif; font-size: 16px; line-height: 1.6;
+  overflow-x: hidden; }
+
+h1, h2, h3 { font-family: system-ui, sans-serif; font-weight: 700; }
+h2 { font-size: 1.5em; line-height: 1.25; margin: 0 0 10px; scroll-margin-top: 16px; }
+h3 { font-size: 1.17em; margin: 18px 0 6px; }
+a { color: var(--accent); }
+:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+p { margin: 0 0 10px; }
+
+/* --- code, verbatim ------------------------------------------------ */
+code { background: var(--soft); border: 1px solid var(--border); border-radius: 3px; padding: 0 .3em; color: var(--code); overflow-wrap: anywhere; }
+pre { background: var(--soft); border: 1px solid var(--border); border-radius: 4px; padding: 12px 14px; overflow-x: auto; line-height: 1.5; margin: 14px 0; max-width: 100%; }
+pre code { background: none; border: 0; border-radius: 0; padding: 0; color: inherit; white-space: pre; overflow-wrap: normal; }
+.hljs { color: var(--fg); background: transparent; }
+.hljs-keyword, .hljs-built_in, .hljs-literal, .hljs-selector-tag { color: var(--hl-kw); }
+.hljs-string, .hljs-regexp, .hljs-selector-attr { color: var(--hl-str); }
+.hljs-number, .hljs-symbol { color: var(--hl-num); }
+.hljs-comment, .hljs-quote, .hljs-doctag { color: var(--hl-cmt); font-style: italic; }
+.hljs-title, .hljs-title.class_, .hljs-type, .hljs-name, .hljs-section, .hljs-selector-class, .hljs-selector-pseudo { color: var(--hl-type); }
+.hljs-title.function_ { color: var(--hl-fn); }
+.hljs-meta, .hljs-attr, .hljs-attribute, .hljs-tag, .hljs-property, .hljs-variable { color: var(--hl-attr); }
+.hljs-template-tag, .hljs-template-variable { color: var(--hl-attr); }
+.hljs-code, .hljs-formula { color: var(--hl-cmt); }
+.hljs-operator, .hljs-subst, .hljs-punctuation, .hljs-params { color: var(--fg); }
+.hljs-emphasis { font-style: italic; } .hljs-strong { font-weight: 700; }
+code, pre, .chip, .hero .meta, .side, .k, .v, table { font-family: "Cascadia Mono", Consolas, monospace; }
+code, pre, .chip, .hero .meta, .side { font-size: 12px; }
+
+/* --- sidebar, verbatim --------------------------------------------- */
+.side { position: fixed; top: 0; bottom: 0; left: 0; width: 260px; display: flex; flex-direction: column; background: var(--bg); border-right: 2px solid var(--line); font-family: "Cascadia Mono", Consolas, monospace; font-size: 12px; }
+.units { list-style: none; margin: 0; padding: 12px 0; overflow-y: auto; flex: 1; }
+.units a { display: grid; grid-template-columns: 2.5em 1fr; padding: 9px 20px; color: var(--fg); text-decoration: none; line-height: 1.4; }
+.units .n { color: var(--muted); }
+.units a:hover { background: var(--soft); }
+.units a[aria-current="true"] { background: var(--accent-soft); color: var(--accent); }
+.units a[aria-current="true"] .n { color: var(--accent); }
+.side footer { padding: 12px 20px; border-top: 2px solid var(--line); color: var(--muted); line-height: 1.5; }
+
+/* --- layout --------------------------------------------------------- */
+main { margin-left: 260px; padding: 24px; max-width: 120ch; min-width: 0; }
+.hero { margin: 0 0 24px; padding: 0 0 24px; border-bottom: 2px solid var(--line); }
+.hero h1 { margin: 0 0 8px; font-size: 2em; line-height: 1.2; font-weight: 700; }
+.hero .meta { margin: 0 0 12px; font-family: "Cascadia Mono", Consolas, monospace; font-size: 12px; color: var(--muted); }
+.hero .summary { margin: 0 0 12px; }
+.hero .chips { display: flex; flex-wrap: wrap; gap: 6px; margin: 0; }
+.chip { display: inline-block; text-transform: uppercase; background: var(--soft); border: 1px solid var(--border); border-radius: 4px; padding: 2px 7px; color: var(--muted); }
+
+/* --- unit cards ----------------------------------------------------- */
+.unit { border: 1px solid var(--border); border-radius: 6px; padding: 16px 18px; margin: 0 0 20px; min-width: 0; }
+.unit h2 .n { color: var(--muted); font-family: "Cascadia Mono", Consolas, monospace; font-size: .7em; margin-right: .5em; }
+.lead { color: var(--muted); margin: 0 0 12px; }
+.rows { display: grid; grid-template-columns: minmax(0, 24ch) minmax(0, 1fr); gap: 0; border-top: 1px solid var(--border); margin: 10px 0 4px; }
+.rows > div { padding: 5px 8px; border-bottom: 1px solid var(--border); min-width: 0; overflow-wrap: anywhere; }
+.k { color: var(--muted); font-size: 12px; }
+.v { font-size: 12px; }
+.v code { border: 0; background: none; padding: 0; }
+.v em { color: var(--muted); font-style: normal; }
+.callout { background: var(--soft); border-left: 3px solid var(--accent); padding: 8px 12px; margin: 12px 0; }
+.callout p:last-child { margin: 0; }
+ul.tight { margin: 8px 0; padding-left: 1.2em; }
+ul.tight li { margin: 0 0 4px; }
+.tw { overflow-x: auto; margin: 12px 0; max-width: 100%; }
+table { border-collapse: collapse; width: 100%; font-size: 12px; }
+th, td { text-align: left; vertical-align: top; padding: 5px 8px; border-bottom: 1px solid var(--border); }
+th { color: var(--muted); font-weight: 400; white-space: nowrap; }
+tr.hot td { background: var(--accent-soft); }
+.docs { margin: 12px 0 0; font-size: 12px; font-family: "Cascadia Mono", Consolas, monospace; }
+.sidetoggle { display: none; }
+
+@media (max-width: 720px) {
+  .side { transform: translateX(-100%); transition: transform .15s ease; z-index: 20; width: 260px; }
+  .side.open { transform: none; }
+  main { margin-left: 0; padding: 56px 14px 24px; }
+  .sidetoggle { display: block; position: fixed; top: 8px; left: 8px; z-index: 30;
+    font-family: "Cascadia Mono", Consolas, monospace; font-size: 12px; padding: 6px 10px;
+    background: var(--soft); color: var(--fg); border: 1px solid var(--border); border-radius: 4px; cursor: pointer; }
+  .rows { grid-template-columns: minmax(0, 1fr); }
+  .rows > div.k { border-bottom: 0; padding-bottom: 0; }
+}
+
+@media print {
+  .side, .sidetoggle { display: none !important; }
+  main { margin: 0; padding: 0; max-width: none; }
+  body { background: #fff; color: #000; font-size: 8.5pt; line-height: 1.3; }
+  .unit { break-inside: avoid; page-break-inside: avoid; border: 1px solid #999; padding: 6px 8px; margin: 0 0 8px; border-radius: 0; }
+  h2 { font-size: 11pt; }
+  .hero { border-bottom: 1px solid #000; padding-bottom: 8px; margin-bottom: 10px; }
+  .hero h1 { font-size: 15pt; }
+  .chip { border: 1px solid #999; color: #000; }
+  pre { border: 1px solid #999; padding: 4px 6px; margin: 6px 0; white-space: pre-wrap; }
+  a { color: #000 !important; text-decoration: none; }
+  .docs { color: #000; }
+  .callout { border-left: 2px solid #000; background: transparent; }
+  tr.hot td { background: transparent; }
+  th, td { border-bottom: 1px solid #bbb; }
+  code, .hljs, .hljs span { color: #000 !important; background: transparent !important; }
+}
+</style>
+</head>
+<body>
+<!-- devbok
+slug: mongo
+kind: cheatsheet
+version: 1
+topic: "MongoDB"
+prompt: cheatsheet.md@ccd2d4a9
+generated: 2026-09-08
+-->
+<button class="sidetoggle" type="button" aria-expanded="false">≡ units</button>
+<nav class="side" aria-label="Units">
+  <ol class="units">
+    <li><a href="#u01"><span class="n">01</span><span class="t">Connect, shell &amp; tools</span></a></li>
+    <li><a href="#u02"><span class="n">02</span><span class="t">CRUD &amp; query operators</span></a></li>
+    <li><a href="#u03"><span class="n">03</span><span class="t">Aggregation pipeline</span></a></li>
+    <li><a href="#u04"><span class="n">04</span><span class="t">Indexes, explain &amp; plans</span></a></li>
+    <li><a href="#u05"><span class="n">05</span><span class="t">Modelling, validation, time series</span></a></li>
+    <li><a href="#u06"><span class="n">06</span><span class="t">Transactions &amp; consistency</span></a></li>
+    <li><a href="#u07"><span class="n">07</span><span class="t">Sharding &amp; operations</span></a></li>
+    <li><a href="#u08"><span class="n">08</span><span class="t">Security &amp; encryption</span></a></li>
+    <li><a href="#u09"><span class="n">09</span><span class="t">Search, vector &amp; hybrid</span></a></li>
+    <li><a href="#u10"><span class="n">10</span><span class="t">Gotchas &amp; pitfalls</span></a></li>
+    <li><a href="#u11"><span class="n">11</span><span class="t">Modern vs legacy</span></a></li>
+    <li><a href="#u12"><span class="n">12</span><span class="t">Version timeline</span></a></li>
+  </ol>
+  <footer>MongoDB · cheatsheet · version 1 · 2026-09-08</footer>
+</nav>
+<main>
+<header class="hero">
+  <h1>MongoDB</h1>
+  <p class="meta">cheatsheet · 8.3.8 · released 2026-08-11</p>
+  <p class="summary">Scan card for the MongoDB server, shell and drivers: connection and mongosh flags, CRUD and aggregation syntax, index and explain idioms, transaction, sharding, security and search commands, plus a modern-versus-legacy table and a version timeline. Everything is correct for the 8.3 series (8.3 GA 2026-05-07, latest patch 8.3.8 on 2026-08-11); 8.0.29 remains the other supported line for self-managed clusters and 7.0 is supported until 2027-08-31. Version labels mark where a feature became stable, default or deprecated — including the 8.3 Cost-Based Ranker default, the shard-draining commands that deprecate <code>removeShard</code>, and the December 2025 MongoBleed patch floor.</p>
+  <p class="chips"><span class="chip">8.3.8 · 2026-08-11</span> <span class="chip">8.3 GA 2026-05-07</span> <span class="chip">8.0.29 LTS · EOL 2029-10-31</span> <span class="chip">7.0.40 · EOL 2027-08-31</span> <span class="chip">6.0 EOL 2025-07-31</span> <span class="chip">mongosh 2.10.0</span> <span class="chip">node driver 7.6</span> <span class="chip">9.0 alpha1 2026-07-07</span></p>
+</header>
+<section class="unit" id="u01">
+  <h2><span class="n">01</span>Connect, shell &amp; tools</h2>
+  <p class="lead">Connection string first: almost every "MongoDB is slow / flaky" ticket is a URI option, not the server.</p>
+  <div class="rows">
+    <div class="k">Connect (Atlas/SRV)</div><div class="v"><code>mongosh "mongodb+srv://app@cluster.example.net/appdb"</code></div>
+    <div class="k">Connect (self-managed)</div><div class="v"><code>mongosh "mongodb://h1:27017,h2:27017/appdb?replicaSet=rs0"</code></div>
+    <div class="k">One-liner, no banner</div><div class="v"><code>mongosh --quiet --eval 'db.orders.countDocuments({s:"new"})' "$URI"</code></div>
+    <div class="k">Run a script file</div><div class="v"><code>mongosh --file migrate.js "$URI"</code> <em>— <code>load()</code> is the legacy way</em></div>
+    <div class="k">Durability + retries</div><div class="v"><code>?w=majority&amp;retryWrites=true&amp;readConcernLevel=majority</code> <em>— all default since 5.0</em></div>
+    <div class="k">Read routing</div><div class="v"><code>?readPreference=secondaryPreferred&amp;maxStalenessSeconds=90</code></div>
+    <div class="k">Pool</div><div class="v"><code>?maxPoolSize=100&amp;minPoolSize=5&amp;maxIdleTimeMS=60000&amp;maxConnecting=2</code></div>
+    <div class="k">Timeout (modern)</div><div class="v"><code>?timeoutMS=10000</code> <em>— CSOT, one budget for the whole operation incl. retries</em></div>
+    <div class="k">Timeout (legacy)</div><div class="v"><code>socketTimeoutMS</code> / <code>wtimeoutMS</code> / <code>maxTimeMS</code> <em>— per-hop, easy to get wrong</em></div>
+    <div class="k">Compression</div><div class="v"><code>?compressors=zstd,snappy</code> <em>— drop <code>zlib</code>: MongoBleed, see unit 08</em></div>
+    <div class="k">Always name the app</div><div class="v"><code>?appName=svc-orders</code> <em>— shows up in logs, <code>currentOp</code>, Atlas profiler</em></div>
+    <div class="k">Server version</div><div class="v"><code>db.version()</code> · <code>mongod --version</code> · <code>db.runCommand({buildInfo:1})</code></div>
+    <div class="k">Feature comp. version</div><div class="v"><code>db.adminCommand({getParameter:1, featureCompatibilityVersion:1})</code></div>
+    <div class="k">Raise FCV after upgrade</div><div class="v"><code>db.adminCommand({setFeatureCompatibilityVersion:"8.3", confirm:true})</code> <em>— <code>confirm</code> required since 7.0</em></div>
+    <div class="k">Start server</div><div class="v"><code>mongod --config /etc/mongod.conf</code> <em>— flags are for labs; config file for real</em></div>
+    <div class="k">Dump / restore</div><div class="v"><code>mongodump --uri="$URI" --archive=d.gz --gzip</code> · <code>mongorestore --archive=d.gz --gzip --nsFrom 'old.*' --nsTo 'new.*'</code></div>
+    <div class="k">Bulk load JSON/CSV</div><div class="v"><code>mongoimport --uri="$URI" -c orders --type=json --jsonArray --file o.json</code></div>
+    <div class="k">Local throwaway cluster</div><div class="v"><code>docker run --rm -p 27017:27017 mongo:8.3</code> <em>— single node, no replica set, so no transactions</em></div>
+  </div>
+  <h3>Client versions to quote (2026-09)</h3>
+  <div class="tw">
+  <table>
+    <thead><tr><th>Client</th><th>Current</th><th>Note</th></tr></thead>
+    <tbody>
+      <tr><td>mongosh</td><td>2.10.0 (2026-08-13)</td><td>bundles Node 24; replaced the legacy <code>mongo</code> shell, removed in server 6.0</td></tr>
+      <tr><td>Node.js driver</td><td>7.6.x</td><td>v7 needs Node ≥ 20.19.0; <code>bson</code> 7.x</td></tr>
+      <tr><td>.NET/C# driver</td><td>3.11.x</td><td>v3 dropped the legacy <code>MongoDB.Driver.Core</code> split; LINQ3 is the only provider</td></tr>
+      <tr><td>Java driver</td><td>5.7.x</td><td>reactive + sync in one artifact</td></tr>
+      <tr><td>PyMongo</td><td>4.x</td><td>3.x API (<code>insert</code>, <code>update</code>, <code>count</code>) has been gone since 4.0</td></tr>
+      <tr><td>Database Tools</td><td>100.x</td><td>versioned separately from the server since 4.4</td></tr>
+    </tbody>
+  </table>
+  </div>
+  <pre><code class="language-yaml"># /etc/mongod.conf — the six lines that matter
+net:
+  bindIp: 127.0.0.1,10.0.1.7        # never 0.0.0.0 on a public interface
+  tls: { mode: requireTLS, certificateKeyFile: /etc/ssl/mongo.pem }
+  compression: { compressors: "zstd,snappy" }   # zlib deliberately absent
+security:
+  authorization: enabled
+  javascriptEnabled: false          # kills $where/$function/$accumulator (deprecated in 8.0)
+replication: { replSetName: rs0 }
+storage: { dbPath: /var/lib/mongodb }</code></pre>
+  <p class="docs"><a href="https://www.mongodb.com/docs/manual/reference/connection-string/">docs: connection string URI</a> · <a href="https://www.mongodb.com/docs/mongodb-shell/">mongosh</a></p>
+</section>
+
+<section class="unit" id="u02">
+  <h2><span class="n">02</span>CRUD &amp; query operators</h2>
+  <div class="rows">
+    <div class="k">Insert</div><div class="v"><code>db.c.insertOne(doc)</code> · <code>db.c.insertMany(docs, {ordered:false})</code></div>
+    <div class="k">Find + project + sort</div><div class="v"><code>db.c.find({status:"A"}, {_id:0, name:1}).sort({createdAt:-1}).limit(20)</code></div>
+    <div class="k">Count</div><div class="v"><code>db.c.countDocuments(q)</code> (accurate) · <code>db.c.estimatedDocumentCount()</code> (metadata, no filter)</div>
+    <div class="k">Update</div><div class="v"><code>db.c.updateOne(f, {$set:{a:1}, $inc:{n:1}, $currentDate:{at:true}})</code></div>
+    <div class="k">Field operators</div><div class="v"><code>$set $unset $inc $mul $min $max $rename $setOnInsert $currentDate</code></div>
+    <div class="k">Array update</div><div class="v"><code>$push {$each,$slice,$sort,$position}</code> · <code>$addToSet</code> · <code>$pull</code> · <code>$pullAll</code> · <code>$pop</code></div>
+    <div class="k">Positional</div><div class="v"><code>"items.$.qty"</code> (first match) · <code>"items.$[].qty"</code> (all) · <code>"items.$[e].qty"</code> + <code>arrayFilters:[{"e.sku":"X"}]</code></div>
+    <div class="k">Upsert</div><div class="v"><code>{upsert:true}</code> with <code>$setOnInsert</code> for create-only fields</div>
+    <div class="k">Pipeline update (4.2+)</div><div class="v"><code>db.c.updateOne(f, [{$set:{total:{$add:["$a","$b"]}}}])</code> <em>— can reference other fields</em></div>
+    <div class="k">Read-modify-write</div><div class="v"><code>db.c.findOneAndUpdate(f, u, {returnDocument:"after", upsert:true})</code></div>
+    <div class="k">Delete</div><div class="v"><code>db.c.deleteOne(f)</code> · <code>db.c.deleteMany(f)</code> · <code>db.c.drop()</code></div>
+    <div class="k">Comparison</div><div class="v"><code>$eq $ne $gt $gte $lt $lte $in $nin</code></div>
+    <div class="k">Logical / element</div><div class="v"><code>$and $or $nor $not</code> · <code>$exists $type</code></div>
+    <div class="k">Array / eval</div><div class="v"><code>$all $elemMatch $size</code> · <code>$regex $mod $expr $jsonSchema $bitsAllSet</code></div>
+    <div class="k">Cross-field predicate</div><div class="v"><code>{$expr:{$gt:["$spent","$budget"]}}</code> <em>— the modern replacement for <code>$where</code></em></div>
+    <div class="k">Case-insensitive</div><div class="v"><code>{collation:{locale:"en", strength:2}}</code> <em>— indexable; <code>/^x$/i</code> is not</em></div>
+    <div class="k">Cursor knobs</div><div class="v"><code>.hint({a:1})</code> · <code>.batchSize(500)</code> · <code>.allowDiskUse()</code> · <code>.maxTimeMS(5000)</code></div>
+    <div class="k">Per-op concerns</div><div class="v"><code>{writeConcern:{w:"majority", j:true}}</code> · <code>.readConcern("snapshot")</code></div>
+  </div>
+  <pre><code class="language-javascript">// bulkWrite: one round trip, one ordered/unordered batch
+db.orders.bulkWrite([
+  { insertOne:  { document: { _id: 1, sku: "AB", qty: 2 } } },
+  { updateOne:  { filter: { _id: 2 }, update: { $inc: { qty: 1 } }, upsert: true } },
+  { deleteMany: { filter: { status: "cancelled" } } }
+], { ordered: false });   // unordered keeps going past a duplicate-key error
+
+// 8.0: client-level bulkWrite spans MULTIPLE collections/databases in one command
+await client.bulkWrite([
+  { namespace: "shop.orders",  name: "insertOne", document: { sku: "AB" } },
+  { namespace: "shop.audit",   name: "insertOne", document: { evt: "order" } }
+], { ordered: true });</code></pre>
+  <p class="docs"><a href="https://www.mongodb.com/docs/manual/crud/">docs: CRUD operations</a> · <a href="https://www.mongodb.com/docs/manual/reference/operator/query/">query operators</a></p>
+</section>
+
+<section class="unit" id="u03">
+  <h2><span class="n">03</span>Aggregation pipeline</h2>
+  <p class="lead">Filter early, project narrow, let an index serve <code>$match</code>+<code>$sort</code> at the front — everything after the first blocking stage is CPU you pay for.</p>
+  <div class="rows">
+    <div class="k">Shape stages</div><div class="v"><code>$match $project $set/$addFields $unset $replaceWith $unwind $sort $limit $skip $count</code></div>
+    <div class="k">Grouping</div><div class="v"><code>$group $bucket $bucketAuto $sortByCount $facet $setWindowFields $densify $fill</code></div>
+    <div class="k">Joining</div><div class="v"><code>$lookup $graphLookup $unionWith $documents</code></div>
+    <div class="k">Output</div><div class="v"><code>$merge</code> (incremental upsert into a collection) · <code>$out</code> (replaces it wholesale)</div>
+    <div class="k">Accumulators</div><div class="v"><code>$sum $avg $min $max $push $addToSet $first $last</code> · <code>$topN $bottomN $firstN $lastN $maxN $minN</code> (5.2) · <code>$median $percentile</code> (7.0)</div>
+    <div class="k">Correlated join</div><div class="v"><code>{$lookup:{from:"i", let:{o:"$_id"}, pipeline:[{$match:{$expr:{$eq:["$oid","$$o"]}}}], as:"items"}}</code></div>
+    <div class="k">Explain a pipeline</div><div class="v"><code>db.c.explain("executionStats").aggregate(p)</code></div>
+    <div class="k">Spill to disk</div><div class="v">automatic since 6.0 (100 MB per blocking stage); <code>allowDiskUse:false</code> to forbid it</div>
+    <div class="k">New in 8.3</div><div class="v"><code>$createObjectId $hash $hexHash $subtype $serializeEJSON $deserializeEJSON $toArray $toObject</code></div>
+    <div class="k">Array index in 8.3</div><div class="v"><code>{$map:{input:"$a", as:"x", arrayIndexAs:"i", in:{$concat:[{$toString:"$$i"},"$$x"]}}}</code> (or <code>$$IDX</code>)</div>
+    <div class="k"><code>$convert</code> in 8.3</div><div class="v">new <code>base</code> arg (2/8/10/16); string ↔ array/object; binData ↔ numeric array</div>
+    <div class="k">Deprecated</div><div class="v"><code>$function</code>, <code>$accumulator</code>, <code>$where</code> (8.0) · <code>mapReduce</code> (5.0) — port to a pipeline</div>
+  </div>
+  <pre><code class="language-javascript">db.orders.aggregate([
+  { $match: { placedAt: { $gte: ISODate("2026-01-01") }, status: "paid" } },   // index-served
+  { $lookup: { from: "customers", localField: "custId", foreignField: "_id", as: "cust" } },
+  { $unwind: "$cust" },
+  { $group: { _id: { region: "$cust.region", m: { $dateTrunc: { date: "$placedAt", unit: "month" } } },
+              revenue: { $sum: "$total" },
+              p95:     { $percentile: { input: "$total", p: [0.95], method: "approximate" } },
+              top3:    { $topN: { n: 3, sortBy: { total: -1 }, output: "$_id" } } } },
+  { $setWindowFields: { partitionBy: "$_id.region", sortBy: { "_id.m": 1 },
+      output: { rolling3: { $sum: "$revenue", window: { documents: [-2, 0] } } } } },
+  { $merge: { into: "revenue_by_region", on: "_id", whenMatched: "replace" } }
+], { allowDiskUse: true, hint: { status: 1, placedAt: 1 } });</code></pre>
+  <p class="docs"><a href="https://www.mongodb.com/docs/manual/aggregation/">docs: aggregation</a> · <a href="https://www.mongodb.com/docs/manual/reference/operator/aggregation/">stage &amp; operator reference</a></p>
+</section>
+<section class="unit" id="u04">
+  <h2><span class="n">04</span>Indexes, explain &amp; plans</h2>
+  <p class="lead">ESR: <strong>E</strong>quality fields first, then <strong>S</strong>ort, then <strong>R</strong>ange. One compound index in that order beats three single-field ones.</p>
+  <div class="rows">
+    <div class="k">Create</div><div class="v"><code>db.c.createIndex({tenant:1, createdAt:-1}, {name:"tenant_recent"})</code></div>
+    <div class="k">Unique / partial</div><div class="v"><code>{unique:true}</code> · <code>{partialFilterExpression:{status:"active"}}</code> <em>— partial beats <code>sparse</code></em></div>
+    <div class="k">TTL</div><div class="v"><code>db.c.createIndex({expiresAt:1}, {expireAfterSeconds:0})</code> <em>— reaper runs every 60 s, not instantly</em></div>
+    <div class="k">Change a TTL</div><div class="v"><code>db.runCommand({collMod:"c", index:{keyPattern:{expiresAt:1}, expireAfterSeconds:3600}})</code></div>
+    <div class="k">Other types</div><div class="v"><code>hashed</code> · <code>2dsphere</code> · <code>text</code> · <code>wildcard {"$**":1}</code> · multikey (automatic on arrays)</div>
+    <div class="k">Safe drop rehearsal</div><div class="v"><code>db.c.hideIndex("tenant_recent")</code> (4.4) → watch → <code>dropIndex</code> or <code>unhideIndex</code></div>
+    <div class="k">Inspect</div><div class="v"><code>db.c.getIndexes()</code> · <code>db.c.aggregate([{$indexStats:{}}])</code> <em>— <code>accesses.ops: 0</code> = dead weight</em></div>
+    <div class="k">Explain</div><div class="v"><code>db.c.find(q).explain("executionStats")</code> · modes <code>queryPlanner</code> | <code>executionStats</code> | <code>allPlansExecution</code></div>
+    <div class="k">Read the verdict</div><div class="v"><code>winningPlan.stage</code>: <code>IXSCAN</code> good, <code>COLLSCAN</code> bad, <code>SORT</code> = in-memory sort (32 MB cap)</div>
+    <div class="k">Ratio to watch</div><div class="v"><code>totalKeysExamined</code> ≈ <code>totalDocsExamined</code> ≈ <code>nReturned</code>; covered query = <code>totalDocsExamined: 0</code></div>
+    <div class="k">Plan cache</div><div class="v"><code>db.c.getPlanCache().list()</code> · <code>.clear()</code> · <code>planCacheKey</code> in explain</div>
+    <div class="k">8.3: plan ranking</div><div class="v">Cost-Based Ranker is the <em>default</em> for eligible queries (multi-planning as backup); <code>explain</code> and <code>$queryStats</code> report CBR</div>
+    <div class="k">Pin a plan (8.0)</div><div class="v"><code>db.adminCommand({setQuerySettings:{find:"c",filter:{...},$db:"appdb"}, settings:{indexHints:[{allowedIndexes:["tenant_recent"]}]}})</code></div>
+    <div class="k">Legacy pin</div><div class="v"><code>planCacheSetFilter</code> / index filters — superseded by query settings (they do not survive restart)</div>
+    <div class="k">Aggregate stats</div><div class="v"><code>db.aggregate([{$queryStats:{}}])</code> (7.0) for the real workload shape</div>
+    <div class="k">Build without downtime</div><div class="v">index builds are online since 4.2; on big clusters still do rolling builds node by node</div>
+  </div>
+  <pre><code class="language-javascript">// Does it read only what it returns?
+const e = db.orders.find({ tenant: "t1", status: "paid", total: { $gt: 100 } })
+                   .sort({ createdAt: -1 }).limit(50).explain("executionStats");
+e.executionStats.totalDocsExamined;   // want ~50, not 4_000_000
+e.queryPlanner.winningPlan.queryPlan.stage;
+// ESR index for exactly that query:
+db.orders.createIndex({ tenant: 1, status: 1, createdAt: -1, total: 1 });</code></pre>
+  <p class="docs"><a href="https://www.mongodb.com/docs/manual/indexes/">docs: indexes</a> · <a href="https://www.mongodb.com/docs/manual/tutorial/analyze-query-plan/">analyze a query plan</a></p>
+</section>
+
+<section class="unit" id="u05">
+  <h2><span class="n">05</span>Modelling, validation, time series</h2>
+  <p class="lead">Model for the read you actually serve. Embed what you read together; reference what grows without bound or is written by someone else.</p>
+  <div class="rows">
+    <div class="k">Hard limits</div><div class="v">16 MB per document · 100 levels of nesting · index key ≤ 8 KB (WiredTiger)</div>
+    <div class="k">Embed when</div><div class="v">read together, bounded (&lt; ~100s of entries), updated together</div>
+    <div class="k">Reference when</div><div class="v">unbounded growth, independent lifecycle, large and rarely read</div>
+    <div class="k">Patterns worth naming</div><div class="v">subset · extended reference · computed · bucket · outlier · schema-version · polymorphic (single collection)</div>
+    <div class="k">Money</div><div class="v"><code>NumberDecimal("19.99")</code> (Decimal128) — never a double</div>
+    <div class="k">Ids</div><div class="v"><code>ObjectId</code> is time-ordered (first 4 bytes = epoch seconds) — good default, leaks creation time</div>
+    <div class="k">Validation</div><div class="v"><code>db.createCollection("c",{validator:{$jsonSchema:{...}}, validationLevel:"moderate", validationAction:"error"})</code></div>
+    <div class="k">Add later</div><div class="v"><code>db.runCommand({collMod:"c", validator:{...}, validationAction:"warn"})</code> <em>— start with <code>warn</code></em></div>
+    <div class="k">Time series (5.0+)</div><div class="v"><code>db.createCollection("m",{timeseries:{timeField:"ts", metaField:"tags", granularity:"minutes"}, expireAfterSeconds:2592000})</code></div>
+    <div class="k">Time series notes</div><div class="v">updates/deletes allowed since 6.0 · 2dsphere + compound indexes 6.3 · 8.0 rewrote the storage for ~2× throughput</div>
+    <div class="k">Clustered collection (5.3)</div><div class="v"><code>{clusteredIndex:{key:{_id:1}, unique:true}}</code> — docs stored in <code>_id</code> order, no secondary <code>_id</code> index</div>
+    <div class="k">Capped collections</div><div class="v">legacy; use a TTL index or a time series collection instead</div>
+    <div class="k">Change streams</div><div class="v"><code>db.c.watch([{$match:{operationType:"update"}}], {fullDocument:"updateLookup"})</code></div>
+    <div class="k">Pre/post images (6.0)</div><div class="v"><code>collMod: {changeStreamPreAndPostImages:{enabled:true}}</code> then <code>fullDocumentBeforeChange:"required"</code></div>
+    <div class="k">Resume safely</div><div class="v">persist <code>_id</code> (the resume token) with the side effect, restart with <code>resumeAfter</code>/<code>startAfter</code></div>
+  </div>
+  <pre><code class="language-javascript">db.createCollection("invoices", {
+  validator: { $jsonSchema: {
+    bsonType: "object",
+    required: ["tenant", "total", "schemaVersion"],
+    properties: {
+      tenant:        { bsonType: "string" },
+      total:         { bsonType: "decimal", description: "Decimal128, never double" },
+      schemaVersion: { bsonType: "int", minimum: 3 },
+      lines:         { bsonType: "array", maxItems: 500 }   // keep arrays bounded
+    },
+    additionalProperties: true
+  } },
+  validationAction: "warn"     // flip to "error" once the logs are clean
+});</code></pre>
+  <p class="docs"><a href="https://www.mongodb.com/docs/manual/data-modeling/">docs: data modeling</a> · <a href="https://www.mongodb.com/docs/manual/core/timeseries-collections/">time series collections</a></p>
+</section>
+
+<section class="unit" id="u06">
+  <h2><span class="n">06</span>Transactions &amp; consistency</h2>
+  <div class="rows">
+    <div class="k">Replica set admin</div><div class="v"><code>rs.initiate(cfg)</code> · <code>rs.status()</code> · <code>rs.conf()</code> · <code>rs.add("h3:27017")</code> · <code>rs.stepDown(60)</code></div>
+    <div class="k">Reconfigure</div><div class="v"><code>cfg = rs.conf(); cfg.members[2].priority = 0; rs.reconfig(cfg)</code></div>
+    <div class="k">Replication lag</div><div class="v"><code>rs.printSecondaryReplicationInfo()</code> · <code>metrics.repl.network.oplogFetcherLagSeconds</code> (8.3)</div>
+    <div class="k">Write concern</div><div class="v"><code>{w:"majority", j:true}</code> — <code>majority</code> is the default since 5.0; <code>w:1</code> can be rolled back</div>
+    <div class="k">Read concern</div><div class="v"><code>local</code> (default) · <code>available</code> (sharded, orphans) · <code>majority</code> · <code>snapshot</code> · <code>linearizable</code> (primary only, slow)</div>
+    <div class="k">Read preference</div><div class="v"><code>primary</code> | <code>primaryPreferred</code> | <code>secondary</code> | <code>secondaryPreferred</code> | <code>nearest</code> + tag sets</div>
+    <div class="k">Read-your-writes on secondary</div><div class="v">causally consistent session + <code>readConcern:"majority"</code> — otherwise you will read stale</div>
+    <div class="k">Transaction (modern)</div><div class="v"><code>session.withTransaction(fn)</code> — retries <code>TransientTransactionError</code> and <code>UnknownTransactionCommitResult</code> for you</div>
+    <div class="k">Transaction (legacy)</div><div class="v"><code>startTransaction</code>/<code>commitTransaction</code>/<code>abortTransaction</code> hand-rolled with no retry loop</div>
+    <div class="k">Where they work</div><div class="v">replica set 4.0 · sharded cluster 4.2 · <code>$lookup</code> on a sharded collection inside a txn since 8.0</div>
+    <div class="k">Budget</div><div class="v">default 60 s (<code>transactionLifetimeLimitSeconds</code>); keep them under ~1000 documents and one round trip of user input away</div>
+    <div class="k">Retryable writes/reads</div><div class="v">on by default; single-document writes only, and the write must be idempotent-by-id</div>
+    <div class="k">Single-doc atomicity</div><div class="v">every update to one document is atomic — the first design answer, before transactions</div>
+    <div class="k">Cross-doc without txn</div><div class="v">outbox / transactional-outbox with a change stream, or a state machine field + idempotent consumers</div>
+  </div>
+  <pre><code class="language-javascript">const session = client.startSession();
+try {
+  await session.withTransaction(async () => {
+    const acc = client.db("bank").collection("accounts");
+    await acc.updateOne({ _id: "A", bal: { $gte: 100 } }, { $inc: { bal: -100 } }, { session });
+    await acc.updateOne({ _id: "B" }, { $inc: { bal: 100 } }, { session });
+  }, { readConcern: { level: "snapshot" }, writeConcern: { w: "majority" }, readPreference: "primary" });
+} finally { await session.endSession(); }
+// A guard in the filter ({ bal: { $gte: 100 } }) is what makes this correct — not the transaction.</code></pre>
+  <p class="docs"><a href="https://www.mongodb.com/docs/manual/core/transactions/">docs: transactions</a> · <a href="https://www.mongodb.com/docs/manual/reference/read-concern/">read concern</a></p>
+</section>
+<section class="unit" id="u07">
+  <h2><span class="n">07</span>Sharding &amp; operations</h2>
+  <p class="lead">Shard key = cardinality × even write distribution × present in the common query. Get two of three and you have a hotspot or a scatter-gather.</p>
+  <div class="rows">
+    <div class="k">Enable + shard</div><div class="v"><code>sh.shardCollection("shop.orders", {tenant:1, _id:1})</code> · hashed: <code>{_id:"hashed"}</code></div>
+    <div class="k">Status</div><div class="v"><code>sh.status()</code> · <code>db.collection.getShardDistribution()</code></div>
+    <div class="k">Fix a bad key</div><div class="v"><code>sh.refineCollectionShardKey(ns, key)</code> (4.4, suffix only) · <code>sh.reshardCollection(ns, key)</code> (5.0; ~50× faster and online in 8.0)</div>
+    <div class="k">Undo sharding (8.0)</div><div class="v"><code>sh.unshardCollection(ns)</code> · move an unsharded one: <code>sh.moveCollection(ns, "shard02")</code></div>
+    <div class="k">Config shard (8.0)</div><div class="v"><code>db.adminCommand({transitionFromDedicatedConfigServer:1})</code> — config server also holds data</div>
+    <div class="k">Back to dedicated (8.3)</div><div class="v"><code>startTransitionToDedicatedConfigServer</code> → <code>getTransitionToDedicatedConfigServerStatus</code> → <code>commitTransitionToDedicatedConfigServer</code></div>
+    <div class="k">Remove a shard (8.3)</div><div class="v"><code>startShardDraining</code> → <code>shardDrainingStatus</code> → <code>commitShardRemoval</code> (<code>stopShardDraining</code> aborts) — <code>removeShard</code> is <em>deprecated</em></div>
+    <div class="k">Balancer</div><div class="v"><code>sh.startBalancer()</code> / <code>sh.stopBalancer()</code> · per-collection <code>sh.disableBalancing(ns)</code> · window via <code>settings</code> collection</div>
+    <div class="k">Ranges, not chunks</div><div class="v">autosplit removed in 6.0; ranges split/merge on demand, auto-merge since 7.0</div>
+    <div class="k">Zones</div><div class="v"><code>sh.addShardToZone</code> + <code>sh.updateZoneKeyRange</code> — geo/tenant pinning and data residency</div>
+    <div class="k">What's running</div><div class="v"><code>db.currentOp({secs_running:{$gt:5}})</code> → <code>db.killOp(opid)</code>; cluster-wide: <code>$currentOp</code></div>
+    <div class="k">Slow queries</div><div class="v"><code>db.setProfilingLevel(1, {slowms:100, sampleRate:0.2})</code> → <code>db.system.profile</code>; log line <code>Slow query</code> at <code>&gt;100 ms</code></div>
+    <div class="k">Health</div><div class="v"><code>db.serverStatus()</code> · <code>db.hello()</code> · <code>mongostat</code> / <code>mongotop</code> · FTDC in <code>diagnostic.data</code> (default 500 MB since 8.3)</div>
+    <div class="k">Cache pressure</div><div class="v"><code>wiredTiger.cache</code> "bytes read into cache" vs "maximum bytes configured"; cache defaults to 50 % of (RAM − 1 GB)</div>
+    <div class="k">Backup</div><div class="v">filesystem/volume snapshot or Atlas continuous backup for real clusters; <code>mongodump</code> only for small datasets</div>
+    <div class="k">Upgrade path</div><div class="v">one major at a time (7.0 → 8.0 → 8.3), replica set rolling, then raise FCV last so you can downgrade</div>
+  </div>
+  <div class="callout"><p><strong>Interview framing.</strong> "Add a shard" is not a capacity plan: resharding rewrites the collection, and until the balancer converges you have hot ranges. Say what you would measure first (write distribution per range, <code>opcounters</code> per shard, targeted vs scatter-gather ratio in <code>$queryStats</code>) and what you would do to buy time (zones, secondary reads, a bounded-array remodel).</p></div>
+  <p class="docs"><a href="https://www.mongodb.com/docs/manual/sharding/">docs: sharding</a> · <a href="https://www.mongodb.com/docs/manual/administration/analyzing-mongodb-performance/">analyzing performance</a></p>
+</section>
+
+<section class="unit" id="u08">
+  <h2><span class="n">08</span>Security &amp; encryption</h2>
+  <div class="rows">
+    <div class="k">Create a user</div><div class="v"><code>db.createUser({user:"app", pwd:passwordPrompt(), roles:[{role:"readWrite", db:"appdb"}]})</code></div>
+    <div class="k">Auth mechanisms</div><div class="v"><code>SCRAM-SHA-256</code> (default) · <code>MONGODB-X509</code> · <code>MONGODB-OIDC</code> (7.0) · LDAP/Kerberos (Enterprise)</div>
+    <div class="k">Built-in roles</div><div class="v"><code>read readWrite dbAdmin dbOwner clusterMonitor clusterManager backup restore root</code></div>
+    <div class="k">Custom role</div><div class="v"><code>db.createRole({role:"metrics", privileges:[{resource:{db:"appdb",collection:""}, actions:["find"]}], roles:[]})</code></div>
+    <div class="k">Who am I</div><div class="v"><code>db.runCommand({connectionStatus:1, showPrivileges:true})</code></div>
+    <div class="k">TLS</div><div class="v"><code>net.tls.mode: requireTLS</code> + <code>certificateKeyFile</code>, <code>CAFile</code>; <code>preferTLS</code> only during a migration</div>
+    <div class="k">Network</div><div class="v"><code>bindIp</code> is <code>127.0.0.1</code> by default since 3.6 — keep it that way plus private IPs; never expose 27017</div>
+    <div class="k">Encryption at rest</div><div class="v">Enterprise/Atlas: WiredTiger encryption + KMIP / AWS KMS / Azure Key Vault / GCP KMS</div>
+    <div class="k">CSFLE</div><div class="v">client-side field level encryption, deterministic (equality) or random (opaque) — you manage the query support</div>
+    <div class="k">Queryable Encryption</div><div class="v">equality GA 6.0 · <strong>range GA 8.0</strong> (<code>$gt/$gte/$lt/$lte</code> on ciphertext) · prefix/suffix/substring public preview 8.2</div>
+    <div class="k">Server-side JS</div><div class="v"><code>$where</code>, <code>$function</code>, <code>$accumulator</code> deprecated in 8.0 (server logs a warning); turn it off with <code>security.javascriptEnabled: false</code></div>
+    <div class="k">Auditing</div><div class="v">Enterprise/Atlas; 8.0 added the OCSF audit-log schema for SIEM ingestion</div>
+    <div class="k">Rate limiting (8.3)</div><div class="v">pre-auth caps: <code>preAuthMaximumMessageSizeBytes</code>, <code>capMemoryConsumptionForPreAuthBuffers</code>, ingress request rate limiter</div>
+  </div>
+  <div class="callout"><p><strong>MongoBleed — CVE-2025-14847 (Dec 2025), exploited in the wild.</strong> Unauthenticated out-of-bounds read in zlib decompression of wire-protocol headers: an attacker who can open a socket leaks uninitialised heap memory — credentials, session tokens, API keys — with no login. Patch floor: <code>8.2.3</code>, <code>8.0.17</code>, <code>7.0.28</code>, <code>6.0.27</code>, <code>5.0.32</code>, <code>4.4.30</code>. Cannot patch yet? Remove <code>zlib</code> from <code>net.compression.compressors</code> and from every client URI (<code>zstd</code>/<code>snappy</code> are unaffected). ~87 000 internet-exposed servers were still unpatched at disclosure.</p></div>
+  <pre><code class="language-javascript">// Queryable Encryption: range query on ciphertext (GA in 8.0)
+const encryptedFieldsMap = { "hr.employees": { fields: [
+  { path: "salary", bsonType: "int", queries: { queryType: "range", min: 0, max: 1000000,
+                                                sparsity: 1, contention: 4 } },
+  { path: "ssn",    bsonType: "string", queries: { queryType: "equality" } }
+] } };
+// the driver rewrites this into an encrypted-index lookup; the server never sees plaintext
+await db.collection("employees").find({ salary: { $gt: 90000, $lt: 150000 } }).toArray();</code></pre>
+  <p class="docs"><a href="https://www.mongodb.com/docs/manual/security/">docs: security</a> · <a href="https://www.mongodb.com/docs/manual/core/queryable-encryption/">Queryable Encryption</a></p>
+</section>
+
+<section class="unit" id="u09">
+  <h2><span class="n">09</span>Search, vector &amp; hybrid</h2>
+  <p class="lead">Three different engines: <code>$text</code> (in-server, crude), <code>$search</code> (Lucene), <code>$vectorSearch</code> (HNSW). Only the last two have a search index you define separately.</p>
+  <div class="rows">
+    <div class="k">Availability</div><div class="v">Atlas since 2020; Community &amp; Enterprise self-managed in public preview from 8.2, self-managed search GA 2026-06-30 (Enterprise Advanced)</div>
+    <div class="k">Manage indexes</div><div class="v"><code>db.c.createSearchIndex(name, type, definition)</code> · <code>db.c.getSearchIndexes()</code> · <code>db.c.dropSearchIndex(name)</code></div>
+    <div class="k">Full text</div><div class="v"><code>{$search:{index:"default", text:{query:"laptop", path:["title","body"]}}}</code> — must be the <em>first</em> stage</div>
+    <div class="k">Facets/metadata</div><div class="v"><code>$searchMeta</code> with <code>facet</code>; scores via <code>{$meta:"searchScore"}</code></div>
+    <div class="k">Vector (ANN)</div><div class="v"><code>{$vectorSearch:{index:"vec", path:"embedding", queryVector:[...], numCandidates:200, limit:10, filter:{tenant:"t1"}}}</code></div>
+    <div class="k">Rule of thumb</div><div class="v"><code>numCandidates</code> ≈ 10–20 × <code>limit</code>; drop it and set <code>exact:true</code> for small collections or ground truth</div>
+    <div class="k">Similarity</div><div class="v"><code>cosine</code> | <code>dotProduct</code> (normalise first) | <code>euclidean</code>; quantization <code>scalar</code>/<code>binary</code> to shrink the index</div>
+    <div class="k">Hybrid, rank-based</div><div class="v"><code>$rankFusion</code> — reciprocal rank fusion over named pipelines with weights (8.0; runs on views since 8.2)</div>
+    <div class="k">Hybrid, score-based</div><div class="v"><code>$scoreFusion</code> — combines raw normalised scores (public preview 8.2, <strong>GA 8.3</strong>)</div>
+    <div class="k">8.3 extras</div><div class="v"><code>{$meta:"searchRootDocumentId"}</code> for embedded-document hits; automated Voyage AI embeddings on write (public preview)</div>
+    <div class="k">Legacy still fine</div><div class="v"><code>db.c.createIndex({title:"text"})</code> + <code>{$text:{$search:"..."}}</code> — one text index per collection, no analysers, no tuning</div>
+  </div>
+  <pre><code class="language-javascript">db.products.aggregate([{ $rankFusion: {
+  input: { pipelines: {
+    lexical: [ { $search: { index: "prod", text: { query: "wireless earbuds", path: "title" } } },
+               { $limit: 50 } ],
+    semantic: [ { $vectorSearch: { index: "prod_vec", path: "embedding",
+                                   queryVector: qv, numCandidates: 500, limit: 50 } } ]
+  } },
+  combination: { weights: { lexical: 0.3, semantic: 0.7 } },
+  scoreDetails: true
+} }, { $limit: 10 }]);</code></pre>
+  <p class="docs"><a href="https://www.mongodb.com/docs/atlas/atlas-vector-search/vector-search-overview/">docs: vector search</a> · <a href="https://www.mongodb.com/docs/manual/reference/operator/aggregation/rankFusion/">$rankFusion</a></p>
+</section>
+<section class="unit" id="u10">
+  <h2><span class="n">10</span>Gotchas &amp; pitfalls</h2>
+  <ul class="tight">
+    <li><code>null</code> matches both "field is null" <em>and</em> "field absent" — separate them with <code>{$type:"null"}</code> vs <code>{$exists:false}</code>.</li>
+    <li><code>$ne</code> and <code>$nin</code> cannot narrow an index scan; rewrite as <code>$in</code> over the positive set where you can.</li>
+    <li>A <code>$regex</code> that is not anchored with <code>^</code> and case-sensitive scans the whole index.</li>
+    <li>An array field makes the index multikey — you cannot have two array fields in one compound index.</li>
+    <li>Mixing inclusion and exclusion in a projection throws; only <code>_id</code> may be excluded alongside inclusions.</li>
+    <li>An unindexed sort caps at 32 MB: <code>Sort exceeded memory limit</code>. Add the index, not <code>allowDiskUse</code>.</li>
+    <li><code>skip(n)</code> walks n documents. Paginate by range on the sort key (<code>{createdAt:{$lt:cursor}}</code>), never by offset.</li>
+    <li><code>estimatedDocumentCount()</code> ignores the filter and can be wrong after an unclean shutdown.</li>
+    <li>Money in a <code>double</code> loses cents — <code>NumberDecimal</code>, and check what your driver serialises by default.</li>
+    <li>Unbounded arrays grow the document toward 16 MB and every update rewrites the whole thing.</li>
+    <li><code>updateMany</code> is not atomic across documents; another writer interleaves freely.</li>
+    <li>Transactions need a replica set — a single-node <code>mongod</code> refuses them (a one-member RS is fine locally).</li>
+    <li>A transaction past <code>transactionLifetimeLimitSeconds</code> (60 s) aborts; always inspect the commit result, never assume.</li>
+    <li><code>w:1</code> acknowledgements can be rolled back on failover — anything money-shaped is <code>w:"majority"</code>.</li>
+    <li>Secondary reads without a causally consistent session return stale data silently; no error, no warning.</li>
+    <li>TTL deletion is a best-effort sweep every 60 s and is a normal delete: oplog volume and index churn included.</li>
+    <li><code>$out</code> drops the target's indexes and neither <code>$out</code> nor <code>$merge</code> may run inside a transaction.</li>
+    <li><code>readConcern:"available"</code> on a sharded cluster returns orphaned documents — never use it to count.</li>
+    <li>Case-insensitive uniqueness only works if the index and the query share the same collation.</li>
+    <li>One <code>maxPoolSize=100</code> per serverless instance × 200 instances = a connection storm; pool per process, cap the fleet.</li>
+    <li>8.3 changed pre-1970 <code>$dateAdd</code>/<code>$dateSubtract</code> results by one second for non-millisecond units.</li>
+    <li>8.3 removed <code>service</code> from <code>serverStatus</code> and returns <code>10334</code> (BSONObjectTooLarge) on oversized upserts instead of <code>17419</code>/<code>17420</code> — dashboards and error handlers break quietly.</li>
+    <li>MongoDB has been SSPL-licensed since 2018 (Community Server); if a platform team asks "can we resell it", that is the answer they need.</li>
+  </ul>
+  <p class="docs"><a href="https://www.mongodb.com/docs/manual/faq/">docs: FAQ</a> · <a href="https://www.mongodb.com/docs/manual/reference/limits/">limits and thresholds</a></p>
+</section>
+
+<section class="unit" id="u11">
+  <h2><span class="n">11</span>Modern vs legacy</h2>
+  <div class="tw">
+  <table>
+    <thead><tr><th>Task</th><th>Modern</th><th>Legacy still seen</th><th>Since</th></tr></thead>
+    <tbody>
+      <tr><td>Shell</td><td><code>mongosh</code></td><td><code>mongo</code></td><td>mongosh default 5.0, <code>mongo</code> removed 6.0</td></tr>
+      <tr><td>Count rows</td><td><code>countDocuments()</code> / <code>estimatedDocumentCount()</code></td><td><code>count()</code></td><td>4.0 (deprecated)</td></tr>
+      <tr><td>Batch writes</td><td><code>bulkWrite()</code>; <code>client.bulkWrite()</code> across collections</td><td><code>initializeUnorderedBulkOp()</code></td><td>3.2 / 8.0</td></tr>
+      <tr><td>Aggregate at scale</td><td>aggregation pipeline</td><td><code>mapReduce</code></td><td>deprecated 5.0</td></tr>
+      <tr><td>Cross-field predicate</td><td><code>$expr</code></td><td><code>$where</code> (server-side JS)</td><td><code>$expr</code> 3.6; <code>$where</code> deprecated 8.0</td></tr>
+      <tr><td>Custom aggregation logic</td><td>built-in operators, <code>$setWindowFields</code></td><td><code>$function</code>, <code>$accumulator</code></td><td>deprecated 8.0</td></tr>
+      <tr><td>Operation timeout</td><td><code>timeoutMS</code> (CSOT — one budget)</td><td><code>socketTimeoutMS</code> + <code>wtimeoutMS</code> + <code>maxTimeMS</code></td><td>drivers 2024+</td></tr>
+      <tr><td>Find and modify</td><td><code>{returnDocument:"after"}</code></td><td><code>returnNewDocument</code> / <code>returnOriginal</code></td><td>4.2</td></tr>
+      <tr><td>Index only some docs</td><td><code>partialFilterExpression</code></td><td><code>sparse:true</code></td><td>3.2</td></tr>
+      <tr class="hot"><td>Force an index</td><td><code>setQuerySettings</code> (persistent, cluster-wide)</td><td>index filters / <code>planCacheSetFilter</code> (lost on restart)</td><td>8.0</td></tr>
+      <tr class="hot"><td>Remove a shard</td><td><code>startShardDraining</code> → <code>shardDrainingStatus</code> → <code>commitShardRemoval</code></td><td><code>removeShard</code> polled in a loop</td><td>8.3 (<code>removeShard</code> deprecated)</td></tr>
+      <tr><td>Fix a bad shard key</td><td><code>reshardCollection</code> / <code>unshardCollection</code></td><td>dump, drop, restore into a new collection</td><td>5.0 / 8.0</td></tr>
+      <tr><td>Small cluster topology</td><td>config shard (<code>transitionFromDedicatedConfigServer</code>)</td><td>always a dedicated 3-node config replica set</td><td>8.0</td></tr>
+      <tr><td>Bounded collection</td><td>TTL index or time series collection</td><td>capped collection</td><td>3.2 / 5.0</td></tr>
+      <tr><td>Relevance search</td><td><code>$search</code> (Atlas, and self-managed from 8.2)</td><td><code>$text</code> + text index</td><td>8.2 preview, self-managed GA 2026-06-30</td></tr>
+      <tr class="hot"><td>Hybrid search</td><td><code>$rankFusion</code> (RRF) / <code>$scoreFusion</code></td><td>fuse Lucene and vector results in app code</td><td>8.0 / GA 8.3</td></tr>
+      <tr><td>Encrypt a queryable field</td><td>Queryable Encryption (equality, range, prefix/suffix/substring)</td><td>CSFLE deterministic encryption</td><td>6.0 / 8.0 / preview 8.2</td></tr>
+      <tr><td>Wire compression</td><td><code>zstd</code> (or <code>snappy</code>)</td><td><code>zlib</code></td><td>zstd 4.2; zlib is the MongoBleed surface</td></tr>
+      <tr><td>Change data capture</td><td>change streams (+ pre/post images)</td><td>tailing the oplog</td><td>3.6 / 6.0</td></tr>
+      <tr><td>Auth</td><td><code>SCRAM-SHA-256</code>, <code>MONGODB-OIDC</code></td><td><code>MONGODB-CR</code>, <code>SCRAM-SHA-1</code></td><td>SCRAM-SHA-256 4.0; OIDC 7.0</td></tr>
+    </tbody>
+  </table>
+  </div>
+  <p class="docs"><a href="https://www.mongodb.com/docs/manual/release-notes/">docs: release notes index</a></p>
+</section>
+
+<section class="unit" id="u12">
+  <h2><span class="n">12</span>Version timeline</h2>
+  <div class="tw">
+  <table>
+    <thead><tr><th>Version</th><th>Date</th><th>What changed</th></tr></thead>
+    <tbody>
+      <tr><td><code>9.0.0-alpha1</code></td><td>2026-07-07</td><td>first alpha of the next major line — nothing to plan against yet, but expect the 8.3 deprecations to become removals</td></tr>
+      <tr class="hot"><td><code>8.3.8</code></td><td>2026-08-11</td><td><strong>current patch</strong>; rolls up the 8.3.7/8.3.8 CVE fixes (CVE-2025-12893, -13507, -14345, CVE-2026-8336, -9754)</td></tr>
+      <tr class="hot"><td><code>8.3</code></td><td>2026-05-07</td><td><strong>current stable series.</strong> <em>Newly default:</em> Cost-Based Ranker for plan selection. <em>Newly stable:</em> <code>$scoreFusion</code>; <code>$hash</code>/<code>$hexHash</code>/<code>$subtype</code>/<code>$createObjectId</code>/<code>$serializeEJSON</code>/<code>$deserializeEJSON</code>/<code>$toArray</code>/<code>$toObject</code>; <code>arrayIndexAs</code> and <code>$$IDX</code>; four-step shard draining and dedicated-config-server transition. <em>Newly deprecated:</em> <code>removeShard</code>. <em>Removed:</em> <code>service</code> from <code>serverStatus</code>. ~+35 % writes, +45 % reads, +15 % transactions vs 8.0</td></tr>
+      <tr><td>MongoBleed</td><td>2025-12</td><td>CVE-2025-14847 patched in 8.2.3 / 8.0.17 / 7.0.28 / 6.0.27 / 5.0.32 / 4.4.30 — the security floor every deployment must clear</td></tr>
+      <tr><td><code>8.2</code></td><td>2025-09-16</td><td>rapid release, first one shipped for Community and Enterprise too: Search + Vector Search public preview off Atlas, Queryable Encryption prefix/suffix/substring preview, <code>$scoreFusion</code> preview, <code>$rankFusion</code> on views. <em>Out of support</em> — do not deploy it new</td></tr>
+      <tr><td><code>8.1</code></td><td>2025</td><td>Atlas-only rapid release (aggregation, query settings, hybrid search); folded into 8.2/8.3. Out of support</td></tr>
+      <tr class="hot"><td><code>8.0</code></td><td>2024-10-31</td><td><strong>the other supported line</strong> (latest 8.0.29, EOL 2029-10-31). Multi-collection <code>bulkWrite</code>; Queryable Encryption <em>range</em> GA; express query path; query settings replace index filters; <code>moveCollection</code>/<code>unshardCollection</code>/config shard; ~50× faster resharding; <code>$lookup</code> inside sharded transactions; OCSF audit logs; <code>$where</code>/<code>$function</code>/<code>$accumulator</code> deprecated</td></tr>
+      <tr><td><code>7.0</code></td><td>2023-08-31</td><td>latest 7.0.40, EOL 2027-08-31. Queryable Encryption GA (equality), <code>MONGODB-OIDC</code>, <code>$percentile</code>/<code>$median</code>, cluster-to-cluster sync, automatic range merging</td></tr>
+      <tr><td><code>6.0</code></td><td>2022-07</td><td>EOL 2025-07-31 — still everywhere. Change stream pre/post images, <code>$lookup</code>/<code>$graphLookup</code> on sharded collections, automatic spill to disk, time series updates/deletes; legacy <code>mongo</code> shell and chunk autosplit removed</td></tr>
+      <tr><td><code>5.0</code></td><td>2021-07</td><td>time series collections, live resharding, versioned API, <code>w:"majority"</code> becomes the default, <code>mapReduce</code> deprecated</td></tr>
+      <tr><td><code>4.4</code></td><td>2020-07</td><td>hidden indexes, <code>$unionWith</code>, <code>refineCollectionShardKey</code>, streaming replication</td></tr>
+      <tr><td><code>4.2</code></td><td>2019-08</td><td>distributed transactions on sharded clusters, pipeline-form updates, wildcard indexes, <code>zstd</code> compression</td></tr>
+      <tr><td><code>4.0</code></td><td>2018-06</td><td>multi-document transactions on replica sets; SSPL relicensing later that year</td></tr>
+    </tbody>
+  </table>
+  </div>
+  <p class="docs"><a href="https://www.mongodb.com/docs/manual/release-notes/8.3/">docs: 8.3 release notes</a> · <a href="https://www.mongodb.com/legal/support-policy/lifecycles">support lifecycle</a></p>
+</section>
+</main>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.11.1/highlight.min.js"></script>
+<script>
+(function () {
+  try { if (window.hljs) window.hljs.highlightAll(); } catch (e) { /* colour is decoration */ }
+
+  var links = Array.prototype.slice.call(document.querySelectorAll('.units a'));
+  var byId = {};
+  links.forEach(function (a) { byId[a.getAttribute('href').slice(1)] = a; });
+  var units = Array.prototype.slice.call(document.querySelectorAll('section.unit'));
+
+  function mark(id) {
+    links.forEach(function (a) {
+      if (a === byId[id]) a.setAttribute('aria-current', 'true');
+      else a.removeAttribute('aria-current');
+    });
+  }
+  if (units.length) mark(units[0].id);
+
+  if ('IntersectionObserver' in window) {
+    var visible = {};
+    var io = new IntersectionObserver(function (entries) {
+      entries.forEach(function (en) { visible[en.target.id] = en.isIntersecting; });
+      for (var i = 0; i < units.length; i++) {
+        if (visible[units[i].id]) { mark(units[i].id); return; }
+      }
+    }, { rootMargin: '-10% 0px -70% 0px', threshold: 0 });
+    units.forEach(function (u) { io.observe(u); });
+  }
+
+  var side = document.querySelector('.side');
+  var btn = document.querySelector('.sidetoggle');
+  if (btn && side) {
+    btn.addEventListener('click', function () {
+      var open = side.classList.toggle('open');
+      btn.setAttribute('aria-expanded', open ? 'true' : 'false');
+    });
+    side.addEventListener('click', function (e) {
+      if (e.target.closest('a')) { side.classList.remove('open'); btn.setAttribute('aria-expanded', 'false'); }
+    });
+  }
+}());
+</script>
+</body>
+</html>
