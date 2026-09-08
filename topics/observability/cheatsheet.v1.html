@@ -1,0 +1,786 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Observability &amp; prod debugging · cheatsheet · devbok</title>
+<link rel="preconnect" href="https://fonts.googleapis.com/">
+<link rel="preconnect" href="https://fonts.gstatic.com/" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Cascadia+Mono:wght@400;700&amp;display=swap">
+<style>
+:root { color-scheme: light;
+  --bg: #ffffff; --fg: #111111; --muted: #6b6b6b; --line: #111111; --soft: #f4f4f4; --border: #cccccc;
+  --accent: #f5a800; --accent-soft: color-mix(in srgb, var(--accent) 12%, var(--bg));
+  --code: color-mix(in srgb, var(--accent) 70%, var(--fg));
+  --hl-kw: #a626a4; --hl-str: #50a14f; --hl-num: #986801; --hl-cmt: #6b6b6b; --hl-type: #0184bc; --hl-fn: #4078f2; --hl-attr: #986801; }
+@media (prefers-color-scheme: dark) { :root { color-scheme: dark;
+  --bg: #222222; --fg: #cccccc; --muted: #8f8f8f; --line: #111111; --soft: #2c2c2c; --border: #4a4a4a;
+  --accent: #ffc952; --accent-soft: color-mix(in srgb, var(--accent) 16%, var(--bg));
+  --hl-kw: #c678dd; --hl-str: #98c379; --hl-num: #d19a66; --hl-cmt: #8f8f8f; --hl-type: #56b6c2; --hl-fn: #61afef; --hl-attr: #e5c07b; } }
+
+*, *::before, *::after { box-sizing: border-box; }
+html { -webkit-text-size-adjust: 100%; }
+body { margin: 0; background: var(--bg); color: var(--fg);
+  font-family: system-ui, sans-serif; font-size: 16px; line-height: 1.6; overflow-wrap: break-word; }
+h1, h2, h3 { font-family: system-ui, sans-serif; font-weight: 700; }
+h2 { font-size: 1.5em; }
+h3 { font-size: 1.17em; }
+a { color: var(--accent); }
+a:focus-visible, button:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+img { max-width: 100%; }
+
+code, kbd, pre, .mono, .chip, .since, .docs, .hero .meta, .side, dl.rows dd, table.grid { font-family: "Cascadia Mono", Consolas, monospace; font-size: 12px; }
+code { background: var(--soft); border: 1px solid var(--border); border-radius: 3px; padding: 0 .3em; color: var(--code); overflow-wrap: anywhere; }
+pre { background: var(--soft); border: 1px solid var(--border); border-radius: 4px; padding: 12px 14px; overflow-x: auto; line-height: 1.5; margin: 14px 0; max-width: 100%; }
+pre code { background: none; border: 0; border-radius: 0; padding: 0; color: inherit; white-space: pre; overflow-wrap: normal; }
+.hljs { color: var(--fg); background: transparent; }
+.hljs-keyword, .hljs-built_in, .hljs-literal, .hljs-selector-tag { color: var(--hl-kw); }
+.hljs-string, .hljs-regexp, .hljs-selector-attr { color: var(--hl-str); }
+.hljs-number, .hljs-symbol { color: var(--hl-num); }
+.hljs-comment, .hljs-quote, .hljs-doctag { color: var(--hl-cmt); font-style: italic; }
+.hljs-title, .hljs-title.class_, .hljs-type, .hljs-name, .hljs-section, .hljs-selector-class, .hljs-selector-pseudo { color: var(--hl-type); }
+.hljs-title.function_ { color: var(--hl-fn); }
+.hljs-meta, .hljs-attr, .hljs-attribute, .hljs-tag, .hljs-property, .hljs-variable { color: var(--hl-attr); }
+.hljs-template-tag, .hljs-template-variable { color: var(--hl-attr); }
+.hljs-code, .hljs-formula { color: var(--hl-cmt); }
+.hljs-operator, .hljs-subst, .hljs-punctuation, .hljs-params { color: var(--fg); }
+.hljs-emphasis { font-style: italic; } .hljs-strong { font-weight: 700; }
+
+.hero { margin: 0 0 24px; padding: 0 0 24px; border-bottom: 2px solid var(--line); }
+.hero h1 { margin: 0 0 8px; font-size: 2em; line-height: 1.2; font-weight: 700; }
+.hero .meta { margin: 0 0 12px; font-family: "Cascadia Mono", Consolas, monospace; font-size: 12px; color: var(--muted); }
+.hero .summary { margin: 0 0 12px; }
+.hero .chips { display: flex; flex-wrap: wrap; gap: 6px; margin: 0; }
+
+.side { position: fixed; top: 0; bottom: 0; left: 0; width: 260px; display: flex; flex-direction: column; background: var(--bg); border-right: 2px solid var(--line); font-family: "Cascadia Mono", Consolas, monospace; font-size: 12px; }
+.units { list-style: none; margin: 0; padding: 12px 0; overflow-y: auto; flex: 1; }
+.units a { display: grid; grid-template-columns: 2.5em 1fr; padding: 9px 20px; color: var(--fg); text-decoration: none; line-height: 1.4; }
+.units .n { color: var(--muted); }
+.units a:hover { background: var(--soft); }
+.units a[aria-current="true"] { background: var(--accent-soft); color: var(--accent); }
+.units a[aria-current="true"] .n { color: var(--accent); }
+.side footer { padding: 12px 20px; border-top: 2px solid var(--line); color: var(--muted); line-height: 1.5; }
+
+.content { margin-left: 260px; padding: 24px; max-width: 120ch; min-width: 0; }
+.unit { border-top: 2px solid var(--line); margin: 0 0 26px; padding: 14px 0 0; min-width: 0; }
+.unit > header { display: flex; flex-wrap: wrap; align-items: baseline; gap: 4px 14px; margin: 0 0 4px; min-width: 0; }
+.unit h2 { margin: 0; line-height: 1.25; }
+.unit h2 .n { font-family: "Cascadia Mono", Consolas, monospace; font-size: 12px; color: var(--muted); margin-right: 10px; }
+.unit h3 { margin: 16px 0 0; }
+.docs { color: var(--muted); }
+.docs a { color: var(--accent); text-decoration: none; }
+.docs a:hover { text-decoration: underline; }
+
+dl.rows { display: grid; grid-template-columns: minmax(0, 32ch) minmax(0, 1fr);
+  margin: 12px 0 0; border-top: 1px solid var(--border); min-width: 0; }
+dl.rows dt { grid-column: 1; margin: 0; padding: 6px 14px 6px 0; border-bottom: 1px solid var(--border);
+  min-width: 0; line-height: 1.35; }
+dl.rows dd { grid-column: 2; margin: 0; padding: 7px 0 6px; border-bottom: 1px solid var(--border);
+  min-width: 0; line-height: 1.5; overflow-wrap: anywhere; }
+dl.rows dd code { background: none; border: 0; padding: 0; }
+.cmt { color: var(--muted); }
+
+.chip { display: inline-block; text-transform: uppercase; letter-spacing: .03em;
+  background: var(--soft); border: 1px solid var(--border); border-radius: 4px; padding: 2px 7px; }
+.since { display: inline-block; border: 1px solid var(--accent); border-radius: 4px;
+  padding: 0 5px; color: var(--accent); white-space: nowrap; }
+.note { background: var(--soft); border-left: 3px solid var(--accent); padding: 8px 12px; margin: 12px 0 0; }
+.note p { margin: 0; }
+
+.tw { overflow-x: auto; margin: 12px 0 0; min-width: 0; }
+table.grid { border-collapse: collapse; width: 100%; }
+table.grid th { text-align: left; font-weight: 400; color: var(--muted);
+  border-bottom: 1px solid var(--border); padding: 6px 14px 6px 0; vertical-align: bottom; }
+table.grid td { border-bottom: 1px solid var(--border); padding: 6px 14px 6px 0; vertical-align: top; }
+table.grid td code { background: none; border: 0; padding: 0; }
+table.grid tr.hi td { background: var(--accent-soft); }
+
+ul.tight { margin: 12px 0 0; padding-left: 1.1em; }
+ul.tight li { margin: 0 0 3px; }
+
+.navtoggle { display: none; position: fixed; top: 10px; left: 10px; z-index: 30;
+  font-family: "Cascadia Mono", Consolas, monospace; font-size: 12px; color: var(--fg);
+  background: var(--bg); border: 1px solid var(--line); border-radius: 4px; padding: 6px 10px; cursor: pointer; }
+@media (max-width: 720px) {
+  .navtoggle { display: block; }
+  .side { width: min(260px, 84%); transform: translateX(-102%); transition: transform .15s ease; z-index: 25; }
+  body.nav-open .side { transform: none; }
+  .content { margin-left: 0; padding: 52px 16px 24px; }
+  dl.rows { grid-template-columns: minmax(0, 1fr); }
+  dl.rows dt { padding: 6px 0 0; border-bottom: 0; font-weight: 600; }
+  dl.rows dd { padding: 2px 0 7px; }
+}
+
+@media print {
+  :root { color-scheme: light;
+    --bg: #ffffff; --fg: #000000; --muted: #333333; --line: #000000; --soft: #ffffff; --border: #999999;
+    --accent: #000000; --accent-soft: #ffffff; --code: #000000; }
+  .side, .navtoggle { display: none !important; }
+  body { font-size: 8.5pt; line-height: 1.3; background: #fff; color: #000; }
+  .content { margin: 0; padding: 0; max-width: 100%; }
+  code, kbd, pre, .chip, .since, .docs, .hero .meta, dl.rows dd, table.grid { font-size: 7pt; }
+  .hero { padding-bottom: 8pt; margin-bottom: 10pt; border-bottom: 1pt solid #000; }
+  .hero h1 { font-size: 15pt; }
+  .hero .chips { display: none; }
+  .unit { break-inside: avoid; page-break-inside: avoid; margin: 0 0 8pt; padding-top: 6pt; border-top: 1pt solid #000; }
+  .unit h2 { font-size: 10.5pt; }
+  pre { background: #fff; border: 1pt solid #999; padding: 3pt 5pt; margin: 5pt 0; }
+  .note { background: #fff; border-left: 2pt solid #000; }
+  a, a:visited { color: #000; text-decoration: none; }
+  a[href]::after { content: ""; }
+  code, .hljs, .hljs span { color: #000 !important; background: transparent !important; }
+  @page { size: A4; margin: 10mm; }
+}
+</style>
+</head>
+<body>
+<!-- devbok
+slug: observability
+kind: cheatsheet
+version: 1
+topic: "Observability & production debugging"
+prompt: cheatsheet.md@ccd2d4a9
+generated: 2026-09-08
+-->
+<button class="navtoggle" type="button" aria-expanded="false" aria-controls="side">units</button>
+<nav class="side" id="side" aria-label="Units">
+  <ol class="units">
+    <li><a href="#u01"><span class="n">01</span><span class="t">Signals, data model &amp; OTLP</span></a></li>
+    <li><a href="#u02"><span class="n">02</span><span class="t">SDK bootstrap &amp; config</span></a></li>
+    <li><a href="#u03"><span class="n">03</span><span class="t">Semantic conventions</span></a></li>
+    <li><a href="#u04"><span class="n">04</span><span class="t">Collector &amp; OTTL</span></a></li>
+    <li><a href="#u05"><span class="n">05</span><span class="t">Metrics &amp; PromQL</span></a></li>
+    <li><a href="#u06"><span class="n">06</span><span class="t">Logs &amp; LogQL</span></a></li>
+    <li><a href="#u07"><span class="n">07</span><span class="t">Traces, TraceQL &amp; sampling</span></a></li>
+    <li><a href="#u08"><span class="n">08</span><span class="t">SLOs &amp; burn-rate alerts</span></a></li>
+    <li><a href="#u09"><span class="n">09</span><span class="t">Host &amp; container triage</span></a></li>
+    <li><a href="#u10"><span class="n">10</span><span class="t">Runtime debugging</span></a></li>
+    <li><a href="#u11"><span class="n">11</span><span class="t">Profiling &amp; eBPF</span></a></li>
+    <li><a href="#u12"><span class="n">12</span><span class="t">Idioms &amp; gotchas</span></a></li>
+    <li><a href="#u13"><span class="n">13</span><span class="t">Modern vs legacy</span></a></li>
+    <li><a href="#u14"><span class="n">14</span><span class="t">Version timeline</span></a></li>
+  </ol>
+  <footer>Observability &amp; prod debugging · cheatsheet · version 1 · 2026-09-08</footer>
+</nav>
+<main class="content">
+<header class="hero">
+  <h1>Observability &amp; prod debugging</h1>
+  <p class="meta">cheatsheet · OTel Collector v1.66.0/v0.160.0 · Prometheus 3.14.0 · released 2026-09-02 / 2026-08-17</p>
+  <p class="summary">The vendor-neutral production stack on one card: the OTLP data model, SDK and Collector configuration, semantic-convention attribute names, the PromQL / LogQL / TraceQL typed under pressure, SLO burn-rate alerting, and the host, container, runtime and profiling commands reached for when something is on fire. Read as OpenTelemetry-centred open source rather than any one vendor's agent — Prometheus, Grafana Loki/Tempo/Pyroscope and the OTel Collector are the reference implementations, and the debugging half is Linux, Kubernetes and the four common runtimes. Verified 2026-09-08 against OTel Collector v1.66.0/v0.160.0 (2026-09-02), semconv v1.44.0, Prometheus 3.14.0 (2026-08-17) and Grafana 13.1; declarative SDK config went stable 2026-03-05 and the profiles signal is still alpha.</p>
+  <p class="chips"><span class="chip">Collector v1.66.0/v0.160.0</span> <span class="chip">semconv v1.44.0</span> <span class="chip">Prometheus 3.14.0</span> <span class="chip">Grafana 13.1</span> <span class="chip">profiles: alpha</span> <span class="chip">verified 2026-09-08</span></p>
+</header>
+
+<section class="unit" id="u01">
+  <header>
+    <h2><span class="n">01</span>Signals, data model &amp; OTLP</h2>
+    <span class="docs"><a href="https://opentelemetry.io/docs/specs/otel/">docs: OpenTelemetry specification</a></span>
+  </header>
+  <dl class="rows">
+    <dt>Four signals</dt>
+    <dd>traces, metrics, logs — all <span class="since">stable</span> API+SDK+OTLP; profiles <span class="since">alpha 2026-03</span>, OTLP protocol still in development</dd>
+    <dt>OTLP transports</dt>
+    <dd>gRPC <code>:4317</code> · HTTP <code>:4318</code> with paths <code>/v1/traces</code>, <code>/v1/metrics</code>, <code>/v1/logs</code>, <code>/v1/profiles</code></dd>
+    <dt>Pick the protocol</dt>
+    <dd><code>OTEL_EXPORTER_OTLP_PROTOCOL=http/protobuf</code> (also <code>grpc</code>, <code>http/json</code>) <span class="cmt">— http/protobuf survives proxies and service meshes best</span></dd>
+    <dt>Resource</dt>
+    <dd>the entity emitting telemetry; <code>service.name</code> is the one required attribute, plus <code>service.namespace</code>, <code>service.version</code>, <code>service.instance.id</code>, <code>deployment.environment.name</code></dd>
+    <dt>Scope</dt>
+    <dd>instrumentation library name+version on every span/metric/log — how you tell your spans from the framework's</dd>
+    <dt>Span</dt>
+    <dd>trace_id (16 B) · span_id (8 B) · parent · name · kind <code>SERVER|CLIENT|PRODUCER|CONSUMER|INTERNAL</code> · status <code>UNSET|OK|ERROR</code> · attributes · events · links</dd>
+    <dt>Span name rule</dt>
+    <dd>low cardinality: <code>GET /orders/{id}</code>, never <code>GET /orders/8123</code> <span class="cmt">— the id goes in an attribute</span></dd>
+    <dt>Metric instruments</dt>
+    <dd><code>Counter</code>, <code>UpDownCounter</code>, <code>Histogram</code>, <code>Gauge</code> (sync) and <code>Observable*</code> callbacks (async)</dd>
+    <dt>Temporality</dt>
+    <dd><code>OTEL_EXPORTER_OTLP_METRICS_TEMPORALITY_PREFERENCE=delta|cumulative|lowmemory</code> <span class="cmt">— Prometheus wants cumulative; most SaaS want delta</span></dd>
+    <dt>Exemplar</dt>
+    <dd>a trace_id attached to a histogram bucket sample — the click-through from &ldquo;p99 is bad&rdquo; to one slow trace</dd>
+    <dt>Log record</dt>
+    <dd><code>body</code>, <code>severity_number</code> (1–24) / <code>severity_text</code>, <code>attributes</code>, plus <code>trace_id</code>/<code>span_id</code> injected by the log bridge</dd>
+    <dt>Context propagation</dt>
+    <dd>W3C <code>traceparent: 00-{32 hex trace}-{16 hex span}-01</code>, plus <code>tracestate</code> and <code>baggage</code>; last hex byte is the sampled flag</dd>
+    <dt>Choose the propagator</dt>
+    <dd><code>OTEL_PROPAGATORS=tracecontext,baggage</code> (default) — add <code>b3multi</code> or <code>xray</code> only while migrating</dd>
+    <dt>Entities</dt>
+    <dd>the successor model for resources (host, k8s pod, service) so backends can key telemetry by identity; still in development in the spec</dd>
+  </dl>
+  <div class="note"><p>The three-pillars framing is out of date on purpose: one <em>event</em> with high-cardinality attributes, wide enough to slice after the fact, is the modern unit. Metrics are pre-aggregated cheapness, traces are causality, logs are detail — you correlate them by trace_id, not by timestamp.</p></div>
+</section>
+
+<section class="unit" id="u02">
+  <header>
+    <h2><span class="n">02</span>SDK bootstrap &amp; config</h2>
+    <span class="docs"><a href="https://opentelemetry.io/docs/languages/sdk-configuration/">docs: SDK configuration</a></span>
+  </header>
+  <dl class="rows">
+    <dt>Minimum env set</dt>
+    <dd><code>OTEL_SERVICE_NAME=checkout</code> · <code>OTEL_EXPORTER_OTLP_ENDPOINT=http://otel-collector:4318</code> · <code>OTEL_RESOURCE_ATTRIBUTES=deployment.environment.name=prod,service.version=1.42.0</code></dd>
+    <dt>Auth headers</dt>
+    <dd><code>OTEL_EXPORTER_OTLP_HEADERS="authorization=Bearer $TOKEN"</code> <span class="cmt">— comma-separated, URL-encoded values</span></dd>
+    <dt>Head sampling</dt>
+    <dd><code>OTEL_TRACES_SAMPLER=parentbased_traceidratio</code> + <code>OTEL_TRACES_SAMPLER_ARG=0.1</code></dd>
+    <dt>Batching &amp; limits</dt>
+    <dd><code>OTEL_BSP_MAX_QUEUE_SIZE=2048</code>, <code>OTEL_BSP_SCHEDULE_DELAY=5000</code>, <code>OTEL_METRIC_EXPORT_INTERVAL=60000</code>, <code>OTEL_ATTRIBUTE_VALUE_LENGTH_LIMIT</code></dd>
+    <dt>Kill switch</dt>
+    <dd><code>OTEL_SDK_DISABLED=true</code> — for tests and for the incident where the SDK itself is the suspect</dd>
+    <dt>Declarative config <span class="since">stable 2026-03-05</span></dt>
+    <dd><code>OTEL_CONFIG_FILE=/etc/otel/sdk.yaml</code> — one YAML file against the <code>opentelemetry-configuration</code> v1.0.0 JSON schema, replacing the env-var sprawl; env vars that interoperate badly are being deprecated</dd>
+    <dt>Declarative support</dt>
+    <dd>C++, Go, Java, JavaScript, PHP today; .NET and Python in progress <span class="cmt">— keep env vars as the fallback until your language lands</span></dd>
+    <dt>Zero-code: Java</dt>
+    <dd><code>java -javaagent:opentelemetry-javaagent.jar -jar app.jar</code></dd>
+    <dt>Zero-code: Node</dt>
+    <dd><code>node --require @opentelemetry/auto-instrumentations-node/register app.js</code></dd>
+    <dt>Zero-code: Python / .NET</dt>
+    <dd><code>opentelemetry-instrument python app.py</code> · <code>./otel-dotnet-auto-install.sh</code> then <code>OTEL_DOTNET_AUTO_HOME</code> + <code>instrument.sh dotnet run</code></dd>
+    <dt>Zero-code: Kubernetes</dt>
+    <dd>OTel Operator + pod annotation <code>instrumentation.opentelemetry.io/inject-java: "true"</code></dd>
+  </dl>
+<pre><code class="language-yaml"># OTEL_CONFIG_FILE=sdk.yaml — the stable declarative form (spec 1.0.0)
+file_format: "1.0"
+resource:
+  attributes:
+    - name: service.name
+      value: checkout
+tracer_provider:
+  processors:
+    - batch:
+        exporter:
+          otlp_http:
+            endpoint: http://otel-collector:4318/v1/traces
+  sampler:
+    parent_based:
+      root:
+        trace_id_ratio_based: { ratio: 0.1 }</code></pre>
+<pre><code class="language-csharp">// Manual span, the four runtimes you will actually meet.
+using var act = ActivitySource.StartActivity("checkout");   // .NET: System.Diagnostics
+act?.SetTag("order.id", id);                                 // attribute, not span name
+</code></pre>
+<pre><code class="language-go">ctx, span := tracer.Start(ctx, "checkout")   // Go
+defer span.End()
+span.SetAttributes(attribute.String("order.id", id))
+span.RecordError(err); span.SetStatus(codes.Error, "charge failed")</code></pre>
+<pre><code class="language-python">with tracer.start_as_current_span("checkout") as span:   # Python
+    span.set_attribute("order.id", order_id)</code></pre>
+<pre><code class="language-javascript">tracer.startActiveSpan('checkout', span =&gt; {   // JS: always startActiveSpan,
+  span.setAttribute('order.id', id);            // startSpan alone loses context
+  span.end();
+});</code></pre>
+</section>
+
+<section class="unit" id="u03">
+  <header>
+    <h2><span class="n">03</span>Semantic conventions</h2>
+    <span class="docs"><a href="https://opentelemetry.io/docs/specs/semconv/">docs: semantic conventions v1.44.0</a></span>
+  </header>
+  <dl class="rows">
+    <dt>Why it matters</dt>
+    <dd>stable attribute names are what make a dashboard portable between backends and a query work across four languages</dd>
+    <dt>HTTP server span <span class="since">stable</span></dt>
+    <dd><code>http.request.method</code>, <code>http.response.status_code</code>, <code>http.route</code>, <code>url.path</code>, <code>url.query</code>, <code>url.scheme</code>, <code>server.address</code>, <code>client.address</code>, <code>network.protocol.version</code>, <code>user_agent.original</code></dd>
+    <dt>Errors</dt>
+    <dd><code>error.type</code> — exception class or status code, low cardinality; on spans also <code>exception.type</code> / <code>exception.message</code> / <code>exception.stacktrace</code> as a span event</dd>
+    <dt>Database</dt>
+    <dd><code>db.system.name</code>, <code>db.namespace</code>, <code>db.collection.name</code>, <code>db.operation.name</code>, <code>db.query.text</code> (parameterised, never the values), <code>db.response.status_code</code></dd>
+    <dt>Messaging</dt>
+    <dd><code>messaging.system</code>, <code>messaging.destination.name</code>, <code>messaging.operation.type=publish|receive|process</code></dd>
+    <dt>The three metrics to know</dt>
+    <dd><code>http.server.request.duration</code> (histogram, <b>seconds</b>), <code>http.client.request.duration</code>, <code>db.client.operation.duration</code></dd>
+    <dt>Kubernetes / infra</dt>
+    <dd><code>k8s.namespace.name</code>, <code>k8s.pod.name</code>, <code>k8s.deployment.name</code>, <code>k8s.node.name</code>, <code>container.id</code>, <code>host.name</code>, <code>cloud.region</code></dd>
+    <dt>GenAI moved out <span class="since">semconv v1.42</span></dt>
+    <dd>all <code>gen_ai.*</code> now live in <code>open-telemetry/semantic-conventions-genai</code> (repo created 2026-05-05) and are still <b>Development</b>, not stable — do not build contracts on them</dd>
+    <dt>Legacy names still seen</dt>
+    <dd><code>http.method</code>, <code>http.status_code</code>, <code>http.url</code>, <code>net.peer.name</code>, <code>db.statement</code> — pre-1.21 spellings, still emitted by old agents</dd>
+    <dt>Migrate safely</dt>
+    <dd><code>OTEL_SEMCONV_STABILITY_OPT_IN=http/dup</code> emits both spellings for one release so dashboards can cut over</dd>
+    <dt>Custom attributes</dt>
+    <dd>own namespace (<code>acme.order.tier</code>), never a bare <code>id</code>; validate and generate constants with <a href="https://github.com/open-telemetry/weaver">Weaver</a></dd>
+    <dt>Version pinning</dt>
+    <dd>emit <code>schema_url</code> so backends can apply schema transformations across semconv versions</dd>
+  </dl>
+</section>
+
+<section class="unit" id="u04">
+  <header>
+    <h2><span class="n">04</span>Collector &amp; OTTL</h2>
+    <span class="docs"><a href="https://opentelemetry.io/docs/collector/configuration/">docs: Collector configuration</a></span>
+  </header>
+  <dl class="rows">
+    <dt>Versions</dt>
+    <dd>stable modules <code>v1.66.0</code>, beta modules <code>v0.160.0</code> (2026-09-02); one release roughly every two weeks</dd>
+    <dt>Distributions</dt>
+    <dd><code>otelcol</code> (core) · <code>otelcol-contrib</code> (everything) · <code>otelcol-k8s</code> · <code>otelcol-ebpf-profiler</code>; roll your own with the builder <code>ocb --config builder.yaml</code></dd>
+    <dt>Topology</dt>
+    <dd>agent (DaemonSet/sidecar, enriches with host+pod) → gateway (StatefulSet, batches, tail-samples, exports) <span class="cmt">— tail sampling needs whole traces in one instance</span></dd>
+    <dt>Pipeline order</dt>
+    <dd><code>memory_limiter</code> first, then <code>k8sattributes</code>/<code>resourcedetection</code>, then <code>transform</code>/<code>filter</code>, batching last before the exporter</dd>
+    <dt>Batching moved</dt>
+    <dd>prefer the exporter's <code>sending_queue.batch</code> over the standalone <code>batch</code> processor in current builds — it batches after the queue, so retries do not re-batch</dd>
+    <dt>Connectors</dt>
+    <dd><code>spanmetrics</code> (RED metrics from spans), <code>servicegraph</code>, <code>routing</code>, <code>count</code>, <code>forward</code> — a pipeline's exporter feeding another pipeline's receiver</dd>
+    <dt>Trace affinity</dt>
+    <dd><code>loadbalancing</code> exporter with <code>routing_key: traceID</code> in front of tail-sampling gateways</dd>
+    <dt>Health &amp; debug</dt>
+    <dd>extensions <code>health_check</code> (<code>:13133</code>), <code>pprof</code> (<code>:1777</code>), <code>zpages</code> (<code>:55679/debug/tracez</code>); own metrics on <code>:8888/metrics</code></dd>
+    <dt>The four metrics to watch</dt>
+    <dd><code>otelcol_receiver_refused_spans</code>, <code>otelcol_exporter_send_failed_spans</code>, <code>otelcol_exporter_queue_size</code> vs <code>_capacity</code>, <code>otelcol_processor_dropped_*</code></dd>
+    <dt>See the data</dt>
+    <dd><code>exporters: debug: { verbosity: detailed }</code> <span class="cmt">— replaced the removed <code>logging</code> exporter</span></dd>
+    <dt>Validate a config</dt>
+    <dd><code>otelcol validate --config=config.yaml</code> · run with <code>--feature-gates=+component.UseLocalHostAsDefaultHost</code> awareness on containers</dd>
+    <dt>Profiles support</dt>
+    <dd><code>pprof</code> receiver, profiles in <code>k8sattributes</code> and OTTL since <code>v0.148.0</code> <span class="since">2026-03</span></dd>
+  </dl>
+<pre><code class="language-yaml">receivers:
+  otlp: { protocols: { grpc: { endpoint: 0.0.0.0:4317 }, http: { endpoint: 0.0.0.0:4318 } } }
+processors:
+  memory_limiter: { check_interval: 1s, limit_percentage: 80, spike_limit_percentage: 20 }
+  k8sattributes: { auth_type: serviceAccount, passthrough: false }
+  transform:                                   # OTTL
+    error_mode: ignore
+    trace_statements:
+      - set(span.status.code, STATUS_CODE_ERROR) where span.attributes["http.response.status_code"] &gt;= 500
+      - delete_key(span.attributes, "http.request.header.authorization")
+      - replace_pattern(span.attributes["url.path"], "/orders/[0-9]+", "/orders/{id}")
+  tail_sampling:
+    decision_wait: 10s
+    policies:
+      - { name: errors,  type: status_code, status_code: { status_codes: [ERROR] } }
+      - { name: slow,    type: latency,     latency: { threshold_ms: 1000 } }
+      - { name: sample,  type: probabilistic, probabilistic: { sampling_percentage: 5 } }
+connectors:
+  spanmetrics: { histogram: { explicit: { buckets: [5ms, 25ms, 100ms, 500ms, 2s] } } }
+exporters:
+  otlphttp: { endpoint: https://backend:4318, sending_queue: { batch: { flush_timeout: 5s } } }
+service:
+  pipelines:
+    traces:  { receivers: [otlp], processors: [memory_limiter, k8sattributes, transform, tail_sampling], exporters: [otlphttp, spanmetrics] }
+    metrics: { receivers: [otlp, spanmetrics], processors: [memory_limiter], exporters: [otlphttp] }
+  telemetry: { metrics: { level: normal } }</code></pre>
+</section>
+
+<section class="unit" id="u05">
+  <header>
+    <h2><span class="n">05</span>Metrics &amp; PromQL</h2>
+    <span class="docs"><a href="https://prometheus.io/docs/prometheus/latest/querying/basics/">docs: PromQL</a></span>
+  </header>
+  <dl class="rows">
+    <dt>Request rate (RED)</dt>
+    <dd><code>sum by (http_route) (rate(http_server_request_duration_seconds_count[5m]))</code></dd>
+    <dt>Error ratio</dt>
+    <dd><code>sum(rate(...count{http_response_status_code=~"5.."}[5m])) / sum(rate(...count[5m]))</code></dd>
+    <dt>Classic histogram p99</dt>
+    <dd><code>histogram_quantile(0.99, sum by (le, http_route) (rate(http_server_request_duration_seconds_bucket[5m])))</code></dd>
+    <dt>Native histogram p99 <span class="since">Prom 3.8 stable</span></dt>
+    <dd><code>histogram_quantile(0.99, sum by (http_route) (rate(http_server_request_duration_seconds[5m])))</code> <span class="cmt">— no <code>le</code>, no bucket suffix; also <code>histogram_count</code>, <code>histogram_sum</code>, <code>histogram_fraction(0, 0.5, ...)</code></span></dd>
+    <dt>Enable native histograms</dt>
+    <dd><code>scrape_native_histograms: true</code> per scrape config (v3.8+; the old <code>--enable-feature=native-histograms</code> is a no-op from v3.9, and both scrape and remote-write default to true in v4.0)</dd>
+    <dt>Classic → native at scrape</dt>
+    <dd><code>convert_classic_histograms_to_nhcb: true</code> — custom-bucket native histograms (schema −53) keep your existing buckets at a fraction of the series count</dd>
+    <dt>Saturation (USE)</dt>
+    <dd><code>rate(container_cpu_cfs_throttled_seconds_total[5m])</code> · <code>container_memory_working_set_bytes / container_spec_memory_limit_bytes</code></dd>
+    <dt>Restart / crashloop</dt>
+    <dd><code>increase(kube_pod_container_status_restarts_total[15m]) &gt; 0</code></dd>
+    <dt>Scrape health</dt>
+    <dd><code>up == 0</code>, <code>absent(up{job="api"})</code>, <code>scrape_samples_post_metric_relabeling</code>, <code>prometheus_target_scrape_pool_exceeded_sample_limit_total</code></dd>
+    <dt>Cardinality hunt</dt>
+    <dd><code>topk(10, count by (__name__)({__name__=~".+"}))</code> · <code>promtool tsdb analyze /prometheus</code> · TSDB Status page</dd>
+    <dt>Aggregation rules</dt>
+    <dd><code>sum by</code> keeps listed labels, <code>sum without</code> drops them; <code>rate()</code> needs ≥2 samples so use ≥4× the scrape interval; never <code>avg()</code> a quantile</dd>
+    <dt>Counter reset</dt>
+    <dd><code>rate</code>/<code>increase</code> correct for resets; <code>irate</code> only for fast-moving graphs, never for alerts</dd>
+    <dt>Prediction / trend</dt>
+    <dd><code>predict_linear(node_filesystem_avail_bytes[6h], 4*3600) &lt; 0</code> — the disk-full alert that pages before it happens</dd>
+    <dt>OTLP into Prometheus <span class="since">3.0</span></dt>
+    <dd>POST to <code>/api/v1/otlp/v1/metrics</code>, enabled by <code>--web.enable-otlp-receiver</code>; UTF-8 names allowed, quoted as <code>{"http.server.duration"}</code>; control suffixes with <code>otlp.translation_strategy</code></dd>
+    <dt>Remote-Write 2.0 <span class="since">3.0</span></dt>
+    <dd>carries metadata, exemplars, native histograms and start timestamps in one protobuf; 1.0 senders keep working</dd>
+    <dt>New in 3.14 <span class="since">2026-08-17</span></dt>
+    <dd><code>rate()</code>/<code>increase()</code> can extrapolate from series start timestamps behind <code>--enable-feature=use-start-timestamps</code>, killing the classic first-scrape undercount</dd>
+    <dt>Command line</dt>
+    <dd><code>promtool check config prometheus.yml</code> · <code>promtool check rules rules.yml</code> · <code>promtool query instant http://localhost:9090 'up'</code> · <code>promtool test rules tests.yml</code></dd>
+  </dl>
+<pre><code class="language-yaml"># Recording rule: pre-compute what every dashboard panel and SLO alert re-derives.
+groups:
+  - name: sli
+    interval: 30s
+    rules:
+      - record: job:http_requests:rate5m
+        expr: sum by (job) (rate(http_server_request_duration_seconds_count[5m]))
+      - record: job:http_errors:ratio5m
+        expr: |
+          sum by (job) (rate(http_server_request_duration_seconds_count{http_response_status_code=~"5.."}[5m]))
+            / sum by (job) (rate(http_server_request_duration_seconds_count[5m]))</code></pre>
+</section>
+
+<section class="unit" id="u06">
+  <header>
+    <h2><span class="n">06</span>Logs &amp; LogQL</h2>
+    <span class="docs"><a href="https://grafana.com/docs/loki/latest/query/">docs: LogQL</a></span>
+  </header>
+  <dl class="rows">
+    <dt>Stream selector first</dt>
+    <dd><code>{app="checkout", namespace="prod"}</code> — labels are the index; everything after the first <code>|</code> is a scan, so keep labels few and bounded</dd>
+    <dt>Line filters</dt>
+    <dd><code>|= "timeout"</code> (contains) · <code>!= "healthz"</code> · <code>|~ "(?i)err(or)?"</code> (regex) · <code>!~</code>; cheapest filter goes first</dd>
+    <dt>Parsers</dt>
+    <dd><code>| json</code> · <code>| logfmt</code> · <code>| pattern "&lt;_&gt; &lt;method&gt; &lt;path&gt; &lt;status&gt;"</code> · <code>| regexp "(?P&lt;status&gt;\\d{3})"</code></dd>
+    <dt>Label filters &amp; shaping</dt>
+    <dd><code>| status &gt;= 500 | duration &gt; 2s</code> · <code>| label_format route=path</code> · <code>| line_format "{{.route}} {{.duration}}"</code> · <code>| drop __error__</code></dd>
+    <dt>Logs → metrics</dt>
+    <dd><code>sum by (status) (rate({app="checkout"} | json | __error__="" [5m]))</code> · <code>quantile_over_time(0.99, {app="x"} | json | unwrap duration_ms [5m])</code></dd>
+    <dt>Find the trace</dt>
+    <dd><code>{app="checkout"} | json | trace_id="4bf92f3577b34da6a3ce929d0e0e4736"</code> <span class="cmt">— store trace_id as structured metadata, not as a label</span></dd>
+    <dt>Structured metadata <span class="since">Loki 3.0</span></dt>
+    <dd>per-line key/values (trace_id, pod, request_id) that are queryable without being indexed labels — the fix for cardinality-driven log stores</dd>
+    <dt>OTLP ingest</dt>
+    <dd>Loki accepts OTLP logs at <code>/otlp/v1/logs</code> <span class="since">3.0</span>; resource attributes become labels, the rest become structured metadata</dd>
+    <dt>Shipper</dt>
+    <dd>Grafana Alloy (<code>loki.source.*</code> + <code>loki.process</code>); Promtail is <b>EOL 2026-03-02</b> — migrate with <code>alloy convert --source-format=promtail --output=config.alloy promtail.yml</code></dd>
+    <dt>App-side rules</dt>
+    <dd>one structured event per unit of work; log at the boundary, not in the loop; include <code>trace_id</code>, <code>service.name</code>, <code>error.type</code>; never log secrets or PII</dd>
+    <dt>Severity discipline</dt>
+    <dd>ERROR = a human must look; WARN = degraded but handled; INFO = state transitions; DEBUG off in prod, flipped on per-service by config, not by redeploy</dd>
+    <dt>Grep-equivalents on a box</dt>
+    <dd><code>journalctl -u api -S "10 min ago" -p err -f</code> · <code>kubectl logs -f deploy/api --since=10m --all-containers</code> · <code>jq -r 'select(.level=="error") | .msg'</code></dd>
+    <dt>Cost control</dt>
+    <dd>sample repetitive INFO lines, drop health checks at the agent, keep 100% of ERROR; retention by tenant, not by hope</dd>
+  </dl>
+</section>
+
+<section class="unit" id="u07">
+  <header>
+    <h2><span class="n">07</span>Traces, TraceQL &amp; sampling</h2>
+    <span class="docs"><a href="https://grafana.com/docs/tempo/latest/traceql/">docs: TraceQL</a></span>
+  </header>
+  <dl class="rows">
+    <dt>Slow or failed requests</dt>
+    <dd><code>{ resource.service.name = "checkout" &amp;&amp; span.http.response.status_code &gt;= 500 }</code> · <code>{ duration &gt; 2s }</code></dd>
+    <dt>Aggregate over a trace</dt>
+    <dd><code>{ span.db.system.name = "postgresql" } | count() &gt; 20</code> <span class="cmt">— the N+1 query finder</span></dd>
+    <dt>Structural operators</dt>
+    <dd><code>&gt;</code> direct child, <code>&gt;&gt;</code> descendant, <code>~</code> sibling: <code>{ name="POST /checkout" } &gt;&gt; { status = error }</code></dd>
+    <dt>Trace-level filters</dt>
+    <dd><code>{ } | by(resource.service.name) | count() &gt; 3</code> · <code>select(span.db.query.text)</code> to pull extra fields into results</dd>
+    <dt>Head sampling</dt>
+    <dd>decided at the root, propagated by the sampled flag; cheap, consistent, blind to what happens later</dd>
+    <dt>Tail sampling</dt>
+    <dd>Collector buffers a trace for <code>decision_wait</code> then applies policies (latency, status_code, probabilistic, string_attribute, composite); keeps all errors, drops the boring 95%</dd>
+    <dt>Consistent probability</dt>
+    <dd>the sampling threshold rides in <code>tracestate</code> as <code>ot=th:…</code> so every hop and the backend can compute the correct span count after sampling</dd>
+    <dt>Never sample your metrics</dt>
+    <dd>generate RED metrics with the <code>spanmetrics</code> connector <b>before</b> tail sampling, or your error rate is a 5% estimate</dd>
+    <dt>Correlate</dt>
+    <dd>metric → trace via exemplars; log → trace via <code>trace_id</code>; trace → profile via span-scoped profiling; Grafana data links wire the three together</dd>
+    <dt>Span links</dt>
+    <dd>for async fan-out and batch consumers where a parent-child edge would lie (one consumer span, N producer links)</dd>
+    <dt>Broken propagation checklist</dt>
+    <dd>proxy/CDN header allowlist missing <code>traceparent</code> · a queue that drops headers · mixed W3C and B3 · a thread pool or <code>Task.Run</code> that loses context · a client library instrumented but not the transport</dd>
+    <dt>Backends</dt>
+    <dd>Grafana Tempo 2.10/3.0 (2.9 support ends 2026-12-31), Jaeger v2 (itself an OTel Collector distribution), ClickHouse-backed stores; all speak OTLP</dd>
+  </dl>
+</section>
+
+<section class="unit" id="u08">
+  <header>
+    <h2><span class="n">08</span>SLOs &amp; burn-rate alerts</h2>
+    <span class="docs"><a href="https://sre.google/workbook/alerting-on-slos/">docs: SRE workbook, alerting on SLOs</a></span>
+  </header>
+  <dl class="rows">
+    <dt>SLI</dt>
+    <dd><code>good events / valid events</code> — availability, latency (fraction under a threshold), freshness, correctness. Measure where the user is, not where the server is</dd>
+    <dt>Error budget</dt>
+    <dd><code>1 − SLO</code>. 99.9% over 30 days = 43m 12s of budget; 99.95% = 21m 36s; 99.99% = 4m 19s</dd>
+    <dt>Burn rate</dt>
+    <dd>how many times faster than budgeted you are spending: <code>burn = observed error ratio / (1 − SLO)</code>. 1× uses exactly the budget in the window</dd>
+    <dt>Latency SLI in PromQL</dt>
+    <dd><code>sum(rate(..._bucket{le="0.5"}[5m])) / sum(rate(..._count[5m]))</code> — fraction faster than 500 ms, <b>not</b> a percentile</dd>
+    <dt>Multiwindow, multi-burn</dt>
+    <dd>long window catches the sustained burn, short window confirms it is still happening — that pairing is what stops flapping pages</dd>
+    <dt>Alert on symptoms</dt>
+    <dd>page on user-visible burn; make cause-based signals (queue depth, CPU) ticket-level or dashboard-only</dd>
+    <dt>Rule hygiene</dt>
+    <dd><code>for:</code> to debounce, <code>keep_firing_for:</code> to stop resolve-flapping, runbook URL and owner in annotations, severity in labels</dd>
+    <dt>Generate, do not hand-write</dt>
+    <dd>Sloth, Pyrra or OpenSLO turn one SLO spec into all four burn-rate rules plus recording rules</dd>
+    <dt>Budget policy</dt>
+    <dd>the useful half is the agreement: budget exhausted → feature freeze until it recovers. An SLO nobody acts on is a dashboard</dd>
+  </dl>
+  <div class="tw">
+    <table class="grid">
+      <thead><tr><th>Budget spent</th><th>Long window</th><th>Short window</th><th>Burn rate</th><th>Action</th></tr></thead>
+      <tbody>
+        <tr class="hi"><td>2%</td><td>1h</td><td>5m</td><td>14.4×</td><td>page</td></tr>
+        <tr><td>5%</td><td>6h</td><td>30m</td><td>6×</td><td>page</td></tr>
+        <tr><td>10%</td><td>1d</td><td>2h</td><td>3×</td><td>ticket</td></tr>
+        <tr><td>10%</td><td>3d</td><td>6h</td><td>1×</td><td>ticket</td></tr>
+      </tbody>
+    </table>
+  </div>
+<pre><code class="language-yaml">- alert: CheckoutErrorBudgetFastBurn        # 2% of a 30d budget in 1h, SLO 99.9%
+  expr: |
+    job:http_errors:ratio5m{job="checkout"} &gt; (14.4 * 0.001)
+      and
+    job:http_errors:ratio1h{job="checkout"} &gt; (14.4 * 0.001)
+  for: 2m
+  labels: { severity: page }
+  annotations:
+    summary: "checkout is burning error budget 14.4x"
+    runbook_url: "https://runbooks/checkout/error-budget"</code></pre>
+</section>
+
+<section class="unit" id="u09">
+  <header>
+    <h2><span class="n">09</span>Host &amp; container triage</h2>
+    <span class="docs"><a href="https://kubernetes.io/docs/tasks/debug/debug-application/debug-running-pod/">docs: debug a running pod</a></span>
+  </header>
+  <dl class="rows">
+    <dt>60-second checklist</dt>
+    <dd><code>uptime</code> → <code>dmesg -T | tail</code> → <code>vmstat 1</code> → <code>mpstat -P ALL 1</code> → <code>pidstat 1</code> → <code>iostat -xz 1</code> → <code>free -m</code> → <code>sar -n DEV 1</code> → <code>sar -n TCP,ETCP 1</code> → <code>top</code></dd>
+    <dt>Read it</dt>
+    <dd><code>vmstat</code>: <code>r</code> &gt; cores = CPU saturation, <code>si/so</code> ≠ 0 = swapping. <code>iostat</code>: <code>%util</code> near 100 with high <code>await</code> = disk-bound</dd>
+    <dt>Who is eating CPU</dt>
+    <dd><code>pidstat -t 1</code> (per thread) · <code>top -H -p PID</code> · <code>perf top -p PID</code></dd>
+    <dt>Sockets &amp; connections</dt>
+    <dd><code>ss -s</code> summary · <code>ss -tanp state established '( dport = :5432 )'</code> · <code>ss -lntp</code> listeners · check <code>Send-Q</code> backlog on accept queues</dd>
+    <dt>Packet truth</dt>
+    <dd><code>tcpdump -ni any port 5432 -c 200 -w /tmp/db.pcap</code> · <code>tcpretrans</code> / <code>tcpconnect</code> (bcc) for retransmits and connect latency</dd>
+    <dt>Files &amp; descriptors</dt>
+    <dd><code>lsof -p PID | wc -l</code> vs <code>cat /proc/PID/limits</code> · <code>ls /proc/PID/fd | wc -l</code> — the classic slow leak</dd>
+    <dt>Syscall level</dt>
+    <dd><code>strace -f -p PID -T -e trace=network,file -o /tmp/s.txt</code> <span class="cmt">— pauses the process; sample briefly, never on a hot path in prod</span></dd>
+    <dt>Ephemeral debug container</dt>
+    <dd><code>kubectl debug -it pod/api-7f8 --image=nicolaka/netshoot --target=api</code> <span class="since">GA K8s 1.25</span> — shares the PID/network namespace of a distroless container</dd>
+    <dt>Copy-and-poke a pod</dt>
+    <dd><code>kubectl debug pod/api-7f8 --copy-to=api-dbg --set-image=api=busybox -it</code> — leaves the live pod untouched</dd>
+    <dt>Node shell</dt>
+    <dd><code>kubectl debug node/node-1 -it --image=busybox</code> → host FS under <code>/host</code></dd>
+    <dt>Crash forensics</dt>
+    <dd><code>kubectl logs pod/x --previous</code> · <code>kubectl describe pod x</code> (Last State, Reason) · <code>kubectl events --for pod/x --watch</code></dd>
+    <dt>OOM vs throttle</dt>
+    <dd>exit code <b>137</b> + Reason <code>OOMKilled</code> = memory limit; slow-but-alive with rising <code>container_cpu_cfs_throttled_seconds_total</code> = CPU limit. Exit <b>143</b> = SIGTERM, usually a rollout</dd>
+    <dt>Runtime, below kubelet</dt>
+    <dd><code>crictl ps -a</code> · <code>crictl logs -f &lt;id&gt;</code> · <code>crictl inspect &lt;id&gt; | jq .status.exitCode</code></dd>
+    <dt>Resource reality</dt>
+    <dd><code>kubectl top pod --containers</code> · <code>kubectl get --raw /api/v1/nodes/node-1/proxy/metrics/resource</code></dd>
+    <dt>DNS in the cluster</dt>
+    <dd><code>kubectl run -it --rm dns --image=nicolaka/netshoot -- dig +search api.prod.svc.cluster.local</code>; check <code>ndots:5</code> before blaming CoreDNS</dd>
+    <dt>Rollback first</dt>
+    <dd><code>kubectl rollout undo deploy/api</code> — mitigate, then debug the artefact you saved, not the incident</dd>
+  </dl>
+</section>
+
+<section class="unit" id="u10">
+  <header>
+    <h2><span class="n">10</span>Runtime debugging</h2>
+    <span class="docs"><a href="https://learn.microsoft.com/dotnet/core/diagnostics/">docs: .NET diagnostics tools</a></span>
+  </header>
+  <h3>.NET</h3>
+  <dl class="rows">
+    <dt>Live counters</dt>
+    <dd><code>dotnet-counters monitor -p 1 --counters System.Runtime,Microsoft.AspNetCore.Hosting</code> <span class="cmt">— GC heap, alloc rate, thread-pool queue, exception rate</span></dd>
+    <dt>CPU trace</dt>
+    <dd><code>dotnet-trace collect -p 1 --profile cpu-sampling --duration 00:00:30</code> → open the <code>.nettrace</code> in PerfView/VS or convert with <code>--format speedscope</code></dd>
+    <dt>Hang / deadlock</dt>
+    <dd><code>dotnet-dump collect -p 1</code> then <code>dotnet-dump analyze core_x</code> → <code>clrthreads</code>, <code>clrstack -all</code>, <code>syncblk</code>, <code>dumpasync</code></dd>
+    <dt>Memory</dt>
+    <dd><code>dotnet-gcdump collect -p 1</code> (live heap graph, low pause) · in a dump: <code>dumpheap -stat</code>, <code>gcroot &lt;addr&gt;</code></dd>
+    <dt>In a container</dt>
+    <dd><code>dotnet-monitor</code> as a sidecar exposes <code>/trace</code>, <code>/dump</code>, <code>/gcdump</code>, <code>/metrics</code> over HTTP — no shell needed</dd>
+  </dl>
+  <h3>JVM</h3>
+  <dl class="rows">
+    <dt>Threads &amp; locks</dt>
+    <dd><code>jcmd PID Thread.print</code> (or <code>jstack -l PID</code>) — take three, 5 s apart, and diff</dd>
+    <dt>Flight recorder</dt>
+    <dd><code>jcmd PID JFR.start name=x settings=profile duration=60s filename=/tmp/x.jfr</code> → open in JDK Mission Control</dd>
+    <dt>Heap</dt>
+    <dd><code>jcmd PID GC.heap_info</code> · <code>jmap -histo:live PID | head -30</code> · <code>-XX:+HeapDumpOnOutOfMemoryError -XX:HeapDumpPath=/dumps</code></dd>
+  </dl>
+  <h3>Go, Node, Python</h3>
+  <dl class="rows">
+    <dt>Go pprof</dt>
+    <dd><code>curl -o cpu.pb.gz localhost:6060/debug/pprof/profile?seconds=30</code> · <code>go tool pprof -http=:8080 cpu.pb.gz</code> · goroutine leak: <code>/debug/pprof/goroutine?debug=2</code></dd>
+    <dt>Go runtime knobs</dt>
+    <dd><code>GODEBUG=gctrace=1</code> · <code>GOMEMLIMIT=1GiB</code> (soft limit; set it in containers) · <code>GOMAXPROCS</code> honouring CPU limits</dd>
+    <dt>Node CPU / heap</dt>
+    <dd><code>node --cpu-prof --cpu-prof-dir=/tmp app.js</code> · <code>node --heapsnapshot-signal=SIGUSR2</code> then <code>kill -USR2 PID</code> · <code>--inspect=0.0.0.0:9229</code> + port-forward</dd>
+    <dt>Node event loop</dt>
+    <dd><code>perf_hooks.monitorEventLoopDelay()</code>; a p99 loop lag over ~100 ms means sync work on the loop</dd>
+    <dt>Python live</dt>
+    <dd><code>py-spy top --pid 1</code> · <code>py-spy dump --pid 1</code> (stacks of a hung process, no restart) · <code>py-spy record -o out.svg</code> · <code>memray run</code> for allocations</dd>
+    <dt>Any process, last resort</dt>
+    <dd><code>gdb -p PID -batch -ex "thread apply all bt"</code> · <code>cat /proc/PID/stack</code> · <code>/proc/PID/status</code> for threads and memory</dd>
+  </dl>
+</section>
+
+<section class="unit" id="u11">
+  <header>
+    <h2><span class="n">11</span>Profiling &amp; eBPF</h2>
+    <span class="docs"><a href="https://opentelemetry.io/docs/specs/otel/profiles/">docs: OTel profiles</a></span>
+  </header>
+  <dl class="rows">
+    <dt>Continuous profiling</dt>
+    <dd>always-on sampled stacks (CPU, alloc, lock, off-CPU) at ~1–5% overhead — answers &ldquo;which function costs the money&rdquo; without a repro</dd>
+    <dt>OTel profiles <span class="since">alpha 2026-03</span></dt>
+    <dd>fourth signal, pprof-compatible, round-trips losslessly and cuts wire size ~40% with a shared string dictionary; Collector support from <code>v0.148.0</code> (pprof receiver, k8sattributes, OTTL). Not for critical workloads yet</dd>
+    <dt>OBI</dt>
+    <dd>OpenTelemetry eBPF Instrumentation — Grafana Beyla donated in 2025, <code>v0.8.0</code> 2026-04-16, beta announced at KubeCon EU 2026-04, 1.0 the project's 2026 goal. Zero-code HTTP/gRPC/SQL traces and RED metrics, no restart, no code change</dd>
+    <dt>OBI requirements</dt>
+    <dd>Linux ≥5.8 with BTF, <code>CAP_BPF</code>+<code>CAP_PERFMON</code> (or privileged), one agent per node; .NET support on the roadmap</dd>
+    <dt>Ad-hoc CPU flame graph</dt>
+    <dd><code>perf record -F 99 -a -g -- sleep 30</code> → <code>perf script | stackcollapse-perf.pl | flamegraph.pl &gt; cpu.svg</code></dd>
+    <dt>Read a flame graph</dt>
+    <dd>width = time on CPU, x-axis is alphabetical not chronological; look for wide plateaus, ignore tall thin towers</dd>
+    <dt>Off-CPU time</dt>
+    <dd><code>offcputime-bpfcc -df 30</code> — where threads block (locks, I/O), the half a CPU profile cannot see</dd>
+    <dt>bcc one-liners</dt>
+    <dd><code>execsnoop</code> · <code>opensnoop</code> · <code>biolatency</code> · <code>runqlat</code> (scheduler delay) · <code>tcpretrans</code> · <code>profile -F 49 -p PID 30</code></dd>
+    <dt>bpftrace</dt>
+    <dd><code>bpftrace -e 'tracepoint:syscalls:sys_enter_openat { @[comm] = count(); }'</code> · <code>bpftrace -l 'tracepoint:*'</code> to discover probes</dd>
+    <dt>Stores</dt>
+    <dd>Grafana Pyroscope, Parca, Polar Signals; symbolisation needs debug symbols shipped or an uploaded symbol store — plan it before the incident</dd>
+    <dt>Symbolisation gotcha</dt>
+    <dd>stripped binaries and JIT runtimes give hex addresses; JVM needs <code>-XX:+PreserveFramePointer</code>, Node needs <code>--perf-basic-prof</code></dd>
+  </dl>
+</section>
+
+<section class="unit" id="u12">
+  <header>
+    <h2><span class="n">12</span>Idioms &amp; gotchas</h2>
+    <span class="docs"><a href="https://opentelemetry.io/docs/concepts/instrumentation/">docs: instrumentation concepts</a></span>
+  </header>
+  <ul class="tight">
+    <li><b>Cardinality kills metrics, not traces.</b> user id, request id, full URL belong in span and log attributes; a metric label must have bounded values.</li>
+    <li><b>Every label multiplies.</b> 5 routes × 6 statuses × 3 pods × 12 buckets = 1 080 series from one histogram — budget before you add a dimension.</li>
+    <li><b>Never average a percentile.</b> Aggregate histogram buckets, then compute the quantile; <code>avg(p99)</code> is a number with no meaning.</li>
+    <li><b>Classic bucket boundaries are forever.</b> Changing <code>le</code> values breaks historical quantiles; native histograms exist precisely to end that argument.</li>
+    <li><b>Derive RED before sampling.</b> The <code>spanmetrics</code> connector must sit ahead of <code>tail_sampling</code>, or counts are a sampled guess.</li>
+    <li><b>Tail sampling needs trace affinity.</b> Without the <code>loadbalancing</code> exporter, gateway replicas each see partial traces and decide differently.</li>
+    <li><b><code>memory_limiter</code> goes first.</b> Any processor before it can OOM the Collector it was meant to protect.</li>
+    <li><b>Cumulative vs delta mismatch</b> shows up as sawtooth graphs or flat zeros — check <code>OTEL_EXPORTER_OTLP_METRICS_TEMPORALITY_PREFERENCE</code> against what the backend expects.</li>
+    <li><b>OTLP → Prometheus renames things.</b> Suffixes (<code>_total</code>, <code>_seconds</code>) and dot-to-underscore escaping are applied on ingest; pick a <code>translation_strategy</code> once and keep it.</li>
+    <li><b><code>rate()</code> over too short a range returns nothing.</b> Use ≥4× the scrape interval; a 1m range on a 30s scrape is a flapping alert.</li>
+    <li><b>Alert on absence too.</b> A crashed exporter looks like zero errors — pair every ratio alert with <code>absent()</code> or <code>up == 0</code>.</li>
+    <li><b>Missing traceparent is usually a proxy.</b> CDN, WAF and API-gateway header allowlists strip unknown headers by default.</li>
+    <li><b>Async loses context silently.</b> Fire-and-forget tasks, thread pools and queue consumers need explicit context extraction or span links.</li>
+    <li><b>Health checks pollute everything.</b> Drop <code>/healthz</code> and <code>/metrics</code> at the agent, before they distort the latency histogram and the log bill.</li>
+    <li><b>Secrets leak through attributes.</b> Strip <code>http.request.header.authorization</code>, query-string tokens and raw SQL values in the Collector, not in review.</li>
+    <li><b>Clock skew produces negative durations.</b> Trust the span's own duration, not the difference of two hosts' timestamps.</li>
+    <li><b>Debug logging is a config flag, not a deploy.</b> If turning on DEBUG needs a release, you will never turn it on during the incident.</li>
+    <li><b>Mitigate before you diagnose.</b> Roll back, shift traffic, raise a limit — then debug the saved dump, trace and profile.</li>
+    <li><b>Instrument the client too.</b> Server-side p99 excludes DNS, TLS, retries and queueing — the parts users actually feel.</li>
+    <li><b>Observability has a bill.</b> Telemetry cost frequently exceeds the workload's; sample traces, sample INFO logs, keep 100% of errors and metrics.</li>
+  </ul>
+</section>
+
+<section class="unit" id="u13">
+  <header>
+    <h2><span class="n">13</span>Modern vs legacy</h2>
+    <span class="docs"><a href="https://opentelemetry.io/docs/migration/">docs: migrating to OpenTelemetry</a></span>
+  </header>
+  <div class="tw">
+    <table class="grid">
+      <thead><tr><th>Task</th><th>Modern</th><th>Legacy still seen</th><th>Since</th></tr></thead>
+      <tbody>
+        <tr><td>Instrument an app</td><td>OTel SDK + semconv, one pipeline for all signals</td><td>OpenTracing / OpenCensus, per-vendor agents</td><td>OTel traces 1.0, 2021</td></tr>
+        <tr class="hi"><td>Configure the SDK</td><td><code>OTEL_CONFIG_FILE</code> declarative YAML</td><td>a wall of <code>OTEL_*</code> env vars</td><td>stable 2026-03-05</td></tr>
+        <tr><td>Ship logs</td><td>Grafana Alloy (or the Collector's <code>filelog</code>)</td><td>Promtail, Grafana Agent, Fluent Bit sidecars</td><td>Promtail EOL 2026-03-02</td></tr>
+        <tr><td>Store latency</td><td>native histograms, no <code>le</code></td><td>classic <code>_bucket</code> series per boundary</td><td>Prometheus 3.8, 2025-11-28</td></tr>
+        <tr><td>Get metrics into Prometheus</td><td>OTLP push to <code>/api/v1/otlp/v1/metrics</code></td><td>exporter + scrape only, Pushgateway for jobs</td><td>Prometheus 3.0, 2024-11</td></tr>
+        <tr><td>Ship metrics between servers</td><td>Remote-Write 2.0 (metadata, exemplars, native histograms)</td><td>Remote-Write 1.0</td><td>Prometheus 3.0, 2024-11</td></tr>
+        <tr><td>Query traces</td><td>TraceQL / Jaeger v2 on the Collector</td><td>tag-search UI, Jaeger v1 collector+agent</td><td>Jaeger v2, 2024-11</td></tr>
+        <tr><td>Decide what to keep</td><td>tail sampling + 100% span metrics</td><td>fixed 1% head sampling everywhere</td><td>Collector contrib</td></tr>
+        <tr><td>Correlate logs to traces</td><td>structured metadata / <code>trace_id</code> field</td><td>grep by request id across hosts</td><td>Loki 3.0, 2024-04</td></tr>
+        <tr><td>Zero-code Go, C++, Rust</td><td>OBI (eBPF, no restart)</td><td>manual instrumentation only</td><td>OBI beta, 2026-04</td></tr>
+        <tr><td>Find the expensive function</td><td>continuous profiling (pprof / OTel profiles)</td><td>ad-hoc <code>perf record</code> after the fact</td><td>OTel profiles alpha, 2026-03</td></tr>
+        <tr><td>LLM/agent telemetry</td><td><code>semantic-conventions-genai</code> repo</td><td><code>gen_ai.*</code> in core semconv, vendor SDK spans</td><td>semconv v1.42, 2026-06</td></tr>
+        <tr><td>Debug a distroless pod</td><td><code>kubectl debug --target</code> ephemeral container</td><td>rebuild the image with a shell, <code>kubectl exec</code></td><td>K8s 1.25 GA</td></tr>
+        <tr><td>Alert</td><td>multiwindow burn-rate on an SLO</td><td>static thresholds per host metric</td><td>SRE Workbook, 2018</td></tr>
+        <tr><td>HTTP attribute names</td><td><code>http.request.method</code>, <code>url.path</code>, <code>error.type</code></td><td><code>http.method</code>, <code>http.url</code>, <code>net.peer.*</code></td><td>semconv 1.21 stable</td></tr>
+      </tbody>
+    </table>
+  </div>
+</section>
+
+<section class="unit" id="u14">
+  <header>
+    <h2><span class="n">14</span>Version timeline</h2>
+    <span class="docs"><a href="https://opentelemetry.io/blog/">docs: OTel blog &amp; release notes</a></span>
+  </header>
+  <div class="tw">
+    <table class="grid">
+      <thead><tr><th>Date</th><th>Release</th><th>What changed</th></tr></thead>
+      <tbody>
+        <tr><td>2026-09-07</td><td>Prometheus 3.13.3</td><td>patch line: Docker SD panic, case-insensitive regex matchers silently dropping values, TSDB fixes</td></tr>
+        <tr class="hi"><td>2026-09-02</td><td>OTel Collector v1.66.0 / v0.160.0</td><td><b>newly deprecated:</b> flat HTTP keepalive fields, replaced by a <code>keepalive</code> section; faster batch sizing, better memory-limiter reporting</td></tr>
+        <tr><td>2026-08-17</td><td>Prometheus 3.14.0</td><td><code>rate()</code>/<code>increase()</code> may extrapolate from start timestamps (flag <code>use-start-timestamps</code>); OCI service discovery; PromQL duration-expression linting in the UI</td></tr>
+        <tr><td>2026-08-04</td><td>semconv v1.44.0</td><td>Kubernetes memory metrics renamed, browser web-vitals breaking changes — pin <code>schema_url</code> before upgrading dashboards</td></tr>
+        <tr><td>2026-07-01</td><td>Prometheus 3.13.0</td><td>minor release; the 3.13 line still receives patches alongside 3.14</td></tr>
+        <tr><td>2026-06</td><td>semconv v1.42.0</td><td><b>newly deprecated in core:</b> all <code>gen_ai.*</code> moved to <code>semantic-conventions-genai</code> (repo created 2026-05-05); still Development, not stable</td></tr>
+        <tr><td>2026-05-28</td><td>Prometheus 3.12.0</td><td>minor release on the 3.x cadence (roughly six weeks)</td></tr>
+        <tr><td>2026-04-21</td><td>Grafana 13 (GrafanaCON)</td><td><b>newly stable:</b> Git Sync (observability as code) and the rebuilt gauge panel; dashboard templates, simplified OTel packages; 13.1 follows with wider Assistant coverage</td></tr>
+        <tr><td>2026-04-16</td><td>OBI v0.8.0 → beta</td><td>OpenTelemetry eBPF Instrumentation (ex-Grafana Beyla) beta at KubeCon EU; HTTP/gRPC/SQL zero-code traces; 1.0 is the 2026 goal, .NET support planned</td></tr>
+        <tr><td>2026-03-05</td><td>OTel declarative config</td><td><b>newly stable:</b> configuration schema v1.0.0, the YAML/in-memory model, <code>Parse</code>/<code>Create</code> and <code>OTEL_CONFIG_FILE</code>; C++, Go, Java, JS, PHP shipped, .NET and Python in progress</td></tr>
+        <tr><td>2026-03-02</td><td>Promtail EOL</td><td>no further releases or support; <code>alloy convert --source-format=promtail</code> is the migration path</td></tr>
+        <tr><td>2026-03</td><td>OTel profiles public alpha</td><td>fourth signal in the open: Collector v0.148.0 adds the pprof receiver, profiles in <code>k8sattributes</code> and OTTL, plus an eBPF profiler distribution. Not production-critical yet</td></tr>
+        <tr><td>2025-11-28</td><td>Prometheus 3.8.0</td><td><b>newly stable:</b> native histograms, opt-in per scrape config (<code>scrape_native_histograms</code>); the feature flag becomes a no-op in 3.9 and both scrape and send default to on in 4.0</td></tr>
+        <tr><td>2025</td><td>Beyla → OpenTelemetry</td><td>Grafana donates Beyla; it becomes OBI with its own SIG and release train</td></tr>
+        <tr><td>2024-11-14</td><td>Prometheus 3.0</td><td>OTLP ingestion, UTF-8 metric and label names, Remote-Write 2.0, new query UI — the first major release in seven years</td></tr>
+        <tr><td>2024-11</td><td>Jaeger v2</td><td>rebuilt as an OTel Collector distribution; v1 is legacy</td></tr>
+        <tr><td>2024-04</td><td>Loki 3.0</td><td>native OTLP ingestion, structured metadata, TSDB index by default</td></tr>
+        <tr><td>2023</td><td>OTel logs stable</td><td>logs bridge API, SDK and OTLP declared stable, completing traces (2021) and metrics (2022) — the point where one SDK covered all three classic signals</td></tr>
+      </tbody>
+    </table>
+  </div>
+  <div class="note"><p>The timeline is the fastest-rotting part of this card. Re-verify against <a href="https://github.com/prometheus/prometheus/releases">prometheus/prometheus releases</a>, <a href="https://github.com/open-telemetry/opentelemetry-collector/releases">opentelemetry-collector releases</a> and <a href="https://github.com/open-telemetry/semantic-conventions/releases">semantic-conventions releases</a> before quoting a version in an interview.</p></div>
+</section>
+</main>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.11.1/highlight.min.js"></script>
+<script>
+(function () {
+  if (window.hljs) { try { hljs.highlightAll(); } catch (e) { /* highlighting is decoration */ } }
+
+  var toggle = document.querySelector('.navtoggle');
+  var side = document.getElementById('side');
+  if (toggle) {
+    toggle.addEventListener('click', function () {
+      var open = document.body.classList.toggle('nav-open');
+      toggle.setAttribute('aria-expanded', open ? 'true' : 'false');
+    });
+  }
+  if (side) {
+    side.addEventListener('click', function (e) {
+      if (e.target.closest('a')) {
+        document.body.classList.remove('nav-open');
+        if (toggle) toggle.setAttribute('aria-expanded', 'false');
+      }
+    });
+  }
+
+  var links = Array.prototype.slice.call(document.querySelectorAll('.units a'));
+  var units = links.map(function (a) { return document.getElementById(a.getAttribute('href').slice(1)); });
+  var ticking = false;
+  function spy() {
+    ticking = false;
+    var best = 0;
+    for (var i = 0; i < units.length; i++) {
+      if (units[i] && units[i].getBoundingClientRect().top <= 140) best = i;
+    }
+    for (var j = 0; j < links.length; j++) {
+      if (j === best) links[j].setAttribute('aria-current', 'true');
+      else links[j].removeAttribute('aria-current');
+    }
+  }
+  function onScroll() {
+    if (!ticking) { ticking = true; window.requestAnimationFrame(spy); }
+  }
+  window.addEventListener('scroll', onScroll, { passive: true });
+  window.addEventListener('resize', onScroll, { passive: true });
+  spy();
+})();
+</script>
+</body>
+</html>
