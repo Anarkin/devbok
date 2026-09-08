@@ -11,7 +11,7 @@ Let the topic decide the sections (a language wants more syntax, a CLI tool more
 
 - Hero summary: 3 sentences — what is on the card and which version it reflects; no "how to use". Chips: the version facts only.
 - The units are the card's sections.
-- Layout: a dense multi-column grid on wide screens (single column on mobile), each section a compact card. One line per item: a task or concept on the left, the syntax or command on the right in monospace, with a minimal example where the syntax alone is not obvious. No paragraph longer than two lines.
+- Layout: one column, the sections stacked in order so the page reads top to bottom like every other devbok page — never a multi-column grid of sections. Each section is a compact card; the content column may be up to 120ch wide because every row is a task or concept on the left and the syntax or command on the right in monospace, with a minimal example where the syntax alone is not obvious. No paragraph longer than two lines.
 - Section content:
   - Syntax and APIs: the constructs and calls I reach for daily, each with a minimal, correct example.
   - Commands and flags: the ones actually used, with the one-liner each achieves.
