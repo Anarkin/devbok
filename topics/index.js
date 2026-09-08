@@ -46,7 +46,14 @@ window.DEVBOK_TOPICS = [
     "accent": "#7c3aed",
     "created": "2026-09-08",
     "kinds": {
-      "study": [],
+      "study": [
+        {
+          "v": 1,
+          "generated": "2026-09-08",
+          "prompt": "3e395ac4",
+          "file": "topics/aspire/study.v1.html"
+        }
+      ],
       "experience": [],
       "interview": [],
       "cheatsheet": [
@@ -381,8 +388,22 @@ window.DEVBOK_TOPICS = [
     "accent": "#512bd4",
     "created": "2026-09-08",
     "kinds": {
-      "study": [],
-      "experience": [],
+      "study": [
+        {
+          "v": 1,
+          "generated": "2026-09-08",
+          "prompt": "3e395ac4",
+          "file": "topics/entityframework/study.v1.html"
+        }
+      ],
+      "experience": [
+        {
+          "v": 1,
+          "generated": "2026-09-08",
+          "prompt": "f284a113",
+          "file": "topics/entityframework/experience.v1.html"
+        }
+      ],
       "interview": [],
       "cheatsheet": [
         {
@@ -460,7 +481,14 @@ window.DEVBOK_TOPICS = [
           "file": "topics/modernization/experience.v1.html"
         }
       ],
-      "interview": [],
+      "interview": [
+        {
+          "v": 1,
+          "generated": "2026-09-08",
+          "prompt": "880c04f3",
+          "file": "topics/modernization/interview.v1.html"
+        }
+      ],
       "cheatsheet": [
         {
           "v": 1,

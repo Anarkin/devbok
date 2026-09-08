@@ -1,0 +1,899 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Modernization (.NET full-stack) · cheatsheet · devbok</title>
+<link rel="preconnect" href="https://fonts.googleapis.com/">
+<link rel="preconnect" href="https://fonts.gstatic.com/" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Cascadia+Mono:wght@400;700&amp;display=swap">
+<style>
+:root { color-scheme: light;
+  --bg: #ffffff; --fg: #111111; --muted: #6b6b6b; --line: #111111; --soft: #f4f4f4; --border: #cccccc;
+  --accent: #c2410c; --accent-soft: color-mix(in srgb, var(--accent) 12%, var(--bg)); }
+@media (prefers-color-scheme: dark) { :root { color-scheme: dark;
+  --bg: #222222; --fg: #cccccc; --muted: #8f8f8f; --line: #111111; --soft: #2c2c2c; --border: #4a4a4a;
+  --accent: #f5885c; --accent-soft: color-mix(in srgb, var(--accent) 16%, var(--bg)); } }
+
+*, *::before, *::after { box-sizing: border-box; }
+html { -webkit-text-size-adjust: 100%; }
+body { margin: 0; background: var(--bg); color: var(--fg);
+  font-family: system-ui, sans-serif; font-size: 16px; line-height: 1.6; overflow-wrap: break-word; }
+h1, h2, h3 { font-family: system-ui, sans-serif; font-weight: 700; }
+h2 { font-size: 1.5em; }
+h3 { font-size: 1.17em; }
+a { color: var(--accent); }
+a:focus-visible, button:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+img { max-width: 100%; }
+
+code, kbd, pre, .mono, .chip, .since, .docs, .hero .meta, .side, dl.rows dd, table.grid { font-family: "Cascadia Mono", Consolas, monospace; font-size: 12px; }
+code { background: var(--soft); border: 1px solid var(--border); border-radius: 3px; padding: 0 .3em; overflow-wrap: anywhere; }
+pre { background: var(--soft); border: 1px solid var(--border); border-radius: 4px;
+  margin: 10px 0 0; padding: 10px 12px; overflow-x: auto; max-width: 100%; line-height: 1.5; }
+pre code { background: none; border: 0; padding: 0; white-space: pre; }
+
+.hero { margin: 0 0 24px; padding: 0 0 24px; border-bottom: 2px solid var(--line); }
+.hero h1 { margin: 0 0 8px; font-size: 2em; line-height: 1.2; font-weight: 700; }
+.hero .meta { margin: 0 0 12px; font-family: "Cascadia Mono", Consolas, monospace; font-size: 12px; color: var(--muted); }
+.hero .summary { margin: 0 0 12px; }
+.hero .chips { display: flex; flex-wrap: wrap; gap: 6px; margin: 0; }
+
+.side { position: fixed; top: 0; bottom: 0; left: 0; width: 260px; display: flex; flex-direction: column; background: var(--bg); border-right: 2px solid var(--line); font-family: "Cascadia Mono", Consolas, monospace; font-size: 12px; }
+.units { list-style: none; margin: 0; padding: 12px 0; overflow-y: auto; flex: 1; }
+.units a { display: grid; grid-template-columns: 2.5em 1fr; padding: 9px 20px; color: var(--fg); text-decoration: none; line-height: 1.4; }
+.units .n { color: var(--muted); }
+.units a:hover { background: var(--soft); }
+.units a[aria-current="true"] { background: var(--accent-soft); color: var(--accent); }
+.units a[aria-current="true"] .n { color: var(--accent); }
+.side footer { padding: 12px 20px; border-top: 2px solid var(--line); color: var(--muted); line-height: 1.5; }
+
+.content { margin-left: 260px; padding: 24px; max-width: 120ch; min-width: 0; }
+.unit { border-top: 2px solid var(--line); margin: 0 0 26px; padding: 14px 0 0; min-width: 0; }
+.unit > header { display: flex; flex-wrap: wrap; align-items: baseline; gap: 4px 14px; margin: 0 0 4px; min-width: 0; }
+.unit h2 { margin: 0; line-height: 1.25; }
+.unit h2 .n { font-family: "Cascadia Mono", Consolas, monospace; font-size: 12px; color: var(--muted); margin-right: 10px; }
+.unit h3 { margin: 16px 0 0; }
+.unit p { margin: 8px 0 0; }
+.docs { color: var(--muted); }
+.docs a { color: var(--accent); text-decoration: none; }
+.docs a:hover { text-decoration: underline; }
+
+dl.rows { display: grid; grid-template-columns: minmax(0, 32ch) minmax(0, 1fr);
+  margin: 12px 0 0; border-top: 1px solid var(--border); min-width: 0; }
+dl.rows dt { grid-column: 1; margin: 0; padding: 6px 14px 6px 0; border-bottom: 1px solid var(--border);
+  min-width: 0; line-height: 1.35; }
+dl.rows dd { grid-column: 2; margin: 0; padding: 7px 0 6px; border-bottom: 1px solid var(--border);
+  min-width: 0; line-height: 1.5; overflow-wrap: anywhere; }
+dl.rows dd code { background: none; border: 0; padding: 0; }
+.cmt { color: var(--muted); }
+.bad { color: var(--muted); }
+
+.chip { display: inline-block; text-transform: uppercase; letter-spacing: .03em;
+  background: var(--soft); border: 1px solid var(--border); border-radius: 4px; padding: 2px 7px; }
+.since { display: inline-block; border: 1px solid var(--accent); border-radius: 4px;
+  padding: 0 5px; color: var(--accent); white-space: nowrap; }
+.note { background: var(--soft); border-left: 3px solid var(--accent); padding: 8px 12px; margin: 12px 0 0; }
+.note p { margin: 0; }
+
+.tw { overflow-x: auto; margin: 12px 0 0; min-width: 0; }
+table.grid { border-collapse: collapse; width: 100%; }
+table.grid th { text-align: left; font-weight: 400; color: var(--muted);
+  border-bottom: 1px solid var(--border); padding: 6px 14px 6px 0; vertical-align: bottom; }
+table.grid td { border-bottom: 1px solid var(--border); padding: 6px 14px 6px 0; vertical-align: top; }
+table.grid td code { background: none; border: 0; padding: 0; }
+table.grid tr.hi td { background: var(--accent-soft); }
+
+ul.tight { margin: 12px 0 0; padding-left: 1.1em; }
+ul.tight li { margin: 0 0 3px; }
+ul.tight code { overflow-wrap: anywhere; }
+
+.navtoggle { display: none; position: fixed; top: 10px; left: 10px; z-index: 30;
+  font-family: "Cascadia Mono", Consolas, monospace; font-size: 12px; color: var(--fg);
+  background: var(--bg); border: 1px solid var(--line); border-radius: 4px; padding: 6px 10px; cursor: pointer; }
+@media (max-width: 720px) {
+  .navtoggle { display: block; }
+  .side { width: min(260px, 84%); transform: translateX(-102%); transition: transform .15s ease; z-index: 25; }
+  body.nav-open .side { transform: none; }
+  .content { margin-left: 0; padding: 52px 16px 24px; }
+  dl.rows { grid-template-columns: minmax(0, 1fr); }
+  dl.rows dt { padding: 6px 0 0; border-bottom: 0; font-weight: 600; }
+  dl.rows dd { padding: 2px 0 7px; }
+}
+
+@media print {
+  :root { color-scheme: light;
+    --bg: #ffffff; --fg: #000000; --muted: #444444; --line: #000000; --soft: #ffffff; --border: #999999;
+    --accent: #000000; --accent-soft: #ffffff; }
+  .side, .navtoggle { display: none !important; }
+  body { font-size: 8.5pt; line-height: 1.3; background: #fff; color: #000; }
+  .content { margin: 0; padding: 0; max-width: 100%; }
+  code, kbd, pre, .chip, .since, .docs, .hero .meta, dl.rows dd, table.grid { font-size: 7pt; }
+  .hero { padding-bottom: 8pt; margin-bottom: 10pt; border-bottom: 1pt solid #000; }
+  .hero h1 { font-size: 16pt; }
+  .unit { break-inside: avoid; page-break-inside: avoid; margin: 0 0 8pt; padding-top: 6pt; border-top: 1pt solid #000; }
+  .unit h2 { font-size: 10.5pt; }
+  pre { background: #fff; border: 1pt solid #999; padding: 4pt 6pt; }
+  .note { background: #fff; border-left: 2pt solid #000; }
+  code { border: 0; padding: 0; }
+  a, a:visited { color: #000; text-decoration: none; }
+  a[href]::after { content: ""; }
+  @page { size: A4; margin: 10mm; }
+}
+</style>
+<style>
+/* devbok: the shared code palette (prompts/shared/page.md, "Code"). */
+:root {
+  --code: color-mix(in srgb, var(--accent) 70%, var(--fg));
+  --hl-kw: #a626a4; --hl-str: #50a14f; --hl-num: #986801; --hl-cmt: #6b6b6b; --hl-type: #0184bc; --hl-fn: #4078f2; --hl-attr: #986801;
+}
+@media (prefers-color-scheme: dark) {
+  :root { --hl-kw: #c678dd; --hl-str: #98c379; --hl-num: #d19a66; --hl-cmt: #8f8f8f; --hl-type: #56b6c2; --hl-fn: #61afef; --hl-attr: #e5c07b; }
+}
+code { background: var(--soft); border: 1px solid var(--border); border-radius: 3px; padding: 0 .3em; color: var(--code); overflow-wrap: anywhere; }
+pre code, pre code.hljs { background: none; border: 0; border-radius: 0; padding: 0; color: inherit; white-space: pre; overflow-wrap: normal; }
+.hljs { color: var(--fg); background: transparent; }
+.hljs-keyword, .hljs-built_in, .hljs-literal, .hljs-selector-tag { color: var(--hl-kw); }
+.hljs-string, .hljs-regexp, .hljs-selector-attr { color: var(--hl-str); }
+.hljs-number, .hljs-symbol { color: var(--hl-num); }
+.hljs-comment, .hljs-quote, .hljs-doctag { color: var(--hl-cmt); font-style: italic; }
+.hljs-title, .hljs-title.class_, .hljs-type, .hljs-name, .hljs-section, .hljs-selector-class, .hljs-selector-pseudo { color: var(--hl-type); }
+.hljs-title.function_ { color: var(--hl-fn); }
+.hljs-meta, .hljs-attr, .hljs-attribute, .hljs-tag, .hljs-property, .hljs-variable { color: var(--hl-attr); }
+.hljs-template-tag, .hljs-template-variable { color: var(--hl-attr); }
+.hljs-code, .hljs-formula { color: var(--hl-cmt); }
+.hljs-operator, .hljs-subst, .hljs-punctuation, .hljs-params { color: var(--fg); }
+.hljs-emphasis { font-style: italic; }
+.hljs-strong { font-weight: 700; }
+@media print { code, .hljs, .hljs span { color: #000 !important; background: transparent !important; } }
+</style>
+</head>
+<body>
+<!-- devbok
+slug: modernization
+kind: cheatsheet
+version: 1
+topic: "Software Modernization for .NET+JS/TS+Database+Azure full-stack engineers"
+prompt: cheatsheet.md@ccd2d4a9
+generated: 2026-09-08
+-->
+<button class="navtoggle" type="button" aria-expanded="false" aria-controls="side">units</button>
+<nav class="side" id="side" aria-label="Units">
+  <ol class="units">
+    <li><a href="#u01"><span class="n">01</span><span class="t">Assess before you touch code</span></a></li>
+    <li><a href="#u02"><span class="n">02</span><span class="t">Strategy patterns &amp; the 7 Rs</span></a></li>
+    <li><a href="#u03"><span class="n">03</span><span class="t">.NET SDK, TFMs &amp; repo hygiene</span></a></li>
+    <li><a href="#u04"><span class="n">04</span><span class="t">ASP.NET &rarr; Core, incrementally</span></a></li>
+    <li><a href="#u05"><span class="n">05</span><span class="t">Upgrade tooling &amp; Copilot agents</span></a></li>
+    <li><a href="#u06"><span class="n">06</span><span class="t">JS/TS: ESM, TS 7, tooling</span></a></li>
+    <li><a href="#u07"><span class="n">07</span><span class="t">Frontend framework moves</span></a></li>
+    <li><a href="#u08"><span class="n">08</span><span class="t">Database &amp; schema evolution</span></a></li>
+    <li><a href="#u09"><span class="n">09</span><span class="t">Azure landing &amp; platform choice</span></a></li>
+    <li><a href="#u10"><span class="n">10</span><span class="t">Cutover, flags &amp; verification</span></a></li>
+    <li><a href="#u11"><span class="n">11</span><span class="t">Gotchas &amp; review one-liners</span></a></li>
+    <li><a href="#u12"><span class="n">12</span><span class="t">Modern vs legacy</span></a></li>
+    <li><a href="#u13"><span class="n">13</span><span class="t">Version timeline</span></a></li>
+  </ol>
+  <footer>Modernization (.NET full-stack) · cheatsheet · version 1 · 2026-09-08</footer>
+</nav>
+<main class="content">
+<header class="hero">
+  <h1>Modernization (.NET full-stack)</h1>
+  <p class="meta">cheatsheet · .NET 10 LTS · released 2025-11-11</p>
+  <p class="summary">The commands, project switches, migration idioms and cutover mechanics for moving a live .NET + JS/TS + SQL + Azure system off its legacy: assessment queries, strangler-fig and expand&ndash;contract patterns, <code>System.Web</code> adapters and YARP, upgrade tooling, ESM and TypeScript 7, schema evolution, Azure platform choice and the flags that make a cutover reversible. It reflects <strong>.NET 10 LTS</strong> (2025-11-11, supported to 2028-11-14) with <strong>.NET 11</strong> in RC for 2026-11-10, <strong>C# 14</strong>/<strong>EF Core 10</strong>, <strong>Aspire 13.5</strong>, <strong>TypeScript 7.0</strong> (native Go compiler, GA 2026-07-08), <strong>Node.js 24 LTS</strong>, <strong>ESLint 10</strong>, <strong>Angular 22</strong>, <strong>React 19.2</strong> and <strong>SQL Server 2025</strong>. Assumption: &ldquo;modernization&rdquo; here means evolving a system that is already in production &mdash; runtime and framework upgrades, decomposition, data and platform moves &mdash; not greenfield architecture and not datacentre-exit rehosting, which appears only as the option you compare against.</p>
+  <p class="chips"><span class="chip">.NET 10 LTS 2025-11-11</span> <span class="chip">.NET 8/9 EOS 2026-11-10</span> <span class="chip">.NET 11 GA 2026-11-10</span> <span class="chip">C# 14 · EF Core 10</span> <span class="chip">Aspire 13.5</span> <span class="chip">TypeScript 7.0 2026-07-08</span> <span class="chip">Node 24 LTS · 26 current</span> <span class="chip">ESLint 10 · Angular 22 · React 19.2</span> <span class="chip">SQL Server 2025</span> <span class="chip">verified 2026-09-08</span></p>
+</header>
+
+<section class="unit" id="u01">
+  <header>
+    <h2><span class="n">01</span>Assess before you touch code</h2>
+    <span class="docs"><a href="https://learn.microsoft.com/en-us/dotnet/core/porting/">docs: Port from .NET Framework</a></span>
+  </header>
+  <p>Every modernization argument you will have is won or lost on inventory. Produce four numbers first: what is out of support, what is vulnerable, what actually gets traffic, and where the code churns.</p>
+  <h3>.NET inventory</h3>
+  <dl class="rows">
+    <dt>Installed SDKs/runtimes, EOL flags</dt>
+    <dd><code>dotnet sdk check</code> <span class="cmt">&mdash; prints &ldquo;out of support&rdquo; per band; <code>dotnet --info</code> for the raw list</span></dd>
+    <dt>Which projects are still legacy</dt>
+    <dd><code>grep -rl "&lt;TargetFrameworkVersion&gt;" --include=*.csproj .</code> <span class="cmt">&mdash; non-SDK-style; SDK-style uses <code>&lt;TargetFramework&gt;</code></span></dd>
+    <dt>Effective TFM per project</dt>
+    <dd><code>dotnet msbuild App.csproj -getProperty:TargetFramework</code> <span class="since">SDK 8+</span></dd>
+    <dt>Outdated / vulnerable / deprecated</dt>
+    <dd><code>dotnet list package --outdated --include-transitive</code>, then <code>--vulnerable</code>, then <code>--deprecated</code> <span class="cmt">&mdash; transitive is where the CVEs hide</span></dd>
+    <dt>Why is this package here at all</dt>
+    <dd><code>dotnet nuget why ./src Newtonsoft.Json</code> <span class="since">SDK 8.0.2+</span> <span class="cmt">&mdash; prints the dependency chain, ends &ldquo;we can't drop it&rdquo; arguments</span></dd>
+    <dt>Restore-time CVE gate</dt>
+    <dd><code>&lt;NuGetAudit&gt;true&lt;/NuGetAudit&gt;</code> + <code>&lt;NuGetAuditMode&gt;all&lt;/NuGetAuditMode&gt;</code> <span class="cmt">&mdash; on by default since NuGet 6.8; <code>all</code> (direct+transitive) is the default from SDK 9</span></dd>
+    <dt>Windows-only API use</dt>
+    <dd>analyzer <code>CA1416</code> with <code>&lt;SupportedOSPlatform&gt;</code> <span class="cmt">&mdash; the old .NET Portability Analyzer is archived; use analyzers, not the retired tool</span></dd>
+    <dt>Binary-level API surface</dt>
+    <dd><code>apicompat</code> / <code>Microsoft.DotNet.ApiCompat.Tool</code> <span class="cmt">&mdash; proves a rewritten library is drop-in for its callers</span></dd>
+  </dl>
+  <h3>JS/TS inventory</h3>
+  <dl class="rows">
+    <dt>Outdated + advisories</dt>
+    <dd><code>npm outdated</code>; <code>npm audit --omit=dev</code>; <code>npm audit fix --dry-run</code></dd>
+    <dt>Who pulls in the bad version</dt>
+    <dd><code>npm ls lodash --all</code>; <code>npm query "#lodash"</code> <span class="cmt">&mdash; the npm answer to <code>nuget why</code></span></dd>
+    <dt>Dead files, exports, deps</dt>
+    <dd><code>npx knip</code> <span class="cmt">&mdash; deletes more of a legacy SPA than any refactor; <code>npx depcheck</code> for deps only</span></dd>
+    <dt>Bundle truth</dt>
+    <dd><code>npx vite-bundle-visualizer</code> / <code>npx source-map-explorer dist/**/*.js</code></dd>
+    <dt>Node floor the repo assumes</dt>
+    <dd><code>engines</code> in <code>package.json</code> + <code>.nvmrc</code> <span class="cmt">&mdash; CI and dev must agree or &ldquo;works on my machine&rdquo; is structural</span></dd>
+  </dl>
+  <h3>Data and traffic inventory</h3>
+  <pre><code class="language-sql">-- compat level per database: 160 = SQL 2022, 170 = SQL 2025
+SELECT name, compatibility_level, is_read_committed_snapshot_on FROM sys.databases;
+
+-- deprecated T-SQL still being executed (counter resets on restart)
+SELECT instance_name, cntr_value FROM sys.dm_os_performance_counters
+WHERE object_name LIKE '%Deprecated Features%' AND cntr_value &gt; 0;
+
+-- the 20 queries that actually cost money (Query Store, on by default since SQL 2022)
+SELECT TOP 20 q.query_id, SUM(rs.count_executions * rs.avg_duration) / 1000.0 AS total_ms
+FROM sys.query_store_runtime_stats rs
+JOIN sys.query_store_plan p ON p.plan_id = rs.plan_id
+JOIN sys.query_store_query q ON q.query_id = p.query_id
+GROUP BY q.query_id ORDER BY total_ms DESC;</code></pre>
+  <dl class="rows">
+    <dt>Azure estate in one query</dt>
+    <dd><code>az graph query -q "Resources | summarize count() by type, location"</code> <span class="cmt">&mdash; Resource Graph, not <code>az resource list</code>, once you pass a few hundred resources</span></dd>
+    <dt>Runtime versions in App Service</dt>
+    <dd><code>az webapp list --query "[].{n:name,stack:siteConfig.netFrameworkVersion,tls:siteConfig.minTlsVersion}" -o table</code></dd>
+    <dt>Which endpoints are alive</dt>
+    <dd>App Insights / OTel: requests by route over 30 days <span class="cmt">&mdash; retire the zero-traffic 30% instead of porting it</span></dd>
+    <dt>Where the code churns</dt>
+    <dd><code>git log --format=format: --name-only --since=2.years | sort | uniq -c | sort -rg | head -30</code> <span class="cmt">&mdash; churn &times; complexity picks the first strangler slice</span></dd>
+  </dl>
+  <div class="note"><p><strong>Assessment output, not a report:</strong> one table of components &times; {runs on, supported until, CVEs, traffic, churn, owner}. If a component has no owner, that is the finding.</p></div>
+</section>
+
+<section class="unit" id="u02">
+  <header>
+    <h2><span class="n">02</span>Strategy patterns &amp; the 7 Rs</h2>
+    <span class="docs"><a href="https://learn.microsoft.com/en-us/azure/cloud-adoption-framework/modernize/">docs: CAF Modernize</a></span>
+  </header>
+  <p>Pick the R per component, never per system. Most real programmes are a mix, and the two cheapest Rs &mdash; retire and retain &mdash; are the ones nobody proposes.</p>
+  <div class="tw">
+  <table class="grid">
+    <thead><tr><th>R</th><th>Means</th><th>Pick it when</th><th>Cost / risk</th></tr></thead>
+    <tbody>
+      <tr class="hi"><td>Retire</td><td>delete it</td><td>zero or near-zero traffic; a report nobody opens</td><td>lowest; only political</td></tr>
+      <tr><td>Retain</td><td>leave it, ring-fence it</td><td>stable, low-change, regulated, or vendor-owned</td><td>low; needs an explicit re-review date</td></tr>
+      <tr><td>Rehost</td><td>lift &amp; shift to IaaS/containers</td><td>datacentre exit deadline drives the clock</td><td>fast, keeps every existing problem</td></tr>
+      <tr><td>Replatform</td><td>same code, managed platform</td><td>IIS &rarr; App Service, SQL VM &rarr; Azure SQL MI</td><td>the usual 80/20 &mdash; config change, not rewrite</td></tr>
+      <tr class="hi"><td>Refactor</td><td>same shape, new runtime/APIs</td><td>.NET Framework &rarr; .NET 10; jQuery &rarr; TS</td><td>medium; behaviour must be provably unchanged</td></tr>
+      <tr><td>Rearchitect</td><td>split or re-shape the system</td><td>one deploy unit blocks four teams</td><td>high; only with a real scaling/ownership pain</td></tr>
+      <tr><td>Rebuild / Replace</td><td>rewrite, or buy SaaS</td><td>domain has moved on; commodity capability</td><td>highest; the rewrite everyone underestimates</td></tr>
+    </tbody>
+  </table>
+  </div>
+  <h3>The patterns you will actually name in a design review</h3>
+  <dl class="rows">
+    <dt>Strangler fig</dt>
+    <dd>route slice-by-slice through a facade (YARP, App Gateway, Front Door) until the legacy has no traffic, then delete it. <span class="cmt">Needs a routing seam and per-route rollback; the &ldquo;then delete it&rdquo; is the step teams skip.</span></dd>
+    <dt>Branch by abstraction</dt>
+    <dd>introduce an interface over the old implementation, add the new one behind it, flip per call site, remove the abstraction. <span class="cmt">Trunk-based alternative to a long-lived migration branch.</span></dd>
+    <dt>Expand &ndash; migrate &ndash; contract</dt>
+    <dd>the only safe schema/API change under zero downtime: add the new shape, dual-write and backfill, move readers, drop the old. <span class="cmt">Also called parallel change; each phase is its own deploy.</span></dd>
+    <dt>Anti-corruption layer</dt>
+    <dd>translate at the boundary so legacy models never leak into the new service. <span class="cmt">One ACL per legacy system, owned by the new side.</span></dd>
+    <dt>Dark launch / shadow traffic</dt>
+    <dd>send real traffic to the new path, discard its response, compare. <span class="cmt">The cheapest correctness evidence you will ever get.</span></dd>
+    <dt>Verification by diff</dt>
+    <dd>call both, return old, log mismatches (the &ldquo;scientist&rdquo; pattern). <span class="cmt">Budget for non-determinism: clocks, GUIDs, ordering, culture.</span></dd>
+    <dt>Fitness function + ratchet</dt>
+    <dd>an automated check that the property you are fixing only improves: warning count, TFM count, nullable-clean project count. <span class="cmt">Baseline it in CI; the number may fall, never rise.</span></dd>
+    <dt>Seam</dt>
+    <dd>the place you can change behaviour without editing the legacy: HTTP route, DI registration, message topic, DB view. <span class="cmt">No seam &rArr; no incremental plan &rArr; you are proposing a rewrite; say so out loud.</span></dd>
+  </dl>
+  <div class="note"><p><strong>Sequencing rule:</strong> runtime upgrade first (same shape, new .NET), <em>then</em> architecture. Rearchitecting on a dead runtime means debugging two problems at once, and the runtime one has a support deadline attached.</p></div>
+</section>
+
+<section class="unit" id="u03">
+  <header>
+    <h2><span class="n">03</span>.NET SDK, TFMs &amp; repo hygiene</h2>
+    <span class="docs"><a href="https://learn.microsoft.com/en-us/dotnet/core/tools/">docs: .NET CLI</a></span>
+  </header>
+  <p>Before any porting, make the repo boring: one SDK band, one place for versions, warnings that mean something. Multi-targeting is what lets old and new hosts share the same library during the migration.</p>
+  <pre><code class="language-json">// global.json - pin the SDK band, allow patches, keep CI and dev identical
+{ "sdk": { "version": "10.0.100", "rollForward": "latestFeature", "allowPrerelease": false } }</code></pre>
+  <pre><code class="language-xml">&lt;!-- Directory.Build.props at repo root: applies to every project below it --&gt;
+&lt;Project&gt;
+  &lt;PropertyGroup&gt;
+    &lt;LangVersion&gt;latest&lt;/LangVersion&gt;
+    &lt;Nullable&gt;enable&lt;/Nullable&gt;
+    &lt;ImplicitUsings&gt;enable&lt;/ImplicitUsings&gt;
+    &lt;TreatWarningsAsErrors&gt;true&lt;/TreatWarningsAsErrors&gt;
+    &lt;!-- the ratchet: everything is an error except the debt you have not paid yet --&gt;
+    &lt;WarningsNotAsErrors&gt;CS8600;CS8602;CS8618&lt;/WarningsNotAsErrors&gt;
+    &lt;EnforceCodeStyleInBuild&gt;true&lt;/EnforceCodeStyleInBuild&gt;
+    &lt;AnalysisLevel&gt;latest-recommended&lt;/AnalysisLevel&gt;
+    &lt;NuGetAuditMode&gt;all&lt;/NuGetAuditMode&gt;
+    &lt;InvariantGlobalization&gt;true&lt;/InvariantGlobalization&gt;  &lt;!-- only if you never format per-culture --&gt;
+  &lt;/PropertyGroup&gt;
+&lt;/Project&gt;
+
+&lt;!-- Directory.Packages.props: Central Package Management, one version per package for the repo --&gt;
+&lt;Project&gt;
+  &lt;PropertyGroup&gt;&lt;ManagePackageVersionsCentrally&gt;true&lt;/ManagePackageVersionsCentrally&gt;&lt;/PropertyGroup&gt;
+  &lt;ItemGroup&gt;
+    &lt;PackageVersion Include="Microsoft.EntityFrameworkCore.SqlServer" Version="10.0.0" /&gt;
+    &lt;PackageVersion Include="Azure.Identity" Version="1.17.0" /&gt;
+  &lt;/ItemGroup&gt;
+&lt;/Project&gt;</code></pre>
+  <dl class="rows">
+    <dt>Bridge library for both hosts</dt>
+    <dd><code>&lt;TargetFrameworks&gt;net48;net10.0&lt;/TargetFrameworks&gt;</code> + <code>#if NETFRAMEWORK</code> <span class="cmt">&mdash; the domain assembly compiles for the old web app and the new one at once</span></dd>
+    <dt>packages.config &rarr; PackageReference</dt>
+    <dd>VS: right-click <em>Migrate packages.config&hellip;</em>; then SDK-style csproj by hand or via the Copilot upgrade agent <span class="cmt">&mdash; do this <em>before</em> retargeting; a 600-line csproj becomes ~15 lines</span></dd>
+    <dt>Add / list / search packages</dt>
+    <dd><code>dotnet package add Serilog</code>, <code>dotnet package list --outdated</code> <span class="since">SDK 10</span> <span class="cmt">&mdash; new noun-first verbs; <code>dotnet add package</code> still works</span></dd>
+    <dt>Reproducible restore</dt>
+    <dd><code>dotnet restore --locked-mode</code> with <code>&lt;RestorePackagesWithLockFile&gt;true&lt;/RestorePackagesWithLockFile&gt;</code></dd>
+    <dt>Format / style ratchet</dt>
+    <dd><code>dotnet format --verify-no-changes</code> in CI; severities live in <code>.editorconfig</code>, raised one rule at a time</dd>
+    <dt>Test platform</dt>
+    <dd><code>dotnet test</code> runs on Microsoft.Testing.Platform by default <span class="since">SDK 10</span>; <code>dotnet test --coverage --coverage-output-format cobertura</code> <span class="cmt">&mdash; no more coverlet package for the common case</span></dd>
+    <dt>Throwaway spike, no project</dt>
+    <dd><code>dotnet run probe.cs</code> <span class="since">.NET 10</span> <span class="cmt">&mdash; file-based app with <code>#:package Dapper@2.*</code> directives; ideal for migration probes and data checks</span></dd>
+    <dt>Container without a Dockerfile</dt>
+    <dd><code>dotnet publish -p:PublishProfile=DefaultContainer -p:ContainerRegistry=acme.azurecr.io</code> <span class="since">.NET 7+</span></dd>
+    <dt>Trim / AOT viability check</dt>
+    <dd><code>&lt;PublishTrimmed&gt;true&lt;/PublishTrimmed&gt;</code>, <code>&lt;PublishAot&gt;true&lt;/PublishAot&gt;</code> <span class="cmt">&mdash; warnings here tell you which reflection-heavy libraries block the modern hosting model</span></dd>
+    <dt>Which .NET is supported</dt>
+    <dd>10 LTS &rarr; 2028-11-14 · 9 STS and 8 LTS both end <strong>2026-11-10</strong> · 11 STS GA 2026-11-10 <span class="cmt">&mdash; landing on 8 today buys you two months</span></dd>
+  </dl>
+  <div class="note"><p><strong>Framework is not dead, it is frozen:</strong> .NET Framework 4.8/4.8.1 is a Windows component and stays serviced with the OS &mdash; no forced deadline, but no new APIs, no ASP.NET Core, no modern perf, and a shrinking library ecosystem. &ldquo;It is supported&rdquo; is a true statement and a bad argument.</p></div>
+</section>
+
+<section class="unit" id="u04">
+  <header>
+    <h2><span class="n">04</span>ASP.NET &rarr; Core, incrementally</h2>
+    <span class="docs"><a href="https://learn.microsoft.com/en-us/aspnet/core/migration/inc/overview">docs: Incremental migration</a></span>
+  </header>
+  <p>The supported strangler for ASP.NET on .NET Framework: a new ASP.NET Core app in front, YARP forwarding what it cannot serve, <code>System.Web</code> adapters sharing session and identity across the two. Ship route by route.</p>
+  <pre><code class="language-csharp">// New .NET 10 app (the "shim"): handles migrated routes, proxies the rest to the .NET 4.8 app
+var builder = WebApplication.CreateBuilder(args);
+builder.Services.AddSystemWebAdapters()
+    .AddJsonSessionSerializer(o =&gt; o.RegisterKey&lt;int&gt;("VisitCount"))
+    .AddRemoteAppClient(o =&gt;
+    {
+        o.RemoteAppUrl = new Uri(builder.Configuration["LegacyApp:Url"]!);
+        o.ApiKey = builder.Configuration["LegacyApp:ApiKey"]!;   // shared secret, from Key Vault
+    })
+    .AddAuthenticationClient(isDefaultScheme: true)   // identity comes from the legacy app
+    .AddSessionClient();                              // and so does Session
+
+builder.Services.AddReverseProxy()
+    .LoadFromConfig(builder.Configuration.GetSection("ReverseProxy"));
+
+var app = builder.Build();
+app.UseAuthentication();
+app.UseAuthorization();
+app.UseSystemWebAdapters();
+app.MapDefaultControllerRoute().RequireSystemWebAdapterSession();
+app.MapForwarder("/{**catch-all}", builder.Configuration["LegacyApp:Url"]!);  // fallback = legacy
+app.Run();</code></pre>
+  <pre><code class="language-csharp">// Legacy .NET Framework app: expose the session/auth endpoints the shim calls
+// Global.asax.cs -> Application_Start
+SystemWebAdapterConfiguration.AddSystemWebAdapters(this)
+    .AddJsonSessionSerializer(o =&gt; o.RegisterKey&lt;int&gt;("VisitCount"))
+    .AddProxySupport(o =&gt; o.UseForwardedHeaders = true)   // so the legacy app sees the real host/scheme
+    .AddRemoteAppServer(o =&gt; o.ApiKey = ConfigurationManager.AppSettings["RemoteAppApiKey"])
+    .AddAuthenticationServer()
+    .AddSessionServer();</code></pre>
+  <h3>The mechanical replacements</h3>
+  <div class="tw">
+  <table class="grid">
+    <thead><tr><th>Legacy</th><th>Modern</th><th>Note</th></tr></thead>
+    <tbody>
+      <tr><td><code>Global.asax</code></td><td><code>Program.cs</code></td><td>minimal hosting; no <code>Startup</code> class needed since .NET 6</td></tr>
+      <tr><td><code>web.config</code> app settings</td><td><code>appsettings.json</code> + env vars + Key Vault</td><td>hierarchical keys use <code>__</code> in env vars on Linux</td></tr>
+      <tr><td><code>IHttpModule</code>, <code>IHttpHandler</code></td><td>middleware, endpoints</td><td>order is explicit and yours to own</td></tr>
+      <tr class="hi"><td><code>HttpContext.Current</code></td><td><code>IHttpContextAccessor</code></td><td>adapters provide <code>HttpContext.Current</code> as a bridge &mdash; a crutch, not a destination; it forces sync request buffering</td></tr>
+      <tr><td><code>Session["k"]</code> (in-proc)</td><td>distributed cache / explicit state</td><td>adapters can share it; sticky sessions block scale-out</td></tr>
+      <tr><td>Web API 2 <code>ApiController</code></td><td><code>ControllerBase</code> / minimal APIs</td><td><code>IHttpActionResult</code> &rarr; <code>IResult</code>/<code>ActionResult&lt;T&gt;</code></td></tr>
+      <tr><td>MVC5 <code>System.Web.Mvc</code></td><td><code>Microsoft.AspNetCore.Mvc</code></td><td>Razor syntax mostly ports; <code>@Html</code> helpers shrink, tag helpers replace them</td></tr>
+      <tr class="hi"><td>WebForms <code>.aspx</code></td><td>Razor Pages / Blazor</td><td>no automated path &mdash; ViewState has no equivalent; rebuild page by page behind YARP</td></tr>
+      <tr><td>WCF service host</td><td><strong>CoreWCF</strong> 1.8+ on ASP.NET Core</td><td>server side only; keep contracts, swap host. Client side: <code>System.ServiceModel.*</code> packages</td></tr>
+      <tr><td>WCF client proxy</td><td><code>dotnet-svcutil</code> or gRPC/REST behind an ACL</td><td>NetTcp/WSHttp bindings ported; MSMQ and WS-* federation did not</td></tr>
+      <tr><td><code>BundleConfig</code> / bundling</td><td>Vite build, or <code>MapStaticAssets</code></td><td><span class="since">.NET 9</span> fingerprints and precompresses static assets</td></tr>
+      <tr><td><code>ConfigurationManager</code></td><td><code>IOptions&lt;T&gt;</code> + <code>IConfiguration</code></td><td>bind once at startup; validate with <code>ValidateOnStart()</code></td></tr>
+      <tr><td>Owin/Katana auth</td><td>ASP.NET Core auth handlers</td><td>cookie <code>MachineKey</code> tickets need <code>Microsoft.AspNetCore.DataProtection</code> compat during the overlap</td></tr>
+    </tbody>
+  </table>
+  </div>
+  <div class="note"><p><strong>Cost of the bridge:</strong> remote session is an HTTP round trip and locks the legacy session for the request; auth is another. Fine for a migration window, wrong as an architecture. Track &ldquo;routes still proxied&rdquo; as a burn-down and delete the adapters at zero.</p></div>
+</section>
+
+<section class="unit" id="u05">
+  <header>
+    <h2><span class="n">05</span>Upgrade tooling &amp; Copilot agents</h2>
+    <span class="docs"><a href="https://learn.microsoft.com/en-us/dotnet/core/porting/github-copilot-upgrade/overview">docs: Copilot upgrade for .NET</a></span>
+  </header>
+  <p>The tooling story changed under everyone in November 2025: the free .NET Upgrade Assistant was deprecated in favour of an AI agent behind a paid Copilot licence. Know both, and know why the agent output still needs a characterization-test net.</p>
+  <dl class="rows">
+    <dt>Current path (retarget)</dt>
+    <dd><strong>GitHub Copilot app modernization &mdash; upgrade for .NET</strong>: VS 2026, or VS 2022 17.14.16+; <em>assess &rarr; plan &rarr; execute</em>, each stage writing Markdown artifacts you review and edit before it runs <span class="since">2025-11</span></dd>
+    <dt>Licence</dt>
+    <dd>paid Copilot SKU (Pro / Pro+ / Business / Enterprise) <span class="cmt">&mdash; the agent will not run on Copilot Free; budget it, it is now a line item in a migration plan</span></dd>
+    <dt>Current path (to Azure)</dt>
+    <dd><strong>app modernization &mdash; migrate to Azure</strong>: predefined tasks (SQL/Service Bus/Storage auth &rarr; managed identity, on-disk files &rarr; Blob, MSMQ &rarr; Service Bus), then generates <code>azd</code> + Bicep and fixes the code to match</dd>
+    <dt>Interactive run</dt>
+    <dd>the <em>upgrade canvas</em> in the GitHub Copilot app shows the live plan, per-project status and diffs instead of scattered chat + Markdown <span class="since">2026</span></dd>
+    <dt>Legacy path, still there</dt>
+    <dd>the classic Upgrade Assistant ships in VS 2026 but is <strong>off by default</strong> &mdash; enable it under Tools&nbsp;&gt;&nbsp;Options; the standalone CLI (<code>dotnet tool install -g upgrade-assistant</code>, <code>upgrade-assistant upgrade ./App.sln</code>) is deprecated and unmaintained</dd>
+    <dt>Still useful, non-AI</dt>
+    <dd><code>dotnet format</code>, <code>dotnet list package</code>, <code>dotnet nuget why</code>, Roslynator, and repo-wide Roslyn analyzers with <code>dotnet build /warnaserror</code> <span class="cmt">&mdash; deterministic, free, CI-able</span></dd>
+    <dt>Retired, do not cite</dt>
+    <dd><code>try-convert</code> (archived), .NET Portability Analyzer (archived), Data Migration Assistant <span class="chip">retired 2025-07-16</span>, Azure Data Studio <span class="chip">retired</span></dd>
+  </dl>
+  <h3>JS/TS and framework codemods</h3>
+  <dl class="rows">
+    <dt>Angular version step</dt>
+    <dd><code>ng update @angular/core@22 @angular/cli@22</code> <span class="cmt">&mdash; one major at a time, never two; schematics rewrite the code for you</span></dd>
+    <dt>React API churn</dt>
+    <dd><code>npx codemod react/19/migration-recipe</code>; <code>npx types-react-codemod@latest preset-19 ./src</code></dd>
+    <dt>ESLint config</dt>
+    <dd><code>npx @eslint/migrate-config .eslintrc.json</code> <span class="cmt">&mdash; mandatory for ESLint 10, which <em>removed</em> eslintrc</span></dd>
+    <dt>Anything bespoke</dt>
+    <dd><code>npx jscodeshift -t transform.js src/ --parser=tsx</code> <span class="cmt">&mdash; write the codemod once for 400 call sites; reviewable as one mechanical diff</span></dd>
+  </dl>
+  <div class="note"><p><strong>Rule for agent-driven upgrades:</strong> characterization tests first (record real inputs/outputs of the legacy path), agent second. An LLM upgrade produces a plausible diff; only the pinned behaviour tells you it is the <em>same</em> program. Review agent commits per project, not per solution, and never let it bump a major version and refactor in the same commit.</p></div>
+</section>
+
+<section class="unit" id="u06">
+  <header>
+    <h2><span class="n">06</span>JS/TS: ESM, TS 7, tooling</h2>
+    <span class="docs"><a href="https://www.typescriptlang.org/docs/handbook/modules/reference.html">docs: TS modules reference</a></span>
+  </header>
+  <p>Three separate migrations that get conflated: CommonJS&rarr;ESM, JS&rarr;TS, and the toolchain (webpack/Babel/ts-node &rarr; Vite/esbuild/native). Do them one at a time; each has its own rollback.</p>
+  <h3>Node runtime ladder</h3>
+  <dl class="rows">
+    <dt>Where the LTS line is</dt>
+    <dd><strong>24 Active LTS</strong> · 22 Maintenance · <strong>20 EOL 2026-04-30</strong> · 26 Current, enters LTS 2026-10 <span class="cmt">&mdash; from Node 27 the project ships <em>one major per year</em> <span class="since">announced 2026-06</span></span></dd>
+    <dt>Run scripts without npm</dt>
+    <dd><code>node --run build</code> <span class="since">22</span> <span class="cmt">&mdash; no shell spawn, measurably faster in CI; no pre/post hooks</span></dd>
+    <dt>Tests without a framework</dt>
+    <dd><code>node --test --experimental-test-coverage</code> <span class="cmt">&mdash; removes Mocha/Jest from small services entirely</span></dd>
+    <dt>Env and watch</dt>
+    <dd><code>node --env-file=.env --watch server.js</code> <span class="cmt">&mdash; drops dotenv and nodemon</span></dd>
+    <dt>TypeScript, no build step</dt>
+    <dd><code>node server.ts</code> &mdash; type stripping is on by default <span class="since">22.18 / 24</span>; needs <code>erasableSyntaxOnly</code> code (no <code>enum</code>, no <code>namespace</code>, no parameter properties)</dd>
+    <dt>ESM/CJS interop</dt>
+    <dd><code>require()</code> of a synchronous ESM graph works <span class="since">22.12 / 24</span> <span class="cmt">&mdash; the single biggest unblocker for half-migrated repos</span></dd>
+  </dl>
+  <pre><code class="language-json">// package.json - the modern shape
+{
+  "type": "module",
+  "engines": { "node": "&gt;=24" },
+  "exports": {                       // replaces "main"; blocks deep imports into your internals
+    ".":         { "types": "./dist/index.d.ts", "import": "./dist/index.js" },
+    "./testing": { "types": "./dist/testing.d.ts", "import": "./dist/testing.js" }
+  },
+  "imports": { "#config": "./src/config.js" },   // internal alias, no tsconfig paths needed at runtime
+  "workspaces": ["packages/*"]
+}</code></pre>
+  <pre><code class="language-json">// tsconfig.json - TypeScript 7 baseline for a Node service
+{
+  "compilerOptions": {
+    "module": "nodenext", "moduleResolution": "nodenext", "target": "es2023", "lib": ["es2023"],
+    "strict": true, "noUncheckedIndexedAccess": true, "exactOptionalPropertyTypes": true,
+    "verbatimModuleSyntax": true,     // `import type` means erased; no accidental runtime import
+    "isolatedModules": true,          // required by every esbuild/swc-based bundler
+    "erasableSyntaxOnly": true,       // keeps the code runnable by node's type stripping
+    "noEmit": true, "skipLibCheck": true
+  }
+}</code></pre>
+  <dl class="rows">
+    <dt>TypeScript 7.0</dt>
+    <dd>native <strong>Go</strong> compiler, GA <strong>2026-07-08</strong>; same <code>tsc</code> binary, same <code>typescript</code> package, 8&ndash;12&times; faster check <span class="cmt">&mdash; no stable programmatic API until 7.1, so custom transformers, some ESLint type-aware rules and API-consuming plugins are the migration blockers, not your code</span></dd>
+    <dt>Staged adoption</dt>
+    <dd>keep TS 6.x (the JS compiler line) for the build, run <code>tsgo --noEmit</code> in a parallel CI job until it is green, then swap <span class="cmt">&mdash; both read the same tsconfig</span></dd>
+    <dt>__dirname in ESM</dt>
+    <dd><code>import.meta.dirname</code> / <code>import.meta.filename</code> <span class="since">Node 20.11</span> <span class="cmt">&mdash; not <code>fileURLToPath(import.meta.url)</code> boilerplate any more</span></dd>
+    <dt>JS &rarr; TS, file by file</dt>
+    <dd><code>allowJs</code> + <code>checkJs</code> + JSDoc types first; rename <code>.js</code>&rarr;<code>.ts</code> per file; ban new <code>any</code> with <code>@typescript-eslint/no-explicit-any</code> on new files only</dd>
+    <dt>Strictness ratchet</dt>
+    <dd>baseline the error count from <code>tsc --noEmit</code>; CI fails if it rises <span class="cmt">&mdash; same fitness-function trick as the C# warning ratchet</span></dd>
+    <dt>ESLint 10</dt>
+    <dd><span class="since">2026-02</span> flat config only (<code>eslint.config.mjs</code>), eslintrc <strong>removed</strong>, Node ^20.19+ required; v9 went EOL <strong>2026-08-06</strong></dd>
+    <dt>Build tool</dt>
+    <dd>webpack &rarr; Vite (Rolldown/esbuild under it) <span class="cmt">&mdash; port dev server first, keep the webpack production build until bundle diffing is clean</span></dd>
+    <dt>Lockfile discipline</dt>
+    <dd><code>npm ci</code> in CI, never <code>npm install</code>; force a transitive fix with <code>"overrides"</code> (npm) / <code>"resolutions"</code> (yarn) / <code>"pnpm.overrides"</code></dd>
+  </dl>
+  <div class="note"><p><strong>Order that works:</strong> Node LTS bump &rarr; ESM (<code>"type": "module"</code> + <code>exports</code>) &rarr; TS strictness &rarr; TS 7 &rarr; bundler. Doing ESM and the bundler swap together makes every failure ambiguous, and both fail loudly at runtime rather than at build time.</p></div>
+</section>
+
+<section class="unit" id="u07">
+  <header>
+    <h2><span class="n">07</span>Frontend framework moves</h2>
+    <span class="docs"><a href="https://angular.dev/update-guide">docs: Angular update guide</a> · <a href="https://react.dev/blog/2024/04/25/react-19-upgrade-guide">React 19 upgrade</a></span>
+  </header>
+  <p>Frontend modernization is version-ladder work plus one architectural decision: how old and new UI coexist while you climb it.</p>
+  <h3>Angular &mdash; the signal era</h3>
+  <dl class="rows">
+    <dt>Where the ladder is</dt>
+    <dd><strong>v22</strong> current <span class="since">2026-06-03</span>; v21 (2025-11) and v20 in LTS <span class="cmt">&mdash; two majors a year, ~6 months active + 12 LTS; never skip a major with <code>ng update</code></span></dd>
+    <dt>v22 defaults that break habits</dt>
+    <dd><code>OnPush</code> is the default change-detection strategy; <code>HttpClient</code> uses <code>fetch</code> not <code>XMLHttpRequest</code>; <strong>Signal Forms</strong>, <strong>Angular Aria</strong> and <code>resource()</code>/<code>rxResource()</code>/<code>httpResource()</code> are stable</dd>
+    <dt>Component style</dt>
+    <dd>standalone (no <code>NgModule</code>) &middot; <code>input()</code>/<code>output()</code>/<code>model()</code> &middot; <code>inject()</code> over constructor DI &middot; <code>@if</code>/<code>@for</code>/<code>@switch</code> over <code>*ngIf</code>/<code>*ngFor</code></dd>
+    <dt>Automated steps</dt>
+    <dd><code>ng g @angular/core:control-flow</code> · <code>:standalone</code> · <code>:signal-inputs</code> · <code>:signal-queries</code> · <code>:inject</code> · <code>:cleanup-unused-imports</code></dd>
+    <dt>Zone.js exit</dt>
+    <dd><code>provideZonelessChangeDetection()</code> <span class="cmt">&mdash; requires signal-based state end to end; do it after the signal migration, not with it</span></dd>
+    <dt>AngularJS 1.x</dt>
+    <dd>dead since 2022-01. <code>ngUpgrade</code> is a museum piece in 2026 &mdash; the realistic path is route-level strangler to a fresh app behind the reverse proxy</dd>
+  </dl>
+  <h3>React &mdash; 19 line</h3>
+  <dl class="rows">
+    <dt>Where the ladder is</dt>
+    <dd><strong>19.2</strong> <span class="since">2025-10-01</span>, patched through 2026 <span class="cmt">&mdash; 19 is the breaking one; 19.1/19.2 are additive</span></dd>
+    <dt>Removed in 19 (grep for these)</dt>
+    <dd><code>ReactDOM.render</code>/<code>hydrate</code> &rarr; <code>createRoot</code>/<code>hydrateRoot</code> · <code>propTypes</code> and <code>defaultProps</code> on function components · string refs · legacy context · <code>ReactDOM.findDOMNode</code></dd>
+    <dt>New shape</dt>
+    <dd><code>ref</code> is a plain prop (no <code>forwardRef</code>) · <code>use(promise)</code>/<code>use(context)</code> · Actions + <code>useActionState</code>, <code>useFormStatus</code>, <code>useOptimistic</code> · <code>&lt;title&gt;</code>/<code>&lt;meta&gt;</code> hoisting</dd>
+    <dt>React Compiler</dt>
+    <dd>stable and mainstream in 2026 <span class="cmt">&mdash; auto-memoizes; the migration work is <em>deleting</em> <code>useMemo</code>/<code>useCallback</code>/<code>memo</code> and fixing the Rules-of-React violations its lint rule surfaces</span></dd>
+    <dt>Class components</dt>
+    <dd>still supported; convert only when you touch the file. <span class="cmt">A blanket class&rarr;hooks sweep is churn without a user-visible win.</span></dd>
+    <dt>Create React App</dt>
+    <dd>deprecated <span class="since">2025-02</span> &mdash; move to Vite (SPA) or Next.js (routing/SSR needed); <code>react-scripts</code> pins vulnerable transitive deps forever</dd>
+  </dl>
+  <h3>Coexistence: how old and new UI share a page</h3>
+  <div class="tw">
+  <table class="grid">
+    <thead><tr><th>Technique</th><th>Use when</th><th>Cost</th></tr></thead>
+    <tbody>
+      <tr class="hi"><td>Route-level split behind YARP/Front Door</td><td>pages are independent; you can move whole screens</td><td>lowest &mdash; two builds, two bundles, one URL space. Default choice</td></tr>
+      <tr><td>Custom elements (<code>createCustomElement</code>, <code>@r2wc</code>)</td><td>a new widget must live inside a legacy page</td><td>duplicate framework runtime; style and event boundary work</td></tr>
+      <tr><td>Module federation</td><td>independent deploy cadence per team, shared runtime</td><td>version-skew management; only worth it above ~4 teams</td></tr>
+      <tr><td>Blazor islands in ASP.NET Core</td><td>.NET-only team, forms-heavy internal app</td><td>fine for LOB; not the answer for a public JS-heavy SPA</td></tr>
+      <tr><td><code>&lt;iframe&gt;</code></td><td>hard isolation, hostile legacy CSS/JS</td><td>auth, sizing and deep-link pain &mdash; last resort, but honest</td></tr>
+    </tbody>
+  </table>
+  </div>
+  <div class="note"><p><strong>jQuery removal recipe:</strong> <code>$.ajax</code>&rarr;<code>fetch</code>, <code>$(sel)</code>&rarr;<code>querySelectorAll</code>, <code>$.on</code>&rarr;<code>addEventListener</code>, <code>$(document).ready</code>&rarr;<code>defer</code> script. What blocks you is never the API &mdash; it is the jQuery <em>plugins</em> (datepickers, grids, validation). Inventory the plugins first; that list is the actual project.</p></div>
+</section>
+
+<section class="unit" id="u08">
+  <header>
+    <h2><span class="n">08</span>Database &amp; schema evolution</h2>
+    <span class="docs"><a href="https://learn.microsoft.com/en-us/ef/core/managing-schemas/migrations/applying">docs: Applying EF migrations</a> · <a href="https://learn.microsoft.com/en-us/data-migration/">Azure DB migration</a></span>
+  </header>
+  <p>The database is the part of the system that cannot be rolled back by redeploying. Every schema change ships as expand &rarr; migrate &rarr; contract, and every one of those phases is compatible with both the old and the new code.</p>
+  <pre><code class="language-sql">-- 1. EXPAND (deploy alone; old code unaffected)
+ALTER TABLE dbo.Orders ADD CustomerRef uniqueidentifier NULL;          -- metadata-only, NULLable
+CREATE INDEX IX_Orders_CustomerRef ON dbo.Orders(CustomerRef)
+    WITH (ONLINE = ON, RESUMABLE = ON, MAXDOP = 4);                    -- pause/resume under load
+
+-- 2. MIGRATE: app dual-writes both columns; backfill in bounded batches, never one UPDATE
+DECLARE @rows int = 1;
+WHILE @rows &gt; 0
+BEGIN
+    UPDATE TOP (5000) o SET o.CustomerRef = c.ExternalId
+    FROM dbo.Orders o JOIN dbo.Customers c ON c.Id = o.CustomerId
+    WHERE o.CustomerRef IS NULL;
+    SET @rows = @@ROWCOUNT;
+    WAITFOR DELAY '00:00:00.200';                                      -- give the log shipper air
+END
+
+-- 3. CONTRACT (only after every reader is on the new column, and you can prove it)
+ALTER TABLE dbo.Orders ALTER COLUMN CustomerRef uniqueidentifier NOT NULL;
+ALTER TABLE dbo.Orders DROP COLUMN CustomerId;</code></pre>
+  <dl class="rows">
+    <dt>Migration style</dt>
+    <dd>migration-based (EF Core, DbUp, Flyway) vs state-based (SSDT/DACPAC + <code>sqlpackage</code>) <span class="cmt">&mdash; pick one per database and write it down; mixing them is how &ldquo;drift&rdquo; becomes an outage</span></dd>
+    <dt>Deploy EF migrations properly</dt>
+    <dd><code>dotnet ef migrations bundle --self-contained -o migrate</code> <span class="cmt">&mdash; a single executable for the pipeline; no SDK on the box</span>; or <code>dotnet ef migrations script --idempotent</code> for DBA review</dd>
+    <dt>Never</dt>
+    <dd><code>db.Database.Migrate()</code> in <code>Program.cs</code> <span class="cmt">&mdash; N replicas race, and rollback means a code deploy. Schema is a pipeline step, not a startup step.</span></dd>
+    <dt>EF Core 10 wins</dt>
+    <dd><code>LeftJoin()</code>/<code>RightJoin()</code> as first-class operators · JSON columns translate to <code>JSON_VALUE(... RETURNING ...)</code> · SQL parameter values <strong>redacted in logs by default</strong> · vector search <span class="cmt">&mdash; requires .NET 10</span></dd>
+    <dt>Bulk without a loop</dt>
+    <dd><code>ExecuteUpdateAsync</code> / <code>ExecuteDeleteAsync</code> <span class="since">EF 7</span> <span class="cmt">&mdash; replaces load-modify-SaveChanges for backfills</span></dd>
+    <dt>Compat-level bump</dt>
+    <dd><code>ALTER DATABASE X SET COMPATIBILITY_LEVEL = 170;</code> (SQL 2025; 160 = 2022) <em>after</em> <code>SET QUERY_STORE = ON</code> and <code>SET AUTOMATIC_TUNING (FORCE_LAST_GOOD_PLAN = ON)</code> <span class="cmt">&mdash; upgrade the engine and the CE separately so a regression has one cause</span></dd>
+    <dt>Pin a plan, no code change</dt>
+    <dd><code>sys.sp_query_store_set_hints</code> <span class="since">SQL 2022</span> <span class="cmt">&mdash; the modern replacement for plan guides and <code>OPTION (RECOMPILE)</code> sprinkling</span></dd>
+    <dt>Blocking-free reads</dt>
+    <dd><code>ALTER DATABASE X SET READ_COMMITTED_SNAPSHOT ON;</code> <span class="cmt">&mdash; usually the single highest-value legacy fix; needs tempdb headroom and a <code>NOLOCK</code> hunt afterwards</span></dd>
+    <dt>SQL Server 2025</dt>
+    <dd>native <code>vector</code> type + <code>VECTOR_DISTANCE</code> (GA; DiskANN vector <em>indexes</em> still preview), native <code>json</code> type, regex functions, Entra managed identity for outbound calls</dd>
+  </dl>
+  <h3>Getting the data to Azure</h3>
+  <div class="tw">
+  <table class="grid">
+    <thead><tr><th>Target</th><th>Pick when</th><th>Move with</th><th>Downtime</th></tr></thead>
+    <tbody>
+      <tr class="hi"><td>Azure SQL Database</td><td>single app DB, no cross-DB queries, no Agent</td><td>DMS, or <code>sqlpackage</code> BACPAC</td><td>minutes&ndash;hours; BACPAC is offline</td></tr>
+      <tr><td>Azure SQL Managed Instance</td><td>legacy surface: cross-DB, Agent, CLR, linked servers</td><td><strong>MI Link</strong> (replicate, then fail over) or Log Replay Service</td><td>near-zero with MI Link &mdash; the default for 1&nbsp;TB+</td></tr>
+      <tr><td>SQL Server on Azure VM</td><td>you need the whole instance, or the exit deadline is next month</td><td>Azure Migrate / backup-restore to URL</td><td>maintenance window; keeps every patching duty</td></tr>
+      <tr><td>Fabric / Synapse</td><td>the workload is analytics wearing an OLTP costume</td><td>mirroring, ADF pipelines</td><td>n/a &mdash; a re-platform, not a migration</td></tr>
+    </tbody>
+  </table>
+  </div>
+  <div class="note"><p><strong>Tooling note:</strong> Data Migration Assistant retired <strong>2025-07-16</strong> and Azure Data Studio is retired &mdash; assess with Azure Migrate or the SQL extensions in VS Code, move with DMS/MI&nbsp;Link. Citing DMA in a 2026 migration plan dates the plan. Legacy ETL follows the same rule: SSIS &rarr; Azure Data Factory (or lift the packages into an SSIS IR only to buy time), SSRS &rarr; Power BI paginated reports.</p></div>
+</section>
+
+<section class="unit" id="u09">
+  <header>
+    <h2><span class="n">09</span>Azure landing &amp; platform choice</h2>
+    <span class="docs"><a href="https://learn.microsoft.com/en-us/azure/architecture/guide/technology-choices/compute-decision-tree">docs: Azure compute decision tree</a></span>
+  </header>
+  <p>Choose the least platform that carries the workload. Every step up the list buys control and costs a team's attention permanently.</p>
+  <div class="tw">
+  <table class="grid">
+    <thead><tr><th>Target</th><th>Fits</th><th>Watch out</th></tr></thead>
+    <tbody>
+      <tr class="hi"><td>App Service (Linux/Windows)</td><td>an IIS web app that just needs a managed host; slots, autoscale, easy auth</td><td>no sidecars beyond the supported set; Windows plans cost more; GAC/COM/registry deps do not come along</td></tr>
+      <tr><td>Azure Container Apps</td><td>containerized services, scale-to-zero, KEDA, Dapr, per-revision traffic split</td><td>less control than AKS; long-running jobs need Jobs, not the web profile</td></tr>
+      <tr><td>AKS</td><td>many services, real platform team, Windows node pools for legacy containers</td><td>you now own upgrades, CNI, ingress, cost governance &mdash; a permanent staffed cost</td></tr>
+      <tr><td>Azure Functions</td><td>event-driven, spiky, glue; isolated worker on .NET 10</td><td>in-process model is gone &mdash; migrate to the <strong>isolated worker</strong>; cold start on Consumption</td></tr>
+      <tr><td>SQL/VM (IaaS)</td><td>deadline-driven rehost, unsupported dependency</td><td>the honest &ldquo;we will modernize later&rdquo; option &mdash; put a date on the later</td></tr>
+    </tbody>
+  </table>
+  </div>
+  <h3>Identity, config, secrets &mdash; the three that always change</h3>
+  <pre><code class="language-csharp">// One credential everywhere: env/workload identity in Azure, dev sign-in locally
+var cred = new DefaultAzureCredential(new DefaultAzureCredentialOptions
+{
+    ManagedIdentityClientId = builder.Configuration["AZURE_CLIENT_ID"]   // user-assigned MI
+});
+builder.Configuration.AddAzureKeyVault(new Uri(kvUri), cred);
+builder.Services.AddSingleton(new BlobServiceClient(new Uri(blobUri), cred));
+
+// SQL with managed identity - no password anywhere in the chain
+// "Server=tcp:sql.database.windows.net,1433;Database=app;Authentication=Active Directory Default;"</code></pre>
+  <dl class="rows">
+    <dt>Give the app an identity</dt>
+    <dd><code>az webapp identity assign -g rg -n app</code>; then grant with RBAC, not access policies</dd>
+    <dt>Secret without a secret</dt>
+    <dd>App Service setting value <code>@Microsoft.KeyVault(SecretUri=https://kv.vault.azure.net/secrets/Db/)</code> <span class="cmt">&mdash; rotates without a redeploy</span></dd>
+    <dt>Infra as code, previewed</dt>
+    <dd><code>az deployment group create -g rg -f main.bicep --what-if</code> <span class="cmt">&mdash; the diff goes in the PR</span></dd>
+    <dt>App + infra in one loop</dt>
+    <dd><code>azd init</code> &rarr; <code>azd up</code> &rarr; <code>azd pipeline config</code> <span class="cmt">&mdash; the fastest credible &ldquo;it runs in Azure&rdquo; demo for a modernization pitch</span></dd>
+    <dt>Aspire as the composition root</dt>
+    <dd><code>aspire new</code> / <code>aspire run</code> / <code>aspire publish</code> / <code>aspire destroy</code> <span class="since">13.3</span>; polyglot since 13.0 (Python, JS/TS), Kubernetes publishing in preview <span class="cmt">&mdash; <code>AddServiceDefaults()</code> wires OTel, health checks, resilience in one line</span></dd>
+    <dt>Telemetry</dt>
+    <dd><code>builder.Services.AddOpenTelemetry().UseAzureMonitor()</code> <span class="cmt">&mdash; OTel is the modern instrumentation; the classic Application Insights SDK is the legacy you will still find</span></dd>
+    <dt>Enforce TLS</dt>
+    <dd><code>az webapp config set -g rg -n app --min-tls-version 1.2</code> · <code>az storage account update --min-tls-version TLS1_2</code></dd>
+    <dt>Windows containers</dt>
+    <dd>App Service (custom Windows container) or AKS Windows node pools <span class="cmt">&mdash; the escape hatch for .NET Framework apps with no port path; Azure Migrate can containerize ASP.NET apps without code change</span></dd>
+  </dl>
+  <div class="note"><p><strong>Retirement dates that force work:</strong> Azure Storage stopped accepting TLS 1.0/1.1 on <strong>2026-02-03</strong>; App Service, Functions and Logic Apps (Standard) retire inbound TLS 1.0/1.1 on <strong>2027-05-31</strong>; .NET 8 and 9 leave support on <strong>2026-11-10</strong>. Put these on the same roadmap as the modernization &mdash; deadlines are the budget you get for free.</p></div>
+</section>
+
+<section class="unit" id="u10">
+  <header>
+    <h2><span class="n">10</span>Cutover, flags &amp; verification</h2>
+    <span class="docs"><a href="https://learn.microsoft.com/en-us/azure/azure-app-configuration/feature-management-dotnet-reference">docs: .NET feature management</a></span>
+  </header>
+  <p>A migration is not a release, it is a sequence of reversible releases. Every step needs a flag, a metric that says it is working, and a documented way back that is not &ldquo;restore the backup&rdquo;.</p>
+  <pre><code class="language-csharp">// Flag + percentage rollout, config-driven from Azure App Configuration
+builder.Configuration.AddAzureAppConfiguration(o =&gt; o
+    .Connect(new Uri(endpoint), cred)
+    .UseFeatureFlags(f =&gt; f.SetRefreshInterval(TimeSpan.FromSeconds(30))));
+builder.Services.AddFeatureManagement().WithTargeting();
+
+app.MapGet("/orders/{id}", async (int id, IVariantFeatureManager flags, HttpContext ctx) =&gt;
+    await flags.IsEnabledAsync("NewOrderPipeline", ctx.RequestAborted)
+        ? await modern.GetAsync(id)
+        : await legacy.GetAsync(id));</code></pre>
+  <pre><code class="language-csharp">// Shadow + diff: legacy answers the user, modern is measured against it
+var legacyTask = legacy.GetAsync(id);
+if (await flags.IsEnabledAsync("ShadowOrderPipeline"))
+{
+    _ = Task.Run(async () =&gt;
+    {
+        try
+        {
+            var (a, b) = (await legacyTask, await modern.GetAsync(id));
+            if (!Compare.Equivalent(a, b))                       // ignore clocks, GUIDs, ordering
+                _mismatch.Add(1, new KeyValuePair&lt;string, object?&gt;("route", "orders.get"));
+        }
+        catch (Exception ex) { _log.LogWarning(ex, "shadow failed"); }   // never affects the user
+    });
+}
+return await legacyTask;</code></pre>
+  <dl class="rows">
+    <dt>Route-level traffic split</dt>
+    <dd><code>az webapp traffic-routing set --distribution staging=10 -g rg -n app</code> · <code>az containerapp ingress traffic set -n app -g rg --revision-weight blue=90 green=10</code></dd>
+    <dt>Blue/green swap and back</dt>
+    <dd><code>az webapp deployment slot swap -g rg -n app --slot staging</code> <span class="cmt">&mdash; swap back is the rollback; mark environment-specific settings as <em>slot settings</em> or they travel with the swap</span></dd>
+    <dt>Data cutover</dt>
+    <dd>dual-write behind the flag, or CDC/change tracking &rarr; outbox &rarr; new store; reconcile with a scheduled count/checksum job until the diff is zero for N days</dd>
+    <dt>Proof the port is faithful</dt>
+    <dd>characterization tests from recorded production inputs · contract tests at the seam · shadow diff rate · p95 latency and error rate per route, old vs new on one dashboard</dd>
+    <dt>Rollback ladder</dt>
+    <dd>flag off (seconds) &rarr; revision weight to 0 (a minute) &rarr; slot swap back (minutes) &rarr; redeploy previous (10s of minutes). <span class="cmt">Database changes are forward-only &mdash; that is why contract is a separate deploy.</span></dd>
+    <dt>Decommission is a task</dt>
+    <dd>legacy stays warm and monitored for an agreed window, then: DNS off &rarr; traffic zero for N days &rarr; stop &rarr; snapshot &rarr; delete. <span class="cmt">Unfinished migrations cost double forever; put the delete date in the plan.</span></dd>
+    <dt>Progress metric that is not a story point</dt>
+    <dd>% of requests served by the new path · routes still proxied · projects still on the old TFM · shadow mismatch rate <span class="cmt">&mdash; publish them weekly; they end the &ldquo;are we nearly there&rdquo; meeting</span></dd>
+  </dl>
+  <div class="note"><p><strong>Flag hygiene:</strong> every migration flag gets an owner and an expiry date at creation. A flag that outlives its migration is a permanent untested branch &mdash; the second system you now maintain.</p></div>
+</section>
+
+<section class="unit" id="u11">
+  <header>
+    <h2><span class="n">11</span>Gotchas &amp; review one-liners</h2>
+    <span class="docs"><a href="https://learn.microsoft.com/en-us/dotnet/core/compatibility/">docs: .NET breaking changes</a></span>
+  </header>
+  <h3>Runtime and .NET</h3>
+  <ul class="tight">
+    <li><strong>Sync-over-async</strong> ported straight from Framework (<code>.Result</code>, <code>.Wait()</code>) &mdash; harmless under ASP.NET's sync context, thread-pool starvation under Kestrel.</li>
+    <li><code>HttpContext.Current</code> via the adapters forces request buffering and kills streaming; every remaining use is a migration to-do, not a solution.</li>
+    <li><strong>Default culture changed</strong>: .NET Core is invariant-first on Linux &mdash; <code>ToString()</code>, <code>Parse</code> and string sorting drift. Set <code>InvariantGlobalization</code> deliberately, and never rely on <code>string.Compare</code> ordinal-by-accident.</li>
+    <li><code>new HttpClient()</code> per call exhausts sockets; per-app singleton never sees DNS changes. Use <code>IHttpClientFactory</code>.</li>
+    <li><strong>BinaryFormatter is removed</strong> in .NET 9+ &mdash; any legacy cache, session or on-disk blob using it needs a new serializer <em>and</em> a data migration.</li>
+    <li>MachineKey-encrypted cookies do not decrypt under Data Protection &mdash; without the compat shim, every user is logged out at cutover.</li>
+    <li>Windows-only leftovers that fail only in production on Linux: registry reads, <code>System.Drawing</code>, drive letters, <code>\</code> paths, case-insensitive file names, WMI, COM.</li>
+    <li>Multi-targeting hides bugs: a <code>net48</code>+<code>net10.0</code> library ships two behaviours. Run the test suite for <em>both</em> TFMs or the bridge is untested.</li>
+    <li>Landing on .NET 8 &ldquo;because it is LTS&rdquo; in 2026: support ends <strong>2026-11-10</strong>. Target 10.</li>
+  </ul>
+  <h3>JS/TS</h3>
+  <ul class="tight">
+    <li>Flipping <code>"type": "module"</code> breaks <code>require</code>, <code>__dirname</code>, and every tool config that was CommonJS &mdash; convert configs in the same PR.</li>
+    <li><code>enum</code>, <code>namespace</code> and constructor parameter properties block Node's type stripping; <code>erasableSyntaxOnly</code> catches them before the runtime does.</li>
+    <li>TS 7's missing stable API breaks plugins, not your code &mdash; audit custom transformers and type-aware lint rules before scheduling the swap.</li>
+    <li><code>skipLibCheck: false</code> plus one badly typed dependency stalls the whole upgrade; keep it <code>true</code> during migration.</li>
+    <li>Two React copies (module federation, a stale nested <code>node_modules</code>) produce &ldquo;invalid hook call&rdquo; &mdash; check <code>npm ls react</code> before debugging hooks.</li>
+    <li>A supply-chain fix that only bumps direct deps fixes nothing: the CVE is usually transitive. Verify with <code>npm ls</code>, not the changelog.</li>
+  </ul>
+  <h3>Database</h3>
+  <ul class="tight">
+    <li>An unbounded backfill <code>UPDATE</code> takes a lock escalation, blows the log and blocks the app; batch it and watch log reuse.</li>
+    <li><code>ALTER COLUMN ... NOT NULL</code> and dropping a column are size-of-data or blocking operations &mdash; they belong in the contract phase, never with the expand.</li>
+    <li>Bumping the compat level changes the cardinality estimator: plans regress. Query Store + <code>FORCE_LAST_GOOD_PLAN</code> before, not after.</li>
+    <li><code>NOLOCK</code> everywhere is a symptom of missing RCSI, not a performance strategy; it returns rows twice or not at all.</li>
+    <li>EF Core generates different SQL across majors &mdash; a version bump is a query-plan change. Diff the generated SQL for the top-20 queries.</li>
+    <li>Azure SQL Database has no SQL Agent, no cross-database queries, no CLR; discovering that after the code freeze is the classic Managed-Instance-shaped surprise.</li>
+  </ul>
+  <h3>Azure and process</h3>
+  <ul class="tight">
+    <li>App settings that are not marked <em>slot settings</em> follow the swap and point production at the staging database.</li>
+    <li><code>DefaultAzureCredential</code> silently walks its chain: it can work locally with your account and fail in Azure with the wrong identity. Pin <code>ManagedIdentityClientId</code> and log which credential won.</li>
+    <li>Connection strings in app settings are not secrets management; a Key Vault reference costs one line and removes the rotation project.</li>
+    <li>Lift-and-shift to containers without externalizing session, local file writes and the local scheduler gives you a container that cannot scale past one replica.</li>
+    <li><strong>Rewrite before instrumentation</strong>: without baseline latency, error and usage data you cannot prove the new system is better, and you will be asked.</li>
+    <li>A migration with no delete date is not a migration &mdash; it is a second system, funded forever.</li>
+  </ul>
+</section>
+
+<section class="unit" id="u12">
+  <header>
+    <h2><span class="n">12</span>Modern vs legacy</h2>
+    <span class="docs"><a href="https://learn.microsoft.com/en-us/dotnet/core/whats-new/dotnet-10/overview">docs: What's new in .NET 10</a></span>
+  </header>
+  <p>Left is what you write today; middle-right is what you will find in the repo you inherited. Both belong in your head.</p>
+  <div class="tw">
+  <table class="grid">
+    <thead><tr><th>Task</th><th>Modern</th><th>Legacy still seen</th><th>Since</th></tr></thead>
+    <tbody>
+      <tr class="hi"><td>Target framework</td><td><code>net10.0</code> (LTS to 2028-11)</td><td><code>net48</code>, <code>net6.0</code>, <code>netcoreapp3.1</code></td><td>2025-11</td></tr>
+      <tr><td>Project file</td><td>SDK-style + <code>Directory.Packages.props</code></td><td>non-SDK csproj + <code>packages.config</code></td><td>2017 / CPM 2022</td></tr>
+      <tr><td>Retarget tooling</td><td>Copilot app modernization (paid)</td><td><code>upgrade-assistant</code> CLI, <code>try-convert</code></td><td>2025-11</td></tr>
+      <tr><td>Web host</td><td>ASP.NET Core minimal hosting</td><td><code>Global.asax</code> + <code>Startup</code> + IIS</td><td>.NET 6</td></tr>
+      <tr class="hi"><td>Old-to-new coexistence</td><td>YARP + <code>System.Web</code> adapters</td><td>big-bang rewrite branch</td><td>2022 (adapters 1.0)</td></tr>
+      <tr><td>SOAP host</td><td>CoreWCF 1.8+ on ASP.NET Core</td><td>WCF <code>ServiceHost</code> on Framework</td><td>2022</td></tr>
+      <tr><td>Server UI</td><td>Razor Pages / Blazor</td><td>WebForms <code>.aspx</code>, ViewState</td><td>Blazor 2019</td></tr>
+      <tr><td>Config</td><td><code>IOptions&lt;T&gt;</code> + Key Vault refs</td><td><code>web.config</code>, <code>ConfigurationManager</code></td><td>.NET Core 1.0</td></tr>
+      <tr><td>Secrets/auth to Azure</td><td>managed identity + <code>DefaultAzureCredential</code></td><td>connection strings, client secrets, ADAL</td><td>ADAL EOL 2022-06</td></tr>
+      <tr><td>Serialization</td><td><code>System.Text.Json</code>, source-generated</td><td><code>Newtonsoft.Json</code>, <code>BinaryFormatter</code></td><td>BinaryFormatter removed .NET 9</td></tr>
+      <tr><td>HTTP calls</td><td><code>IHttpClientFactory</code> + Polly resilience</td><td><code>new HttpClient()</code>, <code>WebClient</code>, <code>HttpWebRequest</code></td><td>.NET Core 2.1</td></tr>
+      <tr class="hi"><td>Telemetry</td><td>OpenTelemetry &rarr; Azure Monitor</td><td>classic App Insights SDK, <code>Trace.WriteLine</code></td><td>.NET 8 era</td></tr>
+      <tr><td>Bulk data ops (EF)</td><td><code>ExecuteUpdateAsync</code>/<code>ExecuteDeleteAsync</code></td><td>load &rarr; modify &rarr; <code>SaveChanges</code> loop</td><td>EF Core 7</td></tr>
+      <tr><td>Outer join in LINQ</td><td><code>LeftJoin()</code></td><td><code>GroupJoin</code> + <code>SelectMany</code> + <code>DefaultIfEmpty</code></td><td>EF Core 10</td></tr>
+      <tr><td>Schema deploy</td><td>migration bundle / idempotent script in CI</td><td><code>Database.Migrate()</code> at startup, manual SSMS</td><td>EF Core 6</td></tr>
+      <tr><td>Plan stability</td><td>Query Store hints + auto plan correction</td><td>plan guides, <code>OPTION (RECOMPILE)</code> everywhere</td><td>SQL 2022</td></tr>
+      <tr><td>DB assessment</td><td>Azure Migrate + VS Code SQL extensions</td><td>Data Migration Assistant, Azure Data Studio</td><td>DMA retired 2025-07</td></tr>
+      <tr><td>Low-downtime DB move</td><td>MI Link / Log Replay Service</td><td>backup&ndash;restore in a weekend window</td><td>MI Link GA 2023</td></tr>
+      <tr class="hi"><td>TS compile</td><td>TypeScript 7 native (Go) <code>tsc</code></td><td>TS 5.x/6.x JS compiler, <code>ts-node</code>, Babel</td><td>2026-07-08</td></tr>
+      <tr><td>Modules</td><td>ESM + <code>exports</code> map</td><td>CommonJS <code>require</code>, <code>main</code></td><td>Node 12+, mainstream 2024</td></tr>
+      <tr><td>Node dev loop</td><td><code>node --run</code>, <code>--watch</code>, <code>--env-file</code>, <code>--test</code></td><td>npm-run-all, nodemon, dotenv, Mocha</td><td>Node 22</td></tr>
+      <tr><td>Lint config</td><td><code>eslint.config.mjs</code> flat config</td><td><code>.eslintrc.json</code> (removed in v10)</td><td>ESLint 9 / removed v10 2026-02</td></tr>
+      <tr><td>Bundler</td><td>Vite (Rolldown/esbuild)</td><td>webpack 4/5, Grunt, Gulp, CRA</td><td>CRA deprecated 2025-02</td></tr>
+      <tr><td>React memoization</td><td>React Compiler</td><td>hand-written <code>useMemo</code>/<code>useCallback</code>/<code>memo</code></td><td>stable 2025</td></tr>
+      <tr><td>React roots &amp; refs</td><td><code>createRoot</code>, <code>ref</code> as a prop</td><td><code>ReactDOM.render</code>, <code>forwardRef</code>, string refs</td><td>React 19 (2024-12)</td></tr>
+      <tr><td>Angular component</td><td>standalone + signals + <code>@if</code>/<code>@for</code></td><td><code>NgModule</code>, <code>*ngIf</code>, <code>@Input()</code>, Zone.js</td><td>v17&ndash;v22</td></tr>
+      <tr><td>Frontend forms</td><td>Signal Forms (Angular 22) / Actions (React 19)</td><td><code>ReactiveFormsModule</code>, controlled-input boilerplate</td><td>2026-06 / 2024-12</td></tr>
+      <tr><td>Local orchestration</td><td>Aspire AppHost (<code>aspire run</code>)</td><td>hand-rolled docker-compose + README rituals</td><td>Aspire 13 (2025-11)</td></tr>
+      <tr><td>Deploy</td><td><code>azd</code> / Bicep with <code>--what-if</code></td><td>portal clicks, Web Deploy from Visual Studio</td><td>azd GA 2023</td></tr>
+    </tbody>
+  </table>
+  </div>
+</section>
+
+<section class="unit" id="u13">
+  <header>
+    <h2><span class="n">13</span>Version timeline</h2>
+    <span class="docs"><a href="https://dotnet.microsoft.com/en-us/platform/support/policy/dotnet-core">docs: .NET support policy</a> · <a href="https://endoflife.date/nodejs">endoflife.date</a></span>
+  </header>
+  <p>Latest first, across the four stacks. Verified 2026-09-08; the top third is younger than a year, so re-check a date before you quote it.</p>
+  <div class="tw">
+  <table class="grid">
+    <thead><tr><th>Date</th><th>What</th><th>Why it matters to a migration</th></tr></thead>
+    <tbody>
+      <tr class="hi"><td>2026-11-10</td><td><em>upcoming</em> &mdash; .NET 11 GA (STS) and <strong>.NET 8 + 9 end of support</strong> <span class="chip">deprecated</span></td><td>same day: the ladder moves and two runtimes stop getting security fixes. Anything you land on 8 today needs planning now</td></tr>
+      <tr><td>2026-10</td><td><em>upcoming</em> &mdash; Node.js 26 enters Active LTS <span class="chip">default</span></td><td>the LTS you should be planning toward; Node 24 stays supported alongside</td></tr>
+      <tr><td>2026-08</td><td>Aspire 13.5</td><td>refreshed dashboard, interactive terminal per resource, Kubernetes persistent volumes, cross-scope Azure references</td></tr>
+      <tr><td>2026-08-06</td><td>ESLint 9 end of life <span class="chip">deprecated</span></td><td>no more fixes on the last version that understood <code>.eslintrc</code></td></tr>
+      <tr class="hi"><td>2026-07-08</td><td><strong>TypeScript 7.0</strong> &mdash; native Go compiler <span class="chip">stable</span></td><td>8&ndash;12&times; faster checks, same <code>tsc</code>/<code>typescript</code> package; no stable programmatic API until 7.1, so compiler-API plugins are the blocker</td></tr>
+      <tr><td>2026-06-03</td><td>Angular v22</td><td>Signal Forms, Angular Aria and <code>resource()</code> stable; <code>OnPush</code> and <code>fetch</code> become the <span class="chip">default</span></td></tr>
+      <tr><td>2026-06</td><td>Node.js moves to <strong>one major per year</strong> from v27</td><td>upgrade cadence halves &mdash; re-plan your Node ladder and CI matrix</td></tr>
+      <tr><td>2026-05-05</td><td>Node.js 26 (Current)</td><td>Temporal API on by default, V8 14.6, undici 8; the removals land here before it becomes LTS</td></tr>
+      <tr><td>2026-05</td><td>Aspire 13.3</td><td><code>aspire destroy</code>, native Kubernetes deploy (preview), first-class JS publishing (Next.js, Vite)</td></tr>
+      <tr><td>2026-04-30</td><td>Node.js 20 end of life <span class="chip">deprecated</span></td><td>the version most legacy pipelines are still pinned to</td></tr>
+      <tr><td>2026-03</td><td>Aspire 13.2</td><td>agent-native CLI (detached start, isolated environments), TypeScript AppHost preview</td></tr>
+      <tr class="hi"><td>2026-02-03</td><td>Azure Storage stops accepting TLS 1.0/1.1 <span class="chip">deprecated</span></td><td>hard cutoff, not a warning: old SDKs and .NET Framework clients with default TLS settings fail to connect</td></tr>
+      <tr><td>2026-02</td><td>ESLint 10.0 <span class="chip">deprecated</span> eslintrc</td><td>the legacy config system is <em>removed</em>, not deprecated; Node ^20.19+ required</td></tr>
+      <tr><td>2026-02</td><td>.NET 11 Preview 1 / C# 15 first showing</td><td>union types, runtime-async, Zstd compression and OpenAPI 3.2 by default in ASP.NET Core &mdash; useful to know, not to depend on before November</td></tr>
+      <tr class="hi"><td>2025-11</td><td>.NET Upgrade Assistant <span class="chip">deprecated</span> &rarr; GitHub Copilot app modernization</td><td>the free retarget tool is replaced by an agent behind a paid Copilot SKU; the old one survives in VS 2026 only behind a hidden option</td></tr>
+      <tr><td>2025-11-18</td><td>SQL Server 2025 GA <span class="chip">stable</span></td><td>compat level 170, native <code>vector</code> + <code>VECTOR_DISTANCE</code>, native <code>json</code> type, regex functions, Entra identity for outbound calls</td></tr>
+      <tr class="hi"><td>2025-11-11</td><td><strong>.NET 10 LTS</strong> + C# 14 + EF Core 10 + Aspire 13 <span class="chip">stable</span></td><td>the target for every current migration; supported to 2028-11-14. File-based apps (<code>dotnet run app.cs</code>), <code>dotnet package</code> verbs, MTP as the default test platform</td></tr>
+      <tr><td>2025-10-01</td><td>React 19.2</td><td>additive on top of 19; the React Compiler becomes the mainstream memoization answer</td></tr>
+      <tr><td>2025-07-16</td><td>Data Migration Assistant retired <span class="chip">deprecated</span></td><td>with Azure Data Studio's retirement, SQL assessment moves to Azure Migrate and the VS Code SQL extensions</td></tr>
+      <tr><td>2025-02</td><td>Create React App deprecated <span class="chip">deprecated</span></td><td>every <code>react-scripts</code> app now carries frozen transitive dependencies &mdash; a standing supply-chain finding</td></tr>
+      <tr><td>2024-12-05</td><td>React 19 <span class="chip">stable</span></td><td>the breaking one: <code>ReactDOM.render</code>, string refs, legacy context, function-component <code>defaultProps</code>/<code>propTypes</code> all removed</td></tr>
+      <tr><td>2024-11-12</td><td>.NET 9 (STS)</td><td><code>BinaryFormatter</code> removed &mdash; the quiet blocker for legacy caches, session state and stored blobs. Support ends 2026-11-10</td></tr>
+      <tr><td>2023-11-14</td><td>.NET 8 LTS</td><td>still the most common &ldquo;modern&rdquo; target in the wild; ends 2026-11-10, so it is now a migration <em>source</em></td></tr>
+      <tr><td>2022-01-11</td><td>AngularJS 1.x end of life <span class="chip">deprecated</span></td><td>four years unsupported; <code>ngUpgrade</code> is no longer a credible plan, route-level replacement is</td></tr>
+      <tr><td>2019-04-18</td><td>.NET Framework 4.8 (4.8.1 in 2022)</td><td>the last major. Serviced with Windows, so no forced deadline &mdash; and no new APIs, no ASP.NET Core, a shrinking package ecosystem</td></tr>
+    </tbody>
+  </table>
+  </div>
+  <div class="note"><p><strong>Dates to put in the roadmap now:</strong> .NET 8/9 EOS <strong>2026-11-10</strong>, Node 24 &rarr; 26 LTS from <strong>2026-10</strong>, App Service / Functions / Logic Apps inbound TLS 1.0&ndash;1.1 retirement <strong>2027-05-31</strong>. Two of the three are free budget for work you wanted to do anyway.</p></div>
+</section>
+</main>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.11.1/highlight.min.js"></script>
+<script>
+(function () {
+  if (window.hljs) { try { hljs.highlightAll(); } catch (e) { /* highlighting is decoration */ } }
+
+  var toggle = document.querySelector('.navtoggle');
+  var side = document.getElementById('side');
+  if (toggle) {
+    toggle.addEventListener('click', function () {
+      var open = document.body.classList.toggle('nav-open');
+      toggle.setAttribute('aria-expanded', open ? 'true' : 'false');
+    });
+  }
+  if (side) {
+    side.addEventListener('click', function (e) {
+      if (e.target.closest('a')) {
+        document.body.classList.remove('nav-open');
+        if (toggle) toggle.setAttribute('aria-expanded', 'false');
+      }
+    });
+  }
+
+  var links = Array.prototype.slice.call(document.querySelectorAll('.units a'));
+  var units = links.map(function (a) { return document.getElementById(a.getAttribute('href').slice(1)); });
+  var ticking = false;
+  function spy() {
+    ticking = false;
+    var best = 0;
+    for (var i = 0; i < units.length; i++) {
+      if (units[i] && units[i].getBoundingClientRect().top <= 140) best = i;
+    }
+    for (var j = 0; j < links.length; j++) {
+      if (j === best) links[j].setAttribute('aria-current', 'true');
+      else links[j].removeAttribute('aria-current');
+    }
+  }
+  function onScroll() {
+    if (!ticking) { ticking = true; window.requestAnimationFrame(spy); }
+  }
+  window.addEventListener('scroll', onScroll, { passive: true });
+  window.addEventListener('resize', onScroll, { passive: true });
+  spy();
+})();
+</script>
+</body>
+</html>
