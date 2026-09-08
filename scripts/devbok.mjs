@@ -8,7 +8,7 @@
  *   node scripts/devbok.mjs init <slug> --title T --topic X [--accent #rrggbb]   create topics/<slug>/topic.json
  *   node scripts/devbok.mjs prepare <slug> <kind> [--draft]      reserve next version, render the brief -> .devbok/ (draft: dry run, no version)
  *   node scripts/devbok.mjs record <slug> <kind> v<N> [--force]  validate written HTML, add to manifest, rebuild index
- *   node scripts/devbok.mjs validate <file> [--draft]            sanity-check a generated HTML file (JSON); --draft relaxes the size floor
+ *   node scripts/devbok.mjs validate <file> [--draft]            check a generated file against the artifact contract (JSON); --draft relaxes the size floor
  *   node scripts/devbok.mjs delete <slug> [<kind> v<N>]          delete a whole topic, or one version of one kind
  *   node scripts/devbok.mjs list [--json]                        overview with staleness markers
  *   node scripts/devbok.mjs index                                rebuild topics/index.js
@@ -33,6 +33,7 @@ const KINDS = ['study', 'experience', 'interview', 'cheatsheet'];
 const SLUG_RE = /^[a-z0-9][a-z0-9-]*$/;
 const REQUIRED_PLACEHOLDERS = ['TOPIC', 'OUTPUT'];
 const MIN_BYTES = 20_000;
+const DRAFT_MIN_BYTES = 8_000; // a dry run is two units, so the floor that catches a truncated page is lower
 const DEFAULT_ACCENT = '#a55da0'; // devbok's own accent, used when a topic has no brand colour set
 
 const fail = (msg) => { releaseLock(); console.error(`devbok: ${msg}`); process.exit(1); };
@@ -86,8 +87,12 @@ function withLock(fn) {
 }
 function writeAtomic(file, text) {
   const tmp = `${file}.${process.pid}.tmp`;
-  fs.writeFileSync(tmp, text);
-  fs.renameSync(tmp, file);
+  try {
+    fs.writeFileSync(tmp, text);
+    fs.renameSync(tmp, file);
+  } finally {
+    if (fs.existsSync(tmp)) fs.rmSync(tmp, { force: true }); // a crash between write and rename must not litter topics/
+  }
 }
 
 // ---------------------------------------------------------------- accent colour
@@ -97,7 +102,7 @@ function normalizeAccent(s) {
   return m ? `#${m[1].toLowerCase()}` : null;
 }
 // A tint of the accent for dark backgrounds: same hue and saturation, lightness raised to at least 66%.
-function darkAccent(hex) {
+export function darkAccent(hex) {
   const n = parseInt(hex.slice(1), 16);
   const r = (n >> 16) / 255, g = ((n >> 8) & 255) / 255, b = (n & 255) / 255;
   const max = Math.max(r, g, b), min = Math.min(r, g, b), l = (max + min) / 2;
@@ -188,7 +193,7 @@ function requireKind(kind) {
 }
 function parseVersion(s) {
   const m = /^v?(\d+)$/i.exec(s ?? '');
-  if (!m) fail(`invalid version "${s ?? ''}" - expected e.g. v2`);
+  if (!m || Number(m[1]) < 1) fail(`invalid version "${s ?? ''}" - expected e.g. v2`);
   return Number(m[1]);
 }
 const emptyKind = () => ({ next: 1, versions: [], pending: [] });
@@ -245,9 +250,71 @@ function buildIndex() {
 }
 
 // ---------------------------------------------------------------- validation
+// A file that sits where devbok puts its artifacts knows what it is: topics/<slug>/<kind>.v<N>.html, or
+// .devbok/<slug>.<kind>.draft.html for a dry run. That identity turns the parts of prompts/shared/page.md
+// spelled out as "verbatim" - title, hero, sidebar, provenance - into mechanical checks, so a generation
+// that drifted is caught before `record` instead of never. A file anywhere else skips them.
+function identify(abs) {
+  const dir = path.dirname(abs);
+  const base = path.basename(abs);
+  let slug, kind, version;
+  if (dir === BUILD_DIR) {
+    const m = /^([a-z0-9-]+)\.([a-z]+)\.draft\.html$/.exec(base);
+    if (!m) return null;
+    [, slug, kind] = m;
+    version = 'draft';
+  } else if (path.dirname(dir) === TOPICS_DIR) {
+    const m = /^([a-z]+)\.v(\d+)\.html$/.exec(base);
+    if (!m) return null;
+    slug = path.basename(dir);
+    [, kind, version] = m;
+  } else return null;
+  if (!SLUG_RE.test(slug) || !KINDS.includes(kind)) return null;
+  let title = null;
+  try { title = JSON.parse(fs.readFileSync(manifestPath(slug), 'utf8')).title || null; } catch { /* no manifest: skip the checks that need the title */ }
+  return { slug, kind, version, title };
+}
+
+const ENTITIES = { amp: '&', lt: '<', gt: '>', quot: '"', apos: "'", nbsp: ' ', middot: '·', '#39': "'", '#183': '·', '#xb7': '·' };
+// The text of an element as a human reads it: tags dropped, entities resolved, whitespace collapsed.
+const textOf = (s) => String(s ?? '')
+  .replace(/<[^>]*>/g, '')
+  .replace(/&(#x?[0-9a-f]+|[a-z]+);/gi, (all, e) => ENTITIES[e.toLowerCase()] ?? all)
+  .replace(/\s+/g, ' ')
+  .trim();
+
+// Everything prompts/shared/page.md calls verbatim, checked against the file's own identity.
+function checkDesign(html, id, r) {
+  const err = (m) => r.errors.push(m);
+  const page = 'prompts/shared/page.md';
+  if (id.title) {
+    const want = `${id.title} · ${id.kind} · devbok`;
+    const title = textOf((/<title[^>]*>([\s\S]*?)<\/title>/i.exec(html) ?? [])[1]);
+    if (title !== want) err(`<title> must be "${want}" (found ${title ? `"${title}"` : 'none'}) - ${page}`);
+    const h1 = textOf((/<h1[^>]*>([\s\S]*?)<\/h1>/i.exec(html) ?? [])[1]);
+    if (h1 !== id.title) err(`the hero <h1> must be the topic title "${id.title}" - never with a kind suffix, never the full topic sentence (found ${h1 ? `"${h1}"` : 'none'})`);
+  }
+  const hero = (/<header[^>]*\bclass=["'][^"']*\bhero\b[^"']*["'][\s\S]*?<\/header>/i.exec(html) ?? [])[0];
+  if (!hero) err(`no <header class="hero"> - the hero is verbatim in ${page}`);
+  else for (const c of ['meta', 'summary', 'chips']) {
+    if (!new RegExp(`class=["'][^"']*\\b${c}\\b`).test(hero)) err(`the hero has no <p class="${c}"> - the hero is verbatim in ${page}`);
+  }
+  if (!/<nav[^>]*\bclass=["'][^"']*\bside\b[^"']*["']/i.test(html)) err(`no <nav class="side"> - the sidebar is verbatim in ${page}`);
+  if (!/<ol[^>]*\bclass=["'][^"']*\bunits\b[^"']*["']/i.test(html)) err(`no <ol class="units"> - the sidebar is verbatim in ${page}`);
+  const numbers = [...html.matchAll(/<span class=["']n["']>([\s\S]*?)<\/span>/gi)].map((m) => textOf(m[1]));
+  if (!numbers.length) err(`the sidebar has no <span class="n"> unit numbers - the sidebar is verbatim in ${page}`);
+  else {
+    const off = numbers.filter((n) => !/^\d{2,}$/.test(n));
+    if (off.length) err(`sidebar unit numbers are two digits (01, 02, ...): found ${off.slice(0, 5).map((n) => `"${n}"`).join(', ')}`);
+  }
+  if (!/\baria-current=/i.test(html)) err('scrollspy must set aria-current="true" on the unit in view - the verbatim sidebar CSS styles nothing else');
+  if (id.kind === 'cheatsheet' && !/@media\s+print/i.test(html)) err('a cheatsheet needs a @media print stylesheet (see AGENTS.md, Artifact contract)');
+}
+
 function validateHtml(file, { minBytes = MIN_BYTES } = {}) {
   const abs = path.resolve(ROOT, file);
-  const r = { ok: false, file: rel(abs), bytes: 0, errors: [], warnings: [], counts: {}, external: [] };
+  const id = identify(abs);
+  const r = { ok: false, file: rel(abs), identity: id && { slug: id.slug, kind: id.kind, version: id.version }, bytes: 0, errors: [], warnings: [], counts: {}, external: [] };
   if (!fs.existsSync(abs)) { r.errors.push('file not found'); return r; }
   const html = fs.readFileSync(abs, 'utf8');
   const count = (re) => (html.match(re) ?? []).length;
@@ -282,8 +349,20 @@ function validateHtml(file, { minBytes = MIN_BYTES } = {}) {
     }
   }
   if (/\b100vw\b/.test(css)) r.warnings.push('100vw includes the scrollbar width and overflows the viewport; use 100%');
-  if (!/<!--\s*devbok\b/.test(html)) r.warnings.push('no "<!-- devbok" provenance comment (see AGENTS.md, Artifact contract)');
-  if (/localStorage/.test(html) && !/devbok:/.test(html)) r.warnings.push('uses localStorage without a "devbok:<slug>:<kind>:v<N>:" key prefix');
+  // Provenance is the file's own record of what produced it: it must be present, and it must not disagree.
+  const prov = /<!--\s*devbok\b([\s\S]*?)-->/.exec(html);
+  if (!prov) r.errors.push('no "<!-- devbok" provenance comment (see AGENTS.md, Artifact contract)');
+  else if (id) {
+    for (const [k, want] of [['slug', id.slug], ['kind', id.kind], ['version', id.version]]) {
+      const got = (new RegExp(`^[ \\t]*${k}:[ \\t]*(.*?)[ \\t]*$`, 'm').exec(prov[1]) ?? [])[1];
+      if (got !== want) r.errors.push(`provenance ${k}: ${got === undefined ? 'missing' : `"${got}"`} - the file is ${want}`);
+    }
+  }
+  if (/localStorage/.test(html)) {
+    const prefix = id ? `devbok:${id.slug}:${id.kind}:v${id.version}:` : 'devbok:';
+    if (!html.includes(prefix)) r.warnings.push(`uses localStorage without the "${prefix}" key prefix`);
+  }
+  if (id) checkDesign(html, id, r);
   r.ok = r.errors.length === 0;
   return r;
 }
@@ -322,7 +401,9 @@ function cmdInit(args) {
 
 function cmdPrepare(args) {
   const draft = args.includes('--draft');
-  const [slug, kind] = args.filter((a) => a !== '--draft');
+  const rest = args.filter((a) => a !== '--draft');
+  if (rest.length !== 2) fail('usage: prepare <slug> <kind> [--draft]');
+  const [slug, kind] = rest;
   const m = readManifest(requireSlug(slug));
   requireKind(kind);
   let tpl;
@@ -365,7 +446,9 @@ function cmdPrepare(args) {
 
 function cmdRecord(args) {
   const force = args.includes('--force');
-  const [slug, kind, vArg] = args.filter((a) => a !== '--force');
+  const rest = args.filter((a) => a !== '--force');
+  if (rest.length > 3) fail('usage: record <slug> <kind> v<N> [--force]');
+  const [slug, kind, vArg] = rest;
   const m = readManifest(requireSlug(slug));
   requireKind(kind);
   const v = parseVersion(vArg);
@@ -391,7 +474,7 @@ function cmdValidate(args) {
   const draft = args.includes('--draft');
   const [file] = args.filter((a) => a !== '--draft');
   if (!file) fail('usage: validate <file.html> [--draft]');
-  const res = validateHtml(file, { minBytes: draft ? 8_000 : MIN_BYTES });
+  const res = validateHtml(file, { minBytes: draft ? DRAFT_MIN_BYTES : MIN_BYTES });
   json(res);
   if (!res.ok) process.exit(1);
 }
@@ -473,7 +556,11 @@ const locked = (fn) => (args) => withLock(() => fn(args));
 const COMMANDS = { slug: cmdSlug, init: locked(cmdInit), prepare: locked(cmdPrepare), record: locked(cmdRecord), validate: cmdValidate, delete: locked(cmdDelete), list: cmdList, index: locked(cmdIndex) };
 const USAGE = fs.readFileSync(fileURLToPath(import.meta.url), 'utf8').match(/\/\*\*([\s\S]*?)\*\//)[1].replace(/^ \* ?/gm, '');
 
-const [cmd, ...args] = process.argv.slice(2);
-if (!cmd || cmd === '--help' || cmd === '-h') { console.log(USAGE); process.exit(0); }
-if (!COMMANDS[cmd]) { console.error(`devbok: unknown command "${cmd}"\n${USAGE}`); process.exit(1); }
-COMMANDS[cmd](args);
+// Only act as a command line when run as one: scripts/repo.test.mjs imports darkAccent from here to
+// check that devbok.html tints its own accent exactly the way a topic's pages are tinted.
+if (process.argv[1] && path.resolve(process.argv[1]) === fileURLToPath(import.meta.url)) {
+  const [cmd, ...args] = process.argv.slice(2);
+  if (!cmd || cmd === '--help' || cmd === '-h') { console.log(USAGE); process.exit(0); }
+  if (!COMMANDS[cmd]) { console.error(`devbok: unknown command "${cmd}"\n${USAGE}`); process.exit(1); }
+  COMMANDS[cmd](args);
+}

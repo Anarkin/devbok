@@ -61,8 +61,24 @@ function html({ bytes = 25_000, provenance = true, head = '', extra = '', tail =
   }
   return `<!doctype html><html><head><meta charset="utf-8"><title>t</title>${head}</head><body>${provenance ? '<!-- devbok\nslug: x\n-->' : ''}${extra}${body}${tail}`;
 }
-function writeArtifact(slug, kind, v, content = html()) {
-  fs.writeFileSync(p('topics', slug, `${kind}.v${v}.html`), content);
+// A page that satisfies the whole artifact contract, design checks included, so `record` accepts it.
+// The validate tests below write their files outside topics/, where a file has no identity and only the
+// structural checks apply.
+function artifactHtml(slug, kind, v, { title, bytes = 25_000, head = '', extra = '' } = {}) {
+  const name = title ?? manifest(slug).title;
+  let filler = '';
+  while (Buffer.byteLength(filler) < bytes) {
+    filler += '<section><h2>01 S</h2><p>' + 'lorem ipsum '.repeat(40) + '</p><details><summary>Q</summary><p>A</p></details></section>\n';
+  }
+  return `<!doctype html><html><head><meta charset="utf-8"><title>${name} · ${kind} · devbok</title>` +
+    `<style>${kind === 'cheatsheet' ? '@media print { .side { display: none } }' : ''}</style>${head}</head><body>` +
+    `<!-- devbok\nslug: ${slug}\nkind: ${kind}\nversion: ${v}\ntopic: "t"\nprompt: ${kind}.md@00000000\ngenerated: 2026-01-01\n-->` +
+    '<nav class="side" aria-label="Units"><ol class="units"><li><a href="#u01" aria-current="true"><span class="n">01</span><span class="t">First</span></a></li></ol><footer>f</footer></nav>' +
+    `<header class="hero"><h1>${name}</h1><p class="meta">m</p><p class="summary">s</p><p class="chips"><span class="chip">c</span></p></header>` +
+    `${extra}${filler}</body></html>`;
+}
+function writeArtifact(slug, kind, v, content) {
+  fs.writeFileSync(p('topics', slug, `${kind}.v${v}.html`), content ?? artifactHtml(slug, kind, v));
 }
 const initTopic = (slug = 's', topic = 'Some Topic (full text, with & and parentheses)', title = 'Some Topic') =>
   ok(['init', slug, '--title', title, '--topic', topic]);
@@ -260,6 +276,12 @@ describe('prepare', () => {
     initTopic('s');
     bad(['prepare', 's', 'notes'], /invalid kind/);
   });
+  test('rejects stray arguments instead of quietly ignoring them', () => {
+    initTopic('s');
+    bad(['prepare', 's', 'study', 'v2'], /usage: prepare/);
+    bad(['prepare', 's'], /usage: prepare/);
+    assert.equal(manifest('s').kinds.study.next, 1, 'nothing was reserved');
+  });
 });
 
 // ---------------------------------------------------------------- prepare: shared partials
@@ -444,10 +466,12 @@ describe('record', () => {
     assert.equal(fs.existsSync(p(j.prompt)), false, 'recorded: brief removed');
     assert.equal(fs.existsSync(p(other)), true, 'still pending: brief kept');
   });
-  test('rejects bad version syntax', () => {
+  test('rejects bad version syntax and stray arguments', () => {
     initTopic('s');
     bad(['record', 's', 'study', 'latest'], /invalid version/);
     bad(['record', 's', 'study'], /invalid version/);
+    bad(['record', 's', 'study', 'v0'], /invalid version/); // versions start at 1
+    bad(['record', 's', 'study', 'v1', 'please'], /usage: record/);
   });
 });
 
@@ -479,9 +503,8 @@ describe('validate', () => {
     const j = JSON.parse(bad(['validate', file('open.html', html({ extra: '<details><summary>x</summary>' }))]).out);
     assert.ok(j.errors.some((e) => /unbalanced <details>: \d+ opening, \d+ closing/.test(e)));
   });
-  test('warns (does not fail) on off-host resources, missing provenance and unprefixed localStorage', () => {
+  test('warns (does not fail) on off-host resources and unprefixed localStorage', () => {
     const content = html({
-      provenance: false,
       head: '<script src="https://unpkg.com/x.js"></script><link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/styles/github.min.css">',
       extra: '<script>localStorage.setItem("progress", "1")</script>',
     });
@@ -489,8 +512,16 @@ describe('validate', () => {
     assert.equal(r.ok, true);
     assert.deepEqual(r.external, ['https://unpkg.com/x.js', 'https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/styles/github.min.css']);
     assert.ok(r.warnings.some((w) => /unpkg\.com/.test(w) && !/cdnjs\.cloudflare\.com\/ajax/.test(w)));
-    assert.ok(r.warnings.some((w) => /provenance/.test(w)));
     assert.ok(r.warnings.some((w) => /localStorage/.test(w)));
+  });
+  test('a missing provenance comment fails: it is what ties a page to the run that made it', () => {
+    const j = JSON.parse(bad(['validate', file('noprov.html', html({ provenance: false }))]).out);
+    assert.ok(j.errors.some((e) => /provenance/.test(e)), JSON.stringify(j.errors));
+  });
+  test('a file outside topics/ has no identity, so the design checks do not apply', () => {
+    const r = ok(['validate', file('loose.html', html())]).json();
+    assert.equal(r.identity, null);
+    assert.deepEqual(r.errors, []);
   });
   test('warns about the CSS patterns that cause horizontal scrolling', () => {
     const head = '<style>p code, li code { white-space: nowrap; color: red } pre code { white-space: pre } table { width: 100%; min-width: 560px } .hero { width: 100vw }</style>';
@@ -518,6 +549,101 @@ describe('validate', () => {
   test('reports a missing file', () => {
     const j = JSON.parse(bad(['validate', 'missing.html']).out);
     assert.deepEqual(j.errors, ['file not found']);
+  });
+});
+
+// ---------------------------------------------------------------- validate: the design contract
+describe('validate: the verbatim parts of prompts/shared/page.md', () => {
+  // A file under topics/<slug>/ knows its own slug, kind and version, and the manifest knows the title,
+  // so everything page.md calls "verbatim" is checked rather than hoped for.
+  const checked = (mutate = (x) => x, { slug = 's', kind = 'study', v = 1 } = {}) => {
+    writeArtifact(slug, kind, v, mutate(artifactHtml(slug, kind, v)));
+    const r = run(['validate', `topics/${slug}/${kind}.v${v}.html`]);
+    return JSON.parse(r.out);
+  };
+  const errs = (j) => j.errors.join(' | ');
+
+  test('a conforming page passes and reports what it was checked as', () => {
+    initTopic('s', 'Full topic text', 'Short title');
+    const j = checked();
+    assert.deepEqual(j.errors, [], errs(j));
+    assert.deepEqual(j.identity, { slug: 's', kind: 'study', version: '1' });
+    assert.equal(j.ok, true);
+  });
+  test('the <title> must be "<title> · <kind> · devbok"', () => {
+    initTopic('s', 'Full topic text', 'Short title');
+    const j = checked((h) => h.replace('<title>Short title · study · devbok</title>', '<title>Short title — study guide (v1)</title>'));
+    assert.ok(j.errors.some((e) => /<title> must be "Short title · study · devbok"/.test(e)), errs(j));
+  });
+  test('the hero <h1> must be the title, not the topic sentence', () => {
+    initTopic('s', 'Full topic text', 'Short title');
+    const j = checked((h) => h.replace('<h1>Short title</h1>', '<h1>Full topic text</h1>'));
+    assert.ok(j.errors.some((e) => /hero <h1> must be the topic title "Short title"/.test(e)), errs(j));
+  });
+  test('entities and inline markup in the title still match', () => {
+    ok(['init', 's', '--title', 'C# & Co', '--topic', 'T']);
+    const j = checked((h) => h
+      .replace('<title>C# & Co · study · devbok</title>', '<title>C# &amp; Co &middot; study &middot; devbok</title>')
+      .replace('<h1>C# & Co</h1>', '<h1>C# &amp; <span>Co</span></h1>'));
+    assert.deepEqual(j.errors, [], errs(j));
+  });
+  test('the hero keeps its meta, summary and chips lines', () => {
+    initTopic('s');
+    for (const cls of ['meta', 'summary', 'chips']) {
+      const j = checked((h) => h.replace(`class="${cls}"`, 'class="other"'));
+      assert.ok(j.errors.some((e) => e.includes(`<p class="${cls}">`)), `${cls}: ${errs(j)}`);
+    }
+    const j = checked((h) => h.replace(/<header class="hero">[\s\S]*?<\/header>/, '<div class="top"><h1>Some Topic</h1></div>'));
+    assert.ok(j.errors.some((e) => /no <header class="hero">/.test(e)), errs(j));
+  });
+  test('the sidebar is nav.side + ol.units, numbered with two digits, with aria-current for the scrollspy', () => {
+    initTopic('s');
+    let j = checked((h) => h.replace('<nav class="side"', '<nav class="sidebar"'));
+    assert.ok(j.errors.some((e) => /no <nav class="side">/.test(e)), errs(j));
+    j = checked((h) => h.replace('<ol class="units">', '<ol class="nav">').replace('</ol>', '</ol>'));
+    assert.ok(j.errors.some((e) => /no <ol class="units">/.test(e)), errs(j));
+    j = checked((h) => h.replace('<span class="n">01</span>', '<span class="n">1</span>'));
+    assert.ok(j.errors.some((e) => /two digits \(01, 02, \.\.\.\): found "1"/.test(e)), errs(j));
+    j = checked((h) => h.replace('<ol class="units"><li><a href="#u01" aria-current="true">', '<ol class="units"><li><a href="#u01">'));
+    assert.ok(j.errors.some((e) => /aria-current/.test(e)), errs(j));
+  });
+  test('provenance that disagrees with the file is an error', () => {
+    initTopic('s');
+    let j = checked((h) => h.replace('version: 1', 'version: 2'));
+    assert.ok(j.errors.some((e) => /provenance version: "2" - the file is 1/.test(e)), errs(j));
+    j = checked((h) => h.replace('kind: study', 'kind: interview'));
+    assert.ok(j.errors.some((e) => /provenance kind: "interview" - the file is study/.test(e)), errs(j));
+    j = checked((h) => h.replace('slug: s\n', ''));
+    assert.ok(j.errors.some((e) => /provenance slug: missing/.test(e)), errs(j));
+  });
+  test('a cheatsheet needs a print stylesheet, other kinds do not', () => {
+    initTopic('s');
+    const j = checked((h) => h.replace('@media print { .side { display: none } }', ''), { kind: 'cheatsheet' });
+    assert.ok(j.errors.some((e) => /@media print/.test(e)), errs(j));
+    assert.deepEqual(checked((x) => x, { kind: 'study' }).errors, []);
+  });
+  test('localStorage keys are checked against the page\'s own slug, kind and version', () => {
+    initTopic('s');
+    let j = checked((h) => h.replace('</body>', '<script>localStorage.setItem("devbok:s:study:v2:open", 1)</script></body>'));
+    assert.ok(j.warnings.some((w) => w.includes('devbok:s:study:v1:')), JSON.stringify(j.warnings));
+    j = checked((h) => h.replace('</body>', '<script>localStorage.setItem("devbok:s:study:v1:open", 1)</script></body>'));
+    assert.deepEqual(j.warnings, []);
+  });
+  test('a draft in .devbok/ is identified and checked the same way', () => {
+    initTopic('s', 'Full topic text', 'Short title');
+    const j = ok(['prepare', 's', 'study', '--draft']).json();
+    fs.writeFileSync(path.resolve(root, j.output), artifactHtml('s', 'study', 'draft', { bytes: 9_000 }));
+    const v = ok(['validate', '.devbok/s.study.draft.html', '--draft']).json();
+    assert.deepEqual(v.identity, { slug: 's', kind: 'study', version: 'draft' });
+    assert.deepEqual(v.errors, [], v.errors.join(' | '));
+  });
+  test('record refuses a page that drifted from the design, and --force still overrides', () => {
+    initTopic('s', 'Full topic text', 'Short title');
+    ok(['prepare', 's', 'study']);
+    writeArtifact('s', 'study', 1, artifactHtml('s', 'study', 1).replace('<h1>Short title</h1>', '<h1>Full topic text</h1>'));
+    bad(['record', 's', 'study', 'v1'], /hero <h1> must be the topic title/);
+    assert.deepEqual(manifest('s').kinds.study.versions, []);
+    assert.equal(ok(['record', 's', 'study', 'v1', '--force']).json().recorded.forced, true);
   });
 });
 
