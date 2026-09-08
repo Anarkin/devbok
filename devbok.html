@@ -24,7 +24,7 @@
   @media (prefers-color-scheme: dark) {
     :root {
       color-scheme: dark;
-      --bg: #222222; --fg: #cccccc; --muted: #8f8f8f; --line: #111111; --soft: #2c2c2c; --accent: #d69ad1;
+      --bg: #222222; --fg: #cccccc; --muted: #8f8f8f; --line: #111111; --soft: #2c2c2c; --accent: #c190be;
       --border: #4a4a4a; --active-slug: #555555; --backdrop: rgba(0, 0, 0, .6);
     }
   }
@@ -43,7 +43,7 @@
   header .sub { color: var(--muted); }
   nav .add { border: 0; border-top: 2px solid var(--line); padding: 12px 20px; text-align: left; font: inherit; color: var(--accent); background: none; cursor: pointer; }
   nav .add:hover { background: var(--soft); }
-  dialog { border: 2px solid var(--line); border-radius: 0; padding: 0; background: var(--bg); color: var(--fg); width: min(780px, calc(100vw - 48px)); max-height: calc(100vh - 48px); }
+  dialog { border: 2px solid var(--line); border-radius: 0; padding: 0; background: var(--bg); color: var(--fg); width: min(780px, calc(100% - 48px)); max-height: calc(100% - 48px); }
   dialog::backdrop { background: var(--backdrop); }
   .howto { position: relative; padding: 18px 24px 24px; line-height: 1.6; }
   .howto > button { position: absolute; top: 16px; right: 20px; background: none; border: 1px solid var(--border); border-radius: 4px; padding: 2px 10px; font: inherit; color: var(--muted); cursor: pointer; }
@@ -70,10 +70,12 @@
   nav li a .slug { display: block; color: var(--muted); }
   nav li a.active .slug { color: var(--active-slug); }
   nav .none { padding: 12px 20px; color: var(--muted); line-height: 1.6; }
-  .content { display: grid; grid-template-rows: auto auto 1fr; min-height: 0; }
+  /* min-width: 0 so the column may be narrower than the tab row; without it a grid item never shrinks. */
+  .content { display: grid; grid-template-rows: auto auto 1fr; min-height: 0; min-width: 0; }
   /* The bar has no line of its own: every tab draws its bottom line, the active tab draws none, and the
      spacer with the version picker draws the rest. Nothing overlaps, so it survives fractional zoom/DPI. */
-  .tabs { display: flex; align-items: stretch; margin: 0; }
+  /* Below ~520px the four kind labels no longer fit; the row scrolls rather than clipping the last tab. */
+  .tabs { display: flex; align-items: stretch; margin: 0; overflow-x: auto; }
   /* Same pattern as the header: the active tab is bold in the text colour, the others are muted. */
   .tab { padding: 13px 22px; border: 0; border-right: 2px solid var(--line); border-bottom: 2px solid var(--line); background: none; font: inherit; color: var(--muted); cursor: pointer; display: flex; gap: 8px; align-items: baseline; }
   .tab:hover:not([disabled]) { background: var(--soft); color: var(--fg); }
@@ -108,11 +110,11 @@
     <div class="resizer" id="resizer" title="Drag to resize the topic list; double-click to reset"></div>
   </nav>
   <section class="content">
-    <div class="tabs" id="tabs" role="tablist">
-      <button class="tab" role="tab" data-kind="study">study</button>
-      <button class="tab" role="tab" data-kind="experience">experience</button>
-      <button class="tab" role="tab" data-kind="interview">interview</button>
-      <button class="tab" role="tab" data-kind="cheatsheet">cheatsheet</button>
+    <div class="tabs" id="tabs" role="group" aria-label="Artifact kind">
+      <button class="tab" data-kind="study">study</button>
+      <button class="tab" data-kind="experience">experience</button>
+      <button class="tab" data-kind="interview">interview</button>
+      <button class="tab" data-kind="cheatsheet">cheatsheet</button>
       <div class="tools">
         <select id="version" aria-label="Version"></select>
       </div>
@@ -220,6 +222,9 @@ const devbokModel = (function () {
     };
   }
 
+  // The version <select> carries version numbers plus, while a dry run is open, the string 'draft'.
+  const pickVersion = (value) => (value === 'draft' ? 'draft' : Number(value));
+
   // Sidebar width in px: at least SIDEBAR_MIN, at most 60% of the viewport; anything unusable becomes the default.
   const SIDEBAR_DEFAULT = 260, SIDEBAR_MIN = 160;
   function clampSidebar(px, viewport) {
@@ -228,7 +233,7 @@ const devbokModel = (function () {
     return Math.round(Math.min(Math.max(px, SIDEBAR_MIN), max));
   }
 
-  return { KINDS, esc, parseHash, toHash, resolve, view, clampSidebar, SIDEBAR_DEFAULT, SIDEBAR_MIN };
+  return { KINDS, esc, parseHash, toHash, resolve, view, pickVersion, clampSidebar, SIDEBAR_DEFAULT, SIDEBAR_MIN };
 })();
 </script>
 <script>
@@ -257,7 +262,7 @@ const devbokModel = (function () {
     for (const b of els.tabs) {
       const t = v.tabs.find((x) => x.kind === b.dataset.kind);
       b.classList.toggle('active', t.active);
-      b.setAttribute('aria-selected', String(t.active));
+      if (t.active) b.setAttribute('aria-current', 'page'); else b.removeAttribute('aria-current');
       b.disabled = t.disabled;
       b.title = t.latest === null ? 'no artifact yet' : `v${t.latest}`;
     }
@@ -278,7 +283,7 @@ const devbokModel = (function () {
   }
 
   els.tabs.forEach((b) => b.addEventListener('click', () => { const v = current(); if (v.slug) location.hash = M.toHash(v.slug, b.dataset.kind); }));
-  els.version.addEventListener('change', () => { const v = current(); location.hash = M.toHash(v.slug, v.kind, Number(els.version.value)); });
+  els.version.addEventListener('change', () => { const v = current(); location.hash = M.toHash(v.slug, v.kind, M.pickVersion(els.version.value)); });
   const howto = $('#howto');
   $('#help').addEventListener('click', () => howto.showModal());
   $('#howto-close').addEventListener('click', () => howto.close());

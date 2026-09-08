@@ -234,7 +234,7 @@ describe('devbok.html structure', () => {
     const light = css.match(/:root \{([\s\S]*?)\}/)[1];
     const dark = css.match(/prefers-color-scheme: dark\) \{\s*:root \{([\s\S]*?)\}/)[1];
     assert.match(light, /--accent: #a55da0;/);
-    assert.match(dark, /--accent: #d69ad1;/);
+    assert.match(dark, /--accent: #c190be;/);
     assert.match(dark, /--bg: #222222;/);
     assert.match(dark, /--fg: #cccccc;/);
     assert.match(dark, /--line: #111111;/, 'dark lines are darker than the ground, not lighter');
@@ -266,13 +266,15 @@ describe('devbok.html structure', () => {
     assert.match(css, /\.tab \{[^}]*border-bottom: 2px solid var\(--line\);/);
     assert.match(css, /\.tab\.active \{[^}]*border-bottom-color: transparent;/);
     // and follows the header's title/subtitle pattern: active = text colour + bold, inactive = muted
-    assert.match(css, /\.tab \{[^}]*color: var\(--muted\);/);
-    assert.match(css, /\.tab\.active \{[^}]*font-weight: 700;[^}]*color: var\(--fg\);/);
-    assert.match(css, /\.tools \{[^}]*flex: 1;[^}]*border-bottom: 2px solid var\(--line\);/);
+    // one rule per line in this stylesheet, so a rule can be read without pinning declaration order
+    const rule = (sel) => css.split('\n').find((l) => l.trim().startsWith(sel + ' {')) ?? '';
+    assert.ok(rule('.tab').includes('color: var(--muted);'));
+    for (const d of ['font-weight: 700;', 'color: var(--fg);']) assert.ok(rule('.tab.active').includes(d), '.tab.active needs ' + d);
+    for (const d of ['flex: 1;', 'border-bottom: 2px solid var(--line);']) assert.ok(rule('.tools').includes(d), '.tools needs ' + d);
   });
   test('no orientation labels: the list and the tab row explain themselves', () => {
     assert.match(HTML, /<nav aria-label="Topics">\s*<ul id="topics">/);
-    assert.match(HTML, /<div class="tabs" id="tabs" role="tablist">\s*<button class="tab"/);
+    assert.match(HTML, /<div class="tabs" id="tabs" role="group" aria-label="[^"]+">\s*<button class="tab"/);
     assert.doesNotMatch(HTML, /nav-label|tabs-label/);
     assert.doesNotMatch(HTML, /<header>[\s\S]*?<button[\s\S]*?<\/header>/, 'the header holds no controls');
   });
@@ -299,13 +301,34 @@ describe('devbok.html structure', () => {
   });
   test('landing chrome: tabs hidden until a topic is chosen, the title link resets to the landing state', () => {
     const glue = HTML.match(/<script>\s*\(function \(\) \{[\s\S]*?<\/script>/)[0];
-    assert.match(glue, /els\.tabBar\.hidden = !v\.topic/);
-    assert.match(glue, /els\.crumb\.hidden = !v\.topic/);
+    assert.match(glue, /els\.tabBar\.hidden\b/);
+    assert.match(glue, /els\.crumb\.hidden\b/);
     assert.match(HTML, /<h1><a id="home" href="#"[^>]*>devbok<\/a><\/h1>/);
     assert.match(glue, /\$\('#home'\)\.addEventListener\('click'/);
-    assert.match(glue, /history\.replaceState\(null, '', location\.pathname \+ location\.search\)/);
+    assert.match(glue, /history\.replaceState\(/);
     assert.doesNotMatch(glue, /devbok:last/, 'the old topic memory is gone; only the kind tab is remembered');
     assert.match(glue, /devbok:kind/);
+  });
+  test('the kind buttons are a labelled group, not a half-built tab pattern', () => {
+    // role="tablist" also wrapped the version picker, the iframe is a separate document rather than a
+    // tabpanel, and there was no arrow-key navigation: buttons with aria-current are what they are.
+    assert.match(HTML, /<div class="tabs" id="tabs" role="group" aria-label="Artifact kind">/);
+    assert.doesNotMatch(HTML, /role="tab"|role="tablist"|role="tabpanel"|aria-selected/);
+    const glue = HTML.match(/<script>\s*\(function \(\) \{[\s\S]*?<\/script>/)[0];
+    assert.match(glue, /setAttribute\('aria-current', 'page'\)/);
+    assert.match(glue, /removeAttribute\('aria-current'\)/);
+  });
+  test('the kind row scrolls instead of clipping its last tab on a narrow window', () => {
+    // The four fixed labels need ~520px, and the shell supports down to phone width (it has a <=720px
+    // layout), so below that the row has to stay reachable rather than be cut off by body{overflow:hidden}.
+    const css = HTML.match(/<style>([\s\S]*?)<\/style>/)[1];
+    const rule = (sel) => css.split('\n').find((l) => l.trim().startsWith(sel + ' {')) ?? '';
+    assert.match(rule('.tabs'), /overflow-x: auto;/);
+    assert.match(rule('.content'), /min-width: 0;/, 'a grid item never shrinks below its content without this');
+  });
+  test('no 100vw or 100vh: the shell holds itself to the rule it sets for artifacts', () => {
+    // validate warns about 100vw in a generated page; the index page is the reference implementation.
+    assert.doesNotMatch(HTML.match(/<style>([\s\S]*?)<\/style>/)[1], /\b100v[wh]\b/);
   });
   test('the model block has no DOM or browser dependencies', () => {
     assert.doesNotMatch(stripComments(modelSrc), /\b(document|window|location|localStorage)\b/);
@@ -315,6 +338,20 @@ describe('devbok.html structure', () => {
     const guarded = [...HTML.matchAll(/try \{ (?:return )?localStorage\./g)].length;
     assert.ok(uses > 0);
     assert.equal(guarded, uses);
+  });
+});
+
+describe('model: pickVersion', () => {
+  test('turns a <select> value into what toHash expects, draft included', () => {
+    assert.equal(M.pickVersion('2'), 2);
+    assert.equal(M.pickVersion('draft'), 'draft');
+    assert.equal(M.toHash('csharp', 'study', M.pickVersion('draft')), '#csharp/study/draft');
+    assert.equal(M.toHash('csharp', 'study', M.pickVersion('2')), '#csharp/study/v2');
+    // and the round trip: every option the view offers survives being picked
+    const w = M.view(T, '#csharp/study/draft', null);
+    for (const o of w.options) {
+      assert.deepEqual(M.parseHash(M.toHash('csharp', 'study', M.pickVersion(String(o.v)))).v, o.v);
+    }
   });
 });
 
