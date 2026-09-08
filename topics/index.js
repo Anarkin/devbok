@@ -123,6 +123,41 @@ window.DEVBOK_TOPICS = [
     }
   },
   {
+    "slug": "aspnet",
+    "title": "ASP.NET Core & .NET runtime",
+    "topic": "ASP.NET Core & .NET runtime (assume C# language features are already covered; focus on the framework and runtime)",
+    "category": "backend",
+    "accent": "#512bd4",
+    "created": "2026-09-08",
+    "kinds": {
+      "study": [],
+      "experience": [],
+      "interview": [],
+      "cheatsheet": [
+        {
+          "v": 1,
+          "generated": "2026-09-08",
+          "prompt": "ccd2d4a9",
+          "file": "topics/aspnet/cheatsheet.v1.html"
+        }
+      ]
+    }
+  },
+  {
+    "slug": "azure",
+    "title": "Azure cloud",
+    "topic": "Azure cloud",
+    "category": "ops",
+    "accent": "#0078d4",
+    "created": "2026-09-08",
+    "kinds": {
+      "study": [],
+      "experience": [],
+      "interview": [],
+      "cheatsheet": []
+    }
+  },
+  {
     "slug": "csharp",
     "title": "C#",
     "topic": "C#",
@@ -304,6 +339,48 @@ window.DEVBOK_TOPICS = [
     "accent": "#3178c6",
     "created": "2026-09-08",
     "kinds": {
+      "study": [
+        {
+          "v": 1,
+          "generated": "2026-09-08",
+          "prompt": "3e395ac4",
+          "file": "topics/jsts/study.v1.html"
+        }
+      ],
+      "experience": [
+        {
+          "v": 1,
+          "generated": "2026-09-08",
+          "prompt": "f284a113",
+          "file": "topics/jsts/experience.v1.html"
+        }
+      ],
+      "interview": [
+        {
+          "v": 1,
+          "generated": "2026-09-08",
+          "prompt": "880c04f3",
+          "file": "topics/jsts/interview.v1.html"
+        }
+      ],
+      "cheatsheet": [
+        {
+          "v": 1,
+          "generated": "2026-09-08",
+          "prompt": "ccd2d4a9",
+          "file": "topics/jsts/cheatsheet.v1.html"
+        }
+      ]
+    }
+  },
+  {
+    "slug": "modernization",
+    "title": "Modernization (.NET full-stack)",
+    "topic": "Software Modernization for .NET+JS/TS+Database+Azure full-stack engineers",
+    "category": "architecture",
+    "accent": "#c2410c",
+    "created": "2026-09-08",
+    "kinds": {
       "study": [],
       "experience": [],
       "interview": [],
@@ -360,6 +437,41 @@ window.DEVBOK_TOPICS = [
     "accent": "#087ea4",
     "created": "2026-09-08",
     "kinds": {
+      "study": [
+        {
+          "v": 1,
+          "generated": "2026-09-08",
+          "prompt": "3e395ac4",
+          "file": "topics/react/study.v1.html"
+        }
+      ],
+      "experience": [
+        {
+          "v": 1,
+          "generated": "2026-09-08",
+          "prompt": "f284a113",
+          "file": "topics/react/experience.v1.html"
+        }
+      ],
+      "interview": [],
+      "cheatsheet": [
+        {
+          "v": 1,
+          "generated": "2026-09-08",
+          "prompt": "ccd2d4a9",
+          "file": "topics/react/cheatsheet.v1.html"
+        }
+      ]
+    }
+  },
+  {
+    "slug": "sql",
+    "title": "SQL (SQL Server & PostgreSQL)",
+    "topic": "SQL Server and PostgreSQL (if they differ, mention both separately)",
+    "category": "data",
+    "accent": "#336791",
+    "created": "2026-09-08",
+    "kinds": {
       "study": [],
       "experience": [],
       "interview": [],
@@ -368,7 +480,7 @@ window.DEVBOK_TOPICS = [
           "v": 1,
           "generated": "2026-09-08",
           "prompt": "ccd2d4a9",
-          "file": "topics/react/cheatsheet.v1.html"
+          "file": "topics/sql/cheatsheet.v1.html"
         }
       ]
     }

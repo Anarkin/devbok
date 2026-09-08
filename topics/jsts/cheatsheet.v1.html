@@ -1,0 +1,772 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>JavaScript &amp; TypeScript · cheatsheet · devbok</title>
+<link rel="preconnect" href="https://fonts.googleapis.com/">
+<link rel="preconnect" href="https://fonts.gstatic.com/" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Cascadia+Mono:wght@400;700&amp;display=swap">
+<style>
+:root { color-scheme: light;
+  --bg: #ffffff; --fg: #111111; --muted: #6b6b6b; --line: #111111; --soft: #f4f4f4; --border: #cccccc;
+  --accent: #3178c6; --accent-soft: color-mix(in srgb, var(--accent) 12%, var(--bg));
+  --code: color-mix(in srgb, var(--accent) 70%, var(--fg));
+  --hl-kw: #a626a4; --hl-str: #50a14f; --hl-num: #986801; --hl-cmt: #6b6b6b; --hl-type: #0184bc; --hl-fn: #4078f2; --hl-attr: #986801; }
+@media (prefers-color-scheme: dark) { :root { color-scheme: dark;
+  --bg: #222222; --fg: #cccccc; --muted: #8f8f8f; --line: #111111; --soft: #2c2c2c; --border: #4a4a4a;
+  --accent: #74a6dd; --accent-soft: color-mix(in srgb, var(--accent) 16%, var(--bg));
+  --hl-kw: #c678dd; --hl-str: #98c379; --hl-num: #d19a66; --hl-cmt: #8f8f8f; --hl-type: #56b6c2; --hl-fn: #61afef; --hl-attr: #e5c07b; } }
+
+*, *::before, *::after { box-sizing: border-box; }
+html { -webkit-text-size-adjust: 100%; }
+body { margin: 0; background: var(--bg); color: var(--fg);
+  font-family: system-ui, sans-serif; font-size: 16px; line-height: 1.6; overflow-wrap: break-word; }
+h1, h2, h3 { font-family: system-ui, sans-serif; font-weight: 700; }
+h2 { font-size: 1.5em; }
+h3 { font-size: 1.17em; }
+a { color: var(--accent); }
+a:focus-visible, button:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+img { max-width: 100%; }
+
+code, kbd, pre, .mono, .chip, .since, .docs, .hero .meta, .side, dl.rows dd, table.grid { font-family: "Cascadia Mono", Consolas, monospace; font-size: 12px; }
+code { background: var(--soft); border: 1px solid var(--border); border-radius: 3px; padding: 0 .3em; color: var(--code); overflow-wrap: anywhere; }
+pre { background: var(--soft); border: 1px solid var(--border); border-radius: 4px; padding: 12px 14px; overflow-x: auto; line-height: 1.5; margin: 14px 0; max-width: 100%; }
+pre code { background: none; border: 0; border-radius: 0; padding: 0; color: inherit; white-space: pre; overflow-wrap: normal; }
+.hljs { color: var(--fg); background: transparent; }
+.hljs-keyword, .hljs-built_in, .hljs-literal, .hljs-selector-tag { color: var(--hl-kw); }
+.hljs-string, .hljs-regexp, .hljs-selector-attr { color: var(--hl-str); }
+.hljs-number, .hljs-symbol { color: var(--hl-num); }
+.hljs-comment, .hljs-quote, .hljs-doctag { color: var(--hl-cmt); font-style: italic; }
+.hljs-title, .hljs-title.class_, .hljs-type, .hljs-name, .hljs-section, .hljs-selector-class, .hljs-selector-pseudo { color: var(--hl-type); }
+.hljs-title.function_ { color: var(--hl-fn); }
+.hljs-meta, .hljs-attr, .hljs-attribute, .hljs-tag, .hljs-property, .hljs-variable { color: var(--hl-attr); }
+.hljs-template-tag, .hljs-template-variable { color: var(--hl-attr); }
+.hljs-code, .hljs-formula { color: var(--hl-cmt); }
+.hljs-operator, .hljs-subst, .hljs-punctuation, .hljs-params { color: var(--fg); }
+.hljs-emphasis { font-style: italic; } .hljs-strong { font-weight: 700; }
+
+.hero { margin: 0 0 24px; padding: 0 0 24px; border-bottom: 2px solid var(--line); }
+.hero h1 { margin: 0 0 8px; font-size: 2em; line-height: 1.2; font-weight: 700; }
+.hero .meta { margin: 0 0 12px; font-family: "Cascadia Mono", Consolas, monospace; font-size: 12px; color: var(--muted); }
+.hero .summary { margin: 0 0 12px; }
+.hero .chips { display: flex; flex-wrap: wrap; gap: 6px; margin: 0; }
+
+.side { position: fixed; top: 0; bottom: 0; left: 0; width: 260px; display: flex; flex-direction: column; background: var(--bg); border-right: 2px solid var(--line); font-family: "Cascadia Mono", Consolas, monospace; font-size: 12px; }
+.units { list-style: none; margin: 0; padding: 12px 0; overflow-y: auto; flex: 1; }
+.units a { display: grid; grid-template-columns: 2.5em 1fr; padding: 9px 20px; color: var(--fg); text-decoration: none; line-height: 1.4; }
+.units .n { color: var(--muted); }
+.units a:hover { background: var(--soft); }
+.units a[aria-current="true"] { background: var(--accent-soft); color: var(--accent); }
+.units a[aria-current="true"] .n { color: var(--accent); }
+.side footer { padding: 12px 20px; border-top: 2px solid var(--line); color: var(--muted); line-height: 1.5; }
+
+.content { margin-left: 260px; padding: 24px; max-width: 120ch; min-width: 0; }
+.unit { border-top: 2px solid var(--line); margin: 0 0 26px; padding: 14px 0 0; min-width: 0; }
+.unit > header { display: flex; flex-wrap: wrap; align-items: baseline; gap: 4px 14px; margin: 0 0 4px; min-width: 0; }
+.unit h2 { margin: 0; line-height: 1.25; }
+.unit h2 .n { font-family: "Cascadia Mono", Consolas, monospace; font-size: 12px; color: var(--muted); margin-right: 10px; }
+.unit h3 { margin: 16px 0 0; }
+.docs { color: var(--muted); }
+.docs a { color: var(--accent); text-decoration: none; }
+.docs a:hover { text-decoration: underline; }
+
+dl.rows { display: grid; grid-template-columns: minmax(0, 30ch) minmax(0, 1fr);
+  margin: 12px 0 0; border-top: 1px solid var(--border); min-width: 0; }
+dl.rows dt { grid-column: 1; margin: 0; padding: 6px 14px 6px 0; border-bottom: 1px solid var(--border);
+  min-width: 0; line-height: 1.35; }
+dl.rows dd { grid-column: 2; margin: 0; padding: 7px 0 6px; border-bottom: 1px solid var(--border);
+  min-width: 0; line-height: 1.5; overflow-wrap: anywhere; }
+dl.rows dd code { background: none; border: 0; padding: 0; }
+.cmt { color: var(--muted); }
+
+.chip { display: inline-block; text-transform: uppercase; letter-spacing: .03em;
+  background: var(--soft); border: 1px solid var(--border); border-radius: 4px; padding: 2px 7px; }
+.since { display: inline-block; border: 1px solid var(--accent); border-radius: 4px;
+  padding: 0 5px; color: var(--accent); white-space: nowrap; }
+.note { background: var(--soft); border-left: 3px solid var(--accent); padding: 8px 12px; margin: 12px 0 0; }
+.note p { margin: 0; }
+
+.tw { overflow-x: auto; margin: 12px 0 0; min-width: 0; }
+table.grid { border-collapse: collapse; width: 100%; }
+table.grid th { text-align: left; font-weight: 400; color: var(--muted);
+  border-bottom: 1px solid var(--border); padding: 6px 14px 6px 0; vertical-align: bottom; }
+table.grid td { border-bottom: 1px solid var(--border); padding: 6px 14px 6px 0; vertical-align: top; }
+table.grid td code { background: none; border: 0; padding: 0; }
+table.grid tr.hi td { background: var(--accent-soft); }
+
+ul.tight { margin: 12px 0 0; padding-left: 1.1em; }
+ul.tight li { margin: 0 0 3px; }
+
+.navtoggle { display: none; position: fixed; top: 10px; left: 10px; z-index: 30;
+  font-family: "Cascadia Mono", Consolas, monospace; font-size: 12px; color: var(--fg);
+  background: var(--bg); border: 1px solid var(--line); border-radius: 4px; padding: 6px 10px; cursor: pointer; }
+@media (max-width: 720px) {
+  .navtoggle { display: block; }
+  .side { width: min(260px, 84%); transform: translateX(-102%); transition: transform .15s ease; z-index: 25; }
+  body.nav-open .side { transform: none; }
+  .content { margin-left: 0; padding: 52px 16px 24px; }
+  dl.rows { grid-template-columns: minmax(0, 1fr); }
+  dl.rows dt { padding: 6px 0 0; border-bottom: 0; font-weight: 600; }
+  dl.rows dd { padding: 2px 0 7px; }
+}
+
+@media print {
+  :root { color-scheme: light;
+    --bg: #ffffff; --fg: #000000; --muted: #333333; --line: #000000; --soft: #ffffff; --border: #999999;
+    --accent: #000000; --accent-soft: #ffffff; --code: #000000; }
+  .side, .navtoggle { display: none !important; }
+  body { font-size: 8.5pt; line-height: 1.3; background: #fff; color: #000; }
+  .content { margin: 0; padding: 0; max-width: 100%; }
+  code, kbd, pre, .chip, .since, .docs, .hero .meta, dl.rows dd, table.grid { font-size: 7pt; }
+  .hero { padding-bottom: 8pt; margin-bottom: 10pt; border-bottom: 1pt solid #000; }
+  .hero h1 { font-size: 15pt; }
+  .hero .chips { display: none; }
+  .unit { break-inside: avoid; page-break-inside: avoid; margin: 0 0 8pt; padding-top: 6pt; border-top: 1pt solid #000; }
+  .unit h2 { font-size: 10.5pt; }
+  pre { background: #fff; border: 1pt solid #999; padding: 3pt 5pt; margin: 5pt 0; }
+  .note { background: #fff; border-left: 2pt solid #000; }
+  a, a:visited { color: #000; text-decoration: none; }
+  a[href]::after { content: ""; }
+  code, .hljs, .hljs span { color: #000 !important; background: transparent !important; }
+  @page { size: A4; margin: 10mm; }
+}
+</style>
+</head>
+<body>
+<!-- devbok
+slug: jsts
+kind: cheatsheet
+version: 1
+topic: "JavaScript and TypeScript"
+prompt: cheatsheet.md@ccd2d4a9
+generated: 2026-09-08
+-->
+<button class="navtoggle" type="button" aria-expanded="false" aria-controls="side">units</button>
+<nav class="side" id="side" aria-label="Units">
+  <ol class="units">
+    <li><a href="#u01"><span class="n">01</span><span class="t">Types &amp; annotations</span></a></li>
+    <li><a href="#u02"><span class="n">02</span><span class="t">Generics &amp; type operators</span></a></li>
+    <li><a href="#u03"><span class="n">03</span><span class="t">Narrowing &amp; guards</span></a></li>
+    <li><a href="#u04"><span class="n">04</span><span class="t">Modules &amp; resolution</span></a></li>
+    <li><a href="#u05"><span class="n">05</span><span class="t">Async &amp; iteration</span></a></li>
+    <li><a href="#u06"><span class="n">06</span><span class="t">Standard library</span></a></li>
+    <li><a href="#u07"><span class="n">07</span><span class="t">Classes, decorators, using</span></a></li>
+    <li><a href="#u08"><span class="n">08</span><span class="t">tsconfig flags that matter</span></a></li>
+    <li><a href="#u09"><span class="n">09</span><span class="t">Commands &amp; flags</span></a></li>
+    <li><a href="#u10"><span class="n">10</span><span class="t">Idioms &amp; gotchas</span></a></li>
+    <li><a href="#u11"><span class="n">11</span><span class="t">Modern vs legacy</span></a></li>
+    <li><a href="#u12"><span class="n">12</span><span class="t">Version timeline</span></a></li>
+  </ol>
+  <footer>JavaScript &amp; TypeScript · cheatsheet · version 1 · 2026-09-08</footer>
+</nav>
+<main class="content">
+<header class="hero">
+  <h1>JavaScript &amp; TypeScript</h1>
+  <p class="meta">cheatsheet · TypeScript 7.0 · ES2026 · Node.js 26.8.1 · released 2026-07-08</p>
+  <p class="summary">The language pair on one card: TypeScript's type syntax, generics, narrowing and the tsconfig flags that actually change behaviour, next to the JavaScript standard library, module semantics and async model a working engineer types weekly. Read as TypeScript 7.0 (the Go-native compiler, GA 2026-07-08) targeting ES2026 (ratified 2026-06-30) on Node.js 26 — browser-only or Deno/Bun-only differences are called out where they bite, but Node is the assumed runtime. Verified 2026-09-08: TS 7.0 turned TS 6.0's deprecations into hard errors and still ships no public compiler API (due in 7.1, autumn 2026), Node 26 made TypeScript type stripping stable and Temporal unflagged, and <code>strict</code> is now on by default.</p>
+  <p class="chips"><span class="chip">TypeScript 7.0.2</span> <span class="chip">tsc is Go now</span> <span class="chip">ES2026</span> <span class="chip">Node 26.8.1</span> <span class="chip">Node 24 = active LTS</span> <span class="chip">verified 2026-09-08</span></p>
+</header>
+
+<section class="unit" id="u01">
+  <header>
+    <h2><span class="n">01</span>Types &amp; annotations</h2>
+    <span class="docs"><a href="https://www.typescriptlang.org/docs/handbook/2/everyday-types.html">docs: TS handbook — everyday types</a></span>
+  </header>
+  <dl class="rows">
+    <dt>Primitives</dt>
+    <dd><code>string</code> <code>number</code> <code>boolean</code> <code>bigint</code> <code>symbol</code> <code>null</code> <code>undefined</code> <span class="cmt">— lower-case always; <code>String</code>/<code>Number</code> are the wrapper objects and never what you want</span></dd>
+    <dt>Top types</dt>
+    <dd><code>unknown</code> = safe top (must narrow before use) · <code>any</code> = opt out of checking · <code>object</code> = any non-primitive <span class="cmt">— reach for <code>unknown</code> at every boundary</span></dd>
+    <dt>Bottom types</dt>
+    <dd><code>never</code> = unreachable / empty union · <code>void</code> = return value ignored <span class="cmt">— a <code>void</code>-returning callback may still return a value; <code>never</code> may not</span></dd>
+    <dt>Literal &amp; union</dt>
+    <dd><code>type Mode = "r" | "w" | "rw"</code> · discriminated union: every member shares a literal tag field</dd>
+    <dt><code>interface</code> vs <code>type</code></dt>
+    <dd>interfaces merge across declarations and give better errors on object shapes; <code>type</code> does unions, tuples, mapped and conditional types <span class="cmt">— interface for public object contracts, type for everything else</span></dd>
+    <dt>Object modifiers</dt>
+    <dd><code>readonly x: T</code>, <code>y?: T</code>, index signature <code>[k: string]: T</code>, <code>Record&lt;K, V&gt;</code></dd>
+    <dt>Tuples</dt>
+    <dd><code>[string, number]</code>, named <code>[name: string, age: number]</code>, variadic <code>[first: T, ...rest: U[]]</code>, <code>readonly [1, 2]</code></dd>
+    <dt><code>as const</code></dt>
+    <dd>freezes literals and infers the narrowest type: <code>const R = ["GET","POST"] as const</code> then <code>type M = typeof R[number]</code></dd>
+    <dt><code>satisfies</code> <span class="since">TS 4.9</span></dt>
+    <dd>check against a type <em>without</em> widening the inferred one — the correct replacement for <code>const x: T = …</code> on config objects</dd>
+    <dt>Function types</dt>
+    <dd><code>(a: string, b?: number) =&gt; void</code> · overloads via multiple signatures · <code>this</code> parameter as the first parameter</dd>
+    <dt>Enums</dt>
+    <dd>prefer <code>as const</code> objects + a union type; <code>enum</code> emits runtime code and is banned by <code>erasableSyntaxOnly</code> <span class="cmt">— <code>const enum</code> breaks under <code>isolatedModules</code></span></dd>
+    <dt>Declaration files</dt>
+    <dd><code>.d.ts</code> ambient types · <code>declare module "x"</code> · <code>declare global { … }</code> · <code>export {}</code> makes a file a module</dd>
+  </dl>
+<pre><code class="language-typescript">// satisfies: validated, but each value keeps its literal type
+const routes = {
+  home: { path: "/", auth: false },
+  admin: { path: "/admin", auth: true },
+} satisfies Record&lt;string, { path: `/${string}`; auth: boolean }&gt;;
+routes.admin.path; // "/admin", not string
+
+// as const object instead of enum — zero runtime cost, erasable
+const Level = { Debug: 10, Info: 20, Error: 40 } as const;
+type Level = (typeof Level)[keyof typeof Level]; // 10 | 20 | 40</code></pre>
+  <div class="note"><p><strong>Structural, not nominal.</strong> Two types with the same shape are interchangeable. Brand when identity matters: <code>type UserId = string &amp; { readonly __brand: unique symbol }</code>.</p></div>
+</section>
+
+<section class="unit" id="u02">
+  <header>
+    <h2><span class="n">02</span>Generics &amp; type operators</h2>
+    <span class="docs"><a href="https://www.typescriptlang.org/docs/handbook/2/generics.html">docs: TS handbook — generics</a></span>
+  </header>
+  <dl class="rows">
+    <dt>Constraints &amp; defaults</dt>
+    <dd><code>function f&lt;T extends object = {}&gt;(x: T): T</code> — constrain to what you actually use, not to <code>any</code></dd>
+    <dt><code>const</code> type params <span class="since">TS 5.0</span></dt>
+    <dd><code>function pick&lt;const T extends readonly string[]&gt;(keys: T)</code> — infers literals without the caller writing <code>as const</code></dd>
+    <dt><code>NoInfer&lt;T&gt;</code> <span class="since">TS 5.4</span></dt>
+    <dd>excludes a position from inference: <code>function pick&lt;T&gt;(all: T[], one: NoInfer&lt;T&gt;)</code></dd>
+    <dt><code>keyof</code> / <code>typeof</code></dt>
+    <dd><code>keyof T</code> = union of keys · <code>typeof value</code> = the type of a runtime binding · indexed access <code>T["k"]</code>, <code>T[number]</code></dd>
+    <dt>Mapped types</dt>
+    <dd><code>{ [K in keyof T]: … }</code> with <code>+/-readonly</code>, <code>+/-?</code>, and key remapping <code>as `get${Capitalize&lt;K &amp; string&gt;}`</code></dd>
+    <dt>Conditional types</dt>
+    <dd><code>T extends U ? A : B</code>, <code>infer</code> to capture, distributive over naked unions — wrap in <code>[T]</code> to stop distribution</dd>
+    <dt>Template literals</dt>
+    <dd><code>type Ev = `on${Capitalize&lt;string &amp; keyof T&gt;}`</code> · built-ins <code>Uppercase</code> <code>Lowercase</code> <code>Capitalize</code> <code>Uncapitalize</code></dd>
+    <dt>Utility types</dt>
+    <dd><code>Partial</code> <code>Required</code> <code>Readonly</code> <code>Pick</code> <code>Omit</code> <code>Record</code> <code>Exclude</code> <code>Extract</code> <code>NonNullable</code> <code>ReturnType</code> <code>Parameters</code> <code>Awaited</code> <code>InstanceType</code></dd>
+    <dt>Variance annotations <span class="since">TS 4.7</span></dt>
+    <dd><code>interface Box&lt;in out T&gt;</code> — documents and speeds up assignability checks on large generic types</dd>
+    <dt><code>declare const</code> tricks</dt>
+    <dd>type-level tests: <code>type Expect&lt;T extends true&gt; = T</code> plus <code>Equals&lt;A, B&gt;</code> keeps public types from silently drifting</dd>
+  </dl>
+<pre><code class="language-typescript">// infer + template literal: parse route params out of a path string
+type Params&lt;S extends string&gt; =
+  S extends `${string}:${infer P}/${infer Rest}` ? P | Params&lt;`/${Rest}`&gt; :
+  S extends `${string}:${infer P}` ? P : never;
+type P = Params&lt;"/org/:orgId/user/:userId"&gt;; // "orgId" | "userId"
+
+// exhaustiveness: the compiler proves every case is handled
+function area(s: Shape): number {
+  switch (s.kind) {
+    case "circle": return Math.PI * s.r ** 2;
+    case "rect":   return s.w * s.h;
+    default: { const _never: never = s; return _never; }
+  }
+}</code></pre>
+  <div class="note"><p><strong>Depth costs money.</strong> Deep conditional recursion is the usual cause of a slow <code>tsc</code>. Measure with <code>tsc --diagnostics --generateTrace ./trace</code> before optimising types by feel.</p></div>
+</section>
+
+<section class="unit" id="u03">
+  <header>
+    <h2><span class="n">03</span>Narrowing &amp; guards</h2>
+    <span class="docs"><a href="https://www.typescriptlang.org/docs/handbook/2/narrowing.html">docs: TS handbook — narrowing</a></span>
+  </header>
+  <dl class="rows">
+    <dt>Built-in narrowers</dt>
+    <dd><code>typeof</code> · <code>instanceof</code> · <code>in</code> · <code>Array.isArray</code> · truthiness · equality against a literal or <code>null</code></dd>
+    <dt>Discriminant switch</dt>
+    <dd><code>switch (x.kind)</code> on a literal tag — the cheapest exhaustive dispatch; close it with a <code>never</code> default</dd>
+    <dt>Type predicate</dt>
+    <dd><code>function isUser(x: unknown): x is User</code> — you are asserting, the compiler is not checking; keep the body trivial</dd>
+    <dt>Inferred predicates <span class="since">TS 5.5</span></dt>
+    <dd><code>xs.filter(x =&gt; x !== null)</code> now narrows on its own, without an explicit <code>x is T</code> signature</dd>
+    <dt>Assertion functions</dt>
+    <dd><code>function assert(c: unknown): asserts c</code> · <code>function assertUser(x: unknown): asserts x is User</code> <span class="cmt">— must be a declared function, not an arrow in a <code>let</code></span></dd>
+    <dt><code>in</code> on untagged unions</dt>
+    <dd><code>if ("error" in res)</code> narrows union members that share no discriminant field</dd>
+    <dt>Non-null assertion</dt>
+    <dd><code>x!.y</code> — a lie to the compiler with zero runtime effect; prefer <code>x ?? raise()</code> or an assertion function</dd>
+    <dt><code>as</code> casts</dt>
+    <dd>only move along the subtype chain; <code>as unknown as T</code> is the escape hatch that eventually bites</dd>
+    <dt>Optional chaining</dt>
+    <dd><code>a?.b</code>, <code>a?.[i]</code>, <code>a?.()</code> short-circuit to <code>undefined</code> <span class="since">ES2020</span> <span class="cmt">— <code>a?.b.c</code> guards the whole chain, not just <code>b</code></span></dd>
+    <dt>Nullish coalescing</dt>
+    <dd><code>a ?? d</code> falls back only on <code>null</code>/<code>undefined</code>; <code>a || d</code> also swallows <code>0</code>, empty string, <code>false</code> · <code>a ??= d</code> <span class="since">ES2021</span></dd>
+    <dt>Closure narrowing <span class="since">TS 5.4</span></dt>
+    <dd>narrowing survives into a closure created after the last assignment — the old copy-into-a-local dance is mostly gone</dd>
+    <dt>Runtime validation</dt>
+    <dd>types vanish at runtime: validate untrusted JSON with a schema library (Zod / Valibot / ArkType) or hand-written predicates, then trust the inferred type</dd>
+  </dl>
+<pre><code class="language-typescript">// unknown at the boundary, narrowed once, typed everywhere after
+async function loadUser(id: string): Promise&lt;User&gt; {
+  const res = await fetch(`/api/users/${id}`);
+  if (!res.ok) throw new Error(`HTTP ${res.status}`, { cause: res });
+  const data: unknown = await res.json();
+  if (!isUser(data)) throw new TypeError("bad user payload");
+  return data; // User
+}
+
+function isUser(x: unknown): x is User {
+  return typeof x === "object" &amp;&amp; x !== null &amp;&amp; "id" in x &amp;&amp; typeof x.id === "string";
+}</code></pre>
+</section>
+
+<section class="unit" id="u04">
+  <header>
+    <h2><span class="n">04</span>Modules &amp; resolution</h2>
+    <span class="docs"><a href="https://nodejs.org/api/packages.html">docs: Node.js — packages &amp; exports</a></span>
+  </header>
+  <dl class="rows">
+    <dt>ESM basics</dt>
+    <dd><code>import x, { y as z } from "m"</code> · <code>export default</code> · <code>export * as ns from "m"</code> · <code>import.meta.url</code> · top-level <code>await</code> <span class="since">ES2022</span></dd>
+    <dt>Dynamic import</dt>
+    <dd><code>const m = await import("./heavy.js")</code> — returns a namespace object; the only way to load conditionally</dd>
+    <dt><code>import defer</code> <span class="since">TS 5.9</span></dt>
+    <dd><code>import defer * as ns from "./heavy.js"</code> — the module evaluates on first property access; Stage 3, aimed at deep graphs with costly top-level side effects</dd>
+    <dt>Import attributes <span class="since">ES2025</span></dt>
+    <dd><code>import cfg from "./c.json" with { type: "json" }</code> · dynamic form <code>import(u, { with: { type: "json" } })</code></dd>
+    <dt>Type-only imports</dt>
+    <dd><code>import type { T } from "m"</code> · <code>import { type T, value } from "m"</code> · <code>export type { T }</code> — mandatory under <code>verbatimModuleSyntax</code></dd>
+    <dt>Package entry points</dt>
+    <dd><code>"exports"</code> map with <code>"types"</code> first, then <code>"import"</code>/<code>"require"</code>/<code>"default"</code> <span class="cmt">— <code>main</code>/<code>module</code>/<code>browser</code> are legacy fallbacks</span></dd>
+    <dt>Subpath imports</dt>
+    <dd><code>"imports": { "#/*": "./src/*" }</code> in package.json — aliases the runtime honours; TS 6.0 accepts the bare <code>#/</code> prefix</dd>
+    <dt>CJS and ESM</dt>
+    <dd><code>require(esm)</code> on by default <span class="since">Node 22.12 / 24</span> · <code>createRequire(import.meta.url)</code> the other way · <code>__dirname</code> becomes <code>import.meta.dirname</code> <span class="since">Node 20.11</span></dd>
+    <dt>Extension rules</dt>
+    <dd><code>"type": "module"</code> makes <code>.js</code> ESM; <code>.mjs</code>/<code>.cjs</code> force it per file; TS mirrors with <code>.mts</code>/<code>.cts</code> emitting <code>.mjs</code>/<code>.cjs</code></dd>
+    <dt>Relative specifiers</dt>
+    <dd>ESM requires the extension. Under <code>nodenext</code> you write the <em>output</em> extension: <code>import "./util.js"</code> inside <code>util.ts</code></dd>
+    <dt>Resolution modes</dt>
+    <dd><code>nodenext</code> (libraries, Node apps) · <code>bundler</code> (Vite/webpack apps, extensionless allowed) <span class="cmt">— <code>node</code>, <code>node10</code>, <code>classic</code> are gone in TS 7.0</span></dd>
+    <dt>Circular imports</dt>
+    <dd>ESM hoists bindings, so cycles appear to work until a top-level read hits the TDZ — symptom is <code>Cannot access X before initialization</code></dd>
+  </dl>
+<pre><code class="language-json">{
+  "name": "@acme/core",
+  "type": "module",
+  "exports": {
+    ".":        { "types": "./dist/index.d.ts", "import": "./dist/index.js", "require": "./dist/index.cjs" },
+    "./client": { "types": "./dist/client.d.ts", "default": "./dist/client.js" },
+    "./package.json": "./package.json"
+  },
+  "imports": { "#/*": "./dist/*" },
+  "engines": { "node": "&gt;=24" }
+}</code></pre>
+  <div class="note"><p><strong>Dual-package hazard.</strong> Ship one format when you can. If a package resolves as both CJS and ESM, two copies of its module state live in one process — <code>instanceof</code> checks and singletons quietly stop working.</p></div>
+</section>
+
+<section class="unit" id="u05">
+  <header>
+    <h2><span class="n">05</span>Async &amp; iteration</h2>
+    <span class="docs"><a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Guide/Using_promises">docs: MDN — using promises</a></span>
+  </header>
+  <dl class="rows">
+    <dt>Combinators</dt>
+    <dd><code>all</code> (fails fast) · <code>allSettled</code> (never rejects) · <code>race</code> (first settle) · <code>any</code> (first fulfil, else <code>AggregateError</code>)</dd>
+    <dt><code>Promise.withResolvers()</code> <span class="since">ES2024</span></dt>
+    <dd><code>const { promise, resolve, reject } = Promise.withResolvers&lt;T&gt;()</code> — retires the captured-resolver deferred pattern</dd>
+    <dt><code>Promise.try()</code> <span class="since">ES2025</span></dt>
+    <dd>runs a sync-or-async function and routes a synchronous throw into the promise chain instead of the call stack</dd>
+    <dt>Cancellation</dt>
+    <dd><code>AbortController</code> plus <code>{ signal }</code>; <code>AbortSignal.timeout(ms)</code>, <code>AbortSignal.any([a, b])</code> <span class="cmt">— promises themselves are not cancellable</span></dd>
+    <dt>Event loop order</dt>
+    <dd>sync → microtasks (<code>await</code>, <code>.then</code>, <code>queueMicrotask</code>) → macrotasks (timers, I/O). A microtask loop starves rendering and I/O</dd>
+    <dt>Concurrency limit</dt>
+    <dd>no built-in pool — chunk the work or use <code>p-limit</code>; an unbounded <code>Promise.all(items.map(fetch))</code> is a self-inflicted DoS</dd>
+    <dt>Async iteration</dt>
+    <dd><code>for await (const x of stream)</code> · <code>async function*</code> · <code>Symbol.asyncIterator</code> · <code>await using</code> for async cleanup</dd>
+    <dt>Iterator helpers <span class="since">ES2025</span></dt>
+    <dd><code>it.map</code> <code>.filter</code> <code>.take</code> <code>.drop</code> <code>.flatMap</code> <code>.reduce</code> <code>.toArray</code> <code>.some</code> <code>.every</code> <code>.find</code> — lazy, on any iterator</dd>
+    <dt><code>Iterator.concat()</code> <span class="since">ES2026</span></dt>
+    <dd>chains iterators without materialising arrays; <code>Iterator.from(x)</code> lifts a plain iterable into the helper protocol</dd>
+    <dt><code>Array.fromAsync()</code> <span class="since">ES2026</span></dt>
+    <dd><code>await Array.fromAsync(asyncGen)</code> — the async twin of <code>Array.from</code>, sequential by design</dd>
+    <dt>Node concurrency</dt>
+    <dd><code>worker_threads</code> for CPU work · <code>AsyncLocalStorage</code> for request context · <code>node:stream/promises</code> <code>pipeline()</code> for backpressure</dd>
+    <dt>Unhandled rejection</dt>
+    <dd>terminates the process by default since Node 15 — always <code>await</code> or <code>.catch()</code> a floating promise</dd>
+  </dl>
+<pre><code class="language-typescript">// bounded concurrency + per-attempt timeout + cooperative cancellation
+async function mapLimit&lt;T, R&gt;(xs: T[], n: number, fn: (x: T) =&gt; Promise&lt;R&gt;): Promise&lt;R[]&gt; {
+  const out: R[] = new Array(xs.length);
+  let i = 0;
+  const workers = Array.from({ length: Math.min(n, xs.length) }, async () =&gt; {
+    while (i &lt; xs.length) { const k = i++; out[k] = await fn(xs[k]!); }
+  });
+  await Promise.all(workers);
+  return out;
+}
+
+const signal = AbortSignal.any([AbortSignal.timeout(2_000), userAbort.signal]);
+const rows = await mapLimit(ids, 8, (id) =&gt; fetch(`/api/${id}`, { signal }).then((r) =&gt; r.json()));</code></pre>
+</section>
+
+<section class="unit" id="u06">
+  <header>
+    <h2><span class="n">06</span>Standard library</h2>
+    <span class="docs"><a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects">docs: MDN — global objects</a></span>
+  </header>
+  <dl class="rows">
+    <dt>Array, non-mutating <span class="since">ES2023</span></dt>
+    <dd><code>toSorted()</code> <code>toReversed()</code> <code>toSpliced()</code> <code>with(i, v)</code> · <code>at(-1)</code> <span class="since">ES2022</span> · <code>findLast()</code> <code>findLastIndex()</code></dd>
+    <dt>Grouping <span class="since">ES2024</span></dt>
+    <dd><code>Object.groupBy(xs, x =&gt; x.team)</code> returns a null-prototype object · <code>Map.groupBy</code> when the keys are objects</dd>
+    <dt>Set algebra <span class="since">ES2025</span></dt>
+    <dd><code>union</code> <code>intersection</code> <code>difference</code> <code>symmetricDifference</code> <code>isSubsetOf</code> <code>isSupersetOf</code> <code>isDisjointFrom</code></dd>
+    <dt>Map upsert <span class="since">ES2026</span></dt>
+    <dd><code>m.getOrInsert(k, [])</code> · <code>m.getOrInsertComputed(k, expensive)</code> — replaces the <code>has()</code>/<code>set()</code>/<code>get()</code> triple</dd>
+    <dt>Numbers <span class="since">ES2026</span></dt>
+    <dd><code>Math.sumPrecise(xs)</code> sums floats exactly, unlike <code>reduce((a, b) =&gt; a + b, 0)</code> · <code>Math.f16round</code>, <code>Float16Array</code> <span class="since">ES2025</span></dd>
+    <dt>Bytes <span class="since">ES2026</span></dt>
+    <dd><code>Uint8Array.fromBase64()</code> / <code>toBase64()</code>, <code>fromHex()</code> / <code>toHex()</code> — retires the <code>atob</code> + <code>charCodeAt</code> loop</dd>
+    <dt>Errors <span class="since">ES2026</span></dt>
+    <dd><code>Error.isError(e)</code> holds across realms and <code>vm</code> contexts where <code>instanceof Error</code> fails · <code>new Error(msg, { cause })</code> <span class="since">ES2022</span></dd>
+    <dt>JSON <span class="since">ES2026</span></dt>
+    <dd>parse source access: the reviver receives the raw source text, so 64-bit integers survive a round trip instead of losing precision</dd>
+    <dt>Strings</dt>
+    <dd><code>replaceAll</code> <span class="since">ES2021</span> · <code>trimStart/End</code> · <code>padStart/End</code> · <code>isWellFormed/toWellFormed</code> <span class="since">ES2024</span> · <code>Intl.Segmenter</code> for real grapheme counts</dd>
+    <dt>RegExp</dt>
+    <dd><code>RegExp.escape(s)</code> <span class="since">ES2025</span> · <code>/v</code> set notation <span class="since">ES2024</span> · <code>/d</code> indices · named groups · inline modifiers <code>(?i:…)</code> <span class="since">ES2025</span></dd>
+    <dt>Structured copy</dt>
+    <dd><code>structuredClone(obj)</code> handles Map, Set, Date, TypedArray and cycles — <code>JSON.parse(JSON.stringify(x))</code> handles none of them</dd>
+    <dt>Temporal <span class="since">Stage 4, 2026-03</span></dt>
+    <dd><code>Temporal.Now.instant()</code>, <code>PlainDate</code>, <code>ZonedDateTime</code>, <code>Duration</code> — immutable and DST-correct. Unflagged in Node 26, Chrome 144, Firefox 139; Safari still preview only</dd>
+  </dl>
+<pre><code class="language-javascript">// Temporal: the arithmetic Date could never get right
+const start = Temporal.ZonedDateTime.from("2026-03-28T23:30[Europe/London]");
+const later = start.add({ hours: 2 });   // 2026-03-29T02:30 — DST handled
+const gap   = start.until("2026-12-25T00:00[Europe/London]", { largestUnit: "day" });
+
+// the ES2026 kit, in the order you will actually reach for it
+const totals = new Map();
+totals.getOrInsert("eu", []).push(order);   // no has()/set() dance
+Math.sumPrecise([0.1, 0.2, 0.3]);           // 0.6 exactly
+Uint8Array.fromBase64(token).toHex();
+if (Error.isError(e)) console.error(e.cause);</code></pre>
+  <div class="note"><p><strong>Availability is not the spec year.</strong> A feature is usable when your <em>lowest</em> target ships it. Check Baseline on MDN before shipping ES2025/ES2026 methods to browsers; on Node 26-only services you can use all of the above today.</p></div>
+</section>
+
+<section class="unit" id="u07">
+  <header>
+    <h2><span class="n">07</span>Classes, decorators, using</h2>
+    <span class="docs"><a href="https://www.typescriptlang.org/docs/handbook/2/classes.html">docs: TS handbook — classes</a></span>
+  </header>
+  <dl class="rows">
+    <dt>Fields</dt>
+    <dd>class fields <span class="since">ES2022</span>, <code>#private</code> (hard private, enforced at runtime), <code>static</code> fields and <code>static { }</code> initialiser blocks</dd>
+    <dt><code>private</code> vs <code>#</code></dt>
+    <dd>TS <code>private</code> is compile-time only and visible from JS; <code>#name</code> is a real private slot and throws on foreign access</dd>
+    <dt>Parameter properties</dt>
+    <dd><code>constructor(private readonly repo: Repo) {}</code> — concise, but emits code, so it is illegal under <code>erasableSyntaxOnly</code> and unusable with Node's type stripping</dd>
+    <dt>Accessors</dt>
+    <dd><code>get</code>/<code>set</code>, <code>accessor x = 1</code> (auto-accessor, ES decorators) · <code>override</code> keyword with <code>noImplicitOverride</code></dd>
+    <dt>Abstract</dt>
+    <dd><code>abstract class</code>, <code>abstract method(): T</code> · <code>implements I</code> checks the shape but does not import members</dd>
+    <dt>Standard decorators <span class="since">TS 5.0</span></dt>
+    <dd>ES-proposal decorators, no flag needed: <code>(value, context) =&gt; …</code> with <code>context.kind</code>, <code>context.name</code>, <code>context.addInitializer()</code></dd>
+    <dt>Legacy decorators</dt>
+    <dd><code>experimentalDecorators</code> + <code>emitDecoratorMetadata</code> + <code>reflect-metadata</code> — still what Angular, NestJS and TypeORM require; the two flavours cannot be mixed in one file</dd>
+    <dt>Decorator metadata <span class="since">TS 5.2</span></dt>
+    <dd><code>context.metadata</code> and <code>Symbol.metadata</code> — the standard replacement for <code>emitDecoratorMetadata</code></dd>
+    <dt><code>using</code> <span class="since">TS 5.2</span></dt>
+    <dd><code>using f = open(path)</code> calls <code>[Symbol.dispose]()</code> at scope exit; <code>await using</code> calls <code>[Symbol.asyncDispose]()</code>. Stage 4; V8 ships it, Node exposes the symbols since 24</dd>
+    <dt><code>DisposableStack</code></dt>
+    <dd>aggregate cleanup: <code>stack.use(res)</code>, <code>stack.defer(fn)</code>, <code>stack.move()</code> to hand ownership on; async twin <code>AsyncDisposableStack</code></dd>
+    <dt>Prototypes</dt>
+    <dd><code>Object.create</code>, <code>Object.getPrototypeOf</code>, <code>Object.setPrototypeOf</code> (deoptimises — avoid on hot paths) · <code>Object.hasOwn(o, k)</code> <span class="since">ES2022</span></dd>
+    <dt><code>this</code> binding</dt>
+    <dd>arrow functions capture lexically; methods do not. Class fields holding arrows bind per instance at the cost of one closure each</dd>
+  </dl>
+<pre><code class="language-typescript">// deterministic cleanup, no try/finally pyramid
+class Conn implements Disposable {
+  #handle = openHandle();
+  [Symbol.dispose]() { this.#handle.close(); }
+}
+
+function query(sql: string) {
+  using conn = new Conn();          // disposed on every exit path, throws included
+  return conn.run(sql);
+}
+
+// standard decorator: no experimentalDecorators, no reflect-metadata
+function logged&lt;T, A extends unknown[], R&gt;(
+  fn: (this: T, ...a: A) =&gt; R,
+  ctx: ClassMethodDecoratorContext&lt;T&gt;,
+) {
+  return function (this: T, ...a: A): R {
+    console.time(String(ctx.name));
+    try { return fn.call(this, ...a); } finally { console.timeEnd(String(ctx.name)); }
+  };
+}</code></pre>
+</section>
+
+<section class="unit" id="u08">
+  <header>
+    <h2><span class="n">08</span>tsconfig flags that matter</h2>
+    <span class="docs"><a href="https://www.typescriptlang.org/tsconfig/">docs: TSConfig reference</a></span>
+  </header>
+  <dl class="rows">
+    <dt>Defaults changed <span class="since">TS 6.0</span></dt>
+    <dd><code>strict: true</code>, <code>module: "esnext"</code>, <code>target: "es2025"</code>, <code>types: []</code>, <code>rootDir: "."</code>, <code>noUncheckedSideEffectImports: true</code>, <code>libReplacement: false</code></dd>
+    <dt>Beyond <code>strict</code></dt>
+    <dd><code>noUncheckedIndexedAccess</code> (adds <code>| undefined</code> to index reads) and <code>exactOptionalPropertyTypes</code> (<code>?:</code> stops meaning &ldquo;or explicitly undefined&rdquo;) — the two that find real bugs</dd>
+    <dt>Unused code</dt>
+    <dd><code>noUnusedLocals</code>, <code>noUnusedParameters</code>, <code>noFallthroughCasesInSwitch</code>, <code>noImplicitReturns</code>, <code>noImplicitOverride</code></dd>
+    <dt><code>verbatimModuleSyntax</code> <span class="since">TS 5.0</span></dt>
+    <dd>emit imports exactly as written; forces <code>import type</code> and removes the old <code>importsNotUsedAsValues</code>/<code>preserveValueImports</code> pair</dd>
+    <dt><code>erasableSyntaxOnly</code> <span class="since">TS 5.8</span></dt>
+    <dd>rejects <code>enum</code>, <code>namespace</code>, parameter properties and legacy decorators — the switch that keeps <code>node file.ts</code> working</dd>
+    <dt><code>isolatedDeclarations</code> <span class="since">TS 5.5</span></dt>
+    <dd>requires explicit types on exports so <code>.d.ts</code> can be generated per file in parallel by non-TS tools</dd>
+    <dt>Build performance</dt>
+    <dd><code>incremental</code> + <code>tsBuildInfoFile</code> · <code>composite</code> + project references · <code>skipLibCheck</code> (keep on) · <code>assumeChangesOnlyAffectDirectDependencies</code></dd>
+    <dt>Path aliases</dt>
+    <dd><code>paths</code> only — <code>baseUrl</code> is deprecated in 6.0 and removed in 7.0, so write <code>"@app/*": ["./src/*"]</code> with the prefix folded in</dd>
+    <dt><code>${configDir}</code> <span class="since">TS 5.5</span></dt>
+    <dd>in an extended base config, resolves relative to the <em>inheriting</em> file — makes shared tsconfig packages actually work</dd>
+    <dt>JS interop</dt>
+    <dd><code>allowJs</code> + <code>checkJs</code> to type-check JavaScript with JSDoc · <code>resolveJsonModule</code> · <code>allowImportingTsExtensions</code> (with <code>noEmit</code> or <code>rewriteRelativeImportExtensions</code>)</dd>
+    <dt>Migration aid <span class="since">TS 6.0</span></dt>
+    <dd><code>stableTypeOrdering</code> surfaces 6-vs-7 behaviour differences; costs up to 25% compile time, and 7.0 turns it on permanently</dd>
+    <dt>Removed in 7.0</dt>
+    <dd><code>target: "es5"</code>, <code>downlevelIteration</code>, <code>outFile</code>, <code>moduleResolution: node|node10|classic</code>, <code>module: amd|umd|system|none</code>, <code>baseUrl</code>, <code>esModuleInterop: false</code></dd>
+  </dl>
+<pre><code class="language-json">{
+  "compilerOptions": {
+    "target": "es2025",
+    "lib": ["es2025"],
+    "module": "nodenext",
+    "moduleResolution": "nodenext",
+    "types": ["node"],
+
+    "strict": true,
+    "noUncheckedIndexedAccess": true,
+    "exactOptionalPropertyTypes": true,
+    "noImplicitOverride": true,
+
+    "verbatimModuleSyntax": true,
+    "erasableSyntaxOnly": true,
+    "isolatedModules": true,
+    "declaration": true,
+    "sourceMap": true,
+    "skipLibCheck": true,
+    "outDir": "dist"
+  },
+  "include": ["src"]
+}</code></pre>
+  <div class="note"><p><strong>Type-check and transpile are separate jobs.</strong> A common shape is <code>tsc --noEmit</code> in CI for correctness plus esbuild/swc/tsdown for output; keep <code>isolatedModules</code> on so the two never disagree.</p></div>
+</section>
+
+<section class="unit" id="u09">
+  <header>
+    <h2><span class="n">09</span>Commands &amp; flags</h2>
+    <span class="docs"><a href="https://nodejs.org/api/cli.html">docs: Node.js CLI options</a></span>
+  </header>
+  <dl class="rows">
+    <dt><code>tsc --noEmit</code></dt>
+    <dd>type-check only — the CI gate. Add <code>--pretty false</code> for machine-readable logs</dd>
+    <dt><code>tsc -b</code> / <code>--build</code></dt>
+    <dd>build a project-reference graph in dependency order; <code>-b --clean</code>, <code>-b --force</code>, <code>-b --watch</code></dd>
+    <dt><code>tsc --checkers N</code> <span class="since">TS 7.0</span></dt>
+    <dd>type-checking worker count, default 4; <code>--builders N</code> for parallel project builds; <code>--singleThreaded</code> when debugging a nondeterministic failure</dd>
+    <dt><code>tsc --ignoreConfig</code> <span class="since">TS 7.0</span></dt>
+    <dd>check the named files even though a <code>tsconfig.json</code> exists — the one-off check that used to be impossible</dd>
+    <dt>Diagnose slow builds</dt>
+    <dd><code>tsc --diagnostics</code> · <code>--extendedDiagnostics</code> · <code>--generateTrace out/</code> then open the trace in <code>@typescript/analyze-trace</code> or a Chrome trace viewer</dd>
+    <dt><code>tsc --showConfig</code></dt>
+    <dd>prints the fully resolved config after every <code>extends</code> — the fastest way to settle &ldquo;which flag is actually on&rdquo;</dd>
+    <dt>Side-by-side TS 6</dt>
+    <dd><code>npm i -D @typescript/typescript6</code> gives a <code>tsc6</code> binary for tools that still need the TS 6 compiler API</dd>
+    <dt><code>node app.ts</code> <span class="since">Node 26</span></dt>
+    <dd>type stripping is stable and on by default — no flag, no loader. Non-erasable syntax needs <code>--experimental-transform-types</code> or a real build</dd>
+    <dt><code>node --run script</code> <span class="since">Node 22</span></dt>
+    <dd>runs a package.json script without npm's process spawn; roughly an order of magnitude less startup overhead</dd>
+    <dt><code>node --test</code></dt>
+    <dd>built-in runner: <code>--test --watch</code>, <code>--test-concurrency=N</code>, <code>--experimental-test-coverage</code>, <code>--test-name-pattern</code>, <code>--test-reporter=spec|tap|junit</code></dd>
+    <dt>Other node flags</dt>
+    <dd><code>--watch</code> · <code>--env-file=.env</code> · <code>--inspect-brk</code> · <code>--cpu-prof</code> / <code>--heap-prof</code> · <code>--permission --allow-fs-read=…</code> · <code>--max-old-space-size=4096</code></dd>
+    <dt>Package managers</dt>
+    <dd><code>npm ci</code> (lockfile-exact, CI) · <code>npm outdated</code> / <code>npm audit --omit=dev</code> · <code>corepack enable</code> then <code>pnpm i --frozen-lockfile</code> · <code>npm pkg set</code> for scripted edits</dd>
+    <dt>Lint, format, test</dt>
+    <dd><code>eslint .</code> with flat <code>eslint.config.js</code> <span class="since">ESLint 9</span> · <code>biome check --write .</code> (lint + format in one Rust pass) · <code>vitest run --coverage</code></dd>
+  </dl>
+<pre><code class="language-bash"># the loop that catches most things before review
+node --run typecheck          # tsc --noEmit
+biome check --write .         # or: eslint . --fix &amp;&amp; prettier --write .
+node --test --experimental-test-coverage
+
+# why is the build slow?
+tsc --noEmit --extendedDiagnostics
+tsc --noEmit --generateTrace .trace &amp;&amp; npx @typescript/analyze-trace .trace
+
+# run TypeScript straight, no toolchain
+node --env-file=.env src/server.ts</code></pre>
+</section>
+
+<section class="unit" id="u10">
+  <header>
+    <h2><span class="n">10</span>Idioms &amp; gotchas</h2>
+    <span class="docs"><a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference">docs: MDN — JavaScript reference</a></span>
+  </header>
+  <h3>Idioms worth keeping</h3>
+  <dl class="rows">
+    <dt>Result over throw</dt>
+    <dd>a <code>{ ok: true; value: T } | { ok: false; error: E }</code> union makes failure a checked case; throw for programmer errors, return for expected ones</dd>
+    <dt>Parse, don't validate</dt>
+    <dd>turn <code>unknown</code> into a domain type once at the edge; everything downstream is typed and needs no defensive checks</dd>
+    <dt>Builder-free config</dt>
+    <dd><code>{ …defaults, …overrides } satisfies Config</code> beats an options class; the literal types survive</dd>
+    <dt>Branded ids</dt>
+    <dd><code>type OrderId = string &amp; { readonly brand: unique symbol }</code> stops a <code>userId</code> being passed where an <code>orderId</code> belongs</dd>
+    <dt>Exhaustive dispatch</dt>
+    <dd>discriminated union + <code>switch</code> + <code>never</code> default: adding a variant becomes a compile error at every handler</dd>
+    <dt>Narrow module surface</dt>
+    <dd>one <code>index.ts</code> barrel per package boundary, none inside — internal barrels create cycles and defeat tree shaking</dd>
+    <dt>Structural logging context</dt>
+    <dd><code>AsyncLocalStorage</code> for correlation ids beats threading a <code>ctx</code> parameter through every signature</dd>
+    <dt>Errors carry causes</dt>
+    <dd><code>throw new Error("checkout failed", { cause: err })</code> — preserves the chain instead of stringifying it</dd>
+  </dl>
+  <h3>Gotchas, one line each</h3>
+  <ul class="tight">
+    <li><code>typeof null === "object"</code> — a 1995 bug that can never be fixed; test with <code>x === null</code>.</li>
+    <li><code>[1, 10, 2].sort()</code> gives <code>[1, 10, 2]</code>: the default comparator is lexicographic. Always pass one.</li>
+    <li><code>0.1 + 0.2 !== 0.3</code>. Use integer minor units for money, or <code>Math.sumPrecise</code> for float sums.</li>
+    <li><code>NaN !== NaN</code>; use <code>Number.isNaN</code>, never the global <code>isNaN</code> (which coerces).</li>
+    <li><code>parseInt("08")</code> is fine today but <code>parseInt(x)</code> without a radix is still a review smell — use <code>Number(x)</code>.</li>
+    <li>Spread and <code>Object.assign</code> are shallow; nested objects stay shared. Use <code>structuredClone</code> for a real copy.</li>
+    <li><code>readonly</code> and <code>Readonly&lt;T&gt;</code> are compile-time only — nothing stops JS callers mutating. <code>Object.freeze</code> is the runtime version.</li>
+    <li><code>as</code> never checks anything at runtime; a wrong cast surfaces thousands of lines later as <code>undefined is not a function</code>.</li>
+    <li><code>any</code> propagates silently through every expression it touches; <code>unknown</code> is almost always the right choice.</li>
+    <li>Excess property checks apply only to fresh object literals — assign through a variable and typos slip past.</li>
+    <li><code>JSON.stringify</code> drops <code>undefined</code>, functions and symbols, and throws on <code>BigInt</code> and cycles.</li>
+    <li><code>Date</code> months are 0-indexed and <code>new Date("2026-09-08")</code> parses as UTC while <code>"2026/09/08"</code> parses as local. Prefer Temporal.</li>
+    <li><code>for…in</code> walks inherited enumerable keys; <code>for…of</code> walks values. Use <code>Object.keys/entries</code> for own keys.</li>
+    <li><code>await</code> inside a <code>for</code> loop serialises; that is sometimes what you want and usually not.</li>
+    <li><code>Array.prototype.forEach</code> ignores async callbacks — the loop finishes before any of them do.</li>
+    <li>A <code>catch</code> binding is <code>unknown</code> under <code>useUnknownInCatchVariables</code> (part of <code>strict</code>) — narrow with <code>Error.isError</code>.</li>
+    <li><code>enum</code> members are bidirectionally mapped at runtime, so <code>Level[40]</code> yields <code>"Error"</code>, and the whole thing survives tree shaking.</li>
+    <li>Node type stripping does not transform: <code>enum</code>, <code>namespace</code>, parameter properties and legacy decorators need a real compiler.</li>
+    <li>Optional chaining on a function call, <code>obj.method?.()</code>, still evaluates the arguments — no short-circuit there.</li>
+    <li>Two module instances (CJS + ESM copies of the same package) break <code>instanceof</code>, singletons and module-level caches.</li>
+    <li><code>Object.keys</code> order is integer-like keys ascending first, then insertion order — do not rely on it for anything semantic.</li>
+    <li>Class fields initialise <em>after</em> <code>super()</code>, so a base-class constructor cannot see a derived field.</li>
+  </ul>
+</section>
+
+<section class="unit" id="u11">
+  <header>
+    <h2><span class="n">11</span>Modern vs legacy</h2>
+    <span class="docs"><a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/JavaScript_technologies_overview">docs: MDN — JavaScript technologies overview</a></span>
+  </header>
+  <div class="tw">
+    <table class="grid">
+      <thead><tr><th>Task</th><th>Modern</th><th>Legacy still seen</th><th>Since</th></tr></thead>
+      <tbody>
+        <tr class="hi"><td>Type-check a repo</td><td><code>tsc</code> (Go native, 8–12× faster)</td><td><code>tsc</code> on the JS compiler, or swc + a nightly type job</td><td>TS 7.0 · 2026-07-08</td></tr>
+        <tr class="hi"><td>Run a <code>.ts</code> file</td><td><code>node app.ts</code></td><td><code>ts-node</code>, <code>tsx</code>, <code>babel-node</code>, a watch-mode build</td><td>Node 26 (stable)</td></tr>
+        <tr class="hi"><td>Dates &amp; time zones</td><td><code>Temporal.ZonedDateTime</code></td><td><code>Date</code>, Moment.js, date-fns, Luxon</td><td>Stage 4 2026-03 · Node 26</td></tr>
+        <tr><td>Map upsert</td><td><code>m.getOrInsert(k, v)</code></td><td><code>if (!m.has(k)) m.set(k, v)</code></td><td>ES2026</td></tr>
+        <tr><td>Sum floats</td><td><code>Math.sumPrecise(xs)</code></td><td><code>xs.reduce((a, b) =&gt; a + b, 0)</code></td><td>ES2026</td></tr>
+        <tr><td>Base64 of bytes</td><td><code>Uint8Array.fromBase64/toBase64</code></td><td><code>atob</code>/<code>btoa</code> + <code>charCodeAt</code> loop, <code>Buffer</code></td><td>ES2026</td></tr>
+        <tr><td>Is it an error?</td><td><code>Error.isError(e)</code></td><td><code>e instanceof Error</code></td><td>ES2026</td></tr>
+        <tr><td>Collect an async iterable</td><td><code>await Array.fromAsync(it)</code></td><td><code>for await</code> + <code>push</code></td><td>ES2026</td></tr>
+        <tr><td>Escape regex input</td><td><code>RegExp.escape(s)</code></td><td><code>s.replace(/[.*+?^${}()|[\]\\]/g, "\\$&amp;")</code></td><td>ES2025</td></tr>
+        <tr><td>Set operations</td><td><code>a.union(b)</code>, <code>a.difference(b)</code></td><td>lodash, or <code>[...a].filter(x =&gt; b.has(x))</code></td><td>ES2025</td></tr>
+        <tr><td>Lazy pipelines</td><td><code>it.filter(f).map(g).take(10)</code></td><td><code>[...it].filter().map().slice()</code></td><td>ES2025</td></tr>
+        <tr><td>Import JSON</td><td><code>import c from "./c.json" with { type: "json" }</code></td><td><code>require("./c.json")</code>, <code>fs.readFileSync</code> + parse</td><td>ES2025</td></tr>
+        <tr><td>Group rows</td><td><code>Object.groupBy(xs, fn)</code></td><td><code>_.groupBy</code>, hand-rolled <code>reduce</code></td><td>ES2024</td></tr>
+        <tr><td>Deferred promise</td><td><code>Promise.withResolvers()</code></td><td><code>let res; new Promise(r =&gt; (res = r))</code></td><td>ES2024</td></tr>
+        <tr><td>Sort without mutating</td><td><code>xs.toSorted(cmp)</code></td><td><code>[...xs].sort(cmp)</code>, <code>xs.slice().sort()</code></td><td>ES2023</td></tr>
+        <tr><td>Deep copy</td><td><code>structuredClone(x)</code></td><td><code>JSON.parse(JSON.stringify(x))</code>, <code>_.cloneDeep</code></td><td>ES2021 · Node 17</td></tr>
+        <tr><td>Deterministic cleanup</td><td><code>using</code> / <code>await using</code></td><td><code>try { … } finally { close() }</code></td><td>TS 5.2 · Stage 4</td></tr>
+        <tr><td>Constants</td><td><code>as const</code> object + union type</td><td><code>enum</code>, <code>const enum</code></td><td>TS 3.4 · enforced TS 5.8</td></tr>
+        <tr><td>Type a config literal</td><td><code>satisfies Config</code></td><td><code>const c: Config = …</code> (widens), <code>as Config</code> (lies)</td><td>TS 4.9</td></tr>
+        <tr><td>Decorators</td><td>standard ES decorators</td><td><code>experimentalDecorators</code> + <code>reflect-metadata</code></td><td>TS 5.0</td></tr>
+        <tr><td>Type-only imports</td><td><code>verbatimModuleSyntax</code> + <code>import type</code></td><td><code>importsNotUsedAsValues</code>, <code>preserveValueImports</code></td><td>TS 5.0</td></tr>
+        <tr><td>Path aliases</td><td><code>paths</code> with the prefix folded in, or <code>#/*</code> subpath imports</td><td><code>baseUrl</code> + <code>paths</code></td><td>deprecated TS 6.0 · removed 7.0</td></tr>
+        <tr><td>Module resolution</td><td><code>nodenext</code> or <code>bundler</code></td><td><code>node</code>, <code>node10</code>, <code>classic</code></td><td>removed TS 7.0</td></tr>
+        <tr><td>Package entry points</td><td><code>"exports"</code> conditions map</td><td><code>main</code> + <code>module</code> + <code>browser</code> + <code>typings</code></td><td>Node 12 · universal now</td></tr>
+        <tr><td>Lint config</td><td>flat <code>eslint.config.js</code>, or Biome</td><td><code>.eslintrc.json</code> + <code>eslintignore</code></td><td>ESLint 9 (2024-04)</td></tr>
+        <tr><td>Run a package script</td><td><code>node --run build</code></td><td><code>npm run build</code></td><td>Node 22</td></tr>
+        <tr><td>Unit tests</td><td><code>node --test</code> or Vitest</td><td>Jest + babel-jest + ts-jest</td><td>Node 20 (stable runner)</td></tr>
+        <tr><td>HTTP client</td><td>global <code>fetch</code> + <code>AbortSignal.timeout</code></td><td><code>axios</code>, <code>node-fetch</code>, <code>http.request</code></td><td>Node 18</td></tr>
+      </tbody>
+    </table>
+  </div>
+</section>
+
+<section class="unit" id="u12">
+  <header>
+    <h2><span class="n">12</span>Version timeline</h2>
+    <span class="docs"><a href="https://devblogs.microsoft.com/typescript/">docs: TypeScript release blog</a> · <a href="https://github.com/tc39/proposals/blob/main/finished-proposals.md">TC39 finished proposals</a></span>
+  </header>
+  <div class="tw">
+    <table class="grid">
+      <thead><tr><th>Date</th><th>Release</th><th>What changed</th></tr></thead>
+      <tbody>
+        <tr class="hi"><td>2026-07-08</td><td>TypeScript 7.0 (7.0.2)</td><td><strong>newly default:</strong> the compiler is a native Go binary — 8–12× faster full builds, ~13× faster editor open-with-errors, 6–26% less memory; new <code>--checkers</code>, <code>--builders</code>, <code>--singleThreaded</code>, <code>--ignoreConfig</code>; <code>stableTypeOrdering</code> always on. <strong>newly removed:</strong> everything 6.0 deprecated is now a hard error. <strong>Caveat:</strong> no public compiler API, so typescript-eslint, Vue, Svelte, Astro, MDX and Angular templates cannot move yet — run <code>@typescript/typescript6</code> (<code>tsc6</code>) alongside</td></tr>
+        <tr class="hi"><td>2026-06-30</td><td>ECMAScript 2026 ratified</td><td><strong>newly stable:</strong> <code>Math.sumPrecise</code>, <code>Error.isError</code>, <code>Uint8Array</code> base64/hex, <code>Iterator.concat</code>, <code>Array.fromAsync</code>, <code>Map.getOrInsert</code>/<code>getOrInsertComputed</code>, JSON.parse source-text access</td></tr>
+        <tr class="hi"><td>2026-05-05</td><td>Node.js 26 (Current)</td><td><strong>newly stable:</strong> TypeScript type stripping — <code>node app.ts</code> with no flag. <strong>newly default:</strong> Temporal unflagged, V8 14.6 (Chromium 146), undici 8 with stricter fetch header validation. Enters Active LTS October 2026</td></tr>
+        <tr><td>2026-03-23</td><td>TypeScript 6.0</td><td>the last JavaScript-based compiler and the bridge to 7.0: <code>strict: true</code>, <code>module: esnext</code>, <code>target: es2025</code>, <code>types: []</code> become defaults; <code>es2025</code> lib; built-in Temporal types; <code>#/</code> subpath imports; <code>--stableTypeOrdering</code> to preview 7.0 behaviour. <strong>newly deprecated / removed:</strong> <code>target es5</code>, <code>downlevelIteration</code>, <code>outFile</code>, <code>moduleResolution classic</code>, <code>module amd|umd|system|none</code>, <code>baseUrl</code></td></tr>
+        <tr><td>2026-03</td><td>Temporal reaches Stage 4</td><td>ships unflagged in Chrome 144, Edge 144, Firefox 139 and Node 26; Safari still preview-only, so it is not yet universally safe on the web</td></tr>
+        <tr><td>2025-08</td><td>TypeScript 5.9</td><td><code>import defer</code>, <code>--module node20</code>, a much smaller <code>tsc --init</code> output</td></tr>
+        <tr><td>2025-06</td><td>ECMAScript 2025</td><td><strong>newly stable:</strong> Set methods, sync iterator helpers, import attributes, JSON modules, <code>RegExp.escape</code>, RegExp modifiers, duplicate named capture groups, <code>Promise.try</code>, <code>Float16Array</code>, ArrayBuffer transfer</td></tr>
+        <tr><td>2025-05-06</td><td>Node.js 24 → Active LTS</td><td>V8 13.6, npm 11, <code>require(esm)</code> on by default. The safe production floor today; maintenance to 2028-04-30</td></tr>
+        <tr><td>2025-02/03</td><td>TypeScript 5.8</td><td><code>--erasableSyntaxOnly</code> (the flag that makes a codebase runnable by Node directly), <code>--module node18</code>, narrowing on conditional returns</td></tr>
+        <tr><td>2024-06</td><td>ECMAScript 2024</td><td><code>Object.groupBy</code>/<code>Map.groupBy</code>, <code>Promise.withResolvers</code>, resizable ArrayBuffers, RegExp <code>/v</code> flag, well-formed Unicode strings</td></tr>
+        <tr><td>2024-06</td><td>TypeScript 5.5</td><td>inferred type predicates, <code>--isolatedDeclarations</code>, <code>${configDir}</code>, regex syntax checking</td></tr>
+        <tr><td>2023-03</td><td>TypeScript 5.0</td><td>standard ES decorators, <code>const</code> type parameters, <code>verbatimModuleSyntax</code>, all enums become union enums</td></tr>
+        <tr><td>2022-06</td><td>ECMAScript 2022</td><td>top-level <code>await</code>, class fields, <code>#private</code>, static blocks, <code>Object.hasOwn</code>, <code>at()</code>, <code>Error</code> <code>cause</code>, RegExp <code>/d</code></td></tr>
+      </tbody>
+    </table>
+  </div>
+  <h3>What is next</h3>
+  <dl class="rows">
+    <dt>TypeScript 7.1 <span class="since">autumn 2026</span></dt>
+    <dd>the new programmatic compiler API — the release that unblocks typescript-eslint and every framework that type-checks templates</dd>
+    <dt>Node.js 27 <span class="since">2026-10</span></dt>
+    <dd>first release under the new schedule: one major per year and every line is LTS, so the odd/even distinction disappears</dd>
+    <dt>Next spec edition</dt>
+    <dd>Temporal, explicit resource management (<code>using</code>), <code>Atomics.pause</code> and joint iteration are all Stage 4 and shipping in engines, but landed after the ES2026 cut-off — treat &ldquo;which edition&rdquo; as trivia and engine support as the real answer</dd>
+  </dl>
+  <div class="note"><p>The timeline is the fastest-rotting part of this card. Re-verify against the <a href="https://devblogs.microsoft.com/typescript/">TypeScript release blog</a>, <a href="https://github.com/tc39/proposals/blob/main/finished-proposals.md">TC39 finished proposals</a> and the <a href="https://nodejs.org/en/about/previous-releases">Node.js release schedule</a> before quoting a version in an interview.</p></div>
+</section>
+</main>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.11.1/highlight.min.js"></script>
+<script>
+(function () {
+  if (window.hljs) { try { hljs.highlightAll(); } catch (e) { /* highlighting is decoration */ } }
+
+  var toggle = document.querySelector('.navtoggle');
+  var side = document.getElementById('side');
+  if (toggle) {
+    toggle.addEventListener('click', function () {
+      var open = document.body.classList.toggle('nav-open');
+      toggle.setAttribute('aria-expanded', open ? 'true' : 'false');
+    });
+  }
+  if (side) {
+    side.addEventListener('click', function (e) {
+      if (e.target.closest('a')) {
+        document.body.classList.remove('nav-open');
+        if (toggle) toggle.setAttribute('aria-expanded', 'false');
+      }
+    });
+  }
+
+  var links = Array.prototype.slice.call(document.querySelectorAll('.units a'));
+  var units = links.map(function (a) { return document.getElementById(a.getAttribute('href').slice(1)); });
+  var ticking = false;
+  function spy() {
+    ticking = false;
+    var best = 0;
+    for (var i = 0; i < units.length; i++) {
+      if (units[i] && units[i].getBoundingClientRect().top <= 140) best = i;
+    }
+    for (var j = 0; j < links.length; j++) {
+      if (j === best) links[j].setAttribute('aria-current', 'true');
+      else links[j].removeAttribute('aria-current');
+    }
+  }
+  function onScroll() {
+    if (!ticking) { ticking = true; window.requestAnimationFrame(spy); }
+  }
+  window.addEventListener('scroll', onScroll, { passive: true });
+  window.addEventListener('resize', onScroll, { passive: true });
+  spy();
+})();
+</script>
+</body>
+</html>
