@@ -65,7 +65,7 @@ Every devbok page shares one design, so the pages of a topic read as siblings of
       .units a:hover { background: var(--soft); }
       .units a[aria-current="true"] { background: var(--accent-soft); color: var(--accent); }
       .units a[aria-current="true"] .n { color: var(--accent); }
-      .side footer { padding: 12px 20px; border-top: 2px solid var(--line); color: var(--muted); font-size: 11px; line-height: 1.5; }
+      .side footer { padding: 12px 20px; border-top: 2px solid var(--line); color: var(--muted); line-height: 1.5; }
 
   The entries are the page's units in document order, numbered `01`, `02`, … with two digits, the closing sections included: there are no unnumbered entries and no `0`. The hero and everything in it (chips, a coverage or topic-map table) are not units and do not appear. Each unit's own heading carries the same number (`01 First unit title`) and the id its link targets. Scrollspy sets `aria-current="true"` on the link of the unit in view. Nothing else goes in the sidebar.
 - **Components** — chips: mono, uppercase, `--soft` background, 1px `--border`, 4px radius. Callouts (gotchas, "what the interviewer is really probing"): `--soft` background with a 3px `--accent` left border. `<details>` self-quiz blocks: 1px `--border` box, bold summary, marker in `--accent`. Tables: 1px `--border` row lines, header text in `--muted`.
