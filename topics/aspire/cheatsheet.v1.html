@@ -1,0 +1,518 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>.NET Aspire · cheatsheet · devbok</title>
+<link rel="preconnect" href="https://fonts.googleapis.com/">
+<link rel="preconnect" href="https://fonts.gstatic.com/" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Cascadia+Mono:wght@400;700&display=swap">
+<style>
+:root { color-scheme: light;
+  --bg: #ffffff; --fg: #111111; --muted: #6b6b6b; --line: #111111; --soft: #f4f4f4; --border: #cccccc;
+  --accent: #7c3aed; --accent-soft: color-mix(in srgb, var(--accent) 12%, var(--bg));
+  --code: color-mix(in srgb, var(--accent) 70%, var(--fg));
+  --hl-kw: #a626a4; --hl-str: #50a14f; --hl-num: #986801; --hl-cmt: #6b6b6b; --hl-type: #0184bc; --hl-fn: #4078f2; --hl-attr: #986801; }
+@media (prefers-color-scheme: dark) { :root { color-scheme: dark;
+  --bg: #222222; --fg: #cccccc; --muted: #8f8f8f; --line: #111111; --soft: #2c2c2c; --border: #4a4a4a;
+  --accent: #9560f0; --accent-soft: color-mix(in srgb, var(--accent) 16%, var(--bg));
+  --hl-kw: #c678dd; --hl-str: #98c379; --hl-num: #d19a66; --hl-cmt: #8f8f8f; --hl-type: #56b6c2; --hl-fn: #61afef; --hl-attr: #e5c07b; } }
+
+* { box-sizing: border-box; }
+html { -webkit-text-size-adjust: 100%; }
+body { margin: 0; background: var(--bg); color: var(--fg);
+  font-family: system-ui, sans-serif; font-size: 16px; line-height: 1.6;
+  overflow-x: hidden; }
+h1, h2, h3 { font-family: system-ui, sans-serif; font-weight: 700; }
+h2 { font-size: 1.5em; line-height: 1.25; margin: 0 0 4px; }
+h3 { font-size: 1.17em; line-height: 1.3; margin: 18px 0 6px; }
+a { color: var(--accent); }
+:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+
+code { background: var(--soft); border: 1px solid var(--border); border-radius: 3px; padding: 0 .3em; color: var(--code); overflow-wrap: anywhere; }
+pre { background: var(--soft); border: 1px solid var(--border); border-radius: 4px; padding: 12px 14px; overflow-x: auto; line-height: 1.5; margin: 14px 0; max-width: 100%; }
+pre code { background: none; border: 0; border-radius: 0; padding: 0; color: inherit; white-space: pre; overflow-wrap: normal; }
+.hljs { color: var(--fg); background: transparent; }
+.hljs-keyword, .hljs-built_in, .hljs-literal, .hljs-selector-tag { color: var(--hl-kw); }
+.hljs-string, .hljs-regexp, .hljs-selector-attr { color: var(--hl-str); }
+.hljs-number, .hljs-symbol { color: var(--hl-num); }
+.hljs-comment, .hljs-quote, .hljs-doctag { color: var(--hl-cmt); font-style: italic; }
+.hljs-title, .hljs-title.class_, .hljs-type, .hljs-name, .hljs-section, .hljs-selector-class, .hljs-selector-pseudo { color: var(--hl-type); }
+.hljs-title.function_ { color: var(--hl-fn); }
+.hljs-meta, .hljs-attr, .hljs-attribute, .hljs-tag, .hljs-property, .hljs-variable { color: var(--hl-attr); }
+.hljs-template-tag, .hljs-template-variable { color: var(--hl-attr); }
+.hljs-code, .hljs-formula { color: var(--hl-cmt); }
+.hljs-operator, .hljs-subst, .hljs-punctuation, .hljs-params { color: var(--fg); }
+.hljs-emphasis { font-style: italic; } .hljs-strong { font-weight: 700; }
+code, pre, .chip, .hero .meta, .side, .mono, .rows .s, table { font-family: "Cascadia Mono", Consolas, monospace; font-size: 12px; }
+
+.side { position: fixed; top: 0; bottom: 0; left: 0; width: 260px; display: flex; flex-direction: column; background: var(--bg); border-right: 2px solid var(--line); font-family: "Cascadia Mono", Consolas, monospace; font-size: 12px; }
+.units { list-style: none; margin: 0; padding: 12px 0; overflow-y: auto; flex: 1; }
+.units a { display: grid; grid-template-columns: 2.5em 1fr; padding: 9px 20px; color: var(--fg); text-decoration: none; line-height: 1.4; }
+.units .n { color: var(--muted); }
+.units a:hover { background: var(--soft); }
+.units a[aria-current="true"] { background: var(--accent-soft); color: var(--accent); }
+.units a[aria-current="true"] .n { color: var(--accent); }
+.side footer { padding: 12px 20px; border-top: 2px solid var(--line); color: var(--muted); line-height: 1.5; }
+
+main { margin-left: 260px; padding: 24px; max-width: 120ch; min-width: 0; }
+
+.hero { margin: 0 0 24px; padding: 0 0 24px; border-bottom: 2px solid var(--line); }
+.hero h1 { margin: 0 0 8px; font-size: 2em; line-height: 1.2; font-weight: 700; }
+.hero .meta { margin: 0 0 12px; font-family: "Cascadia Mono", Consolas, monospace; font-size: 12px; color: var(--muted); }
+.hero .summary { margin: 0 0 12px; }
+.hero .chips { display: flex; flex-wrap: wrap; gap: 6px; margin: 0; }
+.chip { display: inline-block; background: var(--soft); border: 1px solid var(--border); border-radius: 4px; padding: 2px 7px; text-transform: uppercase; letter-spacing: .02em; color: var(--muted); }
+
+.unit { background: var(--soft); border: 1px solid var(--border); border-radius: 4px; padding: 16px 18px; margin: 0 0 20px; min-width: 0; }
+.unit > h2 .n { color: var(--muted); font-family: "Cascadia Mono", Consolas, monospace; font-size: 12px; margin-right: .6em; vertical-align: 2px; }
+.unit .lede { margin: 0 0 12px; color: var(--muted); font-size: 14px; line-height: 1.5; }
+.unit .doc { margin: 12px 0 0; font-size: 14px; }
+.unit pre { background: var(--bg); }
+
+.rows { display: grid; grid-template-columns: minmax(0, 20em) minmax(0, 1fr); gap: 0; margin: 10px 0 0; border-top: 1px solid var(--border); }
+.rows > div { min-width: 0; padding: 7px 0; border-bottom: 1px solid var(--border); }
+.rows > .k { padding-right: 14px; line-height: 1.45; }
+.rows > .s { line-height: 1.6; overflow-wrap: anywhere; }
+.rows > .s code { background: var(--bg); }
+.rows > .full { grid-column: 1 / -1; }
+.rows b { font-weight: 700; }
+
+.tw { overflow-x: auto; margin: 12px 0 0; min-width: 0; }
+table { border-collapse: collapse; width: 100%; }
+th, td { text-align: left; vertical-align: top; padding: 7px 10px 7px 0; border-bottom: 1px solid var(--border); line-height: 1.5; }
+th { color: var(--muted); font-weight: 700; text-transform: uppercase; letter-spacing: .02em; }
+td code { background: var(--bg); }
+tr.hi td { background: var(--accent-soft); }
+
+.callout { background: var(--bg); border: 1px solid var(--border); border-left: 3px solid var(--accent); border-radius: 3px; padding: 8px 12px; margin: 12px 0 0; font-size: 14px; line-height: 1.5; }
+ul.tight { margin: 10px 0 0; padding-left: 1.15em; }
+ul.tight li { margin: 0 0 5px; line-height: 1.5; }
+.new { color: var(--accent); font-weight: 700; }
+
+.toggle { display: none; position: fixed; top: 10px; left: 10px; z-index: 20;
+  font-family: "Cascadia Mono", Consolas, monospace; font-size: 12px; text-transform: uppercase;
+  background: var(--bg); color: var(--fg); border: 1px solid var(--border); border-radius: 4px; padding: 6px 10px; cursor: pointer; }
+
+@media (max-width: 720px) {
+  .toggle { display: block; }
+  .side { transform: translateX(-100%); transition: transform .18s ease; z-index: 15; width: 240px; max-width: 86%; }
+  body.nav-open .side { transform: translateX(0); }
+  main { margin-left: 0; padding: 52px 14px 24px; }
+  .rows { grid-template-columns: minmax(0, 1fr); }
+  .rows > .k { border-bottom: 0; padding-bottom: 0; font-weight: 700; }
+  .unit { padding: 14px; }
+}
+
+@media print {
+  .side, .toggle { display: none !important; }
+  body { background: #fff !important; color: #000 !important; font-size: 8.5pt; line-height: 1.35; }
+  main { margin: 0; padding: 0; max-width: none; }
+  .hero { border-bottom: 1pt solid #000; padding-bottom: 8pt; margin-bottom: 10pt; }
+  .hero h1 { font-size: 15pt; }
+  .hero .chips, .unit .doc, .unit .lede { display: none; }
+  h2 { font-size: 10.5pt; }
+  h3 { font-size: 9pt; }
+  .unit { break-inside: avoid; page-break-inside: avoid; background: transparent !important; border: 0; border-top: 0.5pt solid #000; border-radius: 0; padding: 4pt 0 0; margin: 0 0 8pt; }
+  .rows, .rows > div, th, td, .callout, pre { border-color: #999 !important; }
+  .callout, pre, .unit pre { background: transparent !important; border: 0.5pt solid #999 !important; }
+  pre { white-space: pre-wrap; word-break: break-word; }
+  a { color: #000 !important; text-decoration: none; }
+  a[href]::after { content: "" !important; }
+  code, .hljs, .hljs span { color: #000 !important; background: transparent !important; }
+  code { border: 0 !important; padding: 0 !important; }
+  tr.hi td { background: transparent !important; }
+}
+</style>
+</head>
+<body>
+<!-- devbok
+slug: aspire
+kind: cheatsheet
+version: 1
+topic: ".NET Aspire"
+prompt: cheatsheet.md@ccd2d4a9
+generated: 2026-09-08
+-->
+
+<button class="toggle" type="button" aria-expanded="false" aria-controls="sidenav">Units</button>
+
+<nav class="side" id="sidenav" aria-label="Units">
+  <ol class="units">
+    <li><a href="#u01"><span class="n">01</span><span class="t">Bootstrap &amp; solution shape</span></a></li>
+    <li><a href="#u02"><span class="n">02</span><span class="t">App model: resources</span></a></li>
+    <li><a href="#u03"><span class="n">03</span><span class="t">References, waiting, endpoints</span></a></li>
+    <li><a href="#u04"><span class="n">04</span><span class="t">Parameters, secrets, config</span></a></li>
+    <li><a href="#u05"><span class="n">05</span><span class="t">Integrations: hosting + client</span></a></li>
+    <li><a href="#u06"><span class="n">06</span><span class="t">Service defaults &amp; telemetry</span></a></li>
+    <li><a href="#u07"><span class="n">07</span><span class="t">Polyglot: TS, JS, Python, Go</span></a></li>
+    <li><a href="#u08"><span class="n">08</span><span class="t">CLI commands &amp; flags</span></a></li>
+    <li><a href="#u09"><span class="n">09</span><span class="t">Publish &amp; deploy</span></a></li>
+    <li><a href="#u10"><span class="n">10</span><span class="t">Eventing, custom resources, tests</span></a></li>
+    <li><a href="#u11"><span class="n">11</span><span class="t">Gotchas &amp; pitfalls</span></a></li>
+    <li><a href="#u12"><span class="n">12</span><span class="t">Modern vs legacy</span></a></li>
+    <li><a href="#u13"><span class="n">13</span><span class="t">Version timeline</span></a></li>
+  </ol>
+  <footer>.NET Aspire · cheatsheet · version 1 · 2026-09-08</footer>
+</nav>
+
+<main>
+<header class="hero">
+  <h1>.NET Aspire</h1>
+  <p class="meta">cheatsheet · 13.5.3 · released 2026-08-25</p>
+  <p class="summary">Reference card for Aspire &mdash; the app model, CLI, integrations, publish/deploy targets and the modern-vs-legacy deltas &mdash; current to 13.5.3 (patch, 2026-08-25) on the 13.5 line (2026-08-18). "Aspire" here is the Microsoft orchestration platform formerly branded ".NET Aspire"; it dropped the ".NET" prefix in 13.0 and is now polyglot, so C#, TypeScript, JavaScript, Python and Go all appear. Version labels mark where a construct became stable, default or obsolete, because Microsoft supports only the newest Aspire release &mdash; 13.4 was supported for barely ten weeks.</p>
+  <p class="chips"><span class="chip">13.5.3</span> <span class="chip">2026-08-25</span> <span class="chip">minor line 13.5 · 2026-08-18</span> <span class="chip">requires .NET 10 SDK</span> <span class="chip">apphost targets net10.0</span> <span class="chip">latest release only is supported</span></p>
+</header>
+
+<section class="unit" id="u01">
+  <h2><span class="n">01</span>Bootstrap &amp; solution shape</h2>
+  <p class="lede">One AppHost orchestrates everything; every service references ServiceDefaults. Since 13.0 the AppHost targets <code>net10.0</code> and the SDK is pinned inline.</p>
+  <div class="rows">
+    <div class="k">New solution, interactive</div><div class="s"><code>aspire new</code> &mdash; templates: <code>aspire-starter</code>, <code>aspire-apphost</code>, <code>aspire-apphost-singlefile</code>, <code>aspire-ts-cs-starter</code>, <code>aspire-py-starter</code></div>
+    <div class="k">Add Aspire to an existing repo</div><div class="s"><code>aspire init</code> &mdash; detects projects, writes AppHost + <code>aspire.config.json</code>; runs the <code>aspireify</code> agent skill (13.3+)</div>
+    <div class="k">AppHost csproj (13.0+)</div><div class="s"><code>&lt;Project Sdk="Aspire.AppHost.Sdk/13.5.3"&gt;</code> &mdash; single rooted SDK; no separate <code>Aspire.Hosting.AppHost</code> PackageReference</div>
+    <div class="k">Single-file AppHost (13.0+)</div><div class="s"><code>apphost.cs</code> with <code>#:sdk</code> / <code>#:package</code> directives; needs .NET 10 SDK</div>
+    <div class="k">Project-scoped config (13.2+)</div><div class="s"><code>aspire.config.json</code> at the repo root &mdash; SDK version, <code>appHost.path</code>, launch profiles, package pins</div>
+    <div class="k">Run + dashboard</div><div class="s"><code>aspire run</code> (dashboard auto-opens); <code>aspire start</code> to detach, <code>aspire stop</code>, <code>aspire ps</code></div>
+    <div class="k">Add an integration</div><div class="s"><code>aspire add redis</code>, <code>aspire add azure-storage</code> &mdash; resolves the right package + version for your SDK line</div>
+    <div class="k">Bump every Aspire package</div><div class="s"><code>aspire update</code>; <code>aspire update --self</code> updates the CLI itself (13.0+)</div>
+  </div>
+<pre><code class="language-csharp">// apphost.cs (single-file) or AppHost/Program.cs
+var builder = DistributedApplication.CreateBuilder(args);
+
+var cache = builder.AddRedis("cache");
+var db    = builder.AddPostgres("pg").WithPgAdmin().AddDatabase("appdb");
+
+var api = builder.AddProject&lt;Projects.Api&gt;("api")
+                 .WithReference(cache).WaitFor(cache)
+                 .WithReference(db).WaitFor(db);
+
+builder.AddProject&lt;Projects.Web&gt;("web")
+       .WithReference(api).WaitFor(api)
+       .WithExternalHttpEndpoints();
+
+builder.Build().Run();</code></pre>
+<pre><code class="language-csharp">// ServiceDefaults/Extensions.cs is referenced by every service project
+builder.AddServiceDefaults();   // OTel + health checks + service discovery + resilient HttpClient
+var app = builder.Build();
+app.MapDefaultEndpoints();      // /health and /alive, development only by default</code></pre>
+  <p class="doc">Docs: <a href="https://aspire.dev/get-started/">aspire.dev/get-started</a></p>
+</section>
+
+<section class="unit" id="u02">
+  <h2><span class="n">02</span>App model: resources</h2>
+  <p class="lede">Three primitives &mdash; project, container, executable &mdash; plus parameters and connection strings. Everything else is an extension method on <code>IResourceBuilder&lt;T&gt;</code>.</p>
+  <div class="rows">
+    <div class="k">.NET project</div><div class="s"><code>builder.AddProject&lt;Projects.Api&gt;("api")</code> &mdash; generated <code>Projects.*</code> type; name is the service-discovery key</div>
+    <div class="k">Container</div><div class="s"><code>builder.AddContainer("mailpit", "axllent/mailpit")</code></div>
+    <div class="k">Local executable</div><div class="s"><code>builder.AddExecutable("worker", "./tool", workingDirectory: ".", "--flag")</code></div>
+    <div class="k">C# file-based app (13.0+, exp.)</div><div class="s"><code>builder.AddCSharpApp("tool", "../tools/tool.cs")</code></div>
+    <div class="k">Dockerfile in-repo</div><div class="s"><code>builder.AddDockerfile("svc", "./src/svc")</code>; <code>.WithBuildArg(...)</code>, <code>.WithBuildSecret(...)</code> <span class="new">renamed in 13.2</span></div>
+    <div class="k">Scale out locally</div><div class="s"><code>.WithReplicas(3)</code> &mdash; the reverse proxy load-balances the endpoint</div>
+    <div class="k">Keep container between runs</div><div class="s"><code>.WithLifetime(ContainerLifetime.Persistent)</code> &mdash; survives AppHost restart, big win on cold-start time</div>
+    <div class="k">Pin an image tag</div><div class="s"><code>.WithImageTag("18.3")</code>, <code>.WithImageRegistry("mcr.microsoft.com")</code>, <code>.WithImage("postgres")</code></div>
+    <div class="k">State that must survive</div><div class="s"><code>.WithDataVolume("pgdata")</code> (named volume) or <code>.WithDataBindMount("./data")</code> (host path)</div>
+    <div class="k">Seed / config files into a container</div><div class="s"><code>.WithContainerFiles("/docker-entrypoint-initdb.d", [ ... ])</code></div>
+    <div class="k">Environment &amp; args</div><div class="s"><code>.WithEnvironment("KEY", value)</code>, <code>.WithArgs("--verbose")</code>, <code>.WithEnvironment(ctx =&gt; ...)</code> for late binding</div>
+    <div class="k">Hide plumbing from the dashboard</div><div class="s"><code>.WithParentRelationship(db)</code>, <code>.ExcludeFromManifest()</code></div>
+    <div class="k">Custom dashboard command</div><div class="s"><code>.WithCommand("seed", "Seed data", ctx =&gt; ...)</code>; user-supplied <code>CommandOptions.Arguments</code> <span class="new">13.5</span></div>
+    <div class="k">Interactive terminal (13.5, exp.)</div><div class="s"><code>.WithTerminal()</code> &mdash; opens a live PTY for the resource in the dashboard</div>
+    <div class="k">Health gate</div><div class="s"><code>.WithHttpHealthCheck("/health")</code> &mdash; drives <code>WaitFor</code> and the dashboard's Running/Healthy split</div>
+  </div>
+  <p class="doc">Docs: <a href="https://aspire.dev/app-host/">aspire.dev/app-host</a></p>
+</section>
+
+<section class="unit" id="u03">
+  <h2><span class="n">03</span>References, waiting, endpoints</h2>
+  <p class="lede">A reference injects config; a wait orders startup. They are independent &mdash; forgetting <code>WaitFor</code> is the classic flaky-first-run bug.</p>
+  <div class="rows">
+    <div class="k">Inject connection info</div><div class="s"><code>.WithReference(db)</code> &mdash; writes <code>ConnectionStrings__appdb</code> into the consumer</div>
+    <div class="k">Inject a service URL</div><div class="s"><code>.WithReference(api)</code> &mdash; writes <code>services__api__https__0</code>; call it as <code>https://api</code></div>
+    <div class="k">Order startup</div><div class="s"><code>.WaitFor(db)</code> (healthy) and <code>.WaitForCompletion(migrator)</code> (exit code 0) &mdash; for one-shot migration jobs</div>
+    <div class="k">Wait with a specific exit code</div><div class="s"><code>.WaitForCompletion(seed, exitCode: 0)</code></div>
+    <div class="k">Reference a specific endpoint</div><div class="s"><code>.WithReference(api.GetEndpoint("grpc"))</code></div>
+    <div class="k">Extra endpoint</div><div class="s"><code>.WithHttpEndpoint(port: 5100, targetPort: 8080, name: "admin")</code>, <code>.WithHttpsEndpoint(...)</code>, <code>.WithEndpoint(scheme: "tcp", ...)</code></div>
+    <div class="k">Publish to the internet</div><div class="s"><code>.WithExternalHttpEndpoints()</code> &mdash; only these get public ingress at deploy time</div>
+    <div class="k">Share a dev tunnel</div><div class="s"><code>builder.AddDevTunnel("tunnel").WithReference(web)</code> &mdash; <span class="new">stable since 13.1</span></div>
+    <div class="k">HTTPS for a project (13.5)</div><div class="s"><code>.WithHttpsDeveloperCertificate()</code> / <code>.WithHttpsCertificate(cert)</code></div>
+    <div class="k">Reverse proxy / gateway</div><div class="s"><code>builder.AddYarp("gw").WithConfiguration(c =&gt; c.AddRoute("/api/{**c}", api))</code></div>
+    <div class="k">Raw connection string</div><div class="s"><code>builder.AddConnectionString("legacy")</code> &mdash; <span class="new">use instead of <code>PublishAsConnectionString</code>, obsolete in 13.5</span></div>
+    <div class="k">Bypass the proxy</div><div class="s"><code>.WithEndpoint("http", e =&gt; e.IsProxied = false)</code> &mdash; port allocation now happens later <span class="new">breaking in 13.5</span></div>
+  </div>
+  <div class="callout"><b>Service discovery changed in 13.2:</b> the injected variable is keyed by endpoint <b>scheme</b>, not endpoint <b>name</b> &mdash; <code>services__api__https__0</code>, not <code>services__api__myendpoint__0</code>. Code that parsed the old shape by hand breaks silently.</div>
+  <p class="doc">Docs: <a href="https://aspire.dev/service-discovery/">aspire.dev/service-discovery</a></p>
+</section>
+
+<section class="unit" id="u04">
+  <h2><span class="n">04</span>Parameters, secrets, config</h2>
+  <p class="lede">Parameters are the deploy-time inputs of the app model. Secrets stay in user-secrets locally and become key-vault or environment references when published.</p>
+  <div class="rows">
+    <div class="k">Declare a parameter</div><div class="s"><code>var pw = builder.AddParameter("db-password", secret: true);</code></div>
+    <div class="k">Local value</div><div class="s">user-secrets key <code>Parameters:db-password</code>, or <code>aspire secret set Parameters:db-password ...</code></div>
+    <div class="k">Prompted at deploy</div><div class="s">unset secret parameters are prompted by <code>aspire deploy</code> via the Interaction Service</div>
+    <div class="k">Generate one</div><div class="s"><code>builder.AddParameter("pw", () =&gt; Guid.NewGuid().ToString(), secret: true)</code>; <code>.WithGeneratedPassword()</code> on supported resources</div>
+    <div class="k">Use it</div><div class="s"><code>builder.AddPostgres("pg", password: pw)</code> or <code>.WithEnvironment("PW", pw)</code></div>
+    <div class="k">Ask the developer at runtime</div><div class="s"><code>IInteractionService.PromptInputAsync(...)</code>; <code>InputType.File</code> uploads with a progress dialog <span class="new">13.5</span></div>
+    <div class="k">CLI config</div><div class="s"><code>aspire config list|get|set|delete</code> &mdash; e.g. <code>aspire config set features.deployCommandEnabled true</code></div>
+    <div class="k">Allow plain HTTP</div><div class="s"><code>ASPIRE_ALLOW_UNSECURED_TRANSPORT=true</code> (CI, WSL, containers without a dev cert)</div>
+    <div class="k">Use Podman</div><div class="s"><code>ASPIRE_CONTAINER_RUNTIME=podman</code></div>
+    <div class="k">Dashboard OTLP endpoints</div><div class="s"><code>ASPIRE_DASHBOARD_OTLP_ENDPOINT_URL</code> (gRPC), <code>ASPIRE_DASHBOARD_OTLP_HTTP_ENDPOINT_URL</code></div>
+    <div class="k">Environment name</div><div class="s"><code>ASPIRE_ENVIRONMENT</code>, else <code>DOTNET_ENVIRONMENT</code>/<code>ASPNETCORE_ENVIRONMENT</code></div>
+    <div class="k">Dev certs</div><div class="s"><code>aspire certs</code> &mdash; 13.0 trusts the dev cert across languages automatically</div>
+  </div>
+  <p class="doc">Docs: <a href="https://aspire.dev/app-host/configuration/">aspire.dev/app-host/configuration</a></p>
+</section>
+
+<section class="unit" id="u05">
+  <h2><span class="n">05</span>Integrations: hosting + client</h2>
+  <p class="lede">Every integration is a pair: a <b>hosting</b> package used in the AppHost (<code>Add*</code> resource) and a <b>client</b> package used in the service (<code>Add*Client</code> on <code>IHostApplicationBuilder</code>). The connection name must match on both sides.</p>
+  <div class="tw">
+    <table>
+      <thead><tr><th>Resource</th><th>AppHost (hosting)</th><th>Service (client)</th></tr></thead>
+      <tbody>
+        <tr><td>Redis / Valkey / Garnet</td><td><code>AddRedis("cache")</code> · <code>.WithRedisInsight()</code></td><td><code>AddRedisClient("cache")</code>, <code>AddRedisDistributedCache</code>, <code>AddRedisOutputCache</code></td></tr>
+        <tr><td>PostgreSQL</td><td><code>AddPostgres("pg").AddDatabase("appdb")</code> · <code>.WithPgAdmin()</code></td><td><code>AddNpgsqlDataSource("appdb")</code> / <code>AddNpgsqlDbContext&lt;T&gt;("appdb")</code></td></tr>
+        <tr><td>SQL Server</td><td><code>AddSqlServer("sql").AddDatabase("appdb")</code></td><td><code>AddSqlServerClient</code> / <code>AddSqlServerDbContext&lt;T&gt;</code></td></tr>
+        <tr><td>MongoDB</td><td><code>AddMongoDB("mongo").AddDatabase("docs")</code></td><td><code>AddMongoDBClient</code>; EF Core provider <span class="new">13.2</span></td></tr>
+        <tr><td>RabbitMQ / Kafka / NATS</td><td><code>AddRabbitMQ</code>, <code>AddKafka</code>, <code>AddNats</code></td><td><code>AddRabbitMQClient</code>, <code>AddKafkaProducer&lt;K,V&gt;</code>, <code>AddNatsClient</code></td></tr>
+        <tr><td>Azure Storage</td><td><code>AddAzureStorage("st").AddBlobs("blobs")</code></td><td><code>AddAzureBlobClient("blobs")</code>, <code>AddAzureQueueClient</code>, <code>AddAzureTableClient</code></td></tr>
+        <tr><td>Azure Service Bus / Cosmos</td><td><code>AddAzureServiceBus</code>, <code>AddAzureCosmosDB</code></td><td><code>AddAzureServiceBusClient</code>, <code>AddAzureCosmosClient</code></td></tr>
+        <tr class="hi"><td>Managed Redis (Azure)</td><td><code>AddAzureManagedRedis("cache")</code> <span class="new">renamed in 13.1 from <code>AddAzureRedisEnterprise</code></span></td><td><code>AddRedisClient("cache")</code></td></tr>
+        <tr class="hi"><td>AI models</td><td><code>Aspire.Hosting.Foundry</code> &mdash; <code>AddAzureAIFoundry(...).AddDeployment(...)</code> <span class="new">package renamed in 13.2 from <code>Aspire.Hosting.Azure.AIFoundry</code></span></td><td><code>AddAzureChatCompletionsClient</code>; <code>AddOllamaSharpChatClient</code> for local</td></tr>
+        <tr><td>Keycloak / identity</td><td><code>AddKeycloak("kc").AddRealm("app")</code></td><td><code>AddKeycloakJwtBearer(...)</code></td></tr>
+        <tr><td>Browser telemetry <span class="new">13.3</span></td><td><code>Aspire.Hosting.Browsers</code> &mdash; captures frontend console, network and screenshots into the dashboard</td><td>n/a</td></tr>
+      </tbody>
+    </table>
+  </div>
+  <div class="callout"><b>Discover, don't guess:</b> <code>aspire integration list</code> and <code>aspire integration search redis</code> (13.4+) print the exact package for your SDK line; <code>aspire add &lt;id&gt;</code> installs it. Third-party integrations live in the community toolkit under <code>CommunityToolkit.Aspire.Hosting.*</code>.</div>
+  <p class="doc">Docs: <a href="https://aspire.dev/integrations/">aspire.dev/integrations</a></p>
+</section>
+
+<section class="unit" id="u06">
+  <h2><span class="n">06</span>Service defaults &amp; telemetry</h2>
+  <p class="lede">ServiceDefaults is generated source you own, not a package &mdash; edit it. Aspire adds no runtime dependency to your services beyond OpenTelemetry, service discovery and resilience.</p>
+  <div class="rows">
+    <div class="k">What <code>AddServiceDefaults()</code> wires</div><div class="s">OTel traces/metrics/logs + OTLP exporter · <code>AddServiceDiscovery()</code> · <code>HttpClient</code> defaults with <code>AddStandardResilienceHandler()</code> · default health checks</div>
+    <div class="k">What <code>MapDefaultEndpoints()</code> maps</div><div class="s"><code>/health</code> (all checks) and <code>/alive</code> (checks tagged <code>"live"</code>) &mdash; guarded to Development by default; open it deliberately for prod probes</div>
+    <div class="k">Tag a liveness check</div><div class="s"><code>.AddCheck("self", () =&gt; HealthCheckResult.Healthy(), ["live"])</code></div>
+    <div class="k">Where telemetry goes</div><div class="s"><code>OTEL_EXPORTER_OTLP_ENDPOINT</code> is injected by the AppHost and points at the dashboard; in production point it at your collector</div>
+    <div class="k">Add a meter / source</div><div class="s"><code>.WithMetrics(m =&gt; m.AddMeter("MyApp"))</code>, <code>.WithTracing(t =&gt; t.AddSource("MyApp"))</code> in <code>ConfigureOpenTelemetry</code></div>
+    <div class="k">Typed HttpClient to a service</div><div class="s"><code>builder.Services.AddHttpClient&lt;ApiClient&gt;(c =&gt; c.BaseAddress = new("https+http://api"));</code></div>
+    <div class="k">Dashboard alone (13.3+)</div><div class="s"><code>aspire dashboard</code> &mdash; runs standalone as an OTLP sink for anything, no AppHost needed</div>
+    <div class="k">Telemetry out of the CLI</div><div class="s"><code>aspire otel --search "status:500"</code>, <code>aspire logs --search error</code>, <code>aspire export</code></div>
+  </div>
+  <div class="callout"><b>Scheme fallback:</b> <code>https+http://api</code> resolves HTTPS first and falls back to HTTP &mdash; the right default for local dev where a container may only expose HTTP.</div>
+  <p class="doc">Docs: <a href="https://aspire.dev/get-started/csharp-service-defaults/">aspire.dev/get-started/csharp-service-defaults</a></p>
+</section>
+
+<section class="unit" id="u07">
+  <h2><span class="n">07</span>Polyglot: TS, JS, Python, Go</h2>
+  <p class="lede">13.0 dropped the ".NET" from the name for a reason. The AppHost itself can now be TypeScript (GA in 13.4), and JS/Python/Go apps are first-class resources, not shelled-out executables.</p>
+  <div class="rows">
+    <div class="k">TypeScript AppHost (GA 13.4)</div><div class="s"><code>createBuilder()</code> from <code>@aspire/hosting</code>; talks to the host over JSON-RPC; generated SDKs land in <code>.aspire/modules/</code> <span class="new">moved in 13.4</span></div>
+    <div class="k">JavaScript app</div><div class="s"><code>builder.AddJavaScriptApp("web", "../web", "dev")</code> &mdash; package <code>Aspire.Hosting.JavaScript</code> <span class="new">renamed in 13.0 from <code>Aspire.Hosting.NodeJs</code></span></div>
+    <div class="k">Framework helpers</div><div class="s"><code>AddViteApp</code>, <code>AddNextJsApp</code> <span class="new">13.3</span>, <code>AddBunApp</code> <span class="new">13.4</span>; npm, pnpm, Yarn and Bun all detected</div>
+    <div class="k">JS publish modes (13.3)</div><div class="s"><code>PublishAsStaticWebsite()</code>, <code>PublishAsNodeServer()</code>, <code>PublishAsPackageScript()</code> <span class="new">renamed in 13.4 from <code>PublishAsNpmPackageScript</code></span></div>
+    <div class="k">Python</div><div class="s"><code>builder.AddPythonApp("api", "../api", "main.py")</code>; uvicorn support built in; <code>aspire new aspire-py-starter</code></div>
+    <div class="k">Go (13.4)</div><div class="s"><code>builder.AddGoApp("svc", "../svc")</code> &mdash; package <code>Aspire.Hosting.Go</code></div>
+    <div class="k">Blazor WASM (13.4, preview)</div><div class="s"><code>builder.AddBlazorWasmProject&lt;Projects.Client&gt;("client")</code> with gateway APIs</div>
+    <div class="k">Dependency install</div><div class="s">13.0 auto-installs Python/JS dependencies by default before the app starts</div>
+  </div>
+<pre><code class="language-typescript">// aspire.ts &mdash; TypeScript AppHost, GA in 13.4
+import { createBuilder } from "@aspire/hosting";
+
+const builder = createBuilder();
+const cache = builder.addRedis("cache");
+const api = builder.addProject("api", "../Api/Api.csproj").withReference(cache).waitFor(cache);
+builder.addViteApp("web", "../web").withReference(api).withExternalHttpEndpoints();
+await builder.build().run();</code></pre>
+  <p class="doc">Docs: <a href="https://aspire.dev/typescript/">aspire.dev/typescript</a></p>
+</section>
+
+<section class="unit" id="u08">
+  <h2><span class="n">08</span>CLI commands &amp; flags</h2>
+  <p class="lede">Since 13.2 the CLI is the primary interface (and the one AI agents drive). Installable via script, <code>dotnet tool install -g aspire.cli</code> (NativeAOT since 13.3), npm or Nix.</p>
+  <div class="rows">
+    <div class="k">Create / adopt</div><div class="s"><code>aspire new [template]</code> · <code>aspire init</code> · <code>aspire add &lt;integration&gt;</code> · <code>aspire update [--self]</code></div>
+    <div class="k">Run</div><div class="s"><code>aspire run</code> · <code>aspire start</code> (detached) · <code>aspire stop [--all]</code> · <code>aspire ps [--format json]</code></div>
+    <div class="k">Inspect</div><div class="s"><code>aspire describe</code> · <code>aspire logs --search &lt;text&gt;</code> · <code>aspire otel --search &lt;q&gt;</code> · <code>aspire export</code> · <code>aspire dashboard</code></div>
+    <div class="k">Drive resources</div><div class="s"><code>aspire resource start|stop|restart &lt;name&gt;</code> <span class="new">renamed in 13.2 from <code>resource-start</code></span> · <code>aspire wait &lt;resource&gt;</code></div>
+    <div class="k">Ship</div><div class="s"><code>aspire publish</code> (artifacts only) · <code>aspire deploy</code> (provision + apply) · <code>aspire destroy --yes</code> <span class="new">13.3</span> · <code>aspire do &lt;step&gt;</code></div>
+    <div class="k">Environment &amp; help</div><div class="s"><code>aspire doctor</code> · <code>aspire certs</code> · <code>aspire config set|get|list</code> · <code>aspire secret</code> · <code>aspire docs search &lt;q&gt;</code> · <code>aspire cache clear</code></div>
+    <div class="k">Agents / MCP</div><div class="s"><code>aspire agent init</code> <span class="new">13.1</span> installs MCP tools (<code>list_integrations</code>, <code>get_integration_docs</code>) · <code>aspire mcp</code> lists and calls resource MCP tools</div>
+    <div class="k">Integration discovery (13.4)</div><div class="s"><code>aspire integration list</code> · <code>aspire integration search &lt;q&gt;</code></div>
+    <div class="k">Pipeline log level</div><div class="s"><code>--pipeline-log-level</code> <span class="new">renamed in 13.3 from <code>--log-level</code></span></div>
+  </div>
+  <div class="callout"><b>Removed, don't reach for them:</b> <code>aspire run --watch</code> (removed 13.0), <code>aspire ps --resources</code> and <code>--include-hidden</code> (removed 13.5), <code>dotnet new aspire-*</code> templates (replaced by <code>aspire new</code> in 13.3).</div>
+  <p class="doc">Docs: <a href="https://aspire.dev/reference/cli/overview/">aspire.dev/reference/cli/overview</a></p>
+</section>
+
+<section class="unit" id="u09">
+  <h2><span class="n">09</span>Publish &amp; deploy</h2>
+  <p class="lede">Compute environments are the deploy target in the app model. <code>aspire publish</code> emits artifacts; <code>aspire deploy</code> provisions and applies. The old <code>manifest.json</code> + <code>azd</code> path is a deprecated compatibility shim.</p>
+  <div class="rows">
+    <div class="k">Azure Container Apps</div><div class="s"><code>builder.AddAzureContainerAppEnvironment("env")</code></div>
+    <div class="k">Azure App Service</div><div class="s"><code>builder.AddAzureAppServiceEnvironment("env")</code></div>
+    <div class="k">Docker Compose</div><div class="s"><code>builder.AddDockerComposeEnvironment("compose")</code> &mdash; <span class="new">stable in 13.2</span>; Podman supported <span class="new">13.3</span></div>
+    <div class="k">Kubernetes / AKS</div><div class="s"><code>builder.AddKubernetesEnvironment("k8s")</code> with a Helm engine <span class="new">13.3</span>, first-class in <span class="new">13.3</span>; <code>AddAzureKubernetesEnvironment</code> for AKS</div>
+    <div class="k">Pick a target per resource</div><div class="s"><code>.WithComputeEnvironment(env)</code> &mdash; <span class="new">graduated from experimental in 13.0</span>; required once two environments exist</div>
+    <div class="k">Helm config (13.4)</div><div class="s"><code>.WithHelm(h =&gt; ...)</code> consolidated; external chart APIs; K8s manifest resources</div>
+    <div class="k">K8s storage (13.5)</div><div class="s"><code>AddPersistentVolume(...)</code> for PV/PVC generation</div>
+    <div class="k">Ingress / routing (13.3+)</div><div class="s">Ingress and Gateway API resources; cert-manager and Azure Application Gateway for Containers <span class="new">13.4</span>; <code>WithPath()</code> <span class="new">renamed in 13.4 from <code>WithRoute()</code></span></div>
+    <div class="k">Reuse existing Azure resources</div><div class="s"><code>.AsExisting(name, rg)</code>; cross-scope <code>AsExistingInResourceGroup / InSubscription / InTenant</code> <span class="new">13.5</span></div>
+    <div class="k">Custom infra</div><div class="s"><code>.ConfigureInfrastructure(infra =&gt; ...)</code> to edit the generated Bicep/CDK before emit</div>
+    <div class="k">Pipeline steps</div><div class="s"><code>aspire do build</code>, <code>aspire do deploy</code> &mdash; the <code>do</code> pipeline system <span class="new">13.0, experimental</span></div>
+    <div class="k">Tear down</div><div class="s"><code>aspire destroy --yes</code> &mdash; removes what was provisioned, across Azure, K8s and Compose</div>
+  </div>
+  <div class="callout"><b>Identity default (13.0):</b> in Azure deployments Aspire narrows <code>DefaultAzureCredential</code> to <code>ManagedIdentityCredential</code>. Deployed code that silently relied on a developer credential chain now fails fast &mdash; which is the point.</div>
+  <p class="doc">Docs: <a href="https://aspire.dev/deployment/">aspire.dev/deployment</a></p>
+</section>
+
+<section class="unit" id="u10">
+  <h2><span class="n">10</span>Eventing, custom resources, tests</h2>
+  <p class="lede">Lifecycle hooks are gone; eventing subscribers replace them. Integration tests boot the real app model in-process.</p>
+  <div class="rows">
+    <div class="k">Subscribe to a lifecycle event</div><div class="s"><code>builder.Eventing.Subscribe&lt;BeforeStartEvent&gt;((e, ct) =&gt; ...)</code></div>
+    <div class="k">Per-resource events</div><div class="s"><code>builder.Eventing.Subscribe&lt;ResourceReadyEvent&gt;(db.Resource, (e, ct) =&gt; ...)</code>; also <code>OnResourceReady</code>, <code>OnBeforeResourceStarted</code>, <code>OnConnectionStringAvailable</code>, <code>OnInitializeResource</code></div>
+    <div class="k">Discoverable subscriber</div><div class="s">implement <code>IDistributedApplicationEventingSubscriber</code> &mdash; <span class="new">replaces <code>IDistributedApplicationLifecycleHook</code>, deprecated in 13.0</span></div>
+    <div class="k">Custom resource</div><div class="s"><code>class MyResource(string name) : Resource(name), IResourceWithConnectionString</code> + an <code>Add*</code> extension method</div>
+    <div class="k">Push state to the dashboard</div><div class="s"><code>IResourceNotificationService.PublishUpdateAsync(res, s =&gt; s with { State = KnownResourceStates.Running })</code></div>
+    <div class="k">Structured command results (13.3)</div><div class="s">resource commands return structured output surfaced in the dashboard, CLI and MCP tools alike</div>
+    <div class="k">Integration test host</div><div class="s"><code>await DistributedApplicationTestingBuilder.CreateAsync&lt;Projects.AppHost&gt;()</code> &mdash; package <code>Aspire.Hosting.Testing</code></div>
+    <div class="k">Client for a resource</div><div class="s"><code>app.CreateHttpClient("api")</code>; <code>await app.GetConnectionStringAsync("appdb")</code></div>
+    <div class="k">Wait in a test</div><div class="s"><code>await app.ResourceNotifications.WaitForResourceHealthyAsync("api", cts.Token)</code></div>
+  </div>
+<pre><code class="language-csharp">[Fact]
+public async Task ApiIsHealthy()
+{
+    var builder = await DistributedApplicationTestingBuilder.CreateAsync&lt;Projects.AppHost&gt;();
+    builder.Services.ConfigureHttpClientDefaults(h =&gt; h.AddStandardResilienceHandler());
+
+    await using var app = await builder.BuildAsync();
+    await app.StartAsync();
+    await app.ResourceNotifications.WaitForResourceHealthyAsync("api");
+
+    var response = await app.CreateHttpClient("api").GetAsync("/health");
+    Assert.Equal(HttpStatusCode.OK, response.StatusCode);
+}</code></pre>
+  <p class="doc">Docs: <a href="https://aspire.dev/testing/">aspire.dev/testing</a> · <a href="https://aspire.dev/app-host/eventing/">eventing</a></p>
+</section>
+
+<section class="unit" id="u11">
+  <h2><span class="n">11</span>Gotchas &amp; pitfalls</h2>
+  <ul class="tight">
+    <li><b>Only the newest release is supported.</b> Aspire 13.4 shipped 2026-06-01 and left support on 2026-08-18 &mdash; a ~10-week window. Budget a standing upgrade cadence, not an annual one.</li>
+    <li><b><code>WithReference</code> is not <code>WaitFor</code>.</b> A reference injects config; without <code>WaitFor</code> the consumer starts against a database that is not accepting connections yet.</li>
+    <li><b>Migrations need <code>WaitForCompletion</code>, not <code>WaitFor</code></b> &mdash; <code>WaitFor</code> waits for <i>healthy</i>, which a one-shot job never becomes.</li>
+    <li><b>PostgreSQL image jumped to 18.3 in 13.4.</b> Existing volumes written by PG 17 will not mount; pin <code>.WithImageTag("17")</code> or re-seed.</li>
+    <li><b>Service discovery keys by scheme since 13.2</b> (<code>services__api__https__0</code>). Hand-rolled parsing of the old name-keyed shape breaks without an error.</li>
+    <li><b><code>PublishAsConnectionString</code> is obsolete (13.5)</b> &mdash; use <code>AddConnectionString</code>. <code>ServiceProvider</code> on hosting contexts is now <code>Services</code>.</li>
+    <li><b>Aspire is dev-time orchestration, not a runtime.</b> Nothing named "Aspire" runs in production &mdash; the AppHost and dashboard stay on the dev box or CI.</li>
+    <li><b>Deployment manifest + <code>azd up</code> is legacy.</b> The manifest format is a frozen compatibility shim; new Azure features land only in <code>aspire deploy</code>.</li>
+    <li><b>Containers restart every run</b> unless you set <code>.WithLifetime(ContainerLifetime.Persistent)</code>; without it, every <code>aspire run</code> pays a cold start and loses non-volume state.</li>
+    <li><b>Dev cert on Linux/WSL/CI</b> is the most common first-run failure: run <code>aspire doctor</code>, then <code>aspire certs</code>, or set <code>ASPIRE_ALLOW_UNSECURED_TRANSPORT=true</code>.</li>
+    <li><b>The dashboard is not hardened for the internet.</b> If you host it standalone, front it with auth; never set <code>ASPIRE_DASHBOARD_UNSECURED_ALLOW_ANONYMOUS</code> outside a trusted network.</li>
+    <li><b>Two compute environments without <code>WithComputeEnvironment</code></b> means resources silently fail to get an image built for the target you expected.</li>
+    <li><b>Third-party container images are your risk.</b> Microsoft's support policy explicitly excludes the images behind the <code>Add*</code> APIs &mdash; scan and pin them yourself.</li>
+    <li><b>Dashboard AI Assistant and the dashboard MCP server were removed</b> (13.5 and 13.3). Agent access now goes through <code>aspire agent init</code> and <code>aspire mcp</code>.</li>
+  </ul>
+</section>
+
+<section class="unit" id="u12">
+  <h2><span class="n">12</span>Modern vs legacy</h2>
+  <p class="lede">What you write in 13.5 against what you will still find in a repo that stopped at 9.x or early 13.x.</p>
+  <div class="tw">
+    <table>
+      <thead><tr><th>Task</th><th>Modern</th><th>Legacy still seen</th><th>Since</th></tr></thead>
+      <tbody>
+        <tr><td>Name the platform</td><td>Aspire, <code>aspire.dev</code></td><td>.NET Aspire, docs on learn.microsoft.com</td><td>13.0</td></tr>
+        <tr><td>Version the AppHost SDK</td><td><code>Sdk="Aspire.AppHost.Sdk/13.5.3"</code> on <code>&lt;Project&gt;</code></td><td><code>&lt;Sdk Name="Aspire.AppHost.Sdk" /&gt;</code> + <code>Aspire.Hosting.AppHost</code> PackageReference</td><td>13.0</td></tr>
+        <tr><td>Host a Node app</td><td><code>AddJavaScriptApp</code> / <code>AddViteApp</code> / <code>AddNextJsApp</code></td><td><code>AddNpmApp</code>, <code>AddNodeApp</code> from <code>Aspire.Hosting.NodeJs</code></td><td>13.0</td></tr>
+        <tr><td>Hook the lifecycle</td><td><code>IDistributedApplicationEventingSubscriber</code> / <code>builder.Eventing.Subscribe</code></td><td><code>IDistributedApplicationLifecycleHook</code></td><td>13.0</td></tr>
+        <tr><td>Custom publish output</td><td>compute environments + <code>aspire publish</code> pipeline</td><td><code>IDistributedApplicationPublisher</code>, <code>WithPublishingCallback</code> (removed)</td><td>13.0</td></tr>
+        <tr><td>Deploy to Azure</td><td><code>aspire deploy</code> with <code>AddAzureContainerAppEnvironment</code></td><td><code>azd init</code> + <code>azd up</code> over <code>manifest.json</code></td><td>13.0</td></tr>
+        <tr><td>Project-scoped settings</td><td><code>aspire.config.json</code> at the root</td><td><code>.aspire/settings.json</code>, <code>apphost.run.json</code></td><td>13.2</td></tr>
+        <tr><td>Resource commands (CLI)</td><td><code>aspire resource start api</code></td><td><code>aspire resource-start api</code>, positional args</td><td>13.2</td></tr>
+        <tr><td>Azure Redis Enterprise</td><td><code>AddAzureManagedRedis</code></td><td><code>AddAzureRedisEnterprise</code></td><td>13.1</td></tr>
+        <tr><td>AI Foundry package</td><td><code>Aspire.Hosting.Foundry</code></td><td><code>Aspire.Hosting.Azure.AIFoundry</code></td><td>13.2</td></tr>
+        <tr><td>Docker build secrets</td><td><code>WithBuildSecret</code></td><td><code>WithSecretBuildArg</code></td><td>13.2</td></tr>
+        <tr><td>Create a template</td><td><code>aspire new aspire-py-starter</code></td><td><code>dotnet new aspire-py-starter</code></td><td>13.3</td></tr>
+        <tr><td>Pipeline verbosity flag</td><td><code>--pipeline-log-level</code></td><td><code>--log-level</code></td><td>13.3</td></tr>
+        <tr><td>K8s route path</td><td><code>WithPath("/api")</code></td><td><code>WithRoute("/api")</code></td><td>13.4</td></tr>
+        <tr><td>JS package publish</td><td><code>PublishAsPackageScript</code></td><td><code>PublishAsNpmPackageScript</code></td><td>13.4</td></tr>
+        <tr class="hi"><td>External connection string</td><td><code>builder.AddConnectionString("legacy")</code></td><td><code>.PublishAsConnectionString()</code> (obsolete)</td><td>13.5</td></tr>
+        <tr class="hi"><td>DI on hosting contexts</td><td><code>context.Services</code></td><td><code>context.ServiceProvider</code></td><td>13.5</td></tr>
+        <tr><td>Agent / MCP access</td><td><code>aspire agent init</code>, <code>aspire mcp</code>, <code>aspireify</code> skill</td><td>dashboard MCP server, dashboard AI Assistant (both removed)</td><td>13.3 / 13.5</td></tr>
+        <tr><td>Hot reload loop</td><td><code>aspire run</code> (watch built in via DCP)</td><td><code>aspire run --watch</code> (flag removed)</td><td>13.0</td></tr>
+      </tbody>
+    </table>
+  </div>
+</section>
+
+<section class="unit" id="u13">
+  <h2><span class="n">13</span>Version timeline</h2>
+  <p class="lede">Latest first. Roughly one major a year with minors throughout; each minor is supported only until the next one ships.</p>
+  <div class="tw">
+    <table>
+      <thead><tr><th>Version</th><th>Date</th><th>What changed</th></tr></thead>
+      <tbody>
+        <tr class="hi"><td><code>13.5.3</code></td><td>2026-08-25</td><td>Current patch &mdash; servicing fixes on the 13.5 line (13.5.2 removed an unused bundled PTY binary that blocked WinGet publishing)</td></tr>
+        <tr><td><code>13.5.0</code></td><td>2026-08-18</td><td><span class="new">New:</span> <code>WithTerminal()</code> interactive terminal (experimental), <code>WithHttpsDeveloperCertificate()</code>/<code>WithHttpsCertificate()</code>, <code>InputType.File</code> uploads, K8s <code>AddPersistentVolume()</code>, Azure cross-scope <code>AsExistingIn*</code>, Radius target (preview), CLI bundle by default (<code>AspireUseCliBundle=true</code>), redesigned dashboard. <span class="new">Deprecated/removed:</span> <code>PublishAsConnectionString</code> obsolete, <code>ServiceProvider</code>&#8594;<code>Services</code>, GitHub Models integration deprecated, <code>aspire ps --resources</code>/<code>--include-hidden</code>, <code>TerminalOptions.Shell</code>, dashboard AI Assistant</td></tr>
+        <tr><td><code>13.4.0</code></td><td>2026-06-01</td><td><span class="new">Newly GA:</span> TypeScript AppHost. <span class="new">New:</span> <code>AddGoApp</code>, <code>AddBunApp</code>, <code>AddBlazorWasmProject</code> (preview), cert-manager + Gateway API + Azure AGC, consolidated <code>WithHelm</code>, <code>aspire integration list|search</code>, <code>--search</code> on <code>logs</code>/<code>otel</code>. <span class="new">Breaking:</span> TS modules move to <code>.aspire/modules/</code>, <code>WithRoute</code>&#8594;<code>WithPath</code>, PostgreSQL image &#8594; 18.3</td></tr>
+        <tr><td><code>13.3.0</code></td><td>2026-05-07</td><td><span class="new">New:</span> <code>aspire destroy</code>, standalone <code>aspire dashboard</code>, NativeAOT global tool, <code>aspireify</code> agent skill in <code>aspire init</code>, Kubernetes/Helm deploy (preview) + Ingress/Gateway resources, Podman for Compose, JS publish modes, <code>AddNextJsApp</code>, <code>Aspire.Hosting.Browsers</code>, Azure Front Door / NSP / AKS. <span class="new">Newly default:</span> container tunnel. <span class="new">Removed:</span> dashboard MCP server, <code>dotnet new</code> Aspire templates</td></tr>
+        <tr><td><code>13.2.0</code></td><td>2026-03-23</td><td>Largest release to date (1,100+ issues). <span class="new">New:</span> <code>aspire start/stop/ps/describe/doctor</code>, TypeScript AppHost (preview), <code>aspire.config.json</code>, dashboard telemetry HTTP API + export/import. <span class="new">Newly stable:</span> Docker Compose publishing. <span class="new">Breaking:</span> service discovery keyed by scheme, <code>resource-start</code>&#8594;<code>resource start</code>, <code>Database</code>&#8594;<code>DatabaseName</code>, <code>Aspire.Hosting.Azure.AIFoundry</code>&#8594;<code>Aspire.Hosting.Foundry</code>, <code>WithSecretBuildArg</code>&#8594;<code>WithBuildSecret</code></td></tr>
+        <tr><td><code>13.1.0</code></td><td>2025-12-17</td><td><span class="new">New:</span> <code>aspire agent init</code> + MCP tools, dashboard Parameters tab, experimental <code>ContainerRegistryResource</code>, TLS termination APIs, <code>aspire-ts-cs-starter</code>. <span class="new">Newly stable:</span> DevTunnels, endpoint proxy support, Azure Functions out of preview. <span class="new">Breaking:</span> <code>AddAzureRedisEnterprise</code>&#8594;<code>AddAzureManagedRedis</code>, <code>Model</code>&#8594;<code>ModelName</code>. Requires .NET 10 SDK</td></tr>
+        <tr><td><code>13.0.0</code></td><td>2025-11-11</td><td>Rebrand: ".NET" dropped, new home at aspire.dev, polyglot platform. <span class="new">New:</span> <code>aspire init</code>, <code>aspire do</code>, <code>aspire update --self</code>, single-file AppHost, <code>AddCSharpApp</code> (experimental), rooted <code>Aspire.AppHost.Sdk/13.0.0</code>, net10.0 target. <span class="new">Newly stable:</span> <code>WithComputeEnvironment</code>. <span class="new">Newly default:</span> auto dependency install for Python/JS, dev certs trusted cross-language, <code>ManagedIdentityCredential</code> in Azure. <span class="new">Removed:</span> <code>AddNpmApp</code>, publishing interfaces, <code>aspire run --watch</code>. <span class="new">Deprecated:</span> lifecycle hooks</td></tr>
+        <tr><td><code>9.x</code></td><td>2024&ndash;2025</td><td>The <code>Aspire.Hosting.*</code> 9 line: dashboard maturity, publishers, <code>WaitFor</code>, integrations build-out. Still the version most existing repos are pinned to</td></tr>
+      </tbody>
+    </table>
+  </div>
+  <p class="doc">Docs: <a href="https://aspire.dev/whats-new/aspire-13-5/">what's new in 13.5</a> · <a href="https://aspire.dev/support/">support policy</a> · <a href="https://github.com/microsoft/aspire/releases">GitHub releases</a></p>
+</section>
+</main>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.11.1/highlight.min.js"></script>
+<script>
+(function () {
+  try { if (window.hljs) { hljs.highlightAll(); } } catch (e) { /* colour is decoration */ }
+
+  var links = Array.prototype.slice.call(document.querySelectorAll('.units a'));
+  var map = {};
+  links.forEach(function (a) { map[a.getAttribute('href').slice(1)] = a; });
+
+  function setCurrent(id) {
+    links.forEach(function (a) {
+      if (a === map[id]) { a.setAttribute('aria-current', 'true'); }
+      else { a.removeAttribute('aria-current'); }
+    });
+  }
+
+  var sections = Array.prototype.slice.call(document.querySelectorAll('main section.unit'));
+  if ('IntersectionObserver' in window && sections.length) {
+    var visible = {};
+    var io = new IntersectionObserver(function (entries) {
+      entries.forEach(function (en) { visible[en.target.id] = en.isIntersecting; });
+      for (var i = 0; i < sections.length; i++) {
+        if (visible[sections[i].id]) { setCurrent(sections[i].id); return; }
+      }
+    }, { rootMargin: '-10% 0px -70% 0px', threshold: 0 });
+    sections.forEach(function (s) { io.observe(s); });
+  }
+
+  var btn = document.querySelector('.toggle');
+  if (btn) {
+    btn.addEventListener('click', function () {
+      var open = document.body.classList.toggle('nav-open');
+      btn.setAttribute('aria-expanded', open ? 'true' : 'false');
+    });
+    document.querySelector('.side').addEventListener('click', function (e) {
+      if (e.target.closest('a')) {
+        document.body.classList.remove('nav-open');
+        btn.setAttribute('aria-expanded', 'false');
+      }
+    });
+  }
+})();
+</script>
+</body>
+</html>

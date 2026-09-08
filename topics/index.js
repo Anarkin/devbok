@@ -62,7 +62,14 @@ window.DEVBOK_TOPICS = [
           "file": "topics/aspire/experience.v1.html"
         }
       ],
-      "interview": [],
+      "interview": [
+        {
+          "v": 1,
+          "generated": "2026-09-08",
+          "prompt": "880c04f3",
+          "file": "topics/aspire/interview.v1.html"
+        }
+      ],
       "cheatsheet": [
         {
           "v": 1,
@@ -565,7 +572,14 @@ window.DEVBOK_TOPICS = [
           "file": "topics/mongo/experience.v1.html"
         }
       ],
-      "interview": [],
+      "interview": [
+        {
+          "v": 1,
+          "generated": "2026-09-08",
+          "prompt": "880c04f3",
+          "file": "topics/mongo/interview.v1.html"
+        }
+      ],
       "cheatsheet": [
         {
           "v": 1,
