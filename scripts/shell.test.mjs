@@ -134,7 +134,6 @@ describe('model: view', () => {
     assert.equal(w.src, null);
     assert.equal(w.remember, null);
     assert.equal(w.title, 'devbok');
-    assert.equal(w.crumb, '');
   });
   test('landing: topics exist but none chosen - hint, nothing active, tabs disabled', () => {
     const w = M.view(T, '', null);
@@ -144,7 +143,6 @@ describe('model: view', () => {
     assert.ok(w.tabs.every((t) => t.disabled));
     assert.equal(w.src, null);
     assert.equal(w.remember, null);
-    assert.equal(w.crumb, '');
     assert.equal(w.title, 'devbok');
   });
   test('draft: the dry-run artifact from .devbok/, shown only when asked for', () => {
@@ -187,7 +185,6 @@ describe('model: view', () => {
     assert.equal(w.src, 'topics/csharp/study.v2.html');
     assert.equal(w.remember, 'study');
     assert.equal(w.title, 'C# · study v2 · devbok');
-    assert.equal(w.crumb, 'C# <the language> & "more"');
     assert.deepEqual(w.options, [
       { v: 2, label: 'v2 · 2026-09-12', selected: true },
       { v: 1, label: 'v1 · 2026-09-07', selected: false },
@@ -332,8 +329,8 @@ describe('devbok.html structure', () => {
     assert.deepEqual(outsideTokens, []);
   });
   test('has the parts the glue script binds to', () => {
-    for (const id of ['topics', 'version', 'open', 'frame', 'empty', 'crumb', 'help', 'howto', 'howto-close']) assert.match(HTML, new RegExp(`id="${id}"`));
-    assert.doesNotMatch(HTML, /id="(filter|count)"/, 'removed controls stay removed');
+    for (const id of ['topics', 'version', 'open', 'frame', 'empty', 'help', 'howto', 'howto-close']) assert.match(HTML, new RegExp(`id="${id}"`));
+    assert.doesNotMatch(HTML, /id="(filter|count|crumb)"/, 'removed controls stay removed');
   });
   test('the version picker sits beside a link out of the frame', () => {
     // A cheat sheet has a @media print stylesheet and is meant to be kept in a side window; inside the
@@ -389,7 +386,6 @@ describe('devbok.html structure', () => {
   test('landing chrome: tabs hidden until a topic is chosen, the title link resets to the landing state', () => {
     const glue = HTML.match(/<script>\s*\(function \(\) \{[\s\S]*?<\/script>/)[0];
     assert.match(glue, /els\.tabBar\.hidden\b/);
-    assert.match(glue, /els\.crumb\.hidden\b/);
     assert.match(HTML, /<h1><a id="home" href="#"[^>]*>devbok<\/a><\/h1>/);
     assert.match(glue, /\$\('#home'\)\.addEventListener\('click'/);
     assert.match(glue, /history\.replaceState\(/);

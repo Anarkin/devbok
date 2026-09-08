@@ -93,7 +93,7 @@
   nav li a .slug { display: block; color: var(--muted); font-weight: 400; }
   nav .none { padding: 12px 20px; color: var(--muted); line-height: 1.6; }
   /* min-width: 0 so the column may be narrower than the tab row; without it a grid item never shrinks. */
-  .content { display: grid; grid-template-rows: auto auto 1fr; min-height: 0; min-width: 0; }
+  .content { display: grid; grid-template-rows: auto 1fr; min-height: 0; min-width: 0; }
   /* The bar has no line of its own: every tab draws its bottom line, the active tab draws none, and the
      spacer with the version picker draws the rest. Nothing overlaps, so it survives fractional zoom/DPI. */
   /* Below ~520px the four kind labels no longer fit; the row scrolls rather than clipping the last tab. */
@@ -109,7 +109,6 @@
   /* The only way out of the iframe: a cheat sheet is meant to be printed or kept in a side window. */
   .tools .open { color: var(--muted); text-decoration: none; white-space: nowrap; }
   .tools .open:hover { color: var(--topic); text-decoration: underline; }
-  .crumb { margin: 0 24px; padding: 8px 0 6px; color: var(--fg); line-height: 1.5; min-height: 1.6em; }
   .pane { min-height: 0; position: relative; }
   iframe { position: absolute; inset: 0; width: 100%; height: 100%; border: 0; display: block; background: var(--bg); }
   .empty { padding: 40px 24px; color: var(--muted); max-width: 64ch; line-height: 1.7; }
@@ -153,7 +152,6 @@
         <a class="open" id="open" target="_blank" rel="noopener" title="Open this page on its own, outside the frame (to print it, or keep it in a side window)">open ↗</a>
       </div>
     </div>
-    <div class="crumb" id="crumb"></div>
     <div class="pane">
       <iframe id="frame" title="artifact" hidden></iframe>
       <div class="empty" id="empty"></div>
@@ -285,7 +283,6 @@ const devbokModel = (function () {
       // accentDark is derived by scripts/devbok.mjs and carried in the index, so no colour maths lives here;
       // an index written before it existed falls back to the brand colour in both themes.
       accent: s.topic && s.topic.accent ? { light: s.topic.accent, dark: s.topic.accentDark || s.topic.accent } : null,
-      crumb: s.topic ? s.topic.topic : '',
       src: s.ver ? s.ver.file : null,
       remember: s.topic ? s.kind : null, // the kind tab to reopen on next time; never the topic
     };
@@ -311,7 +308,7 @@ const devbokModel = (function () {
   const $ = (s) => document.querySelector(s);
   const els = {
     list: $('#topics'), tabBar: $('#tabs'), tabs: [...document.querySelectorAll('.tab')],
-    version: $('#version'), open: $('#open'), frame: $('#frame'), empty: $('#empty'), crumb: $('#crumb'),
+    version: $('#version'), open: $('#open'), frame: $('#frame'), empty: $('#empty'),
   };
   const store = {
     get(k) { try { return localStorage.getItem(k); } catch { return null; } },
@@ -337,8 +334,7 @@ const devbokModel = (function () {
     const v = current();
     if (v.remember) store.set('devbok:kind', v.remember);
     paintTopic(v.accent);
-    els.tabBar.hidden = !v.topic; // no tabs, version picker or topic line until a topic is chosen
-    els.crumb.hidden = !v.topic;
+    els.tabBar.hidden = !v.topic; // no tabs and no version picker until a topic is chosen
     const link = (t) => `<li><a href="${t.href}" class="${t.active ? 'active' : ''}" title="${M.esc(t.topic)}">${M.esc(t.title)}<span class="slug">${M.esc(t.slug)}</span></a></li>`;
     els.list.innerHTML = v.sidebarNote
       ? `<li class="none">${v.sidebarNote}</li>`
@@ -354,8 +350,6 @@ const devbokModel = (function () {
     els.version.hidden = !v.options.length;
     els.open.hidden = !v.src; // nothing to open until an artifact is on screen
     if (v.src) els.open.href = v.src;
-    els.crumb.textContent = v.crumb;
-    els.crumb.title = v.crumb;
     if (v.message) {
       els.frame.hidden = true;
       els.empty.innerHTML = v.message;
