@@ -1,0 +1,709 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Angular · cheatsheet · devbok</title>
+<link rel="preconnect" href="https://fonts.googleapis.com/">
+<link rel="preconnect" href="https://fonts.gstatic.com/" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Cascadia+Mono:wght@400;700&amp;display=swap">
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.11.1/styles/github.min.css" media="(prefers-color-scheme: light)">
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.11.1/styles/github-dark.min.css" media="(prefers-color-scheme: dark)">
+<style>
+:root { color-scheme: light;
+  --bg: #ffffff; --fg: #111111; --muted: #6b6b6b; --line: #111111; --soft: #f4f4f4; --border: #cccccc;
+  --accent: #dd0031; --accent-soft: color-mix(in srgb, var(--accent) 12%, var(--bg)); }
+@media (prefers-color-scheme: dark) { :root { color-scheme: dark;
+  --bg: #222222; --fg: #cccccc; --muted: #8f8f8f; --line: #111111; --soft: #2c2c2c; --border: #4a4a4a;
+  --accent: #ff5278; --accent-soft: color-mix(in srgb, var(--accent) 16%, var(--bg)); } }
+
+*, *::before, *::after { box-sizing: border-box; }
+html { -webkit-text-size-adjust: 100%; }
+body { margin: 0; background: var(--bg); color: var(--fg);
+  font-family: system-ui, sans-serif; font-size: 16px; line-height: 1.6; overflow-wrap: break-word; }
+h1, h2, h3 { font-family: system-ui, sans-serif; font-weight: 700; }
+h2 { font-size: 1.5em; }
+h3 { font-size: 1.17em; }
+a { color: var(--accent); }
+a:focus-visible, button:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+img { max-width: 100%; }
+
+code, kbd, pre, .mono, .chip, .since, .docs, .hero .meta, .side, dl.rows dd, table.grid { font-family: "Cascadia Mono", Consolas, monospace; font-size: 12px; }
+code { background: var(--soft); border-radius: 3px; padding: 0 3px; overflow-wrap: anywhere; }
+pre { background: var(--soft); border: 1px solid var(--border); border-radius: 4px;
+  margin: 10px 0 0; padding: 10px 12px; overflow-x: auto; max-width: 100%; line-height: 1.5; }
+pre code { background: none; border: 0; padding: 0; white-space: pre; }
+pre code.hljs { background: transparent; padding: 0; }
+
+.hero { margin: 0 0 24px; padding: 0 0 24px; border-bottom: 2px solid var(--line); }
+.hero h1 { margin: 0 0 8px; font-size: 2em; line-height: 1.2; font-weight: 700; }
+.hero .meta { margin: 0 0 12px; font-family: "Cascadia Mono", Consolas, monospace; font-size: 12px; color: var(--muted); }
+.hero .summary { margin: 0 0 12px; }
+.hero .chips { display: flex; flex-wrap: wrap; gap: 6px; margin: 0; }
+
+.side { position: fixed; top: 0; bottom: 0; left: 0; width: 260px; display: flex; flex-direction: column; background: var(--bg); border-right: 2px solid var(--line); font-family: "Cascadia Mono", Consolas, monospace; font-size: 12px; }
+.units { list-style: none; margin: 0; padding: 12px 0; overflow-y: auto; flex: 1; }
+.units a { display: grid; grid-template-columns: 2.5em 1fr; padding: 9px 20px; color: var(--fg); text-decoration: none; line-height: 1.4; }
+.units .n { color: var(--muted); }
+.units a:hover { background: var(--soft); }
+.units a[aria-current="true"] { background: var(--accent-soft); color: var(--accent); }
+.units a[aria-current="true"] .n { color: var(--accent); }
+.side footer { padding: 12px 20px; border-top: 2px solid var(--line); color: var(--muted); line-height: 1.5; }
+
+.content { margin-left: 260px; padding: 24px; max-width: 120ch; min-width: 0; }
+.unit { border-top: 2px solid var(--line); margin: 0 0 26px; padding: 14px 0 0; min-width: 0; }
+.unit > header { display: flex; flex-wrap: wrap; align-items: baseline; gap: 4px 14px; margin: 0 0 4px; min-width: 0; }
+.unit h2 { margin: 0; line-height: 1.25; }
+.unit h2 .n { font-family: "Cascadia Mono", Consolas, monospace; font-size: 12px; color: var(--muted); margin-right: 10px; }
+.docs { color: var(--muted); }
+.docs a { color: var(--accent); text-decoration: none; }
+.docs a:hover { text-decoration: underline; }
+
+dl.rows { display: grid; grid-template-columns: minmax(0, 30ch) minmax(0, 1fr);
+  margin: 12px 0 0; border-top: 1px solid var(--border); min-width: 0; }
+dl.rows dt { grid-column: 1; margin: 0; padding: 6px 14px 6px 0; border-bottom: 1px solid var(--border);
+  min-width: 0; line-height: 1.35; }
+dl.rows dd { grid-column: 2; margin: 0; padding: 7px 0 6px; border-bottom: 1px solid var(--border);
+  min-width: 0; line-height: 1.5; overflow-wrap: anywhere; }
+dl.rows dd code { background: none; padding: 0; }
+.cmt { color: var(--muted); }
+
+.chip { display: inline-block; text-transform: uppercase; letter-spacing: .03em;
+  background: var(--soft); border: 1px solid var(--border); border-radius: 4px; padding: 2px 7px; }
+.since { display: inline-block; border: 1px solid var(--accent); border-radius: 4px;
+  padding: 0 5px; color: var(--accent); white-space: nowrap; }
+.note { background: var(--soft); border-left: 3px solid var(--accent); padding: 8px 12px; margin: 12px 0 0; }
+.note p { margin: 0; }
+
+.tw { overflow-x: auto; margin: 12px 0 0; min-width: 0; }
+table.grid { border-collapse: collapse; width: 100%; }
+table.grid th { text-align: left; font-weight: 400; color: var(--muted);
+  border-bottom: 1px solid var(--border); padding: 6px 14px 6px 0; vertical-align: bottom; }
+table.grid td { border-bottom: 1px solid var(--border); padding: 6px 14px 6px 0; vertical-align: top; }
+table.grid td code { background: none; padding: 0; }
+table.grid tr.hi td { background: var(--accent-soft); }
+
+ul.tight { margin: 12px 0 0; padding-left: 1.1em; }
+ul.tight li { margin: 0 0 3px; }
+
+.navtoggle { display: none; position: fixed; top: 10px; left: 10px; z-index: 30;
+  font-family: "Cascadia Mono", Consolas, monospace; font-size: 12px; color: var(--fg);
+  background: var(--bg); border: 1px solid var(--line); border-radius: 4px; padding: 6px 10px; cursor: pointer; }
+@media (max-width: 720px) {
+  .navtoggle { display: block; }
+  .side { width: min(260px, 84%); transform: translateX(-102%); transition: transform .15s ease; z-index: 25; }
+  body.nav-open .side { transform: none; }
+  .content { margin-left: 0; padding: 52px 16px 24px; }
+  dl.rows { grid-template-columns: minmax(0, 1fr); }
+  dl.rows dt { padding: 6px 0 0; border-bottom: 0; font-weight: 600; }
+  dl.rows dd { padding: 2px 0 7px; }
+}
+
+@media print {
+  :root { color-scheme: light;
+    --bg: #ffffff; --fg: #000000; --muted: #444444; --line: #000000; --soft: #ffffff; --border: #999999;
+    --accent: #000000; --accent-soft: #ffffff; }
+  .side, .navtoggle { display: none !important; }
+  body { font-size: 9pt; line-height: 1.3; background: #fff; color: #000; }
+  .content { margin: 0; padding: 0; max-width: 100%; }
+  code, kbd, pre, .chip, .since, .docs, .hero .meta, dl.rows dd, table.grid { font-size: 7.5pt; }
+  .hero { padding-bottom: 8pt; margin-bottom: 10pt; border-bottom: 1pt solid #000; }
+  .hero h1 { font-size: 16pt; }
+  .unit { break-inside: avoid; page-break-inside: avoid; margin: 0 0 8pt; padding-top: 6pt; border-top: 1pt solid #000; }
+  .unit h2 { font-size: 11pt; }
+  pre { background: #fff; border: 1pt solid #999; padding: 4pt 6pt; }
+  pre code.hljs, pre code.hljs span { color: #000 !important; background: transparent !important; }
+  .note { background: #fff; border-left: 2pt solid #000; }
+  a, a:visited { color: #000; text-decoration: none; }
+  a[href]::after { content: ""; }
+  @page { size: A4; margin: 11mm; }
+}
+</style>
+</head>
+<body>
+<!-- devbok
+slug: angular
+kind: cheatsheet
+version: 1
+topic: "Angular"
+prompt: cheatsheet.md@eef70255
+generated: 2026-09-08
+-->
+<button class="navtoggle" type="button" aria-expanded="false" aria-controls="side">units</button>
+<nav class="side" id="side" aria-label="Units">
+  <ol class="units">
+    <li><a href="#u01"><span class="n">01</span><span class="t">Component &amp; template syntax</span></a></li>
+    <li><a href="#u02"><span class="n">02</span><span class="t">Signals &amp; reactivity</span></a></li>
+    <li><a href="#u03"><span class="n">03</span><span class="t">Component API surface</span></a></li>
+    <li><a href="#u04"><span class="n">04</span><span class="t">Dependency injection</span></a></li>
+    <li><a href="#u05"><span class="n">05</span><span class="t">Async data &amp; HTTP</span></a></li>
+    <li><a href="#u06"><span class="n">06</span><span class="t">Signal Forms</span></a></li>
+    <li><a href="#u07"><span class="n">07</span><span class="t">Router</span></a></li>
+    <li><a href="#u08"><span class="n">08</span><span class="t">SSR, hydration &amp; defer</span></a></li>
+    <li><a href="#u09"><span class="n">09</span><span class="t">CLI, config &amp; testing</span></a></li>
+    <li><a href="#u10"><span class="n">10</span><span class="t">Idioms &amp; gotchas</span></a></li>
+    <li><a href="#u11"><span class="n">11</span><span class="t">Modern vs legacy</span></a></li>
+    <li><a href="#u12"><span class="n">12</span><span class="t">Version timeline</span></a></li>
+  </ol>
+  <footer>Angular · cheatsheet · version 1 · 2026-09-08</footer>
+</nav>
+<main class="content">
+<header class="hero">
+  <h1>Angular</h1>
+  <p class="meta">cheatsheet · Angular 22.1.5 · released 2026-09-03</p>
+  <p class="summary">The Angular surface reached for daily — component and template syntax, signals, DI, the resource and HTTP APIs, Signal Forms, the router, SSR and the CLI — each row labelled with the version where it became true, plus a modern-vs-legacy table and a timeline. It reflects the v22 line: v22.0.0 GA on 2026-06-03, current patch 22.1.5 on 2026-09-03, with Signal Forms, Angular Aria and the async reactivity APIs stable and <code>OnPush</code> now the default change-detection strategy. "Angular" here is the framework from v2 onwards (angular.dev), not AngularJS 1.x, which has been out of support since 2022.</p>
+  <p class="chips"><span class="chip">Angular 22.1.5</span> <span class="chip">v22.0.0 GA 2026-06-03</span> <span class="chip">active to 2027-06</span> <span class="chip">LTS to 2028-06</span> <span class="chip">TypeScript 6 · Node 22+</span> <span class="chip">verified 2026-09-08</span></p>
+</header>
+
+<section class="unit" id="u01">
+  <header>
+    <h2><span class="n">01</span>Component &amp; template syntax</h2>
+    <span class="docs"><a href="https://angular.dev/guide/templates">docs: templates</a></span>
+  </header>
+  <dl class="rows">
+    <dt>Component</dt>
+    <dd><code>@Component({ selector: 'app-cart', imports: [CartRow], template: `…` })</code> <span class="cmt">— standalone is implicit since <span class="since">v19</span>; only <code>standalone: false</code> is still written, for NgModule leftovers. Change detection defaults to <code>OnPush</code> <span class="since">v22</span>; the old always-check mode is <code>ChangeDetectionStrategy.Eager</code></span></dd>
+    <dt>Selectorless use</dt>
+    <dd><code>import { CartRow } from './cart-row';</code> then <code>&lt;CartRow [item]="row()" /&gt;</code> <span class="since">v22</span> <span class="cmt">— the class name is the tag, a missing import is a compile error instead of an unmatched element</span></dd>
+    <dt>Selectorless directive</dt>
+    <dd><code>&lt;input @Tooltip="'Search'" /&gt;</code> <span class="since">v22</span> <span class="cmt">— stack several; inputs bind as <code>[x]</code> on the same element</span></dd>
+    <dt>Interpolation / property / event</dt>
+    <dd><code>{{ total() }}</code> · <code>[disabled]="busy()"</code> · <code>(click)="add(item)"</code> · attribute <code>[attr.aria-label]</code> · class <code>[class.on]</code> · style <code>[style.width.px]</code></dd>
+    <dt>Two-way</dt>
+    <dd><code>&lt;app-qty [(value)]="qty" /&gt;</code> <span class="cmt">— pairs with <code>model()</code> in the child; works with a plain signal on the parent side</span></dd>
+    <dt>Conditionals</dt>
+    <dd><code>@if (user(); as u) { {{ u.name }} } @else if (loading()) { … } @else { … }</code> <span class="since">v17</span></dd>
+    <dt>Loops</dt>
+    <dd><code>@for (row of rows(); track row.id) { … } @empty { Nothing }</code> <span class="cmt">— <code>track</code> is mandatory; <code>$index $count $first $last $even $odd</code> are in scope</span></dd>
+    <dt>Switch</dt>
+    <dd><code>@switch (state()) { @case ('a', 'b') { … } @default { … } }</code> <span class="cmt">— multi-value cases and <code>never</code> exhaustiveness checks <span class="since">v22</span></span></dd>
+    <dt>Template variable</dt>
+    <dd><code>@let full = user().first + ' ' + user().last;</code> <span class="since">v18.1</span> <span class="cmt">— read-only, scoped to the block</span></dd>
+    <dt>Lazy block</dt>
+    <dd><code>@defer (on viewport; prefetch on idle) { &lt;Chart /&gt; } @placeholder { … } @loading (after 100ms) { … } @error { … }</code> <span class="since">v17</span></dd>
+    <dt>Error boundary</dt>
+    <dd><code>@boundary { … } @error (e) { … }</code> <span class="since">v22, experimental</span> <span class="cmt">— contains a render error instead of tearing down the app</span></dd>
+    <dt>Spread &amp; arrow fns</dt>
+    <dd><code>[class]="{ ...base, active: on() }"</code> · <code>(click)="pick((x) =&gt; x.id === id)"</code> <span class="since">v22</span></dd>
+    <dt>Comment inside a tag</dt>
+    <dd><code>&lt;input [value]="v" /* (blur)="save()" disabled for now */ /&gt;</code> <span class="since">v22</span></dd>
+    <dt>Projection</dt>
+    <dd><code>&lt;ng-content select="[header]" /&gt;</code>, fallback content between the tags <span class="since">v18</span>; <code>&lt;ng-template&gt;</code> + <code>&lt;ng-container&gt;</code> for structural work</dd>
+    <dt>Host bindings</dt>
+    <dd><code>host: { '[class.open]': 'open()', '(keydown.escape)': 'close()' }</code> in the decorator <span class="cmt">— the style guide prefers this over <code>@HostBinding</code>/<code>@HostListener</code> <span class="since">v20</span></span></dd>
+    <dt>File naming</dt>
+    <dd><code>cart.ts</code> / <code>cart.html</code> / <code>cart.css</code> and class <code>Cart</code> <span class="since">v20 style guide</span> <span class="cmt">— the <code>.component.ts</code> suffix and <code>CartComponent</code> class name are the older convention, still generated by old schematics</span></dd>
+  </dl>
+  <pre><code class="language-typescript">import { Component, ChangeDetectionStrategy, input, output, signal, computed } from '@angular/core';
+import { CartRow } from './cart-row';
+
+@Component({
+  selector: 'app-cart',            // optional since v22: selectorless use needs only the import
+  imports: [CartRow],
+  template: `
+    &#64;let currency = 'EUR';
+    &lt;h2&gt;{{ title() }} — {{ total() }} {{ currency }}&lt;/h2&gt;
+
+    &#64;for (row of rows(); track row.id) {
+      &lt;CartRow [item]="row" (remove)="remove.emit(row.id)" /&gt;
+    } &#64;empty {
+      &lt;p&gt;Cart is empty.&lt;/p&gt;
+    }
+
+    &#64;defer (on viewport; prefetch on idle) { &lt;app-recommendations /&gt; }
+    &#64;placeholder (minimum 300ms) { &lt;div class="skel"&gt;&lt;/div&gt; }
+  `,
+  // changeDetection defaults to OnPush since v22; Eager is the old "check always"
+})
+export class Cart {
+  readonly title = input.required&lt;string&gt;();
+  readonly rows  = input&lt;Row[]&gt;([]);
+  readonly remove = output&lt;number&gt;();
+  protected readonly total = computed(() =&gt; this.rows().reduce((s, r) =&gt; s + r.price, 0));
+}</code></pre>
+</section>
+
+<section class="unit" id="u02">
+  <header>
+    <h2><span class="n">02</span>Signals &amp; reactivity</h2>
+    <span class="docs"><a href="https://angular.dev/guide/signals">docs: signals</a></span>
+  </header>
+  <dl class="rows">
+    <dt>Writable signal</dt>
+    <dd><code>count = signal(0)</code> — read <code>count()</code>, write <code>count.set(1)</code>, <code>count.update(c =&gt; c + 1)</code>, <code>count.asReadonly()</code></dd>
+    <dt>Derived</dt>
+    <dd><code>double = computed(() =&gt; this.count() * 2)</code> <span class="cmt">— lazy, memoised, glitch-free; never mutate state in here</span></dd>
+    <dt>Resettable derived</dt>
+    <dd><code>selected = linkedSignal(() =&gt; this.options()[0])</code> <span class="since">v20 stable</span> <span class="cmt">— writable, but recomputes when the source changes; <code>{ set }</code> option <span class="since">v22.1</span></span></dd>
+    <dt>Side effect</dt>
+    <dd><code>effect(() =&gt; history.replaceState(null, '', '?q=' + this.query()))</code> <span class="cmt">— injection-context only (or pass <code>{ injector }</code>); runs after change detection, cleans up with the component</span></dd>
+    <dt>Effect cleanup</dt>
+    <dd><code>effect((onCleanup) =&gt; { const t = setTimeout(...); onCleanup(() =&gt; clearTimeout(t)); })</code></dd>
+    <dt>Read without tracking</dt>
+    <dd><code>untracked(() =&gt; this.other())</code> <span class="cmt">— the standard escape hatch inside <code>effect</code>/<code>computed</code></span></dd>
+    <dt>Equality</dt>
+    <dd><code>signal(obj, { equal: (a, b) =&gt; a.id === b.id })</code> <span class="cmt">— default is <code>Object.is</code>; mutating an object in place never notifies</span></dd>
+    <dt>Debounce a signal</dt>
+    <dd><code>q = debounced(this.raw, 300)</code> <span class="since">v22</span> <span class="cmt">— time-shifted derivation without RxJS</span></dd>
+    <dt>RxJS bridge</dt>
+    <dd><code>toSignal(obs$, { initialValue: [] })</code> / <code>toObservable(sig)</code> from <code>@angular/core/rxjs-interop</code> <span class="since">v20 stable</span></dd>
+    <dt>Unsubscribe</dt>
+    <dd><code>obs$.pipe(takeUntilDestroyed())</code> <span class="since">v16</span> <span class="cmt">— replaces the <code>destroy$</code> Subject + <code>ngOnDestroy</code> ritual</span></dd>
+    <dt>After render</dt>
+    <dd><code>afterNextRender(() =&gt; el.focus())</code>, <code>afterRenderEffect(() =&gt; …)</code> <span class="since">v20</span> <span class="cmt">— browser-only, skipped on the server</span></dd>
+    <dt>Zoneless</dt>
+    <dd><code>provideZonelessChangeDetection()</code> — default for new apps <span class="since">v21</span>. Opt back in with <code>provideZoneChangeDetection()</code> + <code>zone.js</code> in <code>polyfills</code></dd>
+    <dt>Force a check</dt>
+    <dd><code>inject(ChangeDetectorRef).markForCheck()</code> <span class="cmt">— needed only when state changes outside signals (a third-party callback); a code smell in new code</span></dd>
+  </dl>
+  <pre><code class="language-typescript">// The whole reactive vocabulary in one component.
+const query    = signal('');
+const debouncedQuery = debounced(query, 300);                 // v22
+const page     = signal(1);
+const results  = httpResource&lt;Hit[]&gt;(() =&gt; ({                  // stable v22
+  url: '/api/search',
+  params: { q: debouncedQuery(), page: page() },
+}), { defaultValue: [] });
+
+const empty = computed(() =&gt; !results.isLoading() &amp;&amp; results.value().length === 0);
+
+effect(() =&gt; {                                                 // reacts to query only
+  const q = query();
+  untracked(() =&gt; analytics.track('search', { q, page: page() }));
+});</code></pre>
+</section>
+
+<section class="unit" id="u03">
+  <header>
+    <h2><span class="n">03</span>Component API surface</h2>
+    <span class="docs"><a href="https://angular.dev/guide/components">docs: components</a></span>
+  </header>
+  <dl class="rows">
+    <dt>Input</dt>
+    <dd><code>value = input(0)</code> · <code>id = input.required&lt;string&gt;()</code> · <code>n = input(0, { transform: numberAttribute, alias: 'count' })</code> <span class="since">v17.1</span></dd>
+    <dt>Output</dt>
+    <dd><code>saved = output&lt;Order&gt;()</code> then <code>this.saved.emit(o)</code> <span class="since">v17.3</span> · from a stream: <code>outputFromObservable(src$)</code></dd>
+    <dt>Two-way model</dt>
+    <dd><code>value = model&lt;string&gt;('')</code> <span class="since">v17.2</span> <span class="cmt">— one declaration gives <code>value</code> + <code>valueChange</code>, readable and writable inside the child</span></dd>
+    <dt>Queries</dt>
+    <dd><code>ref = viewChild&lt;ElementRef&gt;('box')</code> · <code>viewChild.required()</code> · <code>viewChildren()</code> · <code>contentChild()</code> · <code>contentChildren()</code> <span class="since">v19</span> <span class="cmt">— all signals, no <code>static</code> flag, readable in <code>ngAfterViewInit</code> or any effect</span></dd>
+    <dt>Lifecycle still used</dt>
+    <dd><code>ngOnInit</code> (rare with signals), <code>ngOnDestroy</code>, <code>ngAfterViewInit</code>. <code>ngOnChanges</code> is not called for signal inputs — use <code>computed</code>/<code>effect</code> instead</dd>
+    <dt>Directive</dt>
+    <dd><code>@Directive({ selector: '[appHighlight]', host: { '(mouseenter)': 'on()' } })</code> <span class="cmt">— or selectorless <span class="since">v22</span></span></dd>
+    <dt>Pipe</dt>
+    <dd><code>@Pipe({ name: 'money' })</code> + <code>transform(v: number): string</code> <span class="cmt">— pure by default; <code>pure: false</code> runs on every CD pass, avoid</span></dd>
+    <dt>Built-in pipes</dt>
+    <dd><code>date</code>, <code>currency</code>, <code>number</code>, <code>percent</code>, <code>json</code>, <code>keyvalue</code>, <code>slice</code>, <code>async</code> <span class="cmt">— import <code>DatePipe</code> etc. directly, not <code>CommonModule</code></span></dd>
+    <dt>Dynamic component</dt>
+    <dd><code>&lt;ng-container *ngComponentOutlet="cmp(); inputs: { id: id() }" /&gt;</code> or <code>viewContainerRef.createComponent(Cmp)</code></dd>
+    <dt>Accessible primitives</dt>
+    <dd><code>@angular/aria</code> <span class="since">v22 stable</span> — headless, keyboard-complete Accordion, Combobox, Listbox, Menu, Select, Tabs, Toolbar, Tree; you supply every style</dd>
+    <dt>Animations</dt>
+    <dd>CSS transitions plus <code>animate.enter</code> / <code>animate.leave</code> <span class="since">v20</span> <span class="cmt">— the <code>@angular/animations</code> DSL (<code>trigger</code>/<code>state</code>/<code>transition</code>) is legacy and pulls extra bytes</span></dd>
+    <dt>Encapsulation</dt>
+    <dd>default emulated; <code>ViewEncapsulation.ShadowDom</code> or <code>None</code>. The old shadow-DOM CSS polyfills were removed <span class="since">v22</span></dd>
+  </dl>
+</section>
+
+<section class="unit" id="u04">
+  <header>
+    <h2><span class="n">04</span>Dependency injection</h2>
+    <span class="docs"><a href="https://angular.dev/guide/di">docs: dependency injection</a></span>
+  </header>
+  <dl class="rows">
+    <dt>Root service</dt>
+    <dd><code>@Service() export class CartStore {}</code> <span class="since">v22</span> <span class="cmt">— replaces <code>@Injectable({ providedIn: 'root' })</code>; <code>@Service({ autoProvided: false })</code> when you provide it yourself</span></dd>
+    <dt>Inject</dt>
+    <dd><code>private readonly http = inject(HttpClient);</code> <span class="since">v14</span> <span class="cmt">— field initialiser or any injection context; constructor parameter injection still works but is not the style</span></dd>
+    <dt>Optional / hierarchy flags</dt>
+    <dd><code>inject(TOKEN, { optional: true })</code> · <code>{ self: true }</code> · <code>{ skipSelf: true }</code> · <code>{ host: true }</code></dd>
+    <dt>Lazy service</dt>
+    <dd><code>injectAsync(() =&gt; import('./pdf').then(m =&gt; m.PdfExporter))</code> <span class="since">v22</span> <span class="cmt">— keeps a heavy dependency out of the initial bundle; <code>{ prefetch: onIdle({ timeout: 1000 }) }</code> warms it</span></dd>
+    <dt>Token</dt>
+    <dd><code>export const API = new InjectionToken&lt;string&gt;('API', { providedIn: 'root', factory: () =&gt; '/api' });</code></dd>
+    <dt>Provider shapes</dt>
+    <dd><code>{ provide: X, useClass: Y }</code> · <code>useValue</code> · <code>useFactory</code> · <code>useExisting</code> · <code>multi: true</code></dd>
+    <dt>Bootstrap providers</dt>
+    <dd><code>bootstrapApplication(App, { providers: [provideRouter(routes), provideHttpClient()] })</code></dd>
+    <dt>Scoped providers</dt>
+    <dd>component <code>providers: []</code> (per instance) · route <code>providers: []</code> (per activated route) · <code>withExperimentalAutoCleanupInjectors()</code> destroys route injectors on leave <span class="since">v22</span></dd>
+    <dt>Cleanup hook</dt>
+    <dd><code>inject(DestroyRef).onDestroy(() =&gt; sub.unsubscribe())</code> <span class="cmt">— works in services and functions, not just components</span></dd>
+    <dt>Run in a context</dt>
+    <dd><code>runInInjectionContext(injector, () =&gt; inject(Foo))</code> <span class="cmt">— the fix for "inject() must be called from an injection context" (NG0203)</span></dd>
+  </dl>
+  <pre><code class="language-typescript">// v22 idiom: a signal store service, root-provided, no NgModule anywhere.
+@Service()
+export class CartStore {
+  private readonly http = inject(HttpClient);
+  private readonly items = signal&lt;Item[]&gt;([]);
+
+  readonly all   = this.items.asReadonly();
+  readonly count = computed(() =&gt; this.all().length);
+
+  add(i: Item) { this.items.update(list =&gt; [...list, i]); }
+}</code></pre>
+</section>
+
+<section class="unit" id="u05">
+  <header>
+    <h2><span class="n">05</span>Async data &amp; HTTP</h2>
+    <span class="docs"><a href="https://angular.dev/guide/http">docs: HttpClient &amp; resources</a></span>
+  </header>
+  <dl class="rows">
+    <dt>Provide the client</dt>
+    <dd><code>provideHttpClient(withInterceptors([auth]))</code> <span class="cmt">— fetch is the default backend <span class="since">v22</span>, and <code>withFetch()</code> was removed; use <code>withXhr()</code> only for upload progress edge cases</span></dd>
+    <dt>HTTP as a signal</dt>
+    <dd><code>user = httpResource&lt;User&gt;(() =&gt; `/api/users/${this.id()}`)</code> <span class="since">v22 stable</span> <span class="cmt">— re-fetches when the reactive URL changes, aborts the previous request</span></dd>
+    <dt>Resource state</dt>
+    <dd><code>value()</code>, <code>hasValue()</code>, <code>isLoading()</code>, <code>error()</code>, <code>status()</code> ( <code>'idle' | 'loading' | 'resolved' | 'error' | 'local'</code> ), <code>reload()</code>, <code>set()</code>/<code>update()</code> for local edits</dd>
+    <dt>Generic resource</dt>
+    <dd><code>resource({ params: () =&gt; this.id(), loader: ({ params, abortSignal }) =&gt; fetch(...) })</code> <span class="since">v22 stable</span></dd>
+    <dt>RxJS resource</dt>
+    <dd><code>rxResource({ params: () =&gt; this.id(), stream: ({ params }) =&gt; this.http.get(...) })</code> <span class="cmt">— when you need retry/switchMap operators around the load</span></dd>
+    <dt>One-shot call</dt>
+    <dd><code>await firstValueFrom(this.http.post&lt;Order&gt;('/api/orders', body))</code> <span class="cmt">— commands stay observables/promises; resources are for read state</span></dd>
+    <dt>Typed request options</dt>
+    <dd><code>this.http.get&lt;T&gt;(url, { params: { q }, headers, context, observe: 'response', responseType: 'json' })</code></dd>
+    <dt>Progress</dt>
+    <dd><code>{ reportDownloadProgress: true }</code> / <code>{ reportUploadProgress: true }</code> <span class="since">v22</span> <span class="cmt">— the single <code>reportProgress</code> flag is deprecated</span></dd>
+    <dt>Interceptor</dt>
+    <dd><code>const auth: HttpInterceptorFn = (req, next) =&gt; next(req.clone({ setHeaders: { Authorization: t } }));</code> <span class="since">v15</span> <span class="cmt">— class interceptors need <code>withInterceptorsFromDi()</code></span></dd>
+    <dt>Testing</dt>
+    <dd><code>provideHttpClientTesting()</code> + <code>HttpTestingController.expectOne(url).flush(body)</code></dd>
+    <dt>SSR cache</dt>
+    <dd><code>withHttpTransferCacheOptions({ includePostRequests: false })</code> <span class="cmt">— since <span class="since">v22</span> requests with cookies or <code>withCredentials</code> are excluded by default</span></dd>
+  </dl>
+  <pre><code class="language-typescript">// Read state as a resource; write with a plain call and reload.
+@Component({ /* … */ })
+export class UserPage {
+  private readonly http = inject(HttpClient);
+  readonly id = input.required&lt;string&gt;();
+
+  readonly user = httpResource&lt;User&gt;(() =&gt; `/api/users/${this.id()}`);   // v22 stable
+
+  async rename(name: string) {
+    await firstValueFrom(this.http.patch(`/api/users/${this.id()}`, { name }));
+    this.user.reload();
+  }
+}
+// Template: @if (user.isLoading()) { … } @else if (user.error()) { … } @else { {{ user.value().name }} }</code></pre>
+</section>
+
+<section class="unit" id="u06">
+  <header>
+    <h2><span class="n">06</span>Signal Forms</h2>
+    <span class="docs"><a href="https://angular.dev/guide/forms/signals/overview">docs: forms with signals</a></span>
+  </header>
+  <dl class="rows">
+    <dt>Import</dt>
+    <dd><code>import { form, schema, FormField, required, email, validate } from '@angular/forms/signals';</code> <span class="since">v22 stable</span> <span class="cmt">— a separate entry point from <code>@angular/forms</code></span></dd>
+    <dt>Create</dt>
+    <dd><code>model = signal({ email: '', password: '' }); f = form(this.model, loginSchema);</code> <span class="cmt">— your signal stays the source of truth; <code>form()</code> returns a <code>FieldTree</code></span></dd>
+    <dt>Schema</dt>
+    <dd><code>const loginSchema = schema&lt;Login&gt;((p) =&gt; { required(p.email); email(p.email); minLength(p.password, 12); });</code> <span class="cmt">— reusable and composable, or inline as the 2nd argument to <code>form()</code></span></dd>
+    <dt>Built-in validators</dt>
+    <dd><code>required</code>, <code>email</code>, <code>min</code>, <code>max</code>, <code>minLength</code>, <code>maxLength</code>, <code>pattern</code>, <code>validate</code>, <code>validateTree</code>, <code>validateHttp</code>, <code>validateStandardSchema</code> (Zod/Valibot)</dd>
+    <dt>Cross-field</dt>
+    <dd><code>validate(p.confirm, ({ value, valueOf }) =&gt; value() === valueOf(p.password) ? null : { kind: 'mismatch' })</code></dd>
+    <dt>Field logic</dt>
+    <dd><code>disabled(p.delay, (ctx) =&gt; !ctx.valueOf(p.delayed))</code> · <code>readonly(...)</code> · <code>hidden(...)</code> <span class="cmt">— conditions live in the schema, not the template</span></dd>
+    <dt>Bind in the template</dt>
+    <dd><code>&lt;form [formRoot]="f"&gt;&lt;input [formField]="f.email" /&gt;&lt;/form&gt;</code> <span class="cmt">— the directive is <code>FormField</code>; in the v21 preview it was <code>Field</code>/<code>[field]</code>, renamed in <span class="since">v22</span></span></dd>
+    <dt>Read state</dt>
+    <dd><code>f.email().value()</code> · <code>.errors()</code> · <code>.invalid()</code> · <code>.touched()</code> · <code>.dirty()</code> · <code>.disabled()</code>; whole form: <code>f().valid()</code>, <code>f().submitting()</code></dd>
+    <dt>Submit</dt>
+    <dd><code>form(model, schema, { submission: { action: async (f) =&gt; this.save(f().value()), ignoreValidators: 'none' } })</code> <span class="cmt">— a plain submit button triggers it; server errors map back onto fields</span></dd>
+    <dt>Arrays</dt>
+    <dd><code>applyEach(p.lines, (line) =&gt; required(line.qty))</code> <span class="cmt">— the model is a plain array; push/splice the signal value</span></dd>
+    <dt>State classes</dt>
+    <dd><code>provideSignalFormsConfig({ classes: { 'ng-invalid': f =&gt; f.state().invalid() } })</code> <span class="since">v22</span></dd>
+    <dt>Custom control</dt>
+    <dd>implement <code>FormValueControl&lt;T&gt;</code> (a <code>value = model&lt;T&gt;()</code> plus optional state inputs) <span class="cmt">— no <code>ControlValueAccessor</code>, no <code>NG_VALUE_ACCESSOR</code> provider</span></dd>
+    <dt>Legacy forms</dt>
+    <dd><code>ReactiveFormsModule</code> with <code>FormBuilder</code>/<code>FormGroup</code>/<code>FormControl</code> is still supported and everywhere in existing code; <code>FormsModule</code> + <code>[(ngModel)]</code> is the template-driven ancestor. Neither is deprecated — but new work goes to Signal Forms</dd>
+  </dl>
+  <pre><code class="language-typescript">import { form, FormField, required, email, minLength, validate, validateHttp } from '@angular/forms/signals';
+
+@Component({
+  imports: [FormField],
+  template: `
+    &lt;form [formRoot]="f"&gt;
+      &lt;input [formField]="f.email" type="email" /&gt;
+      &#64;if (f.email().touched() &amp;&amp; f.email().invalid()) {
+        &lt;p class="err"&gt;{{ f.email().errors()[0].message }}&lt;/p&gt;
+      }
+      &lt;input [formField]="f.password" type="password" /&gt;
+      &lt;button type="submit" [disabled]="f().submitting()"&gt;Sign in&lt;/button&gt;
+    &lt;/form&gt;
+  `,
+})
+export class Login {
+  private readonly model = signal({ email: '', password: '' });
+
+  protected readonly f = form(this.model, (p) =&gt; {
+    required(p.email, { message: 'Email is required' });
+    email(p.email,    { message: 'Enter a valid email address' });
+    minLength(p.password, 12);
+    validateHttp(p.email, {
+      request: ({ value }) =&gt; `/api/known?email=${value()}`,
+      onSuccess: (r: { known: boolean }) =&gt; r.known ? null : { kind: 'unknown', message: 'No such account' },
+    });
+  }, {
+    submission: { action: async (f) =&gt; this.auth.signIn(f().value()) },
+  });
+}</code></pre>
+</section>
+
+<section class="unit" id="u07">
+  <header>
+    <h2><span class="n">07</span>Router</h2>
+    <span class="docs"><a href="https://angular.dev/guide/routing">docs: routing</a></span>
+  </header>
+  <dl class="rows">
+    <dt>Provide</dt>
+    <dd><code>provideRouter(routes, withComponentInputBinding(), withViewTransitions(), withInMemoryScrolling({ scrollPositionRestoration: 'enabled' }))</code></dd>
+    <dt>Route</dt>
+    <dd><code>{ path: 'orders/:id', loadComponent: () =&gt; import('./order').then(m =&gt; m.Order), title: 'Order' }</code></dd>
+    <dt>Lazy area</dt>
+    <dd><code>{ path: 'admin', loadChildren: () =&gt; import('./admin/routes').then(m =&gt; m.ADMIN_ROUTES) }</code> <span class="cmt">— a routes array, not an NgModule</span></dd>
+    <dt>Params as inputs</dt>
+    <dd>with <code>withComponentInputBinding()</code>: <code>id = input.required&lt;string&gt;()</code> is filled from <code>:id</code>, query params and <code>data</code> <span class="since">v16</span></dd>
+    <dt>Param inheritance</dt>
+    <dd>default is <code>paramsInheritanceStrategy: 'always'</code> <span class="since">v22, breaking</span> <span class="cmt">— child routes now see parent params; restore with <code>withRouterConfig({ paramsInheritanceStrategy: 'emptyOnly' })</code></span></dd>
+    <dt>Guards</dt>
+    <dd><code>const authGuard: CanActivateFn = (route, state) =&gt; inject(Auth).ok() || inject(Router).createUrlTree(['/login']);</code> <span class="since">v15</span> <span class="cmt">— class guards are deprecated</span></dd>
+    <dt>Resolver</dt>
+    <dd><code>const order: ResolveFn&lt;Order&gt; = (r) =&gt; inject(Api).get(r.params['id']);</code></dd>
+    <dt>Navigate</dt>
+    <dd><code>router.navigate(['/orders', id], { queryParams, state, replaceUrl: true })</code> · template <code>[routerLink]="['/orders', id]"</code> + <code>routerLinkActive="on"</code></dd>
+    <dt>Active as a signal</dt>
+    <dd><code>readonly onSearch = isActive('/search', this.router);</code> <span class="since">v22</span> <span class="cmt">— no more subscribing to <code>NavigationEnd</code> for highlight state</span></dd>
+    <dt>Read state</dt>
+    <dd><code>route.snapshot.paramMap.get('id')</code> for one-shot; signals via input binding; observables <code>route.params</code>, <code>route.queryParamMap</code></dd>
+    <dt>Outlet</dt>
+    <dd><code>&lt;router-outlet /&gt;</code>, named <code>&lt;router-outlet name="aside" /&gt;</code>, events <code>(activate)</code>/<code>(deactivate)</code></dd>
+    <dt>Render mode (SSR)</dt>
+    <dd><code>serverRoutes: [{ path: '/product/:id', renderMode: RenderMode.Prerender }]</code>, plus <code>Server</code>, <code>Client</code> <span class="since">v19</span></dd>
+    <dt>Preloading</dt>
+    <dd><code>withPreloading(PreloadAllModules)</code> or a custom <code>PreloadingStrategy</code></dd>
+  </dl>
+</section>
+
+<section class="unit" id="u08">
+  <header>
+    <h2><span class="n">08</span>SSR, hydration &amp; defer</h2>
+    <span class="docs"><a href="https://angular.dev/guide/ssr">docs: server-side rendering</a></span>
+  </header>
+  <dl class="rows">
+    <dt>Enable SSR</dt>
+    <dd><code>ng add @angular/ssr</code> — adds <code>server.ts</code>, <code>app.routes.server.ts</code> and the <code>@angular/build:application</code> server bundle</dd>
+    <dt>Hydration</dt>
+    <dd><code>provideClientHydration(withIncrementalHydration(), withEventReplay())</code> <span class="since">v19/v20 stable</span> <span class="cmt">— without it the client destroys and re-renders the server DOM</span></dd>
+    <dt>Incremental hydration</dt>
+    <dd><code>@defer (hydrate on interaction)</code> · <code>hydrate on viewport</code> · <code>hydrate never</code> <span class="cmt">— the block ships as static HTML until the trigger fires</span></dd>
+    <dt>Defer triggers</dt>
+    <dd><code>on idle</code> (default), <code>on viewport</code>, <code>on interaction</code>, <code>on hover</code>, <code>on timer(2s)</code>, <code>on immediate</code>, <code>when cond()</code>; each pairs with <code>prefetch …</code></dd>
+    <dt>Platform checks</dt>
+    <dd><code>isPlatformBrowser(inject(PLATFORM_ID))</code> before touching <code>window</code>, <code>document</code> or browser storage; or put the work in <code>afterNextRender</code></dd>
+    <dt>Static prerender</dt>
+    <dd><code>RenderMode.Prerender</code> with <code>getPrerenderParams</code> for parameterised routes; <code>ng build</code> writes the HTML at build time</dd>
+    <dt>Transfer state</dt>
+    <dd>automatic for <code>HttpClient</code> GETs; manual with <code>TransferState</code> + <code>makeStateKey&lt;T&gt;('k')</code></dd>
+    <dt>Bundle budgets</dt>
+    <dd><code>"budgets": [{ "type": "initial", "maximumError": "500kB" }]</code> in <code>angular.json</code> <span class="cmt">— the cheapest guard against a slow regression landing</span></dd>
+    <dt>SSR security</dt>
+    <dd><span class="since">v22</span> adds SSRF protections in <code>platform-server</code> and stricter SVG/dynamic-binding sanitisation</dd>
+  </dl>
+  <pre><code class="language-typescript">// app.config.ts — the providers a v22 app actually has
+export const appConfig: ApplicationConfig = {
+  providers: [
+    provideBrowserGlobalErrorListeners(),
+    provideRouter(routes, withComponentInputBinding(), withViewTransitions()),
+    provideHttpClient(withInterceptors([authInterceptor])),   // fetch backend by default (v22)
+    provideClientHydration(withIncrementalHydration(), withEventReplay()),
+    // zoneless is the default since v21 — no provideZonelessChangeDetection() needed
+  ],
+};</code></pre>
+</section>
+
+<section class="unit" id="u09">
+  <header>
+    <h2><span class="n">09</span>CLI, config &amp; testing</h2>
+    <span class="docs"><a href="https://angular.dev/cli">docs: Angular CLI</a></span>
+  </header>
+  <dl class="rows">
+    <dt>New app</dt>
+    <dd><code>ng new shop --ssr --style=scss --routing</code> <span class="cmt">— v22 scaffolds standalone, zoneless, OnPush, Vitest</span></dd>
+    <dt>Generate</dt>
+    <dd><code>ng g c cart</code> · <code>ng g s cart-store</code> · <code>ng g d highlight</code> · <code>ng g p money</code> · <code>ng g g auth --functional</code> · <code>ng g resolver</code> · <code>ng g interceptor</code> · <code>--skip-tests</code>, <code>--dry-run</code>, <code>--flat</code></dd>
+    <dt>Serve / build</dt>
+    <dd><code>ng serve --port 4300 --open</code> · <code>ng build</code> (production is the default configuration) · <code>ng build --configuration development --source-map</code></dd>
+    <dt>Analyse the bundle</dt>
+    <dd><code>ng build --stats-json</code> then any esbuild/webpack analyser; watch the <code>initial</code> budget line in the build summary</dd>
+    <dt>Test</dt>
+    <dd><code>ng test</code> — Vitest since <span class="since">v21</span>, builder <code>@angular/build:unit-test</code>; <code>--coverage</code>, <code>--watch=false</code>, <code>--browsers</code> for a real browser run</dd>
+    <dt>Karma → Vitest</dt>
+    <dd><code>ng g @schematics/angular:refactor-jasmine-vitest</code> <span class="cmt">— Karma still works; it is the legacy default in apps generated before v21</span></dd>
+    <dt>Upgrade</dt>
+    <dd><code>ng update @angular/core@22 @angular/cli@22</code> <span class="cmt">— one major at a time; run it on a clean tree, it applies migrations</span></dd>
+    <dt>Key v22 migrations</dt>
+    <dd><code>ng g @angular/core:signal-input-migration</code> · <code>…:output-migration</code> · <code>…:signal-queries-migration</code> · <code>…:control-flow-migration</code> · <code>…:inject-migration</code> <span class="cmt">— the v22 update also stamps <code>ChangeDetectionStrategy.Eager</code> onto existing components so nothing changes behaviour on upgrade</span></dd>
+    <dt>MCP server</dt>
+    <dd><code>ng mcp</code> <span class="since">v21 stable</span> <span class="cmt">— exposes <code>search_documentation</code>, <code>find_examples</code>, <code>get_best_practices</code>, <code>modernize</code>, <code>onpush_zoneless_migration</code>; <code>-E</code> enables experimental tools</span></dd>
+    <dt>Builders</dt>
+    <dd><code>@angular/build:application</code> (esbuild + Vite) is the only supported build path; the webpack builders <code>@angular-devkit/build-angular</code> and <code>@ngtools/webpack</code> are deprecated <span class="since">v22</span></dd>
+    <dt>Config files</dt>
+    <dd><code>angular.json</code> (projects, builders, budgets, file replacements) · <code>tsconfig.json</code> with <code>"strict": true</code> and <code>angularCompilerOptions.strictTemplates</code> · <code>src/app/app.config.ts</code> for providers</dd>
+    <dt>Test a component</dt>
+    <dd><code>TestBed.configureTestingModule({ imports: [Cart], providers: [provideHttpClientTesting()] })</code>, then <code>fixture.componentRef.setInput('title', 'x')</code> and <code>await fixture.whenStable()</code> <span class="cmt">— with zoneless, <code>whenStable()</code> replaces most <code>detectChanges()</code> calls</span></dd>
+    <dt>E2E</dt>
+    <dd>no first-party runner: <code>ng e2e</code> delegates to Playwright/Cypress/WebdriverIO via <code>ng add</code>. Protractor is gone (removed in v16)</dd>
+  </dl>
+  <pre><code class="language-bash"># The daily loop
+ng serve                                # Vite dev server, HMR for TS, templates and styles
+ng test --coverage --watch=false        # Vitest (v21+), jsdom by default
+ng build                                # production build into dist/&lt;app&gt;/browser
+ng update @angular/core@22 @angular/cli@22   # migrations included; commit first
+
+# Requirements for v22: Node 22+ (Node 20 dropped), TypeScript 6.x</code></pre>
+</section>
+
+<section class="unit" id="u10">
+  <header>
+    <h2><span class="n">10</span>Idioms &amp; gotchas</h2>
+    <span class="docs"><a href="https://angular.dev/best-practices">docs: best practices</a></span>
+  </header>
+  <ul class="tight">
+    <li><strong>Upgrading to v22 flips change detection.</strong> The migration writes <code>ChangeDetectionStrategy.Eager</code> into every existing component, so nothing breaks — but until you delete those lines you have not actually adopted <code>OnPush</code>.</li>
+    <li><strong>Mutating an object in a signal notifies nobody.</strong> <code>items().push(x)</code> is a no-op for reactivity; use <code>items.update(l =&gt; [...l, x])</code>.</li>
+    <li><strong>Calling a signal in a template is fine; calling a method is not.</strong> <code>{{ total() }}</code> memoises, <code>{{ computeTotal() }}</code> re-runs on every check.</li>
+    <li><strong><code>effect()</code> is not for deriving state.</strong> If the body only calls <code>set()</code>, it wants to be a <code>computed</code> or a <code>linkedSignal</code>.</li>
+    <li><strong>NG0203 "inject() must be called from an injection context"</strong> — you called <code>inject()</code> inside a callback or after <code>await</code>; capture it in the field initialiser or wrap with <code>runInInjectionContext</code>.</li>
+    <li><strong>NG0100 ExpressionChangedAfterItHasBeenChecked</strong> — dev-mode only, means state changed during rendering; with signals it usually points at an <code>effect</code> writing a template-read signal.</li>
+    <li><strong>Zoneless surfaces missing notifications.</strong> Code that mutated fields from a <code>setTimeout</code> or a third-party callback silently stops updating; the fix is a signal, not <code>markForCheck()</code>.</li>
+    <li><strong><code>@for</code> without a stable <code>track</code></strong> destroys and rebuilds DOM on every change: lost focus, restarted animations, wrecked scroll position. Track an id, never <code>$index</code> for reorderable lists.</li>
+    <li><strong>Signal inputs never fire <code>ngOnChanges</code>.</strong> Reacting to an input means <code>computed</code>, <code>effect</code>, or <code>linkedSignal</code>.</li>
+    <li><strong>Route param changes reuse the component.</strong> Navigating <code>/o/1</code> → <code>/o/2</code> does not re-run the constructor; with input binding the signal simply changes, so derive from it rather than reading a snapshot.</li>
+    <li><strong>Signal Forms come from <code>@angular/forms/signals</code>.</strong> Importing <code>form</code> from <code>@angular/forms</code> fails; and the v21 preview's <code>[field]</code> is <code>[formField]</code> since v22.</li>
+    <li><strong><code>@defer</code> only splits the bundle if the dependency is used nowhere else.</strong> One eager import of the same component elsewhere and the chunk collapses back into the main bundle.</li>
+    <li><strong>SSR crashes on <code>window</code>/<code>document</code>.</strong> Guard with <code>isPlatformBrowser</code> or move the work into <code>afterNextRender</code>.</li>
+    <li><strong>Hydration mismatches</strong> come from DOM the server did not produce: direct <code>innerHTML</code> writes, third-party widgets, invalid nesting like <code>&lt;p&gt;&lt;div&gt;</code>. Wrap the offender with <code>ngSkipHydration</code> as a last resort.</li>
+    <li><strong><code>providedIn: 'root'</code> in a lazy chunk is still a singleton</strong> — but it lands in whichever chunk first imports it. For per-route state, provide on the route.</li>
+    <li><strong>Interceptors registered both ways run twice.</strong> Pick <code>withInterceptors([...])</code> or <code>withInterceptorsFromDi()</code>, not both.</li>
+    <li><strong>Standalone means importing what the template uses.</strong> A missing <code>DatePipe</code>/<code>RouterLink</code> import is a compile error with <code>strictTemplates</code>, and a silently inert attribute without it.</li>
+    <li><strong>Do not put an <code>async</code> pipe next to a signal read of the same source.</strong> Two subscriptions, two requests; convert once with <code>toSignal</code>.</li>
+  </ul>
+  <div class="note"><p><strong>Review heuristic.</strong> In a v22 codebase the three questions that find most problems: does this component still say <code>Eager</code>, does any state live outside a signal, and does every <code>@for</code> track a stable id?</p></div>
+</section>
+
+<section class="unit" id="u11">
+  <header>
+    <h2><span class="n">11</span>Modern vs legacy</h2>
+    <span class="docs"><a href="https://angular.dev/reference/migrations">docs: migrations</a></span>
+  </header>
+  <div class="tw">
+  <table class="grid">
+    <thead><tr><th>Task</th><th>Modern</th><th>Legacy still seen</th><th>Since</th></tr></thead>
+    <tbody>
+      <tr class="hi"><td>Change detection</td><td>default <code>OnPush</code> + signals</td><td><code>ChangeDetectionStrategy.Default</code> (now <code>Eager</code>)</td><td>v22</td></tr>
+      <tr class="hi"><td>Forms</td><td><code>form()</code> + <code>[formField]</code> from <code>@angular/forms/signals</code></td><td><code>FormBuilder</code>/<code>FormGroup</code> + <code>ReactiveFormsModule</code>; <code>[(ngModel)]</code></td><td>v22</td></tr>
+      <tr class="hi"><td>Async read state</td><td><code>httpResource()</code> / <code>resource()</code></td><td><code>http.get().subscribe()</code> into a field, or <code>| async</code></td><td>v22</td></tr>
+      <tr><td>Root service</td><td><code>@Service()</code></td><td><code>@Injectable({ providedIn: 'root' })</code></td><td>v22</td></tr>
+      <tr><td>Component composition</td><td>selectorless <code>&lt;CartRow /&gt;</code> from the import</td><td>selector string + <code>imports: [CartRow]</code></td><td>v22</td></tr>
+      <tr><td>HTTP backend</td><td>fetch (default)</td><td><code>withFetch()</code> opt-in, or XHR default</td><td>v22</td></tr>
+      <tr><td>Change-detection runtime</td><td>zoneless (default)</td><td><code>zone.js</code> + <code>NgZone.run()</code></td><td>v21</td></tr>
+      <tr><td>Unit tests</td><td>Vitest, <code>@angular/build:unit-test</code></td><td>Karma + Jasmine</td><td>v21</td></tr>
+      <tr><td>Accessible widgets</td><td><code>@angular/aria</code> headless directives</td><td>hand-rolled ARIA, or a full component library</td><td>v22</td></tr>
+      <tr><td>Host bindings</td><td><code>host: { … }</code> in the decorator</td><td><code>@HostBinding</code> / <code>@HostListener</code></td><td>v20</td></tr>
+      <tr><td>Animations</td><td>CSS + <code>animate.enter</code>/<code>animate.leave</code></td><td><code>@angular/animations</code> <code>trigger()</code> DSL</td><td>v20</td></tr>
+      <tr><td>File/class naming</td><td><code>cart.ts</code> → <code>class Cart</code></td><td><code>cart.component.ts</code> → <code>CartComponent</code></td><td>v20</td></tr>
+      <tr><td>Queries</td><td><code>viewChild()</code>, <code>contentChildren()</code></td><td><code>@ViewChild('x', { static: true })</code></td><td>v19</td></tr>
+      <tr><td>Standalone</td><td>implicit; <code>imports: []</code> per component</td><td><code>NgModule</code> with <code>declarations</code></td><td>v19</td></tr>
+      <tr><td>Hydration</td><td><code>provideClientHydration(withIncrementalHydration())</code></td><td>destructive re-render, or no SSR</td><td>v19</td></tr>
+      <tr><td>Inputs / outputs</td><td><code>input()</code>, <code>input.required()</code>, <code>output()</code></td><td><code>@Input()</code>, <code>@Output() new EventEmitter()</code></td><td>v17.1</td></tr>
+      <tr><td>Two-way binding</td><td><code>model()</code></td><td><code>@Input() v</code> + <code>@Output() vChange</code></td><td>v17.2</td></tr>
+      <tr><td>Control flow</td><td><code>@if</code> / <code>@for</code> / <code>@switch</code></td><td><code>*ngIf</code> / <code>*ngFor</code> + <code>CommonModule</code></td><td>v17</td></tr>
+      <tr><td>Lazy loading</td><td><code>loadComponent</code>, <code>@defer</code></td><td><code>loadChildren</code> → NgModule</td><td>v17</td></tr>
+      <tr><td>Build</td><td><code>@angular/build:application</code> (esbuild/Vite)</td><td><code>@angular-devkit/build-angular</code> (webpack), deprecated v22</td><td>v17</td></tr>
+      <tr><td>Teardown</td><td><code>takeUntilDestroyed()</code>, <code>DestroyRef</code></td><td><code>destroy$</code> Subject + <code>ngOnDestroy</code></td><td>v16</td></tr>
+      <tr><td>Guards / interceptors</td><td><code>CanActivateFn</code>, <code>HttpInterceptorFn</code></td><td>class guards, <code>HTTP_INTERCEPTORS</code> multi-provider</td><td>v15</td></tr>
+      <tr><td>Getting dependencies</td><td><code>inject()</code> in a field</td><td>constructor parameter injection</td><td>v14</td></tr>
+    </tbody>
+  </table>
+  </div>
+</section>
+
+<section class="unit" id="u12">
+  <header>
+    <h2><span class="n">12</span>Version timeline</h2>
+    <span class="docs"><a href="https://angular.dev/reference/releases">docs: versioning and releases</a></span>
+  </header>
+  <div class="tw">
+  <table class="grid">
+    <thead><tr><th>Version</th><th>Date</th><th>What changed</th></tr></thead>
+    <tbody>
+      <tr class="hi"><td>22.1.5</td><td>2026-09-03</td><td>Current stable patch — the version to quote today; v22.2 is due around September 2026</td></tr>
+      <tr><td>22.1</td><td>2026-07-27</td><td><em>newly stable:</em> <code>linkedSignal</code> custom <code>set</code>; minor Signal Forms and router fixes</td></tr>
+      <tr class="hi"><td>22.0</td><td>2026-06-03</td><td><em>newly stable:</em> Signal Forms (<code>@angular/forms/signals</code>), Angular Aria, <code>resource</code>/<code>rxResource</code>/<code>httpResource</code>, selectorless components, <code>@Service()</code>, <code>injectAsync</code>. <em>newly default:</em> <code>OnPush</code> (old behaviour renamed <code>Eager</code>), fetch backend for <code>HttpClient</code>, <code>paramsInheritanceStrategy: 'always'</code>. <em>newly deprecated/removed:</em> webpack builders deprecated, <code>withFetch()</code> and shadow-DOM CSS polyfills removed, <code>reportProgress</code> deprecated, Node 20 dropped, TypeScript 6 required. Experimental: <code>@boundary</code> error boundaries, WebMCP tools</td></tr>
+      <tr><td>21.0</td><td>2025-11-19</td><td><em>newly default:</em> zoneless apps (no <code>zone.js</code> in new projects), Vitest as the test runner (<code>@angular/build:unit-test</code>). <em>preview:</em> Signal Forms (<code>Field</code>/<code>[field]</code>), Angular Aria; <code>ng mcp</code> server stable</td></tr>
+      <tr><td>20.0</td><td>2025-05-28</td><td><em>newly stable:</em> <code>effect</code>, <code>linkedSignal</code>, <code>toSignal</code>, incremental hydration, route-level render modes; new style guide (flat file names, <code>host</code> object); zoneless in developer preview; <code>animate.enter</code>/<code>animate.leave</code></td></tr>
+      <tr><td>19.0</td><td>2024-11-19</td><td>standalone by default (<code>standalone: true</code> implied); signal queries and <code>input()</code>/<code>output()</code> stable; incremental hydration and <code>resource</code>/<code>linkedSignal</code> in preview; <code>provideClientHydration(withEventReplay())</code></td></tr>
+      <tr><td>18.0</td><td>2024-05-22</td><td>built-in control flow and <code>@defer</code> stable; zoneless experimental; <code>@let</code> lands in 18.1; Material 3</td></tr>
+      <tr><td>17.0</td><td>2023-11-08</td><td>The reset: <code>@if</code>/<code>@for</code>/<code>@switch</code> blocks, <code>@defer</code>, esbuild + Vite application builder, SSR out of the box, angular.dev</td></tr>
+      <tr><td>16.0</td><td>2023-05-03</td><td>Signals in developer preview, <code>takeUntilDestroyed</code>, required inputs, standalone-first tooling</td></tr>
+      <tr><td>14–15</td><td>2022</td><td>Standalone components (preview → stable), <code>inject()</code>, functional guards and interceptors, typed reactive forms</td></tr>
+      <tr><td>2.0 → 13</td><td>2016–2021</td><td>The NgModule era: Ivy replaced ViewEngine in v9 (2020); AngularJS 1.x is a different framework, unsupported since 2022-01</td></tr>
+    </tbody>
+  </table>
+  </div>
+  <div class="note"><p><strong>Support horizon.</strong> v22 is in active support until 2027-06 and LTS until 2028-06; v21 is in LTS until 2027-06; v20's LTS ends 2026-11-28, so anything still on v20 needs two majors of upgrading before the end of November. The published schedule puts the next major, v23, around mid-2027 — the cadence has stretched from six months to roughly a year, with minors in between.</p></div>
+</section>
+</main>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.11.1/highlight.min.js"></script>
+<script>
+(function () {
+  if (window.hljs) { try { hljs.highlightAll(); } catch (e) { /* highlighting is decoration */ } }
+
+  var toggle = document.querySelector('.navtoggle');
+  var side = document.getElementById('side');
+  if (toggle) {
+    toggle.addEventListener('click', function () {
+      var open = document.body.classList.toggle('nav-open');
+      toggle.setAttribute('aria-expanded', open ? 'true' : 'false');
+    });
+  }
+  if (side) {
+    side.addEventListener('click', function (e) {
+      if (e.target.closest('a')) {
+        document.body.classList.remove('nav-open');
+        if (toggle) toggle.setAttribute('aria-expanded', 'false');
+      }
+    });
+  }
+
+  var links = Array.prototype.slice.call(document.querySelectorAll('.units a'));
+  var units = links.map(function (a) { return document.getElementById(a.getAttribute('href').slice(1)); });
+  var ticking = false;
+  function spy() {
+    ticking = false;
+    var best = 0;
+    for (var i = 0; i < units.length; i++) {
+      if (units[i] && units[i].getBoundingClientRect().top <= 140) best = i;
+    }
+    for (var j = 0; j < links.length; j++) {
+      if (j === best) links[j].setAttribute('aria-current', 'true');
+      else links[j].removeAttribute('aria-current');
+    }
+  }
+  function onScroll() {
+    if (!ticking) { ticking = true; window.requestAnimationFrame(spy); }
+  }
+  window.addEventListener('scroll', onScroll, { passive: true });
+  window.addEventListener('resize', onScroll, { passive: true });
+  spy();
+})();
+</script>
+</body>
+</html>
