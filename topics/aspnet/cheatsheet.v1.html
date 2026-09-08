@@ -1,0 +1,724 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>ASP.NET Core &amp; .NET runtime · cheatsheet · devbok</title>
+<link rel="preconnect" href="https://fonts.googleapis.com/">
+<link rel="preconnect" href="https://fonts.gstatic.com/" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Cascadia+Mono&display=swap" rel="stylesheet">
+<style>
+:root { color-scheme: light;
+  --bg: #ffffff; --fg: #111111; --muted: #6b6b6b; --line: #111111; --soft: #f4f4f4; --border: #cccccc;
+  --accent: #512bd4; --accent-soft: color-mix(in srgb, var(--accent) 12%, var(--bg));
+  --code: color-mix(in srgb, var(--accent) 70%, var(--fg));
+  --hl-kw: #a626a4; --hl-str: #50a14f; --hl-num: #986801; --hl-cmt: #6b6b6b; --hl-type: #0184bc; --hl-fn: #4078f2; --hl-attr: #986801; }
+@media (prefers-color-scheme: dark) { :root { color-scheme: dark;
+  --bg: #222222; --fg: #cccccc; --muted: #8f8f8f; --line: #111111; --soft: #2c2c2c; --border: #4a4a4a;
+  --accent: #896fe2; --accent-soft: color-mix(in srgb, var(--accent) 16%, var(--bg));
+  --hl-kw: #c678dd; --hl-str: #98c379; --hl-num: #d19a66; --hl-cmt: #8f8f8f; --hl-type: #56b6c2; --hl-fn: #61afef; --hl-attr: #e5c07b; } }
+
+* { box-sizing: border-box; }
+html { -webkit-text-size-adjust: 100%; }
+body { margin: 0; background: var(--bg); color: var(--fg); font-family: system-ui, sans-serif; font-size: 16px; line-height: 1.6; overflow-x: hidden; }
+h1, h2, h3 { font-family: system-ui, sans-serif; font-weight: 700; }
+h2 { font-size: 1.5em; line-height: 1.25; margin: 0 0 4px; }
+h3 { font-size: 1.17em; line-height: 1.3; margin: 18px 0 6px; }
+p { margin: 0 0 10px; }
+a { color: var(--accent); }
+a:focus-visible, button:focus-visible, .units a:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+
+/* ---- code, verbatim ---- */
+code { background: var(--soft); border: 1px solid var(--border); border-radius: 3px; padding: 0 .3em; color: var(--code); overflow-wrap: anywhere; }
+pre { background: var(--soft); border: 1px solid var(--border); border-radius: 4px; padding: 12px 14px; overflow-x: auto; line-height: 1.5; margin: 14px 0; max-width: 100%; }
+pre code { background: none; border: 0; border-radius: 0; padding: 0; color: inherit; white-space: pre; overflow-wrap: normal; }
+.hljs { color: var(--fg); background: transparent; }
+.hljs-keyword, .hljs-built_in, .hljs-literal, .hljs-selector-tag { color: var(--hl-kw); }
+.hljs-string, .hljs-regexp, .hljs-selector-attr { color: var(--hl-str); }
+.hljs-number, .hljs-symbol { color: var(--hl-num); }
+.hljs-comment, .hljs-quote, .hljs-doctag { color: var(--hl-cmt); font-style: italic; }
+.hljs-title, .hljs-title.class_, .hljs-type, .hljs-name, .hljs-section, .hljs-selector-class, .hljs-selector-pseudo { color: var(--hl-type); }
+.hljs-title.function_ { color: var(--hl-fn); }
+.hljs-meta, .hljs-attr, .hljs-attribute, .hljs-tag, .hljs-property, .hljs-variable { color: var(--hl-attr); }
+.hljs-template-tag, .hljs-template-variable { color: var(--hl-attr); }
+.hljs-code, .hljs-formula { color: var(--hl-cmt); }
+.hljs-operator, .hljs-subst, .hljs-punctuation, .hljs-params { color: var(--fg); }
+.hljs-emphasis { font-style: italic; } .hljs-strong { font-weight: 700; }
+code, pre, .mono, .chip, .tag, .hero .meta, .side, .row .v, table { font-family: "Cascadia Mono", Consolas, monospace; font-size: 12px; }
+
+/* ---- sidebar, verbatim ---- */
+.side { position: fixed; top: 0; bottom: 0; left: 0; width: 260px; display: flex; flex-direction: column; background: var(--bg); border-right: 2px solid var(--line); font-family: "Cascadia Mono", Consolas, monospace; font-size: 12px; }
+.units { list-style: none; margin: 0; padding: 12px 0; overflow-y: auto; flex: 1; }
+.units a { display: grid; grid-template-columns: 2.5em 1fr; padding: 9px 20px; color: var(--fg); text-decoration: none; line-height: 1.4; }
+.units .n { color: var(--muted); }
+.units a:hover { background: var(--soft); }
+.units a[aria-current="true"] { background: var(--accent-soft); color: var(--accent); }
+.units a[aria-current="true"] .n { color: var(--accent); }
+.side footer { padding: 12px 20px; border-top: 2px solid var(--line); color: var(--muted); line-height: 1.5; }
+
+/* ---- layout ---- */
+.main { margin-left: 260px; padding: 24px; max-width: 120ch; min-width: 0; }
+.sidetoggle { display: none; position: fixed; z-index: 20; top: 10px; left: 10px; padding: 6px 10px; background: var(--bg); color: var(--fg); border: 1px solid var(--border); border-radius: 4px; font-family: "Cascadia Mono", Consolas, monospace; font-size: 12px; cursor: pointer; }
+
+/* ---- hero, verbatim ---- */
+.hero { margin: 0 0 24px; padding: 0 0 24px; border-bottom: 2px solid var(--line); }
+.hero h1 { margin: 0 0 8px; font-size: 2em; line-height: 1.2; font-weight: 700; }
+.hero .meta { margin: 0 0 12px; font-family: "Cascadia Mono", Consolas, monospace; font-size: 12px; color: var(--muted); }
+.hero .summary { margin: 0 0 12px; }
+.hero .chips { display: flex; flex-wrap: wrap; gap: 6px; margin: 0; }
+.chip { display: inline-block; text-transform: uppercase; background: var(--soft); border: 1px solid var(--border); border-radius: 4px; padding: 2px 7px; color: var(--muted); }
+
+/* ---- units ---- */
+.unit { margin: 0 0 26px; padding: 16px 18px; background: var(--bg); border: 1px solid var(--border); border-radius: 6px; min-width: 0; }
+.unit > h2 .n { color: var(--muted); font-family: "Cascadia Mono", Consolas, monospace; font-size: 0.62em; margin-right: 8px; vertical-align: 3px; }
+.unit .lead { color: var(--muted); margin: 0 0 12px; font-size: 0.9em; }
+.docs { margin: 14px 0 0; padding-top: 10px; border-top: 1px solid var(--border); font-size: 0.85em; color: var(--muted); }
+
+/* ---- task / syntax rows ---- */
+.rows { display: grid; grid-template-columns: minmax(0, 15em) minmax(0, 1fr); gap: 0; border-top: 1px solid var(--border); margin: 10px 0 0; }
+.rows > div { min-width: 0; padding: 6px 10px 6px 0; border-bottom: 1px solid var(--border); }
+.rows > .k { color: var(--fg); font-size: 0.88em; line-height: 1.45; }
+.rows > .v { color: var(--code); overflow-wrap: anywhere; line-height: 1.55; padding-left: 10px; }
+.note { color: var(--muted); font-family: system-ui, sans-serif; font-size: 12px; font-style: normal; }
+.rows > .v .note { display: block; }
+.rows > .v code { border: 0; background: none; padding: 0; }
+
+/* ---- tags, callouts, tables ---- */
+.tag { display: inline-block; text-transform: uppercase; border: 1px solid var(--border); border-radius: 4px; padding: 0 5px; color: var(--muted); background: var(--soft); white-space: nowrap; }
+.tag.new { border-color: var(--accent); color: var(--accent); }
+.tag.old { text-decoration: none; }
+.callout { background: var(--soft); border-left: 3px solid var(--accent); padding: 8px 12px; margin: 14px 0; font-size: 0.92em; }
+.tw { overflow-x: auto; margin: 12px 0; max-width: 100%; }
+table { border-collapse: collapse; width: 100%; }
+th, td { text-align: left; vertical-align: top; padding: 6px 10px; border-bottom: 1px solid var(--border); line-height: 1.5; }
+th { color: var(--muted); text-transform: uppercase; font-weight: 400; white-space: nowrap; }
+td.t { font-family: system-ui, sans-serif; font-size: 14px; }
+tr.hi td { background: var(--accent-soft); }
+ul.tight { margin: 8px 0; padding-left: 20px; }
+ul.tight li { margin: 0 0 5px; font-size: 0.95em; }
+ul.tight li .mono { color: var(--code); }
+
+@media (max-width: 720px) {
+  .side { transform: translateX(-100%); transition: transform .15s ease; z-index: 15; width: 260px; max-width: 86vw; }
+  body.nav-open .side { transform: translateX(0); }
+  .main { margin-left: 0; padding: 52px 14px 24px; }
+  .sidetoggle { display: block; }
+  .rows { grid-template-columns: minmax(0, 1fr); }
+  .rows > .k { padding-bottom: 0; border-bottom: 0; font-weight: 600; }
+  .rows > .v { padding-left: 0; }
+}
+
+@media print {
+  @page { margin: 12mm 10mm; }
+  html, body { background: #fff !important; color: #000 !important; font-size: 8.5pt; line-height: 1.35; }
+  .side, .sidetoggle, .docs { display: none !important; }
+  .main { margin: 0 !important; padding: 0 !important; max-width: none !important; }
+  .hero { border-bottom: 1pt solid #000; padding-bottom: 8pt; margin-bottom: 10pt; }
+  .hero h1 { font-size: 15pt; }
+  .hero .summary { font-size: 8pt; }
+  .unit { break-inside: avoid; page-break-inside: avoid; border: 0; padding: 0; margin: 0 0 9pt; }
+  .unit > h2 { font-size: 10pt; border-bottom: .5pt solid #000; margin-bottom: 3pt; }
+  h3 { font-size: 8.5pt; margin: 5pt 0 2pt; }
+  pre { border: .5pt solid #999; padding: 3pt 4pt; margin: 3pt 0; background: transparent !important; }
+  .rows, .rows > div, th, td { border-color: #999 !important; }
+  .rows > div { padding: 1.5pt 6pt 1.5pt 0; }
+  .callout { background: transparent !important; border-left: 2pt solid #000; padding: 2pt 6pt; }
+  .chip, .tag { border-color: #666 !important; background: transparent !important; color: #000 !important; }
+  tr.hi td { background: transparent !important; }
+  a { color: #000 !important; text-decoration: none; }
+  a[href]::after { content: ""; }
+  code, .hljs, .hljs span { color: #000 !important; background: transparent !important; }
+}
+</style>
+</head>
+<body>
+<!-- devbok
+slug: aspnet
+kind: cheatsheet
+version: 1
+topic: "ASP.NET Core & .NET runtime (assume C# language features are already covered; focus on the framework and runtime)"
+prompt: cheatsheet.md@ccd2d4a9
+generated: 2026-09-08
+-->
+<button class="sidetoggle" type="button" aria-expanded="false" aria-controls="side">≡ units</button>
+<nav class="side" id="side" aria-label="Units">
+  <ol class="units">
+    <li><a href="#u01"><span class="n">01</span><span class="t">Host, startup &amp; config</span></a></li>
+    <li><a href="#u02"><span class="n">02</span><span class="t">DI &amp; options</span></a></li>
+    <li><a href="#u03"><span class="n">03</span><span class="t">Routing &amp; minimal APIs</span></a></li>
+    <li><a href="#u04"><span class="n">04</span><span class="t">Middleware &amp; errors</span></a></li>
+    <li><a href="#u05"><span class="n">05</span><span class="t">Binding, validation, OpenAPI</span></a></li>
+    <li><a href="#u06"><span class="n">06</span><span class="t">Authn, authz &amp; security</span></a></li>
+    <li><a href="#u07"><span class="n">07</span><span class="t">HttpClient &amp; resilience</span></a></li>
+    <li><a href="#u08"><span class="n">08</span><span class="t">Caching, data, background</span></a></li>
+    <li><a href="#u09"><span class="n">09</span><span class="t">Observability &amp; diagnostics</span></a></li>
+    <li><a href="#u10"><span class="n">10</span><span class="t">Runtime, GC &amp; performance</span></a></li>
+    <li><a href="#u11"><span class="n">11</span><span class="t">CLI, csproj &amp; deployment</span></a></li>
+    <li><a href="#u12"><span class="n">12</span><span class="t">Modern vs legacy</span></a></li>
+    <li><a href="#u13"><span class="n">13</span><span class="t">Version timeline</span></a></li>
+    <li><a href="#u14"><span class="n">14</span><span class="t">Gotchas &amp; pitfalls</span></a></li>
+  </ol>
+  <footer>ASP.NET Core &amp; .NET runtime · cheatsheet · version 1 · 2026-09-08</footer>
+</nav>
+<main class="main">
+<header class="hero">
+  <h1>ASP.NET Core &amp; .NET runtime</h1>
+  <p class="meta">cheatsheet · .NET 10.0.11 (LTS) · released 2025-11-11</p>
+  <p class="summary">Everything here is correct for .NET 10 / ASP.NET Core 10.0 — the current LTS, shipped 11 Nov 2025, patch 10.0.11 on 11 Aug 2026, supported to 14 Nov 2028 — with anything from the .NET 11 previews (Preview 7, 19 Aug 2026; GA Nov 2026) explicitly marked <span class="tag">11 preview</span> and never presented as shippable. Scope is the framework and the runtime — hosting, DI, routing, middleware, binding, auth, caching, observability, GC, publish and the CLI — not the C# language. Diary note: <strong>.NET 8 (LTS) and .NET 9 (STS) both leave support on 10 Nov 2026</strong>, so on any project not yet on 10 the upgrade is now a two-month deadline, not a backlog item.</p>
+  <p class="chips"><span class="chip">.NET 10 LTS</span> <span class="chip">GA 2025-11-11</span> <span class="chip">patch 10.0.11 · 2026-08-11</span> <span class="chip">EOL 2028-11-14</span> <span class="chip">C# 14</span> <span class="chip">.NET 11 preview 7</span> <span class="chip">Aspire 13.5</span> <span class="chip">EF Core 10</span></p>
+</header>
+
+<section class="unit" id="u01">
+<h2><span class="n">01</span>Host, startup &amp; configuration</h2>
+<p class="lead">One <code>Program.cs</code>, one <code>WebApplication</code>. <code>Startup.cs</code> has not existed in a template since .NET 6 and is not supported by minimal hosting.</p>
+
+<pre><code class="language-csharp">var builder = WebApplication.CreateBuilder(args);   // config + logging + DI, host defaults
+builder.Services.AddOpenApi();                       // services go here
+builder.Services.AddProblemDetails();
+
+var app = builder.Build();                           // no service registration after this line
+if (app.Environment.IsDevelopment()) app.MapOpenApi();
+app.UseExceptionHandler();
+app.UseHttpsRedirection();
+app.UseAuthentication();  app.UseAuthorization();     // order matters, see 04
+app.MapGet("/healthz", () =&gt; Results.Ok());
+app.Run();</code></pre>
+
+<div class="rows">
+  <div class="k">Full-featured host (default)</div><div class="v">WebApplication.CreateBuilder(args)</div>
+  <div class="k">Trimmed host: no env-var/user-secret/console-logger defaults, Kestrel only</div><div class="v">WebApplication.CreateSlimBuilder(args) <span class="note">the Native-AOT / minimal-API template default since .NET 8</span></div>
+  <div class="k">Nothing at all pre-registered</div><div class="v">WebApplication.CreateEmptyBuilder(new())</div>
+  <div class="k">Non-web worker / console host</div><div class="v">Host.CreateApplicationBuilder(args) → HostApplicationBuilder</div>
+  <div class="k">Config sources, later wins</div><div class="v">appsettings.json → appsettings.{Environment}.json → user secrets (Dev) → env vars → command line</div>
+  <div class="k">Environment</div><div class="v">ASPNETCORE_ENVIRONMENT (web) / DOTNET_ENVIRONMENT (generic host) = Development | Staging | Production</div>
+  <div class="k">Nested key from an env var</div><div class="v">ConnectionStrings__Default <span class="note">double underscore is the section separator on every OS; <code>:</code> only works on Windows</span></div>
+  <div class="k">Read a value / section</div><div class="v">builder.Configuration["Db:Host"] · GetConnectionString("Default") · GetSection("Kafka")</div>
+  <div class="k">Required value, fail fast</div><div class="v">config.GetValue&lt;int&gt;("Port") is 0 → prefer options + ValidateOnStart (see 02)</div>
+  <div class="k">User secrets (dev only, never in the repo)</div><div class="v">dotnet user-secrets init · dotnet user-secrets set "Db:Password" "…"</div>
+  <div class="k">Azure Key Vault / extra provider</div><div class="v">builder.Configuration.AddAzureKeyVault(uri, cred)</div>
+  <div class="k">Reload on file change</div><div class="v">AddJsonFile("x.json", optional: true, reloadOnChange: true) <span class="note">reaches code only via IOptionsMonitor</span></div>
+  <div class="k">Bind Kestrel from config</div><div class="v">"Kestrel": { "Endpoints": { "Https": { "Url": "https://*:8443" } } }</div>
+  <div class="k">Ports without config</div><div class="v">ASPNETCORE_URLS=http://+:8080 · app.Urls.Add(…) · --urls</div>
+  <div class="k"><span class="tag new">new 10</span> Kestrel treats <code>*.localhost</code> as loopback; dev cert covers <code>*.dev.localhost</code></div><div class="v">dotnet new webapi --localhost-tld</div>
+  <div class="k">Graceful shutdown window</div><div class="v">HostOptions.ShutdownTimeout (default 30s) · IHostApplicationLifetime.ApplicationStopping</div>
+</div>
+<p class="docs">Docs: <a href="https://learn.microsoft.com/aspnet/core/fundamentals/minimal-apis/webapplication">WebApplication and WebApplicationBuilder</a> · <a href="https://learn.microsoft.com/aspnet/core/fundamentals/configuration/">Configuration in ASP.NET Core</a></p>
+</section>
+
+<section class="unit" id="u02">
+<h2><span class="n">02</span>Dependency injection &amp; options</h2>
+<p class="lead">Three lifetimes, one container, and one rule that causes most production DI bugs: never resolve a scoped service from a singleton.</p>
+
+<pre><code class="language-csharp">builder.Services.AddSingleton&lt;IClock, SystemClock&gt;();          // one per app
+builder.Services.AddScoped&lt;IOrderRepo, SqlOrderRepo&gt;();        // one per request
+builder.Services.AddTransient&lt;IPriceCalc, PriceCalc&gt;();        // one per resolve
+builder.Services.AddKeyedSingleton&lt;ICache, Redis&gt;("l2");       // .NET 8+
+builder.Services.TryAddEnumerable(ServiceDescriptor
+    .Singleton&lt;IValidator, EmailValidator&gt;());                 // idempotent multi-registration
+
+// options: bind + validate, and fail at startup rather than at first request
+builder.Services.AddOptions&lt;SmtpOptions&gt;()
+    .BindConfiguration("Smtp")
+    .ValidateDataAnnotations()
+    .Validate(o =&gt; o.Port &gt; 0, "Port must be set")
+    .ValidateOnStart();</code></pre>
+
+<div class="rows">
+  <div class="k">Inject a keyed service</div><div class="v">public Svc([FromKeyedServices("l2")] ICache cache)</div>
+  <div class="k">Singleton-safe access to a scoped service</div><div class="v">using var scope = sp.CreateScope(); var repo = scope.ServiceProvider.GetRequiredService&lt;IOrderRepo&gt;();</div>
+  <div class="k">Catch lifetime mistakes early</div><div class="v">ValidateScopes / ValidateOnBuild <span class="note">on by default in Development only — turn both on everywhere in CI</span></div>
+  <div class="k">Read options</div><div class="v">IOptions&lt;T&gt; (singleton snapshot) · IOptionsSnapshot&lt;T&gt; (per request, scoped) · IOptionsMonitor&lt;T&gt; (live + OnChange, singleton-safe)</div>
+  <div class="k">Post-bind adjustment</div><div class="v">services.PostConfigure&lt;T&gt;(o =&gt; o.Timeout ??= TimeSpan.FromSeconds(5))</div>
+  <div class="k">Named options</div><div class="v">services.Configure&lt;T&gt;("primary", cfg.GetSection("Primary")) → IOptionsMonitor&lt;T&gt;.Get("primary")</div>
+  <div class="k">AOT-safe options validation</div><div class="v">[OptionsValidator] partial class MyValidator : IValidateOptions&lt;T&gt; <span class="note">source generator, no reflection</span></div>
+  <div class="k">Decorate / replace a registration</div><div class="v">services.Replace(ServiceDescriptor.Scoped&lt;IX, Fake&gt;()) <span class="note">the integration-test seam via WithWebHostBuilder</span></div>
+  <div class="k">Open generics</div><div class="v">services.AddScoped(typeof(IRepo&lt;&gt;), typeof(EfRepo&lt;&gt;))</div>
+  <div class="k">Async disposal</div><div class="v">implement IAsyncDisposable; the container awaits it for scoped/transient</div>
+  <div class="k">Third-party container</div><div class="v">builder.Host.UseServiceProviderFactory(new AutofacServiceProviderFactory())</div>
+</div>
+<div class="callout"><strong>Captive dependency.</strong> A singleton that takes <code>DbContext</code> (scoped) in its constructor still <em>starts</em>; it fails at runtime with <code>Cannot consume scoped service … from singleton</code>, or worse, silently pins one <code>DbContext</code> for the process lifetime. <code>ValidateScopes</code> makes it a startup failure.</div>
+<p class="docs">Docs: <a href="https://learn.microsoft.com/dotnet/core/extensions/dependency-injection">Dependency injection</a> · <a href="https://learn.microsoft.com/dotnet/core/extensions/options">Options pattern</a></p>
+</section>
+
+<section class="unit" id="u03">
+<h2><span class="n">03</span>Routing &amp; minimal APIs</h2>
+<p class="lead">Minimal APIs are the default for HTTP services (since .NET 6, AOT-capable since 8); controllers remain the right call for heavy filter/model-binder investment and existing MVC estates.</p>
+
+<pre><code class="language-csharp">var orders = app.MapGroup("/orders")
+                .RequireAuthorization("orders:read")
+                .WithTags("Orders")
+                .AddEndpointFilter&lt;AuditFilter&gt;();
+
+orders.MapGet("/{id:guid}", async Task&lt;Results&lt;Ok&lt;Order&gt;, NotFound&gt;&gt;
+        (Guid id, IOrderRepo repo, CancellationToken ct) =&gt;
+    await repo.Find(id, ct) is { } o ? TypedResults.Ok(o) : TypedResults.NotFound());
+
+orders.MapPost("/", (CreateOrder cmd, IOrderRepo repo) =&gt; TypedResults.Created($"/orders/{cmd.Id}"))
+      .WithName("CreateOrder");
+
+// .NET 10: Server-Sent Events as a first-class result
+app.MapGet("/ticks", (CancellationToken ct) =&gt;
+    TypedResults.ServerSentEvents(Ticks(ct), eventType: "tick"));</code></pre>
+
+<div class="rows">
+  <div class="k">Typed results (OpenAPI + compile-time safety)</div><div class="v">TypedResults.Ok/NotFound/Created/Problem/ValidationProblem/Accepted/NoContent · Results&lt;T1,T2&gt; union</div>
+  <div class="k">Route constraints</div><div class="v">{id:int} {id:guid} {slug:regex(^[a-z-]+$)} {page:int:min(1)} {*rest} (catch-all)</div>
+  <div class="k">Explicit binding sources</div><div class="v">[FromRoute] [FromQuery] [FromHeader] [FromBody] [FromForm] [FromServices] [AsParameters]</div>
+  <div class="k">Implicit rules</div><div class="v">route/query for simple types, DI for registered services, body for the one complex type</div>
+  <div class="k">Custom binding on your own type</div><div class="v">static bool TryParse(string, out T) · static ValueTask&lt;T?&gt; BindAsync(HttpContext)</div>
+  <div class="k">Endpoint filter (the minimal-API answer to action filters)</div><div class="v">.AddEndpointFilter(async (ctx, next) =&gt; { … return await next(ctx); })</div>
+  <div class="k">Group-wide metadata</div><div class="v">MapGroup + RequireAuthorization / RequireRateLimiting / WithOpenApi / DisableAntiforgery</div>
+  <div class="k"><span class="tag new">new 10</span> Streaming responses</div><div class="v">IAsyncEnumerable&lt;SseItem&lt;T&gt;&gt; via TypedResults.ServerSentEvents(…) <span class="note">also available from controllers</span></div>
+  <div class="k">Return a stream / file</div><div class="v">Results.Stream(stream, "application/pdf") · Results.File(path, …) · Results.Bytes(…)</div>
+  <div class="k">Rate limiting <span class="tag">7</span></div><div class="v">AddRateLimiter(o =&gt; o.AddFixedWindowLimiter("api", …)) + app.UseRateLimiter() + .RequireRateLimiting("api")</div>
+  <div class="k">Output caching <span class="tag">7</span></div><div class="v">AddOutputCache() + app.UseOutputCache() + .CacheOutput(p =&gt; p.Expire(TimeSpan.FromMinutes(1)).Tag("orders"))</div>
+  <div class="k">Evict cached output by tag</div><div class="v">await IOutputCacheStore.EvictByTagAsync("orders", ct)</div>
+  <div class="k">Route to a controller</div><div class="v">builder.Services.AddControllers(); app.MapControllers();</div>
+  <div class="k">Static files</div><div class="v">app.MapStaticAssets() <span class="tag new">9</span> <span class="note">build-time fingerprinting + brotli/gzip; replaces UseStaticFiles for app-owned assets</span></div>
+  <div class="k">SPA fallback</div><div class="v">app.MapFallbackToFile("index.html")</div>
+  <div class="k">Inspect the route table</div><div class="v">IEnumerable&lt;EndpointDataSource&gt; · dotnet tool: <code>dotnet-httprepl</code>, or the /openapi/v1.json document</div>
+</div>
+<p class="docs">Docs: <a href="https://learn.microsoft.com/aspnet/core/fundamentals/minimal-apis/overview">Minimal APIs overview</a> · <a href="https://learn.microsoft.com/aspnet/core/fundamentals/routing">Routing</a></p>
+</section>
+
+<section class="unit" id="u04">
+<h2><span class="n">04</span>Middleware pipeline &amp; error handling</h2>
+<p class="lead">The pipeline is ordered, and the order is the bug. Terminal middleware short-circuits; everything registered after it never runs.</p>
+
+<pre><code class="language-csharp">app.UseExceptionHandler();          // 1 outermost: catches everything below
+app.UseHsts();                      // 2 (production only)
+app.UseHttpsRedirection();          // 3
+app.UseStaticFiles();               // 4 before auth: static files are public
+app.UseRouting();                   // 5 endpoint is selected here
+app.UseCors();                      // 6 after routing, before auth
+app.UseRateLimiter();               // 7
+app.UseAuthentication();            // 8 who
+app.UseAuthorization();             // 9 may they  (must be after UseRouting)
+app.UseOutputCache();               // 10
+app.MapControllers();               // 11 endpoint executes</code></pre>
+
+<div class="rows">
+  <div class="k">Inline middleware</div><div class="v">app.Use(async (ctx, next) =&gt; { …; await next(ctx); })</div>
+  <div class="k">Terminal middleware</div><div class="v">app.Run(async ctx =&gt; …) <span class="note">never calls next; nothing after it executes</span></div>
+  <div class="k">Branch on a path</div><div class="v">app.Map("/admin", b =&gt; …) · app.MapWhen(ctx =&gt; …, b =&gt; …) · UseWhen (re-joins the main pipeline)</div>
+  <div class="k">Class middleware, singleton-scoped</div><div class="v">ctor(RequestDelegate next) + InvokeAsync(HttpContext, IScopedDep) <span class="note">scoped deps go on InvokeAsync, never the ctor</span></div>
+  <div class="k">Factory-activated middleware</div><div class="v">IMiddleware + AddScoped&lt;MyMiddleware&gt;() + app.UseMiddleware&lt;MyMiddleware&gt;()</div>
+  <div class="k">RFC 9457 problem details everywhere</div><div class="v">builder.Services.AddProblemDetails(); app.UseExceptionHandler(); app.UseStatusCodePages();</div>
+  <div class="k">Typed exception handler <span class="tag">8</span></div><div class="v">class MyHandler : IExceptionHandler { ValueTask&lt;bool&gt; TryHandleAsync(…) } + AddExceptionHandler&lt;MyHandler&gt;()</div>
+  <div class="k"><span class="tag new">new 10</span> Silence the log for exceptions you handled</div><div class="v">ExceptionHandlerOptions.SuppressDiagnosticsCallback <span class="note">.NET 10 also stops logging exceptions an IExceptionHandler handled</span></div>
+  <div class="k">Dev-only stack traces</div><div class="v">if (env.IsDevelopment()) app.UseDeveloperExceptionPage(); <span class="note">on by default in Development</span></div>
+  <div class="k">Behind a proxy / ingress</div><div class="v">app.UseForwardedHeaders(new(){ ForwardedHeaders = XForwardedFor | XForwardedProto }) <span class="note">first in the pipeline, and set KnownProxies/KnownNetworks or it is ignored</span></div>
+  <div class="k">Request/response size limits</div><div class="v">[RequestSizeLimit(n)] · KestrelServerLimits.MaxRequestBodySize (30 MB default) · IHttpMaxRequestBodySizeFeature</div>
+  <div class="k">Read the body twice</div><div class="v">ctx.Request.EnableBuffering() before anything reads it</div>
+  <div class="k">Cancellation</div><div class="v">ctx.RequestAborted → pass the CancellationToken all the way to the DB call</div>
+  <div class="k">CORS</div><div class="v">AddCors(o =&gt; o.AddPolicy("api", p =&gt; p.WithOrigins("https://app.example").AllowCredentials())) <span class="note"><code>AllowAnyOrigin()</code> + credentials is rejected at runtime</span></div>
+</div>
+<p class="docs">Docs: <a href="https://learn.microsoft.com/aspnet/core/fundamentals/middleware/">Middleware</a> · <a href="https://learn.microsoft.com/aspnet/core/fundamentals/error-handling">Handle errors</a></p>
+</section>
+
+<section class="unit" id="u05">
+<h2><span class="n">05</span>Binding, validation &amp; OpenAPI</h2>
+<p class="lead">.NET 10 closed the two oldest minimal-API gaps: built-in DataAnnotations validation, and OpenAPI 3.1 with XML doc comments — no Swashbuckle, no <code>FluentValidation</code> required for the simple cases.</p>
+
+<pre><code class="language-csharp">builder.Services.AddValidation();     // .NET 10, source-generated, AOT-safe
+builder.Services.AddOpenApi(o =&gt; { o.OpenApiVersion = OpenApiSpecVersion.OpenApi3_1; });
+
+public record CreateOrder(
+    [Required] string Sku,
+    [Range(1, 100)] int Qty,
+    [EmailAddress] string Contact);
+
+app.MapPost("/orders", (CreateOrder cmd) =&gt; TypedResults.Created("/orders/1"));
+//   invalid body → 400 + ValidationProblemDetails, no code of yours runs
+
+app.MapOpenApi();                     // /openapi/v1.json   (and /openapi/v1.yaml in .NET 10)</code></pre>
+
+<div class="rows">
+  <div class="k">Opt one endpoint out of validation</div><div class="v">.DisableValidation()</div>
+  <div class="k">Nested objects / collections (Blazor + minimal)</div><div class="v">[ValidatableType] on the root model <span class="note">the generator walks children only from a marked root</span></div>
+  <div class="k">Validation package</div><div class="v">Microsoft.Extensions.Validation <span class="note">split out of ASP.NET Core in 10; usable from a worker too</span></div>
+  <div class="k">Shape the 400 body</div><div class="v">AddProblemDetails(o =&gt; o.CustomizeProblemDetails = ctx =&gt; …)</div>
+  <div class="k">Complex rules</div><div class="v">FluentValidation as an endpoint filter — still the answer for cross-field / async rules</div>
+  <div class="k"><span class="tag new">new 10</span> Empty form field → null</div><div class="v">[FromForm] int? qty now binds "" as null instead of failing</div>
+  <div class="k"><span class="tag new">new 10</span> Body parsing</div><div class="v">JSON is read through PipeReader <span class="note">a custom JsonConverter must handle <code>Utf8JsonReader.HasValueSequence</code>; escape hatch <code>AppContext.SetSwitch("Microsoft.AspNetCore.UseStreamBasedJsonParsing", true)</code></span></div>
+  <div class="k">OpenAPI package</div><div class="v">Microsoft.AspNetCore.OpenApi <span class="tag new">9</span> <span class="note">Swashbuckle was dropped from the web-api template in .NET 9</span></div>
+  <div class="k">XML comments in the document <span class="tag new">10</span></div><div class="v">&lt;GenerateDocumentationFile&gt;true&lt;/GenerateDocumentationFile&gt; <span class="note">handlers must be named methods — a lambda has no XML doc</span></div>
+  <div class="k">YAML document <span class="tag new">10</span></div><div class="v">GET /openapi/v1.yaml</div>
+  <div class="k">Customise the document</div><div class="v">o.AddDocumentTransformer / AddOperationTransformer / AddSchemaTransformer · .AddOpenApiOperationTransformer per endpoint <span class="tag new">10</span></div>
+  <div class="k">Get the document outside a request <span class="tag new">10</span></div><div class="v">IOpenApiDocumentProvider from DI <span class="note">contract tests, build-time export</span></div>
+  <div class="k">Breaking in 10</div><div class="v">Microsoft.OpenApi 2.0: transformers use <code>JsonNode</code>, not <code>OpenApiAny</code></div>
+  <div class="k">Emit the spec at build time</div><div class="v">dotnet tool install -g Microsoft.dotnet-openapi · or the <code>GetDocument.Insider</code> MSBuild target</div>
+  <div class="k">Swagger UI is not included</div><div class="v">add Scalar (<code>app.MapScalarApiReference()</code>) or SwaggerUI middleware yourself</div>
+  <div class="k">JSON options</div><div class="v">ConfigureHttpJsonOptions (minimal) vs AddControllers().AddJsonOptions (MVC) <span class="note">two separate settings objects — configuring one does not affect the other</span></div>
+  <div class="k">Source-generated JSON (required for AOT)</div><div class="v">[JsonSerializable(typeof(Order))] partial class AppJson : JsonSerializerContext + options.TypeInfoResolverChain.Insert(0, AppJson.Default)</div>
+  <div class="k"><span class="tag new">new 10</span> Strict JSON preset</div><div class="v">new JsonSerializerOptions(JsonSerializerDefaults.Strict) <span class="note">duplicate properties throw, unknown properties rejected, case-sensitive, nullability respected</span></div>
+</div>
+<p class="docs">Docs: <a href="https://learn.microsoft.com/aspnet/core/fundamentals/openapi/overview">OpenAPI in ASP.NET Core</a> · <a href="https://learn.microsoft.com/aspnet/core/fundamentals/minimal-apis/validation">Minimal API validation</a></p>
+</section>
+
+<section class="unit" id="u06">
+<h2><span class="n">06</span>Authentication, authorization &amp; security</h2>
+<p class="lead">Schemes authenticate, policies authorize. .NET 10 added WebAuthn passkeys to Identity and stopped cookie auth from 302-ing API calls to a login page.</p>
+
+<pre><code class="language-csharp">builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
+    .AddJwtBearer(o =&gt; {
+        o.Authority = "https://login.example.com";   // fetches JWKS + metadata
+        o.Audience  = "orders-api";
+        o.TokenValidationParameters.ValidateIssuerSigningKey = true;
+    });
+
+builder.Services.AddAuthorizationBuilder()
+    .AddPolicy("orders:read", p =&gt; p.RequireClaim("scope", "orders.read"))
+    .AddPolicy("adult", p =&gt; p.AddRequirements(new MinimumAgeRequirement(18)))
+    .SetFallbackPolicy(new AuthorizationPolicyBuilder()   // secure by default
+        .RequireAuthenticatedUser().Build());
+
+app.MapGet("/orders", …).RequireAuthorization("orders:read");
+app.MapGet("/ping", …).AllowAnonymous();</code></pre>
+
+<div class="rows">
+  <div class="k">Custom rule</div><div class="v">IAuthorizationRequirement + AuthorizationHandler&lt;TReq&gt; registered as singleton</div>
+  <div class="k">Resource-based check (does this user own <em>this</em> order?)</div><div class="v">await IAuthorizationService.AuthorizeAsync(User, order, "owner")</div>
+  <div class="k">Fallback vs default policy</div><div class="v">Fallback applies where no <code>[Authorize]</code> exists; Default is what a bare <code>[Authorize]</code> means</div>
+  <div class="k"><span class="tag new">new 10</span> Passkeys / WebAuthn in Identity</div><div class="v">passkey registration + sign-in built into ASP.NET Core Identity and the Blazor Web App template</div>
+  <div class="k"><span class="tag new">new 10</span> APIs get 401, not a login redirect</div><div class="v">cookie handler detects API endpoints via <code>IApiEndpointMetadata</code> ([ApiController], minimal APIs, TypedResults, SignalR)</div>
+  <div class="k"><span class="tag new">new 10</span> Auth metrics</div><div class="v">Microsoft.AspNetCore.Authentication + Microsoft.AspNetCore.Identity meters (sign-in duration, challenges, forbids)</div>
+  <div class="k">Token-based Identity for SPAs <span class="tag">8</span></div><div class="v">app.MapIdentityApi&lt;AppUser&gt;() <span class="note">/register /login /refresh; fine for first-party apps, not an IdP</span></div>
+  <div class="k">Data protection keys in a farm</div><div class="v">AddDataProtection().PersistKeysToAzureBlobStorage(…).ProtectKeysWithAzureKeyVault(…).SetApplicationName("shared")</div>
+  <div class="k">Antiforgery</div><div class="v">AddAntiforgery + app.UseAntiforgery(); required for Blazor/forms, <code>.DisableAntiforgery()</code> on token-auth APIs</div>
+  <div class="k">Secrets in prod</div><div class="v">env vars, Key Vault, or a mounted file — never <code>appsettings.json</code>, never user-secrets</div>
+  <div class="k">HTTPS enforcement</div><div class="v">UseHttpsRedirection + UseHsts (skip HSTS behind a TLS-terminating proxy that already sets it)</div>
+  <div class="k">Header hardening</div><div class="v">set CSP / X-Content-Type-Options / Referrer-Policy in middleware; ASP.NET Core ships none of them</div>
+  <div class="k">mTLS / client certs</div><div class="v">AddCertificate() (Microsoft.AspNetCore.Authentication.Certificate) + Kestrel <code>ClientCertificateMode</code></div>
+  <div class="k"><span class="tag">11 preview</span> Anti-relay TLS binding</div><div class="v">ITlsConnectionFeature exposes channel-binding tokens</div>
+  <div class="k"><span class="tag">11 preview</span> Automatic cross-origin protection</div><div class="v">opt-in per endpoint in Preview 7 after the blanket-on default broke apps in earlier previews</div>
+  <div class="k">Vulnerable packages in CI</div><div class="v">dotnet list package --vulnerable --include-transitive</div>
+</div>
+<p class="docs">Docs: <a href="https://learn.microsoft.com/aspnet/core/security/authentication/">Authentication</a> · <a href="https://learn.microsoft.com/aspnet/core/security/authorization/introduction">Authorization</a></p>
+</section>
+
+<section class="unit" id="u07">
+<h2><span class="n">07</span>HttpClient &amp; resilience</h2>
+<p class="lead"><code>new HttpClient()</code> in a loop exhausts sockets; a static <code>HttpClient</code> never sees DNS changes. <code>IHttpClientFactory</code> is the only correct answer, and since .NET 8 the retry/circuit-breaker story is first-party.</p>
+
+<pre><code class="language-csharp">builder.Services.AddHttpClient&lt;PricingClient&gt;(c =&gt; {
+        c.BaseAddress = new Uri("https://pricing.internal/");
+        c.Timeout = TimeSpan.FromSeconds(10);
+    })
+    .AddStandardResilienceHandler()        // Microsoft.Extensions.Http.Resilience (Polly v8)
+    .SetHandlerLifetime(TimeSpan.FromMinutes(2));
+
+public class PricingClient(HttpClient http) {
+    public Task&lt;Price?&gt; Get(string sku, CancellationToken ct) =&gt;
+        http.GetFromJsonAsync&lt;Price&gt;($"prices/{sku}", ct);
+}</code></pre>
+
+<div class="rows">
+  <div class="k">Standard handler contents</div><div class="v">rate limiter → total timeout (30s) → retry (3, exp. backoff + jitter) → circuit breaker → per-attempt timeout (10s)</div>
+  <div class="k">Tune it</div><div class="v">.AddStandardResilienceHandler(o =&gt; { o.Retry.MaxRetryAttempts = 5; o.CircuitBreaker.FailureRatio = .2; })</div>
+  <div class="k">Hedging (fan out to a second call)</div><div class="v">.AddStandardHedgingHandler()</div>
+  <div class="k">Named client</div><div class="v">AddHttpClient("github", …) → IHttpClientFactory.CreateClient("github")</div>
+  <div class="k">JSON helpers</div><div class="v">GetFromJsonAsync&lt;T&gt; · PostAsJsonAsync · ReadFromJsonAsync&lt;T&gt; · PostAsJsonAsync(…, AppJson.Default.Order) for AOT</div>
+  <div class="k">Do not buffer a large response</div><div class="v">SendAsync(req, HttpCompletionOption.ResponseHeadersRead, ct)</div>
+  <div class="k">Test seam</div><div class="v">inject a fake <code>HttpMessageHandler</code>; <code>.ConfigurePrimaryHttpMessageHandler(() =&gt; fake)</code></div>
+  <div class="k">HTTP/2 &amp; HTTP/3 client-side</div><div class="v">req.Version = HttpVersion.Version30; req.VersionPolicy = RequestVersionOrLower</div>
+  <div class="k">Connection pool tuning</div><div class="v">SocketsHttpHandler { PooledConnectionLifetime, MaxConnectionsPerServer, EnableMultipleHttp2Connections }</div>
+  <div class="k">gRPC client</div><div class="v">services.AddGrpcClient&lt;Greeter.GreeterClient&gt;(o =&gt; o.Address = …).AddStandardResilienceHandler()</div>
+  <div class="k">Outgoing telemetry</div><div class="v">the factory emits <code>http.client.request.duration</code> and W3C traceparent automatically</div>
+  <div class="k">Cookie handling</div><div class="v">off by default in the factory pipeline — enable deliberately, it is shared across the pooled handler</div>
+</div>
+<div class="callout"><strong>Handler lifetime.</strong> Typed clients are transient but the underlying handler is pooled for 2 minutes by default. Nothing in a typed client's constructor may hold per-request state, and <code>PooledConnectionLifetime</code> (not the handler lifetime) is what makes a long-lived <code>SocketsHttpHandler</code> re-resolve DNS.</div>
+<p class="docs">Docs: <a href="https://learn.microsoft.com/dotnet/core/extensions/httpclient-factory">IHttpClientFactory</a> · <a href="https://learn.microsoft.com/dotnet/core/resilience/http-resilience">HTTP resilience</a></p>
+</section>
+
+<section class="unit" id="u08">
+<h2><span class="n">08</span>Caching, data access &amp; background work</h2>
+<p class="lead">HybridCache (GA since .NET 9) is the default answer for read caching: L1 memory + optional L2 distributed, with stampede protection and tag invalidation you would otherwise hand-roll.</p>
+
+<pre><code class="language-csharp">builder.Services.AddHybridCache(o =&gt; o.DefaultEntryOptions = new() {
+    Expiration = TimeSpan.FromMinutes(10),        // L2
+    LocalCacheExpiration = TimeSpan.FromMinutes(1)// L1
+});
+builder.Services.AddStackExchangeRedisCache(o =&gt; o.Configuration = cs);  // becomes L2
+
+var order = await cache.GetOrCreateAsync(
+    $"order:{id}",
+    (id, repo),
+    static (s, ct) =&gt; s.repo.FindAsync(s.id, ct),   // static lambda + state = no closure alloc
+    tags: ["orders"], cancellationToken: ct);
+
+await cache.RemoveByTagAsync("orders", ct);</code></pre>
+
+<div class="rows">
+  <div class="k">Cache layers</div><div class="v">HybridCache (L1+L2, stampede-safe) · IMemoryCache (in-proc) · IDistributedCache (raw bytes) · OutputCache (whole responses) · ResponseCaching (HTTP headers, legacy)</div>
+  <div class="k">EF Core registration</div><div class="v">AddDbContext&lt;AppDb&gt; (scoped) · AddDbContextPool&lt;AppDb&gt; (pooled, faster) · AddDbContextFactory&lt;AppDb&gt; (Blazor / background)</div>
+  <div class="k">Read-only query</div><div class="v">.AsNoTracking() <span class="note">the single biggest EF win in read paths</span></div>
+  <div class="k">Bulk update without loading</div><div class="v">await db.Orders.Where(…).ExecuteUpdateAsync(s =&gt; s.SetProperty(o =&gt; o.State, "X")) / ExecuteDeleteAsync() <span class="tag">7</span></div>
+  <div class="k">Compiled query / split query</div><div class="v">EF.CompileAsyncQuery(…) · .AsSplitQuery() when a collection Include multiplies rows</div>
+  <div class="k">Migrations</div><div class="v">dotnet ef migrations add Init · dotnet ef database update · dotnet ef migrations bundle <span class="note">a bundle is the CI-safe way; <code>Migrate()</code> at startup races in a multi-replica deploy</span></div>
+  <div class="k">Dapper-style raw SQL</div><div class="v">db.Database.SqlQuery&lt;Row&gt;($"select … where id = {id}") <span class="note">interpolation is parameterised, not concatenated</span></div>
+  <div class="k">Long-running work</div><div class="v">class Worker : BackgroundService { protected override Task ExecuteAsync(CancellationToken stoppingToken) } + AddHostedService&lt;Worker&gt;()</div>
+  <div class="k">Timer-driven work</div><div class="v">using var timer = new PeriodicTimer(TimeSpan.FromSeconds(30)); while (await timer.WaitForNextTickAsync(ct)) …</div>
+  <div class="k">In-process queue</div><div class="v">Channel.CreateBounded&lt;T&gt;(new BoundedChannelOptions(1000){ FullMode = Wait })</div>
+  <div class="k">Scope in a hosted service</div><div class="v">using var scope = _sp.CreateScope(); <span class="note">a BackgroundService is a singleton — it cannot inject DbContext</span></div>
+  <div class="k">Startup work that must finish first</div><div class="v">implement IHostedLifecycleService (StartingAsync/StartedAsync) <span class="tag">8</span></div>
+  <div class="k">SignalR backplane</div><div class="v">AddSignalR().AddStackExchangeRedis(cs) <span class="note">required the moment you run more than one instance</span></div>
+  <div class="k">AI building blocks</div><div class="v">IChatClient / IEmbeddingGenerator&lt;,&gt; from Microsoft.Extensions.AI 10.x <span class="note">provider-neutral, DI-registered, with telemetry + function-calling middleware</span></div>
+</div>
+<p class="docs">Docs: <a href="https://learn.microsoft.com/aspnet/core/performance/caching/hybrid">HybridCache</a> · <a href="https://learn.microsoft.com/dotnet/core/extensions/workers">Worker Services</a></p>
+</section>
+
+<section class="unit" id="u09">
+<h2><span class="n">09</span>Observability &amp; diagnostics</h2>
+<p class="lead">OpenTelemetry is the supported path; ASP.NET Core and <code>HttpClient</code> emit conforming traces and metrics with no code of yours. Log structured values, never interpolated strings.</p>
+
+<pre><code class="language-csharp">builder.Services.AddOpenTelemetry()
+    .ConfigureResource(r =&gt; r.AddService("orders-api"))
+    .WithTracing(t =&gt; t.AddAspNetCoreInstrumentation()
+                       .AddHttpClientInstrumentation()
+                       .AddEntityFrameworkCoreInstrumentation()
+                       .AddOtlpExporter())
+    .WithMetrics(m =&gt; m.AddAspNetCoreInstrumentation()
+                       .AddRuntimeInstrumentation()
+                       .AddOtlpExporter());
+builder.Logging.AddOpenTelemetry(o =&gt; { o.IncludeScopes = true; });
+
+// compile-time logging source generator: no boxing, no format parsing at runtime
+public static partial class Log {
+    [LoggerMessage(Level = LogLevel.Warning, Message = "Order {OrderId} rejected: {Reason}")]
+    public static partial void Rejected(ILogger logger, Guid orderId, string reason);
+}</code></pre>
+
+<div class="rows">
+  <div class="k">Key built-in metrics</div><div class="v">http.server.request.duration · kestrel.active_connections · aspnetcore.routing.match_attempts · dotnet.gc.pause.time · aspnetcore.authentication.* <span class="tag new">10</span> · Microsoft.AspNetCore.MemoryPool <span class="tag new">10</span></div>
+  <div class="k">Custom metric</div><div class="v">IMeterFactory.Create("Orders").CreateCounter&lt;long&gt;("orders.placed") <span class="note">IMeterFactory, not a static Meter — it makes tests isolable</span></div>
+  <div class="k">Custom span</div><div class="v">static readonly ActivitySource Src = new("Orders"); using var a = Src.StartActivity("Reprice");</div>
+  <div class="k">Correlation id</div><div class="v">Activity.Current?.Id (W3C traceparent) · ctx.TraceIdentifier <span class="note">put the trace id in the ProblemDetails <code>traceId</code> field — AddProblemDetails does it for you</span></div>
+  <div class="k">Log scope</div><div class="v">using (logger.BeginScope(new Dictionary&lt;string,object&gt; { ["TenantId"] = id })) …</div>
+  <div class="k">Filter noisy categories</div><div class="v">"Logging": { "LogLevel": { "Microsoft.AspNetCore": "Warning", "Microsoft.EntityFrameworkCore.Database.Command": "Information" } }</div>
+  <div class="k">Health checks</div><div class="v">AddHealthChecks().AddDbContextCheck&lt;AppDb&gt;().AddRedis(cs) → MapHealthChecks("/healthz/ready", new(){ Predicate = h =&gt; h.Tags.Contains("ready") })</div>
+  <div class="k">Liveness vs readiness</div><div class="v">liveness: no dependencies at all (restarting will not fix a broken Redis); readiness: dependencies</div>
+  <div class="k">Live counters</div><div class="v">dotnet-counters monitor -p PID --counters System.Runtime,Microsoft.AspNetCore.Hosting</div>
+  <div class="k">Capture a trace / dump</div><div class="v">dotnet-trace collect -p PID --profile cpu-sampling · dotnet-dump collect -p PID · dotnet-gcdump collect -p PID</div>
+  <div class="k">Analyse a dump</div><div class="v">dotnet-dump analyze core_x → <code>clrstack -all</code>, <code>dumpheap -stat</code>, <code>gcroot &lt;addr&gt;</code></div>
+  <div class="k">Which thread is blocked</div><div class="v">dotnet-stack report -p PID <span class="note">the fast first look at a thread-pool starvation incident</span></div>
+  <div class="k">Local composition + dashboard</div><div class="v">Aspire 13.5 (Aug 2026) — AppHost + OTLP dashboard; the ".NET" prefix was dropped and 9.x jumped straight to 13.0</div>
+  <div class="k"><span class="tag">11 preview</span> OpenTelemetry in the box</div><div class="v">native OTel wiring in ASP.NET Core, no separate exporter package for the common case</div>
+</div>
+<p class="docs">Docs: <a href="https://learn.microsoft.com/dotnet/core/diagnostics/observability-with-otel">Observability with OpenTelemetry</a> · <a href="https://learn.microsoft.com/aspnet/core/host-and-deploy/health-checks">Health checks</a></p>
+</section>
+
+<section class="unit" id="u10">
+<h2><span class="n">10</span>Runtime, GC &amp; performance</h2>
+<p class="lead">Server GC plus DATAS is the .NET 9+ default for ASP.NET Core; most "we need more memory" incidents are actually a knob that was copied from a .NET 6 project.</p>
+
+<div class="rows">
+  <div class="k">GC flavours</div><div class="v">Workstation (low latency, small heap) vs Server (one heap + thread per core) — Server is the ASP.NET Core default</div>
+  <div class="k">DATAS <span class="tag new">9</span></div><div class="v">Dynamic Adaptation To Application Sizes — on by default with Server GC; scales heap count to real load. Disable: <code>&lt;GarbageCollectionAdaptationMode&gt;0&lt;/GarbageCollectionAdaptationMode&gt;</code></div>
+  <div class="k">Container memory limit</div><div class="v">DOTNET_GCHeapHardLimitPercent · the GC reads cgroup limits automatically — set the container limit, not the GC knob, first</div>
+  <div class="k">Tiered compilation / PGO</div><div class="v">tiered + dynamic PGO on by default since .NET 8; <code>DOTNET_TieredPGO=0</code> only to isolate a regression</div>
+  <div class="k"><span class="tag new">new 10</span> Stack allocation</div><div class="v">small fixed-size arrays of value <em>and</em> reference types, plus escape analysis for local struct fields and non-escaping delegates, now avoid the heap entirely</div>
+  <div class="k"><span class="tag new">new 10</span> Devirtualisation</div><div class="v">array interface methods devirtualise + inline — <code>foreach</code> over <code>IEnumerable&lt;int&gt;</code> backed by an array finally optimises like a <code>for</code> loop</div>
+  <div class="k"><span class="tag new">new 10</span> Code layout &amp; Arm64</div><div class="v">block reordering solved as an asymmetric-TSP 3-opt; new Arm64 write barrier cuts GC pauses 8–20%</div>
+  <div class="k"><span class="tag new">new 10</span> AVX10.2</div><div class="v">System.Runtime.Intrinsics.X86.Avx10v2 present but JIT support off by default — no shipping hardware yet</div>
+  <div class="k">Allocation-free string work</div><div class="v">ReadOnlySpan&lt;char&gt; · string.Create · ArrayPool&lt;byte&gt;.Shared.Rent/Return · SearchValues&lt;char&gt; <span class="tag">8</span></div>
+  <div class="k">Zero-copy pipelines</div><div class="v">System.IO.Pipelines: PipeReader/PipeWriter — what Kestrel itself and .NET 10 JSON binding use</div>
+  <div class="k">Async correctness</div><div class="v">ValueTask for hot hits · ConfigureAwait(false) in libraries (no-op in ASP.NET Core, which has no SyncContext) · never <code>.Result</code> / <code>.Wait()</code></div>
+  <div class="k">Thread-pool starvation symptom</div><div class="v">latency climbs while CPU is idle; <code>ThreadPool.ThreadCount</code> creeping up ~1/s. Cause is nearly always sync-over-async</div>
+  <div class="k">Publish modes</div><div class="v">JIT (default) · ReadyToRun (fast start, bigger) · Native AOT (fastest start, smallest RSS, no reflection/EF-provider dynamics)</div>
+  <div class="k">Native AOT constraints</div><div class="v">no runtime codegen, no unbounded reflection, no <code>Assembly.Load</code>; needs source-generated JSON, CreateSlimBuilder, and rules out MVC/Razor/EF migrations</div>
+  <div class="k">Trim/AOT warnings as errors</div><div class="v">&lt;IsAotCompatible&gt;true&lt;/IsAotCompatible&gt; on every library you own</div>
+  <div class="k">Benchmarking</div><div class="v">BenchmarkDotNet + [MemoryDiagnoser]; <code>dotnet run -c Release</code> only — never benchmark a Debug build</div>
+  <div class="k"><span class="tag">11 preview</span> Runtime async</div><div class="v">async/await state machines moved into the runtime — less allocation and better stacks; still preview-gated</div>
+</div>
+<div class="callout"><strong>Trade-off to be able to argue.</strong> Native AOT buys ~10–30 ms cold start and a much smaller working set, and costs you reflection-based libraries, dynamic plugins, EF Core migrations and a slower inner loop. For a request-serving API kept warm, ReadyToRun + tiered PGO is usually the better default; AOT earns its keep in scale-to-zero, per-request-billed, or high-density workloads.</div>
+<p class="docs">Docs: <a href="https://learn.microsoft.com/dotnet/core/whats-new/dotnet-10/runtime">What's new in the .NET 10 runtime</a> · <a href="https://learn.microsoft.com/dotnet/core/runtime-config/garbage-collector">GC config</a></p>
+</section>
+
+<section class="unit" id="u11">
+<h2><span class="n">11</span>CLI, project files &amp; deployment</h2>
+
+<h3>Commands used weekly</h3>
+<div class="rows">
+  <div class="k">Scaffold</div><div class="v">dotnet new webapi -o Api --use-controllers · dotnet new list · dotnet new gitignore</div>
+  <div class="k">Solution &amp; references</div><div class="v">dotnet new sln · dotnet sln add **/*.csproj · dotnet add Api reference Domain</div>
+  <div class="k">Restore / build / test</div><div class="v">dotnet restore --locked-mode · dotnet build -c Release --no-restore · dotnet test --logger trx --collect:"XPlat Code Coverage"</div>
+  <div class="k">Run with reload</div><div class="v">dotnet watch <span class="note">hot reload is the default; <code>dotnet watch --no-hot-reload</code> forces a restart</span></div>
+  <div class="k">Publish</div><div class="v">dotnet publish -c Release -r linux-x64 --self-contained false -p:PublishReadyToRun=true</div>
+  <div class="k">Native AOT publish</div><div class="v">dotnet publish -c Release -r linux-x64 -p:PublishAot=true</div>
+  <div class="k">Container without a Dockerfile</div><div class="v">dotnet publish -c Release /t:PublishContainer -p:ContainerRepository=orders-api</div>
+  <div class="k">Packages</div><div class="v">dotnet add package X --version 10.* · dotnet list package --outdated --vulnerable --deprecated</div>
+  <div class="k">Format &amp; analyse</div><div class="v">dotnet format · dotnet format analyzers --verify-no-changes (CI gate)</div>
+  <div class="k">Installed runtimes / SDKs</div><div class="v">dotnet --info · dotnet --list-runtimes · dotnet --list-sdks</div>
+  <div class="k">Tools</div><div class="v">dotnet tool install -g dotnet-ef · dotnet tool restore (manifest) · <code>dnx &lt;tool&gt;</code> <span class="tag new">10</span> runs a tool without installing it</div>
+  <div class="k"><span class="tag new">new 10</span> File-based apps</div><div class="v">dotnet run app.cs — no .csproj; <code>#:package Humanizer@2.14.1</code>, <code>#:property</code>, <code>#:sdk</code>, shebangs; <code>dotnet project convert app.cs</code> promotes it <span class="note">single file only in 10; multi-file is a .NET 11 goal</span></div>
+  <div class="k">Trace a slow build</div><div class="v">dotnet build -bl → <code>msbuild.binlog</code>, open in the MSBuild Structured Log Viewer</div>
+</div>
+
+<h3>Project and repo files</h3>
+<pre><code class="language-xml">&lt;Project Sdk="Microsoft.NET.Sdk.Web"&gt;
+  &lt;PropertyGroup&gt;
+    &lt;TargetFramework&gt;net10.0&lt;/TargetFramework&gt;
+    &lt;Nullable&gt;enable&lt;/Nullable&gt;
+    &lt;ImplicitUsings&gt;enable&lt;/ImplicitUsings&gt;
+    &lt;TreatWarningsAsErrors&gt;true&lt;/TreatWarningsAsErrors&gt;
+    &lt;InvariantGlobalization&gt;true&lt;/InvariantGlobalization&gt;
+    &lt;GenerateDocumentationFile&gt;true&lt;/GenerateDocumentationFile&gt;
+    &lt;PublishReadyToRun&gt;true&lt;/PublishReadyToRun&gt;
+  &lt;/PropertyGroup&gt;
+&lt;/Project&gt;</code></pre>
+
+<div class="rows">
+  <div class="k">Settings for every project in the repo</div><div class="v">Directory.Build.props / .targets at the repo root</div>
+  <div class="k">One place for package versions</div><div class="v">Directory.Packages.props + &lt;ManagePackageVersionsCentrally&gt;true&lt;/ManagePackageVersionsCentrally&gt; <span class="note">then <code>&lt;PackageReference Include="X" /&gt;</code> carries no version</span></div>
+  <div class="k">Pin the SDK</div><div class="v">global.json → { "sdk": { "version": "10.0.100", "rollForward": "latestFeature" } }</div>
+  <div class="k">Reproducible restore</div><div class="v">packages.lock.json + <code>dotnet restore --locked-mode</code> in CI</div>
+  <div class="k">Feed hardening</div><div class="v">nuget.config with <code>&lt;clear /&gt;</code> then one internal feed + packageSourceMapping</div>
+  <div class="k">Runtime knobs at publish time</div><div class="v">runtimeconfig.template.json → System.GC.Server, System.Globalization.Invariant, ThreadPool.MinThreads</div>
+  <div class="k">Container base images</div><div class="v">mcr.microsoft.com/dotnet/aspnet:10.0 · <code>-alpine</code> (musl, smallest) · <code>-noble-chiseled</code> (no shell, no package manager — the production default)</div>
+  <div class="k">Non-root container</div><div class="v">USER $APP_UID <span class="note">chiseled images run as non-root and expose 8080 by default (since .NET 8, not 80)</span></div>
+  <div class="k">Kubernetes probes</div><div class="v">/healthz/live → liveness, /healthz/ready → readiness; keep <code>terminationGracePeriodSeconds</code> &gt; ShutdownTimeout</div>
+</div>
+<p class="docs">Docs: <a href="https://learn.microsoft.com/dotnet/core/tools/">.NET CLI reference</a> · <a href="https://learn.microsoft.com/dotnet/core/docker/publish-as-container">Publish as a container</a></p>
+</section>
+
+<section class="unit" id="u12">
+<h2><span class="n">12</span>Modern vs legacy</h2>
+<p class="lead">The right-hand column is what you will actually meet in a codebase that started before .NET 6 — recognise it, and know the cost of leaving it.</p>
+<div class="tw">
+<table>
+<thead><tr><th>Task</th><th>Modern</th><th>Legacy still seen</th><th>Since</th></tr></thead>
+<tbody>
+<tr><td class="t">App startup</td><td>Top-level <code>Program.cs</code> with <code>WebApplication</code></td><td><code>Startup.cs</code> + <code>ConfigureServices</code>/<code>Configure</code>, <code>IWebHostBuilder</code></td><td>6</td></tr>
+<tr><td class="t">HTTP endpoints</td><td>Minimal APIs + <code>MapGroup</code> + <code>TypedResults</code></td><td>Controllers + <code>IActionResult</code>; Web API 2 / <code>ApiController</code> on .NET Framework</td><td>6</td></tr>
+<tr><td class="t">Result types</td><td><code>TypedResults</code> / <code>Results&lt;T1,T2&gt;</code></td><td><code>Results.Ok(x)</code> (untyped), <code>ObjectResult</code></td><td>7</td></tr>
+<tr><td class="t">Validation in minimal APIs</td><td><code>AddValidation()</code> + DataAnnotations, source-generated</td><td>FluentValidation filter, or hand-rolled <code>if (!ModelState.IsValid)</code></td><td>10</td></tr>
+<tr><td class="t">API documentation</td><td><code>Microsoft.AspNetCore.OpenApi</code> → OpenAPI 3.1 + YAML</td><td>Swashbuckle.AspNetCore / NSwag <code>AddSwaggerGen</code></td><td>9</td></tr>
+<tr class="hi"><td class="t">Read caching</td><td><code>HybridCache.GetOrCreateAsync</code> with tags</td><td><code>IMemoryCache</code> + a <code>SemaphoreSlim</code> stampede lock; <code>IDistributedCache</code> + manual JSON</td><td>9</td></tr>
+<tr><td class="t">Response caching</td><td>Output caching (<code>CacheOutput</code>, server-side, taggable)</td><td><code>UseResponseCaching</code> (header-driven, easy to defeat)</td><td>7</td></tr>
+<tr><td class="t">Retries &amp; breakers</td><td><code>AddStandardResilienceHandler()</code> (Polly v8 pipelines)</td><td><code>Microsoft.Extensions.Http.Polly</code> / <code>AddPolicyHandler</code> (Polly v7)</td><td>8</td></tr>
+<tr><td class="t">Outbound HTTP</td><td><code>IHttpClientFactory</code> + typed client</td><td><code>new HttpClient()</code> per call, or one <code>static HttpClient</code> forever</td><td>2.1</td></tr>
+<tr class="hi"><td class="t">Error responses</td><td><code>AddProblemDetails()</code> + <code>IExceptionHandler</code> (RFC 9457)</td><td>custom exception middleware writing ad-hoc JSON</td><td>8</td></tr>
+<tr><td class="t">Time in tests</td><td><code>TimeProvider</code> injected</td><td><code>DateTime.UtcNow</code>, or a bespoke <code>IClock</code></td><td>8</td></tr>
+<tr><td class="t">Multiple impls of one interface</td><td>Keyed services (<code>AddKeyedScoped</code>)</td><td>factory delegate, marker interfaces, or a third-party container</td><td>8</td></tr>
+<tr><td class="t">Static assets</td><td><code>MapStaticAssets()</code> (fingerprinted, pre-compressed)</td><td><code>UseStaticFiles()</code> + a bundler task</td><td>9</td></tr>
+<tr><td class="t">Logging call sites</td><td><code>[LoggerMessage]</code> source generator</td><td><code>logger.LogInformation($"…{id}")</code> <span class="note">interpolation destroys structure and always allocates</span></td><td>6</td></tr>
+<tr class="hi"><td class="t">Telemetry</td><td>OpenTelemetry + <code>Meter</code>/<code>ActivitySource</code></td><td>Application Insights SDK only, <code>EventCounters</code>, <code>DiagnosticSource</code> by hand</td><td>6</td></tr>
+<tr><td class="t">Real-time push</td><td>SignalR, or SSE via <code>TypedResults.ServerSentEvents</code></td><td>long polling, or a bare WebSocket loop</td><td>10</td></tr>
+<tr><td class="t">JSON</td><td><code>System.Text.Json</code> (+ source generator)</td><td><code>Newtonsoft.Json</code> — still required for <code>JsonPatch</code>-heavy and polymorphic-by-convention code</td><td>3.0</td></tr>
+<tr><td class="t">Background jobs</td><td><code>BackgroundService</code> / <code>PeriodicTimer</code>, or a real queue</td><td><code>HostingEnvironment.QueueBackgroundWorkItem</code>, <code>Timer</code>, <code>Task.Run</code> and hope</td><td>3.0</td></tr>
+<tr><td class="t">Integration tests</td><td><code>WebApplicationFactory&lt;Program&gt;</code> + Testcontainers</td><td><code>TestServer</code> wired by hand; a shared "test" database</td><td>3.0</td></tr>
+<tr><td class="t">Bulk data changes</td><td><code>ExecuteUpdateAsync</code> / <code>ExecuteDeleteAsync</code></td><td>load-modify-<code>SaveChanges</code> loops; EF Core 2.x <code>FromSql</code> strings</td><td>7</td></tr>
+<tr><td class="t">Package versions</td><td><code>Directory.Packages.props</code> (central management)</td><td>a version on every <code>PackageReference</code>, drifting per project</td><td>6</td></tr>
+<tr class="hi"><td class="t">Local orchestration</td><td>Aspire 13.5 AppHost + dashboard</td><td><code>docker-compose.yml</code> + a README of environment variables</td><td>Aspire 13</td></tr>
+<tr><td class="t">Auth for SPA + API</td><td>OIDC/JWT bearer; <code>MapIdentityApi</code> for first-party</td><td>cookie auth returning 302 to <code>/Account/Login</code> for XHR calls</td><td>8</td></tr>
+<tr><td class="t">Interactive web UI</td><td>Blazor Web App (SSR + <code>@rendermode</code> per component)</td><td>separate Blazor Server / Blazor WASM projects; MVC + jQuery; Web Forms on Framework</td><td>8</td></tr>
+</tbody>
+</table>
+</div>
+<p class="docs">Docs: <a href="https://learn.microsoft.com/aspnet/core/migration/70-80">Migration guides</a> · <a href="https://learn.microsoft.com/dotnet/core/compatibility/10.0">.NET 10 breaking changes</a></p>
+</section>
+
+<section class="unit" id="u13">
+<h2><span class="n">13</span>Version timeline &amp; support</h2>
+<p class="lead">Latest first. Even-numbered releases are LTS (3 years), odd are STS (18 months of the cycle, 2 years total). Verified against the official support policy on 2026-09-08.</p>
+<div class="tw">
+<table>
+<thead><tr><th>Version</th><th>Released</th><th>Support</th><th>Headline changes</th></tr></thead>
+<tbody>
+<tr><td><strong>11</strong></td><td>Nov 2026 <em>(expected)</em><br>Preview 7: 2026-08-19</td><td>STS</td><td class="t"><span class="tag">preview</span> Runtime async; native OpenTelemetry in ASP.NET Core; Zstandard response compression; Kestrel throughput work; Blazor circuit pausing when a tab is hidden + <code>CacheView</code>; async validation and localised validation messages (<code>ValidatableType</code>/<code>SkipValidation</code> leave preview); OpenAPI 3.2 incl. SSE endpoints; TLS channel binding via <code>ITlsConnectionFeature</code>; automatic cross-origin protection reverted to opt-in in Preview 7; multi-file <code>dotnet run</code>.</td></tr>
+<tr class="hi"><td><strong>10</strong></td><td>2025-11-11<br>latest patch 10.0.11 (2026-08-11)</td><td><strong>LTS</strong> → 2028-11-14</td><td class="t"><span class="tag new">current</span> <em>Newly stable:</em> minimal-API validation (<code>AddValidation</code>), <code>TypedResults.ServerSentEvents</code>, passkeys/WebAuthn in Identity, <code>IOpenApiDocumentProvider</code>, file-based apps (<code>dotnet run app.cs</code>) and <code>dnx</code>. <em>Newly default:</em> OpenAPI 3.1 + YAML, Microsoft.OpenApi 2.0 (<code>JsonNode</code> in transformers), JSON request bodies read via <code>PipeReader</code>, cookie auth returns 401/403 on API endpoints instead of redirecting, Kestrel memory-pool eviction, <code>*.localhost</code> as loopback, no logging of exceptions an <code>IExceptionHandler</code> handled. <em>Runtime:</em> stack allocation of small arrays (value <em>and</em> reference), escape analysis for struct fields and delegates, array-interface devirtualisation, TSP-based code layout, new Arm64 write barrier (GC pauses −8…−20%), AVX10.2 surface (JIT support off). <em>Also:</em> <code>JsonSerializerOptions.Strict</code>, C# 14, EF Core 10.</td></tr>
+<tr><td><strong>9</strong></td><td>2024-11-12</td><td>STS → <strong>2026-11-10</strong></td><td class="t"><span class="tag old">2 months of support left</span> Built-in OpenAPI document generation (Swashbuckle dropped from templates); HybridCache GA; <code>MapStaticAssets</code>; DATAS on by default with Server GC; Blazor reconnection UI; <code>[Authorize]</code>/route metadata improvements.</td></tr>
+<tr><td><strong>8</strong></td><td>2023-11-14</td><td>LTS → <strong>2026-11-10</strong></td><td class="t"><span class="tag old">2 months of support left</span> Blazor Web App with per-component render modes; Native AOT for ASP.NET Core APIs + <code>CreateSlimBuilder</code>; keyed DI; <code>TimeProvider</code>; <code>IExceptionHandler</code>; <code>MapIdentityApi</code>; <code>Microsoft.Extensions.Http.Resilience</code>; chiseled containers, non-root, port 8080.</td></tr>
+<tr><td><strong>7</strong></td><td>2022-11-08</td><td>ended 2024-05-14</td><td class="t">Rate-limiting middleware; output caching; endpoint filters and route groups; <code>Results&lt;T1,T2&gt;</code>; EF Core <code>ExecuteUpdate</code>/<code>ExecuteDelete</code>; gRPC JSON transcoding.</td></tr>
+<tr><td><strong>6</strong></td><td>2021-11-08</td><td>ended 2024-11-12</td><td class="t">Minimal APIs and minimal hosting (<code>Startup.cs</code> retired from templates); hot reload; <code>[LoggerMessage]</code>; Blazor WASM AOT; the last LTS many "legacy" services still sit on.</td></tr>
+<tr><td><strong>5</strong></td><td>2020-11-10</td><td>ended 2022-05-10</td><td class="t">".NET Core" renamed ".NET"; single unified BCL; C# 9.</td></tr>
+<tr><td><strong>3.1</strong></td><td>2019-12-03</td><td>ended 2022-12-13</td><td class="t">Last <code>Startup.cs</code>-era LTS; Blazor Server, gRPC, Worker Service, <code>System.Text.Json</code> as the default formatter.</td></tr>
+<tr><td><strong>2.1</strong></td><td>2018-05-30</td><td>ended 2021-08-21</td><td class="t"><code>IHttpClientFactory</code>, <code>Span&lt;T&gt;</code>, SignalR for ASP.NET Core.</td></tr>
+<tr><td><strong>1.0</strong></td><td>2016-06-27</td><td>ended 2019-06-27</td><td class="t">First cross-platform ASP.NET Core; <code>project.json</code> (removed again in 1.1).</td></tr>
+<tr><td>Framework 4.8.1</td><td>2022-08-09</td><td>follows Windows</td><td class="t">ASP.NET (Web Forms / MVC 5 / Web API 2) — supported but frozen; migration target is ASP.NET Core, not a newer Framework.</td></tr>
+</tbody>
+</table>
+</div>
+<div class="callout"><strong>The one date to hold.</strong> 10 Nov 2026: .NET 8 and .NET 9 both go out of support on the same Patch Tuesday. From that day there are no security fixes for either, and the supported hops are 8→10 (LTS→LTS, low risk) or 9→10. Plan the upgrade branch now, not in November.</div>
+<p class="docs">Docs: <a href="https://dotnet.microsoft.com/platform/support/policy/dotnet-core">.NET support policy</a> · <a href="https://learn.microsoft.com/aspnet/core/release-notes/aspnetcore-10.0">What's new in ASP.NET Core 10</a></p>
+</section>
+
+<section class="unit" id="u14">
+<h2><span class="n">14</span>Gotchas &amp; pitfalls</h2>
+<ul class="tight">
+<li><span class="mono">Middleware order</span> — <code>UseCors</code> after <code>UseRouting</code> and before <code>UseAuthorization</code>; put <code>UseForwardedHeaders</code> first or every scheme/IP downstream is wrong.</li>
+<li><span class="mono">UseForwardedHeaders ignored</span> — without <code>KnownProxies</code> or <code>KnownNetworks</code> it silently drops the headers for anything that is not loopback. Symptom: <code>Request.Scheme == "http"</code> behind an HTTPS ingress, giving redirect loops.</li>
+<li><span class="mono">Captive dependency</span> — a scoped service injected into a singleton. Turn on <code>ValidateScopes</code>/<code>ValidateOnBuild</code> in every environment, not just Development.</li>
+<li><span class="mono">Sync over async</span> — <code>.Result</code>, <code>.Wait()</code>, <code>GetAwaiter().GetResult()</code> starve the thread pool. Symptom: p99 latency climbing while CPU sits at 20%.</li>
+<li><span class="mono">Fire and forget</span> — <code>_ = DoWorkAsync()</code> in a request loses the exception and dies at shutdown. Use a channel + <code>BackgroundService</code>, or a real queue.</li>
+<li><span class="mono">CancellationToken not threaded through</span> — a cancelled request keeps burning a DB connection to the end. Accept <code>CancellationToken ct</code> in every handler and pass it down.</li>
+<li><span class="mono">HttpClient</span> — <code>new HttpClient()</code> per request exhausts ports (TIME_WAIT); a process-wide static one never picks up DNS changes. <code>IHttpClientFactory</code> or <code>PooledConnectionLifetime</code>.</li>
+<li><span class="mono">DbContext is not thread-safe</span> — no <code>Task.WhenAll</code> over queries on one context. Symptom: <em>A second operation was started on this context instance</em>.</li>
+<li><span class="mono">EF tracking in read paths</span> — forgetting <code>AsNoTracking()</code> on list endpoints is the most common "EF is slow" cause, right after N+1 from lazy loading.</li>
+<li><span class="mono">Migrate() at startup</span> — races across replicas and blocks readiness. Use <code>dotnet ef migrations bundle</code> as a deploy step.</li>
+<li><span class="mono">IMemoryCache stampede</span> — on a cold key every concurrent request rebuilds the value. <code>HybridCache</code> deduplicates; a plain <code>IMemoryCache</code> does not.</li>
+<li><span class="mono">Unbounded IMemoryCache</span> — no <code>SizeLimit</code> plus no <code>Size</code> on entries equals a slow OOM. Set both, or use <code>HybridCache</code>.</li>
+<li><span class="mono">In-memory state on more than one replica</span> — sessions, SignalR groups, rate-limit counters and data-protection keys all need a shared store or the behaviour is per-instance.</li>
+<li><span class="mono">Data protection keys not persisted</span> — a container restart invalidates every antiforgery token, auth cookie and protected payload. Persist and <code>SetApplicationName</code>.</li>
+<li><span class="mono">CORS <code>AllowAnyOrigin</code> + <code>AllowCredentials</code></span> — throws at runtime; the browser also rejects it. Enumerate origins.</li>
+<li><span class="mono">Serving files with <code>UseStaticFiles</code> before auth</span> — correct and intentional; anything under <code>wwwroot</code> is public. Do not put reports there.</li>
+<li><span class="mono">Two JSON configurations</span> — <code>ConfigureHttpJsonOptions</code> (minimal APIs) and <code>AddJsonOptions</code> (MVC) are separate; setting one leaves the other on defaults.</li>
+<li><span class="mono">Custom JsonConverter after .NET 10</span> — request bodies now arrive via <code>PipeReader</code>, so a converter that ignores <code>Utf8JsonReader.HasValueSequence</code> breaks on large payloads.</li>
+<li><span class="mono">Interpolated log messages</span> — <code>LogInformation($"user {id}")</code> allocates always and produces no structured field. Use the template overload or <code>[LoggerMessage]</code>.</li>
+<li><span class="mono">Exceptions as flow control</span> — a first-chance exception costs microseconds each and floods diagnostics; a 404 is a return value, not a <code>throw</code>.</li>
+<li><span class="mono">Health check that touches every dependency</span> — as a liveness probe it turns a Redis blip into a rolling restart. Liveness must be dependency-free.</li>
+<li><span class="mono">Kestrel body-size limit</span> — 30 MB by default; uploads fail with 413 long before your code sees them.</li>
+<li><span class="mono">InvariantGlobalization=true</span> — smaller container, but culture-aware comparison and formatting silently change. Fine for an API, dangerous for anything user-facing.</li>
+<li><span class="mono">Native AOT + reflection</span> — anything doing runtime type discovery (some DI scanners, AutoMapper profiles, EF migrations) fails at publish or at first call, not at build.</li>
+<li><span class="mono">Environment variable separator</span> — <code>Db:Password</code> only works on Windows; use <code>Db__Password</code> everywhere.</li>
+<li><span class="mono">Registering services after <code>builder.Build()</code></span> — throws; and <code>IOptionsSnapshot</code> resolved from a singleton throws too. Use <code>IOptionsMonitor</code>.</li>
+</ul>
+<p class="docs">Docs: <a href="https://learn.microsoft.com/aspnet/core/fundamentals/best-practices">ASP.NET Core performance best practices</a> · <a href="https://learn.microsoft.com/dotnet/core/compatibility/10.0">Breaking changes in .NET 10</a></p>
+</section>
+</main>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.11.1/highlight.min.js"></script>
+<script>
+(function () {
+  try { if (window.hljs) hljs.highlightAll(); } catch (e) { /* colour is decoration */ }
+
+  var links = Array.prototype.slice.call(document.querySelectorAll('.units a'));
+  var byId = {};
+  links.forEach(function (a) { byId[a.getAttribute('href').slice(1)] = a; });
+  var current = null;
+  function mark(id) {
+    if (!byId[id] || current === id) return;
+    if (current && byId[current]) byId[current].removeAttribute('aria-current');
+    byId[id].setAttribute('aria-current', 'true');
+    current = id;
+  }
+  var sections = Array.prototype.slice.call(document.querySelectorAll('section.unit'));
+  if ('IntersectionObserver' in window) {
+    var seen = {};
+    var io = new IntersectionObserver(function (entries) {
+      entries.forEach(function (e) { seen[e.target.id] = e.isIntersecting; });
+      for (var i = 0; i < sections.length; i++) {
+        if (seen[sections[i].id]) { mark(sections[i].id); break; }
+      }
+    }, { rootMargin: '-10% 0px -70% 0px', threshold: 0 });
+    sections.forEach(function (s) { io.observe(s); });
+  }
+  if (sections.length) mark(sections[0].id);
+
+  var btn = document.querySelector('.sidetoggle');
+  if (btn) {
+    btn.addEventListener('click', function () {
+      var open = document.body.classList.toggle('nav-open');
+      btn.setAttribute('aria-expanded', open ? 'true' : 'false');
+    });
+    document.querySelector('.side').addEventListener('click', function (e) {
+      if (e.target.closest('a')) {
+        document.body.classList.remove('nav-open');
+        btn.setAttribute('aria-expanded', 'false');
+      }
+    });
+  }
+})();
+</script>
+</body>
+</html>

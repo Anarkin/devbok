@@ -1,0 +1,58 @@
+{
+  "slug": "aspnet",
+  "title": "ASP.NET Core & .NET runtime",
+  "topic": "ASP.NET Core & .NET runtime (assume C# language features are already covered; focus on the framework and runtime)",
+  "category": "backend",
+  "accent": "#512bd4",
+  "created": "2026-09-08",
+  "kinds": {
+    "study": {
+      "next": 2,
+      "versions": [
+        {
+          "v": 1,
+          "generated": "2026-09-08",
+          "prompt": "3e395ac4",
+          "file": "study.v1.html"
+        }
+      ],
+      "pending": []
+    },
+    "experience": {
+      "next": 2,
+      "versions": [
+        {
+          "v": 1,
+          "generated": "2026-09-08",
+          "prompt": "f284a113",
+          "file": "experience.v1.html"
+        }
+      ],
+      "pending": []
+    },
+    "interview": {
+      "next": 2,
+      "versions": [
+        {
+          "v": 1,
+          "generated": "2026-09-08",
+          "prompt": "880c04f3",
+          "file": "interview.v1.html"
+        }
+      ],
+      "pending": []
+    },
+    "cheatsheet": {
+      "next": 2,
+      "versions": [
+        {
+          "v": 1,
+          "generated": "2026-09-08",
+          "prompt": "ccd2d4a9",
+          "file": "cheatsheet.v1.html"
+        }
+      ],
+      "pending": []
+    }
+  }
+}
