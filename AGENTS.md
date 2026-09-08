@@ -9,7 +9,7 @@ Personal interview-prep knowledge base. One **topic** (e.g. `csharp`) has four *
 | `interview`  | `prompts/interview.md`  | question bank: topic map as a checklist, then every question with answer, example, follow-ups, wrong answer, design exercises |
 | `cheatsheet` | `prompts/cheatsheet.md` | dense, printable reference card kept open while coding: syntax/APIs, commands and flags, modern-vs-legacy table, version timeline |
 
-Status: all four kind prompts are in template form and devbok-ready (see "Prompt contract"), but none has been run end to end yet; the first real `/devbok-new` on a small topic is the next step. `prepare` refuses a prompt that is not ready, and the generating skills skip such kinds.
+Status: all four kind prompts are in template form and devbok-ready (see "Prompt contract"); the pipeline has run end to end once (`csharp-async` v1, before the shared design system existed, so its artifacts are stale). `prepare` refuses a prompt that is not ready, and the generating skills skip such kinds.
 
 ## Layout
 
