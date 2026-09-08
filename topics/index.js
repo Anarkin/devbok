@@ -88,7 +88,14 @@ window.DEVBOK_TOPICS = [
     "accent": "#1d4ed8",
     "created": "2026-09-08",
     "kinds": {
-      "study": [],
+      "study": [
+        {
+          "v": 1,
+          "generated": "2026-09-08",
+          "prompt": "3e395ac4",
+          "file": "topics/appsec/study.v1.html"
+        }
+      ],
       "experience": [
         {
           "v": 1,

@@ -1,0 +1,1068 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Application security · cheatsheet · devbok</title>
+<link rel="preconnect" href="https://fonts.googleapis.com/">
+<link rel="preconnect" href="https://fonts.gstatic.com/" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Cascadia+Mono:wght@400;700&amp;display=swap">
+<style>
+:root { color-scheme: light;
+  --bg: #ffffff; --fg: #111111; --muted: #6b6b6b; --line: #111111; --soft: #f4f4f4; --border: #cccccc;
+  --accent: #1d4ed8; --accent-soft: color-mix(in srgb, var(--accent) 12%, var(--bg)); }
+@media (prefers-color-scheme: dark) { :root { color-scheme: dark;
+  --bg: #222222; --fg: #cccccc; --muted: #8f8f8f; --line: #111111; --soft: #2c2c2c; --border: #4a4a4a;
+  --accent: #6689ea; --accent-soft: color-mix(in srgb, var(--accent) 16%, var(--bg)); } }
+
+*, *::before, *::after { box-sizing: border-box; }
+html { -webkit-text-size-adjust: 100%; }
+body { margin: 0; background: var(--bg); color: var(--fg);
+  font-family: system-ui, sans-serif; font-size: 16px; line-height: 1.6; overflow-wrap: break-word; }
+h1, h2, h3 { font-family: system-ui, sans-serif; font-weight: 700; }
+h2 { font-size: 1.5em; }
+h3 { font-size: 1.17em; }
+a { color: var(--accent); }
+a:focus-visible, button:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+img { max-width: 100%; }
+
+code, kbd, pre, .mono, .chip, .since, .docs, .hero .meta, .side, dl.rows dd, table.grid { font-family: "Cascadia Mono", Consolas, monospace; font-size: 12px; }
+code { background: var(--soft); border: 1px solid var(--border); border-radius: 3px; padding: 0 .3em; overflow-wrap: anywhere; }
+pre { background: var(--soft); border: 1px solid var(--border); border-radius: 4px;
+  margin: 10px 0 0; padding: 10px 12px; overflow-x: auto; max-width: 100%; line-height: 1.5; }
+pre code { background: none; border: 0; padding: 0; white-space: pre; }
+
+.hero { margin: 0 0 24px; padding: 0 0 24px; border-bottom: 2px solid var(--line); }
+.hero h1 { margin: 0 0 8px; font-size: 2em; line-height: 1.2; font-weight: 700; }
+.hero .meta { margin: 0 0 12px; font-family: "Cascadia Mono", Consolas, monospace; font-size: 12px; color: var(--muted); }
+.hero .summary { margin: 0 0 12px; }
+.hero .chips { display: flex; flex-wrap: wrap; gap: 6px; margin: 0; }
+
+.side { position: fixed; top: 0; bottom: 0; left: 0; width: 260px; display: flex; flex-direction: column; background: var(--bg); border-right: 2px solid var(--line); font-family: "Cascadia Mono", Consolas, monospace; font-size: 12px; }
+.units { list-style: none; margin: 0; padding: 12px 0; overflow-y: auto; flex: 1; }
+.units a { display: grid; grid-template-columns: 2.5em 1fr; padding: 9px 20px; color: var(--fg); text-decoration: none; line-height: 1.4; }
+.units .n { color: var(--muted); }
+.units a:hover { background: var(--soft); }
+.units a[aria-current="true"] { background: var(--accent-soft); color: var(--accent); }
+.units a[aria-current="true"] .n { color: var(--accent); }
+.side footer { padding: 12px 20px; border-top: 2px solid var(--line); color: var(--muted); line-height: 1.5; }
+
+.content { margin-left: 260px; padding: 24px; max-width: 120ch; min-width: 0; }
+.unit { border-top: 2px solid var(--line); margin: 0 0 26px; padding: 14px 0 0; min-width: 0; }
+.unit > header { display: flex; flex-wrap: wrap; align-items: baseline; gap: 4px 14px; margin: 0 0 4px; min-width: 0; }
+.unit h2 { margin: 0; line-height: 1.25; }
+.unit h2 .n { font-family: "Cascadia Mono", Consolas, monospace; font-size: 12px; color: var(--muted); margin-right: 10px; }
+.unit h3 { margin: 16px 0 0; }
+.docs { color: var(--muted); }
+.docs a { color: var(--accent); text-decoration: none; }
+.docs a:hover { text-decoration: underline; }
+
+dl.rows { display: grid; grid-template-columns: minmax(0, 30ch) minmax(0, 1fr);
+  margin: 12px 0 0; border-top: 1px solid var(--border); min-width: 0; }
+dl.rows dt { grid-column: 1; margin: 0; padding: 6px 14px 6px 0; border-bottom: 1px solid var(--border);
+  min-width: 0; line-height: 1.35; }
+dl.rows dd { grid-column: 2; margin: 0; padding: 7px 0 6px; border-bottom: 1px solid var(--border);
+  min-width: 0; line-height: 1.5; overflow-wrap: anywhere; }
+dl.rows dd code { background: none; border: 0; padding: 0; }
+.cmt { color: var(--muted); }
+.bad { color: var(--muted); }
+
+.chip { display: inline-block; text-transform: uppercase; letter-spacing: .03em;
+  background: var(--soft); border: 1px solid var(--border); border-radius: 4px; padding: 2px 7px; }
+.since { display: inline-block; border: 1px solid var(--accent); border-radius: 4px;
+  padding: 0 5px; color: var(--accent); white-space: nowrap; }
+.note { background: var(--soft); border-left: 3px solid var(--accent); padding: 8px 12px; margin: 12px 0 0; }
+.note p { margin: 0; }
+
+.tw { overflow-x: auto; margin: 12px 0 0; min-width: 0; }
+table.grid { border-collapse: collapse; width: 100%; }
+table.grid th { text-align: left; font-weight: 400; color: var(--muted);
+  border-bottom: 1px solid var(--border); padding: 6px 14px 6px 0; vertical-align: bottom; }
+table.grid td { border-bottom: 1px solid var(--border); padding: 6px 14px 6px 0; vertical-align: top; }
+table.grid td code { background: none; border: 0; padding: 0; }
+table.grid tr.hi td { background: var(--accent-soft); }
+
+ul.tight { margin: 12px 0 0; padding-left: 1.1em; }
+ul.tight li { margin: 0 0 3px; }
+ul.tight code { overflow-wrap: anywhere; }
+
+.navtoggle { display: none; position: fixed; top: 10px; left: 10px; z-index: 30;
+  font-family: "Cascadia Mono", Consolas, monospace; font-size: 12px; color: var(--fg);
+  background: var(--bg); border: 1px solid var(--line); border-radius: 4px; padding: 6px 10px; cursor: pointer; }
+@media (max-width: 720px) {
+  .navtoggle { display: block; }
+  .side { width: min(260px, 84%); transform: translateX(-102%); transition: transform .15s ease; z-index: 25; }
+  body.nav-open .side { transform: none; }
+  .content { margin-left: 0; padding: 52px 16px 24px; }
+  dl.rows { grid-template-columns: minmax(0, 1fr); }
+  dl.rows dt { padding: 6px 0 0; border-bottom: 0; font-weight: 600; }
+  dl.rows dd { padding: 2px 0 7px; }
+}
+
+@media print {
+  :root { color-scheme: light;
+    --bg: #ffffff; --fg: #000000; --muted: #444444; --line: #000000; --soft: #ffffff; --border: #999999;
+    --accent: #000000; --accent-soft: #ffffff; }
+  .side, .navtoggle { display: none !important; }
+  body { font-size: 8.5pt; line-height: 1.3; background: #fff; color: #000; }
+  .content { margin: 0; padding: 0; max-width: 100%; }
+  code, kbd, pre, .chip, .since, .docs, .hero .meta, dl.rows dd, table.grid { font-size: 7pt; }
+  .hero { padding-bottom: 8pt; margin-bottom: 10pt; border-bottom: 1pt solid #000; }
+  .hero h1 { font-size: 16pt; }
+  .unit { break-inside: avoid; page-break-inside: avoid; margin: 0 0 8pt; padding-top: 6pt; border-top: 1pt solid #000; }
+  .unit h2 { font-size: 10.5pt; }
+  pre { background: #fff; border: 1pt solid #999; padding: 4pt 6pt; }
+  .note { background: #fff; border-left: 2pt solid #000; }
+  code { border: 0; padding: 0; }
+  a, a:visited { color: #000; text-decoration: none; }
+  a[href]::after { content: ""; }
+  @page { size: A4; margin: 10mm; }
+}
+</style>
+<style>
+/* devbok: the shared code palette (prompts/shared/page.md, "Code"). */
+:root {
+  --code: color-mix(in srgb, var(--accent) 70%, var(--fg));
+  --hl-kw: #a626a4; --hl-str: #50a14f; --hl-num: #986801; --hl-cmt: #6b6b6b; --hl-type: #0184bc; --hl-fn: #4078f2; --hl-attr: #986801;
+}
+@media (prefers-color-scheme: dark) {
+  :root { --hl-kw: #c678dd; --hl-str: #98c379; --hl-num: #d19a66; --hl-cmt: #8f8f8f; --hl-type: #56b6c2; --hl-fn: #61afef; --hl-attr: #e5c07b; }
+}
+code { background: var(--soft); border: 1px solid var(--border); border-radius: 3px; padding: 0 .3em; color: var(--code); overflow-wrap: anywhere; }
+pre code, pre code.hljs { background: none; border: 0; border-radius: 0; padding: 0; color: inherit; white-space: pre; overflow-wrap: normal; }
+.hljs { color: var(--fg); background: transparent; }
+.hljs-keyword, .hljs-built_in, .hljs-literal, .hljs-selector-tag { color: var(--hl-kw); }
+.hljs-string, .hljs-regexp, .hljs-selector-attr { color: var(--hl-str); }
+.hljs-number, .hljs-symbol { color: var(--hl-num); }
+.hljs-comment, .hljs-quote, .hljs-doctag { color: var(--hl-cmt); font-style: italic; }
+.hljs-title, .hljs-title.class_, .hljs-type, .hljs-name, .hljs-section, .hljs-selector-class, .hljs-selector-pseudo { color: var(--hl-type); }
+.hljs-title.function_ { color: var(--hl-fn); }
+.hljs-meta, .hljs-attr, .hljs-attribute, .hljs-tag, .hljs-property, .hljs-variable { color: var(--hl-attr); }
+.hljs-template-tag, .hljs-template-variable { color: var(--hl-attr); }
+.hljs-code, .hljs-formula { color: var(--hl-cmt); }
+.hljs-operator, .hljs-subst, .hljs-punctuation, .hljs-params { color: var(--fg); }
+.hljs-emphasis { font-style: italic; }
+.hljs-strong { font-weight: 700; }
+@media print { code, .hljs, .hljs span { color: #000 !important; background: transparent !important; } }
+</style>
+</head>
+<body>
+<!-- devbok
+slug: appsec
+kind: cheatsheet
+version: 1
+topic: "Application security"
+prompt: cheatsheet.md@ccd2d4a9
+generated: 2026-09-08
+-->
+<button class="navtoggle" type="button" aria-expanded="false" aria-controls="side">units</button>
+<nav class="side" id="side" aria-label="Units">
+  <ol class="units">
+    <li><a href="#u01"><span class="n">01</span><span class="t">Baselines: Top 10:2025 &amp; ASVS 5.0</span></a></li>
+    <li><a href="#u02"><span class="n">02</span><span class="t">Access control &amp; SSRF</span></a></li>
+    <li><a href="#u03"><span class="n">03</span><span class="t">Injection &amp; output encoding</span></a></li>
+    <li><a href="#u04"><span class="n">04</span><span class="t">Browser hardening &amp; headers</span></a></li>
+    <li><a href="#u05"><span class="n">05</span><span class="t">Cookies, sessions &amp; CSRF</span></a></li>
+    <li><a href="#u06"><span class="n">06</span><span class="t">Authentication &amp; passwords</span></a></li>
+    <li><a href="#u07"><span class="n">07</span><span class="t">OAuth 2.1, OIDC &amp; tokens</span></a></li>
+    <li><a href="#u08"><span class="n">08</span><span class="t">Crypto, TLS &amp; secrets</span></a></li>
+    <li><a href="#u09"><span class="n">09</span><span class="t">Supply chain &amp; CI/CD</span></a></li>
+    <li><a href="#u10"><span class="n">10</span><span class="t">Scanning &amp; triage commands</span></a></li>
+    <li><a href="#u11"><span class="n">11</span><span class="t">Logging, errors &amp; disclosure</span></a></li>
+    <li><a href="#u12"><span class="n">12</span><span class="t">AI, LLM &amp; agent surfaces</span></a></li>
+    <li><a href="#u13"><span class="n">13</span><span class="t">Gotchas &amp; review one-liners</span></a></li>
+    <li><a href="#u14"><span class="n">14</span><span class="t">Modern vs legacy</span></a></li>
+    <li><a href="#u15"><span class="n">15</span><span class="t">Version timeline</span></a></li>
+  </ol>
+  <footer>Application security · cheatsheet · version 1 · 2026-09-08</footer>
+</nav>
+<main class="content">
+<header class="hero">
+  <h1>Application security</h1>
+  <p class="meta">cheatsheet · OWASP Top 10:2025 · released 2026-01</p>
+  <p class="summary">The controls, headers, flags and one-liners of building and reviewing secure web and API applications: access control, injection, browser hardening, sessions, authentication, OAuth, crypto, supply chain, scanning, logging and the AI/agent surface, each row tagged with the version or date where it became true. It reflects <strong>OWASP Top 10:2025</strong> (announced 2025-11 at Global AppSec DC, final 2026-01) and <strong>ASVS 5.0.0</strong> (2025-05-30), with NIST SP 800-63-4 (final 2025), WebAuthn Level 3 (W3C Recommendation 2026-08-25) and the EU CRA reporting duty that starts 2026-09-11. Assumption: &ldquo;Application security&rdquo; is read here as what an engineer owns — design, code, dependencies, pipeline and runtime of web/API software — not SOC operations, network security or offensive tooling, and it is stack-agnostic: examples are HTTP, SQL, JS/TS, C# and Python because those are where the idiom is clearest.</p>
+  <p class="chips"><span class="chip">OWASP Top 10:2025</span> <span class="chip">ASVS 5.0.0</span> <span class="chip">NIST SP 800-63-4</span> <span class="chip">WebAuthn L3 REC 2026-08-25</span> <span class="chip">OAuth 2.1 / RFC 9700</span> <span class="chip">CVSS 4.0 · EPSS v4</span> <span class="chip">CycloneDX 1.7 · SPDX 3.0.1</span> <span class="chip">EU CRA reporting 2026-09-11</span> <span class="chip">verified 2026-09-08</span></p>
+</header>
+
+<section class="unit" id="u01">
+  <header>
+    <h2><span class="n">01</span>Baselines: Top 10:2025 &amp; ASVS 5.0</h2>
+    <span class="docs"><a href="https://owasp.org/Top10/2025/">docs: OWASP Top 10:2025</a></span>
+  </header>
+  <p>First refresh since 2021: 589 CWEs analysed, 248 mapped into the ten, data from ~2.8M applications and 13 contributing organisations. Two categories are new, three renamed, SSRF is gone as a standalone entry.</p>
+  <div class="tw">
+  <table class="grid">
+    <thead><tr><th>2025</th><th>Category</th><th>Change vs 2021</th><th>First control to reach for</th></tr></thead>
+    <tbody>
+      <tr class="hi"><td>A01</td><td>Broken Access Control</td><td>still #1; SSRF (A10:2021) folded in here</td><td>deny by default, authorise the <em>object</em> not the route</td></tr>
+      <tr><td>A02</td><td>Security Misconfiguration</td><td>up from #5</td><td>hardened baseline + config drift check in CI</td></tr>
+      <tr class="hi"><td>A03</td><td>Software Supply Chain Failures</td><td><strong>new</strong> — widens &ldquo;Vulnerable &amp; Outdated Components&rdquo; to build, CI and registries</td><td>lockfiles, pinned actions, provenance, SBOM</td></tr>
+      <tr><td>A04</td><td>Cryptographic Failures</td><td>down from #2</td><td>AEAD + KMS; classify data before you encrypt it</td></tr>
+      <tr><td>A05</td><td>Injection</td><td>down from #3; XSS still lives here</td><td>parameterised queries, context-aware output encoding</td></tr>
+      <tr><td>A06</td><td>Insecure Design</td><td>down from #4</td><td>threat model per feature, abuse cases in the story</td></tr>
+      <tr><td>A07</td><td>Authentication Failures</td><td>renamed (was &ldquo;Identification and Authentication Failures&rdquo;)</td><td>passkeys, breached-password screening, rate limits</td></tr>
+      <tr><td>A08</td><td>Software or Data Integrity Failures</td><td>&mdash;</td><td>signed artefacts, verified updates, no unsafe deserialisation</td></tr>
+      <tr><td>A09</td><td>Security Logging &amp; Alerting Failures</td><td>renamed: <em>monitoring</em> &rarr; <em>alerting</em></td><td>an alert with an owner, not just a log line</td></tr>
+      <tr class="hi"><td>A10</td><td>Mishandling of Exceptional Conditions</td><td><strong>new</strong></td><td>fail closed; no stack trace to the client; no empty <code>catch</code></td></tr>
+    </tbody>
+  </table>
+  </div>
+  <h3>Which standard answers which question</h3>
+  <dl class="rows">
+    <dt>Awareness / triage bucket</dt>
+    <dd>OWASP Top 10:2025 <span class="cmt">&mdash; a risk-awareness document, <strong>not</strong> a checklist and never a compliance target; saying so is itself an interview signal</span></dd>
+    <dt>Verifiable requirements</dt>
+    <dd>OWASP <strong>ASVS 5.0.0</strong> <span class="since">2025-05-30</span> <span class="cmt">&mdash; ~350 requirements, 17 chapters, L1/L2/L3. IDs were reset from 4.0.3 (a 4.0.3&rarr;5.0 mapping ships with it), so old ASVS references in your docs are stale</span></dd>
+    <dt>Mobile / API / LLM</dt>
+    <dd>OWASP MASVS + MASTG, API Security Top 10, Top 10 for LLM Applications <span class="cmt">&mdash; separate lists, separate data</span></dd>
+    <dt>Weakness taxonomy</dt>
+    <dd>CWE (the weakness), CVE (the instance), CAPEC (the attack pattern), ATT&amp;CK (the campaign)</dd>
+    <dt>Proactive controls</dt>
+    <dd>OWASP Proactive Controls and Cheat Sheet Series (build), SAMM (programme maturity), ASVS (verification)</dd>
+    <dt>Regulated context</dt>
+    <dd>PCI DSS 4.0.1 (future-dated requirements in force since 2025-03-31), EU CRA (reporting 2026-09-11, full application 2027-12-11), NIS2, NIST SSDF SP 800-218</dd>
+  </dl>
+  <h3>Threat modelling in four questions</h3>
+  <ul class="tight">
+    <li><strong>What are we building?</strong> data-flow diagram with trust boundaries &mdash; every boundary crossing is an authorisation decision.</li>
+    <li><strong>What can go wrong?</strong> STRIDE per element; LINDDUN when privacy is the concern.</li>
+    <li><strong>What are we going to do about it?</strong> mitigate / transfer / accept / eliminate &mdash; accepted risks get an owner and a review date.</li>
+    <li><strong>Did we do a good job?</strong> one test per mitigation; an unverified mitigation is a wish.</li>
+  </ul>
+  <div class="note"><p>Lead framing: the Top 10 is a data-derived popularity ranking, so it says what is <em>common</em>, not what is dangerous for you. Drive the roadmap from your own threat model and incident history, and use ASVS levels (L1 baseline, L2 for anything holding real data, L3 high-assurance) as the contract with teams.</p></div>
+</section>
+
+<section class="unit" id="u02">
+  <header>
+    <h2><span class="n">02</span>Access control &amp; SSRF</h2>
+    <span class="docs"><a href="https://cheatsheetseries.owasp.org/cheatsheets/Authorization_Cheat_Sheet.html">docs: OWASP Authorization Cheat Sheet</a></span>
+  </header>
+  <dl class="rows">
+    <dt>Deny by default</dt>
+    <dd>every route authenticated and authorised unless explicitly opted out &mdash; e.g. <code>app.MapControllers().RequireAuthorization()</code> with <code>[AllowAnonymous]</code> as the visible exception</dd>
+    <dt>Authorise the object</dt>
+    <dd><code>GET /api/orders/1042</code>: the route check says &ldquo;is a user&rdquo;, the object check says &ldquo;is <em>this</em> user&rdquo;. Missing the second is IDOR / BOLA, still the most common finding</dd>
+    <dt>Tenant id source</dt>
+    <dd>from the verified token or session <strong>only</strong> &mdash; never a body field, query string, header or path segment the client controls</dd>
+    <dt>Unguessable &ne; authorised</dt>
+    <dd>UUIDv4 / ULID reduce enumeration, not authorisation; ids leak via logs, referrers and support tickets</dd>
+    <dt>Mass assignment</dt>
+    <dd>bind to an explicit DTO; never <code>db.Update(request)</code>. Watch <code>isAdmin</code>, <code>role</code>, <code>tenantId</code>, <code>price</code>, <code>status</code></dd>
+    <dt>Function level (BFLA)</dt>
+    <dd>a hidden button is not a blocked endpoint; test <code>PUT</code>/<code>PATCH</code>/<code>DELETE</code> on every id you can read</dd>
+    <dt>Vertical vs horizontal</dt>
+    <dd>vertical = user&rarr;admin (role check); horizontal = user&rarr;another user's row (ownership check). Both need their own tests</dd>
+    <dt>Policy engines</dt>
+    <dd>RBAC &rarr; ABAC (OPA/Rego, AWS Cedar) &rarr; ReBAC (Zanzibar-style: OpenFGA, SpiceDB, Permify) once &ldquo;shared with&rdquo; and nested groups appear</dd>
+    <dt>CORS is not access control</dt>
+    <dd>it only constrains browsers; never reflect <code>Origin</code>, never pair <code>Access-Control-Allow-Origin: *</code> with credentials (browsers reject it), allowlist exact origins</dd>
+    <dt>Path traversal</dt>
+    <dd>canonicalise, then compare: <code>Path.GetFullPath(candidate).StartsWith(rootWithTrailingSeparator, StringComparison.Ordinal)</code></dd>
+    <dt>Signed URLs</dt>
+    <dd>short TTL, bound to method + object key, single use where possible; log every issuance</dd>
+    <dt>Rate limit as authz</dt>
+    <dd>per identity, not per IP &mdash; an authorised user pulling 10k records is still an incident</dd>
+  </dl>
+<pre><code class="language-csharp">// legacy: route-level only - the classic IDOR
+[Authorize] public async Task&lt;Order&gt; Get(int id) =&gt; await db.Orders.FindAsync(id);
+
+// modern: the ownership predicate is part of the query, not a later "if"
+[Authorize] public async Task&lt;Results&lt;Ok&lt;OrderDto&gt;, NotFound&gt;&gt; Get(int id, ClaimsPrincipal me)
+{
+    var tenant = me.FindFirstValue("tenant_id");            // from the token, never the request
+    var order  = await db.Orders.AsNoTracking()
+        .Where(o =&gt; o.Id == id &amp;&amp; o.TenantId == tenant)     // filter, don't fetch-then-check
+        .Select(OrderDto.Projection).SingleOrDefaultAsync();
+    return order is null ? TypedResults.NotFound() : TypedResults.Ok(order); // 404, not 403: don't confirm existence
+}</code></pre>
+  <h3>SSRF &mdash; now inside A01</h3>
+  <dl class="rows">
+    <dt>Why it moved</dt>
+    <dd>SSRF is the server crossing a trust boundary on the client's behalf: an access-control failure, not a network one <span class="since">Top 10:2025</span></dd>
+    <dt>Allowlist the destination</dt>
+    <dd>scheme (<code>https</code> only), host from an allowlist, port from {443}; reject everything else, including <code>file:</code>, <code>gopher:</code>, <code>dict:</code></dd>
+    <dt>Resolve, check, pin</dt>
+    <dd>DNS answers change between check and connect (rebinding TOCTOU) &mdash; resolve, validate the <em>IP</em>, then connect to that IP with the Host header set</dd>
+    <dt>Block ranges</dt>
+    <dd><code>127.0.0.0/8 10.0.0.0/8 172.16.0.0/12 192.168.0.0/16 169.254.0.0/16 ::1 fc00::/7 fe80::/10</code>, and cloud metadata <code>169.254.169.254</code> / <code>fd00:ec2::254</code></dd>
+    <dt>No redirects</dt>
+    <dd><code>new HttpClientHandler { AllowAutoRedirect = false }</code>, <code>fetch(url, { redirect: 'error' })</code> &mdash; a 302 to the metadata IP defeats a URL allowlist</dd>
+    <dt>Defence in depth</dt>
+    <dd>IMDSv2 (token-required) on EC2, a dedicated egress proxy for all user-supplied fetches, response size and timeout caps, and never echo the raw response body back</dd>
+    <dt>Blind SSRF counts</dt>
+    <dd>timing and error differences map the internal network; treat it as exploitable, not informational</dd>
+  </dl>
+  <div class="note"><p>Review heuristic: grep for every place a user-controlled string reaches an HTTP client, a filesystem path, or a database key. Those three lists are your SSRF, traversal and IDOR surface and they fit on one page for most services.</p></div>
+</section>
+
+<section class="unit" id="u03">
+  <header>
+    <h2><span class="n">03</span>Injection &amp; output encoding</h2>
+    <span class="docs"><a href="https://cheatsheetseries.owasp.org/cheatsheets/Injection_Prevention_Cheat_Sheet.html">docs: OWASP Injection Prevention</a></span>
+  </header>
+  <p>One rule: data never becomes code. Parameterise where the interpreter supports it; where it does not (identifiers, operators, sort direction), allowlist.</p>
+<pre><code class="language-csharp">// SQL - parameters, two ways
+await db.Orders.FromSql($"SELECT * FROM Orders WHERE Tenant = {tenant}").ToListAsync(); // FormattableString -&gt; parameters
+// UNSAFE: FromSqlRaw($"... WHERE Tenant = '{tenant}'")  - interpolating into *Raw is concatenation
+cmd.CommandText = "SELECT * FROM Orders WHERE Tenant = @t";
+cmd.Parameters.Add("@t", SqlDbType.NVarChar, 64).Value = tenant;</code></pre>
+<pre><code class="language-javascript">// node-postgres / mysql2: placeholders, never template literals
+await pg.query('select * from orders where tenant = $1 and status = $2', [tenant, status]);
+await mysql.execute('select * from orders where tenant = ?', [tenant]);  // execute() prepares; query() does not
+
+// identifiers cannot be parameterised - allowlist, then quote
+const COLS = new Set(['created_at', 'total']);
+if (!COLS.has(sort)) throw new Error('bad sort');
+await pg.query(`select * from orders order by "${sort}" limit $1`, [limit]);</code></pre>
+<pre><code class="language-python"># psycopg: pass params, let the driver adapt - never %-format or f-string
+cur.execute("select * from orders where tenant = %s and status = any(%s)", (tenant, statuses))
+# SQLAlchemy 2.x
+sess.execute(text("select * from orders where tenant = :t"), {"t": tenant})</code></pre>
+  <dl class="rows">
+    <dt>NoSQL operator injection</dt>
+    <dd>a JSON body of <code>{"pw": {"$ne": null}}</code> arrives as a query operator &mdash; validate with a schema, or cast: <code>{ pw: String(body.pw) }</code></dd>
+    <dt>OS command</dt>
+    <dd>never a shell string: <code>execFile('git', ['clone', url])</code>, <code>new ProcessStartInfo("git"){ ArgumentList = { "clone", url } }</code>, <code>subprocess.run([...], shell=False)</code></dd>
+    <dt>Argument injection</dt>
+    <dd>even with argv, a value starting <code>--</code> becomes a flag: separate with <code>--</code> and allowlist (<code>curl --config</code>, <code>git --upload-pack</code>, <code>tar --checkpoint-action</code> are all RCE)</dd>
+    <dt>LDAP / XPath</dt>
+    <dd>use the library's escaper (<code>*</code> <code>(</code> <code>)</code> <code>\</code> NUL in LDAP filters); prefer parameterised XPath</dd>
+    <dt>Template injection (SSTI)</dt>
+    <dd>never build a template <em>from</em> user input; pass user input as data into a fixed template. Jinja2, Razor, Handlebars, Thymeleaf all reach the object graph</dd>
+    <dt>Expression / regex</dt>
+    <dd>SpEL, OGNL, JSONPath filters, and user-supplied regexes (ReDoS &mdash; cap input length, use a non-backtracking engine such as <code>RegexOptions.NonBacktracking</code>)</dd>
+    <dt>CRLF / header injection</dt>
+    <dd>strip <code>\r\n</code> from anything reaching a header, a log line, an email header or a redirect <code>Location</code></dd>
+    <dt>XXE</dt>
+    <dd><code>XmlReaderSettings { DtdProcessing = DtdProcessing.Prohibit, XmlResolver = null }</code>; Python <code>defusedxml</code>; Java <code>disallow-doctype-decl</code> + <code>FEATURE_SECURE_PROCESSING</code></dd>
+    <dt>Deserialisation</dt>
+    <dd>never deserialise untrusted data into arbitrary types. <code>BinaryFormatter</code> removed in .NET 9; <code>TypeNameHandling.All</code> (Newtonsoft), Java <code>ObjectInputStream</code>, Python <code>pickle</code>, PHP <code>unserialize</code>, <code>yaml.load</code> (use <code>safe_load</code>) are RCE by design</dd>
+    <dt>Zip slip / bombs</dt>
+    <dd>check each entry's resolved path stays under the extraction root; cap entry count and total decompressed size</dd>
+    <dt>Prototype pollution</dt>
+    <dd><code>__proto__</code> / <code>constructor.prototype</code> in merged JSON &mdash; use <code>Object.create(null)</code> maps, <code>structuredClone</code>, or a schema validator; a classic gadget chain into RCE in Node</dd>
+  </dl>
+  <h3>XSS by context &mdash; the encoder depends on where the value lands</h3>
+  <div class="tw">
+  <table class="grid">
+    <thead><tr><th>Sink</th><th>Encode as</th><th>Note</th></tr></thead>
+    <tbody>
+      <tr><td>HTML text</td><td>HTML entity encode</td><td>every framework does it by default: <code>{{ }}</code>, <code>{ }</code>, <code>@value</code></td></tr>
+      <tr><td>HTML attribute</td><td>attribute encode, always quote</td><td>an unquoted attribute escapes on a space</td></tr>
+      <tr><td>URL attribute</td><td>scheme allowlist (<code>https:</code>, <code>mailto:</code>) then URL-encode</td><td><code>javascript:</code> and <code>data:text/html</code> are the bypass</td></tr>
+      <tr><td>Inside <code>&lt;script&gt;</code></td><td>don't &mdash; emit <code>&lt;script type="application/json"&gt;</code> and <code>JSON.parse</code></td><td>a literal <code>&lt;/script&gt;</code> inside a JSON string ends the block</td></tr>
+      <tr><td>CSS value</td><td>allowlist; never interpolate</td><td><code>url()</code> is a sink; so is a user-controlled style attribute</td></tr>
+      <tr class="hi"><td>Framework escape hatch</td><td>sanitise first, or don't</td><td><code>innerHTML</code>, <code>dangerouslySetInnerHTML</code>, <code>v-html</code>, <code>[innerHTML]</code>, <code>@Html.Raw</code>, <code>bypassSecurityTrustHtml</code>, <code>document.write</code>, <code>insertAdjacentHTML</code>, <code>eval</code>, <code>new Function</code>, <code>setTimeout(string)</code></td></tr>
+    </tbody>
+  </table>
+  </div>
+<pre><code class="language-javascript">// modern: browser-native sanitisation, still behind feature detection in 2026
+if ('setHTML' in Element.prototype) {
+  el.setHTML(untrusted);                          // Sanitizer API - Firefox 148 / Chrome 146, NOT Baseline yet
+} else {
+  el.innerHTML = DOMPurify.sanitize(untrusted);   // still the portable answer; Safari has not shipped it
+}
+// legacy and wrong: hand-rolled regex "sanitisers", or blocklisting the string "script"</code></pre>
+  <div class="note"><p>Stored, reflected and DOM XSS are found three different ways: stored by reviewing the write path, reflected by fuzzing parameters, DOM XSS only by tracing sources (<code>location.*</code>, <code>postMessage</code>, <code>document.referrer</code>, <code>window.name</code>) to sinks. A nonce + <code>strict-dynamic</code> CSP with Trusted Types turns most DOM XSS into a console error &mdash; unit 04.</p></div>
+</section>
+
+<section class="unit" id="u04">
+  <header>
+    <h2><span class="n">04</span>Browser hardening &amp; headers</h2>
+    <span class="docs"><a href="https://developer.mozilla.org/en-US/docs/Web/HTTP/Guides/CSP">docs: MDN Content Security Policy</a></span>
+  </header>
+  <h3>The strict CSP, per response</h3>
+<pre><code class="language-http">Content-Security-Policy:
+  script-src 'nonce-r4nd0mPerRequest' 'strict-dynamic' https: 'unsafe-inline';
+  object-src 'none'; base-uri 'none'; frame-ancestors 'none';
+  require-trusted-types-for 'script'; trusted-types default dompurify;
+  report-uri /csp-report; report-to csp
+</code></pre>
+  <dl class="rows">
+    <dt>Why this shape</dt>
+    <dd><code>'strict-dynamic'</code> lets a nonced loader script trust what it injects, so bundlers and tag managers work without a host allowlist &mdash; host allowlists are bypassable via JSONP and open redirects on the allowed hosts</dd>
+    <dt>The trailing fallbacks</dt>
+    <dd><code>https:</code> and <code>'unsafe-inline'</code> are <em>ignored</em> by browsers that understand nonces/<code>strict-dynamic</code>; they exist only for old engines. Keeping them does not weaken a modern browser</dd>
+    <dt>Nonce rules</dt>
+    <dd>&ge;128 bits from a CSPRNG, new <strong>per response</strong>, never reused, never on a cached page. A static nonce is the same as no CSP</dd>
+    <dt><code>object-src</code>/<code>base-uri</code></dt>
+    <dd><code>'none'</code> on both: plugins and <code>&lt;base href&gt;</code> hijacking are the two cheapest nonce bypasses</dd>
+    <dt>Trusted Types</dt>
+    <dd><code>require-trusted-types-for 'script'</code> makes assignment to <code>innerHTML</code> and friends throw unless it passes a registered policy &mdash; the only structural fix for DOM XSS. Chromium-only today; harmless elsewhere</dd>
+    <dt>Rollout</dt>
+    <dd>ship <code>Content-Security-Policy-Report-Only</code> first, collect violations for 2&ndash;4 weeks, then enforce. Both headers may be sent at once</dd>
+    <dt>Hashes vs nonces</dt>
+    <dd>static, cacheable pages: <code>'sha256-...'</code> hashes (no per-response work). Dynamic pages: nonces</dd>
+  </dl>
+<pre><code class="language-javascript">// Trusted Types: one policy, one place, everything else throws
+const policy = trustedTypes.createPolicy('dompurify', {
+  createHTML: (s) =&gt; DOMPurify.sanitize(s, { RETURN_TRUSTED_TYPE: false }),
+});
+el.innerHTML = policy.createHTML(untrusted);   // ok
+el.innerHTML = untrusted;                      // TypeError under require-trusted-types-for 'script'</code></pre>
+  <h3>Response headers worth setting (and the ones to stop setting)</h3>
+  <div class="tw">
+  <table class="grid">
+    <thead><tr><th>Header</th><th>Value</th><th>Buys you</th></tr></thead>
+    <tbody>
+      <tr class="hi"><td><code>Strict-Transport-Security</code></td><td><code>max-age=63072000; includeSubDomains; preload</code></td><td>no downgrade. <code>preload</code> is a one-way door &mdash; every subdomain must be HTTPS, forever</td></tr>
+      <tr><td><code>Content-Security-Policy</code></td><td>see above</td><td>XSS containment, clickjacking (<code>frame-ancestors</code>), mixed content (<code>upgrade-insecure-requests</code>)</td></tr>
+      <tr><td><code>X-Content-Type-Options</code></td><td><code>nosniff</code></td><td>stops MIME sniffing turning an upload into script; also enables CORB/ORB</td></tr>
+      <tr><td><code>Referrer-Policy</code></td><td><code>strict-origin-when-cross-origin</code> (or <code>no-referrer</code>)</td><td>stops ids and tokens leaking in <code>Referer</code></td></tr>
+      <tr><td><code>Permissions-Policy</code></td><td><code>camera=(), microphone=(), geolocation=(), interest-cohort=()</code></td><td>drops powerful features for you and every embed</td></tr>
+      <tr><td><code>Cross-Origin-Opener-Policy</code></td><td><code>same-origin</code></td><td>severs <code>window.opener</code>: kills XS-Leaks and tabnabbing</td></tr>
+      <tr><td><code>Cross-Origin-Resource-Policy</code></td><td><code>same-origin</code> (or <code>same-site</code>)</td><td>stops other sites embedding your responses (Spectre-class reads)</td></tr>
+      <tr><td><code>Cross-Origin-Embedder-Policy</code></td><td><code>require-corp</code></td><td>only if you need <code>SharedArrayBuffer</code> / precise timers; it breaks third-party embeds</td></tr>
+      <tr><td><code>Cache-Control</code></td><td><code>no-store</code> on authenticated responses</td><td>keeps PII out of shared caches and the back button</td></tr>
+      <tr><td><code>Integrity-Policy</code></td><td><code>blocked-destinations=(script)</code></td><td>blocks any <code>&lt;script&gt;</code> without an <code>integrity</code> attribute &mdash; SRI made mandatory. Limited availability (Chromium); pair with <code>Integrity-Policy-Report-Only</code></td></tr>
+      <tr><td><code>Reporting-Endpoints</code></td><td><code>csp="https://…/csp"</code></td><td>the modern Reporting API target (<code>Report-To</code> is the legacy header)</td></tr>
+      <tr><td class="bad"><code>X-Frame-Options</code></td><td><code>DENY</code></td><td>legacy: superseded by <code>frame-ancestors</code>. Harmless to keep for very old clients, but CSP wins where both apply</td></tr>
+      <tr><td class="bad"><code>X-XSS-Protection</code></td><td><code>0</code> or omit</td><td>the auditor is removed from all modern browsers; <code>1; mode=block</code> was itself an XS-Leak. Do not set it to 1</td></tr>
+      <tr><td class="bad"><code>Expect-CT</code>, <code>Public-Key-Pins</code></td><td>&mdash;</td><td>dead. HPKP was removed in 2018; Expect-CT is obsolete now CT is mandatory</td></tr>
+    </tbody>
+  </table>
+  </div>
+  <dl class="rows">
+    <dt>Clickjacking</dt>
+    <dd><code>frame-ancestors 'none'</code> (or an exact allowlist). Framebusting JavaScript is legacy and bypassable with <code>sandbox</code></dd>
+    <dt>Tabnabbing</dt>
+    <dd><code>rel="noopener noreferrer"</code> &mdash; <code>noopener</code> is the default for <code>target="_blank"</code> in modern browsers, but be explicit for <code>window.open</code></dd>
+    <dt>Open redirect</dt>
+    <dd>never redirect to a raw <code>?returnUrl=</code>; allowlist relative paths only (<code>Url.IsLocalUrl</code>), or map a token to a URL server-side</dd>
+    <dt><code>postMessage</code></dt>
+    <dd>always pass an exact <code>targetOrigin</code>, never <code>'*'</code>; on receive, check <code>event.origin</code> <em>and</em> the message shape before use</dd>
+    <dt>Uploads</dt>
+    <dd>store off-origin (a separate domain, not just a path), serve with <code>Content-Disposition: attachment</code>, <code>nosniff</code>, and a generated filename; sniff the type from content, don't trust the extension</dd>
+    <dt>Subresource integrity</dt>
+    <dd><code>&lt;script src="…" integrity="sha384-…" crossorigin="anonymous"&gt;</code> on every third-party script; enforce fleet-wide with <code>Integrity-Policy</code></dd>
+    <dt>Iframe sandbox</dt>
+    <dd><code>sandbox="allow-scripts"</code> without <code>allow-same-origin</code> for untrusted embeds; granting both together is equivalent to no sandbox</dd>
+  </dl>
+</section>
+
+<section class="unit" id="u05">
+  <header>
+    <h2><span class="n">05</span>Cookies, sessions &amp; CSRF</h2>
+    <span class="docs"><a href="https://cheatsheetseries.owasp.org/cheatsheets/Cross-Site_Request_Forgery_Prevention_Cheat_Sheet.html">docs: OWASP CSRF Prevention</a></span>
+  </header>
+<pre><code class="language-http">Set-Cookie: __Host-sid=&lt;128-bit random&gt;; Secure; HttpOnly; SameSite=Lax; Path=/; Max-Age=3600
+Set-Cookie: __Host-embed=…; Secure; HttpOnly; SameSite=None; Partitioned; Path=/   # cross-site embed (CHIPS)
+</code></pre>
+  <dl class="rows">
+    <dt><code>__Host-</code> prefix</dt>
+    <dd>browser-enforced: requires <code>Secure</code>, <code>Path=/</code>, and <strong>no</strong> <code>Domain</code> &mdash; so a compromised sibling subdomain cannot overwrite it. The strongest single character you can add to a session cookie</dd>
+    <dt><code>__Secure-</code> prefix</dt>
+    <dd>weaker: requires <code>Secure</code> only. Use <code>__Host-</code> unless you genuinely need a <code>Domain</code></dd>
+    <dt><code>SameSite</code></dt>
+    <dd><code>Lax</code> is the browser default; <code>Strict</code> breaks inbound links from email; <code>None</code> <em>requires</em> <code>Secure</code>. Lax still allows top-level <code>GET</code>, so it is a mitigation, not a CSRF defence</dd>
+    <dt><code>Partitioned</code> (CHIPS)</dt>
+    <dd>keys a cross-site cookie to the top-level site, so each embedding site gets its own jar. Requires <code>Secure; SameSite=None</code>. One of the few Privacy Sandbox pieces that survived</dd>
+    <dt>Third-party cookie status</dt>
+    <dd>Chrome kept them on by default (Google reversed the deprecation in 2025-04 and retired most Privacy Sandbox APIs in 2025-10); Safari, Firefox and Brave still block them, so ~20% of traffic is cookieless regardless. Design for partitioned or no third-party cookies</dd>
+    <dt>Session id</dt>
+    <dd>&ge;128 bits from a CSPRNG, opaque, server-side lookup. <strong>Rotate on login and on any privilege change</strong> (session fixation)</dd>
+    <dt>Timeouts</dt>
+    <dd>idle (e.g. 30 min) <em>and</em> absolute (e.g. 8&ndash;12 h). Logout must invalidate server-side, not just clear the cookie</dd>
+    <dt>Where not to keep tokens</dt>
+    <dd><code>localStorage</code>/<code>sessionStorage</code> are readable by any XSS. An <code>HttpOnly</code> cookie plus a BFF is the modern SPA answer (unit 07)</dd>
+  </dl>
+  <h3>CSRF defence, in order of preference</h3>
+  <dl class="rows">
+    <dt>1. Not cookie auth</dt>
+    <dd>an <code>Authorization</code> header the browser does not attach automatically has no CSRF problem &mdash; but then you own token storage</dd>
+    <dt>2. Synchroniser token</dt>
+    <dd>per-session (or per-request) token in a hidden field / custom header, compared server-side in constant time. Framework built-ins: ASP.NET Core antiforgery, Django <code>CsrfViewMiddleware</code>, Spring Security, Rails</dd>
+    <dt>3. Signed double-submit</dt>
+    <dd>cookie + header must match <em>and</em> the value must be HMAC-bound to the session. Naive double-submit is bypassable from any subdomain that can set a cookie</dd>
+    <dt>4. Origin check</dt>
+    <dd>verify <code>Origin</code> (fall back to <code>Referer</code>) against an allowlist on every state-changing request &mdash; cheap, and a good belt-and-braces layer</dd>
+    <dt>5. Fetch metadata</dt>
+    <dd>reject when <code>Sec-Fetch-Site: cross-site</code> and <code>Sec-Fetch-Mode: navigate</code> on a non-<code>GET</code>; Resource Isolation Policy as a site-wide middleware</dd>
+    <dt>Also true</dt>
+    <dd><code>GET</code> must never change state; <code>SameSite=Lax</code> does not protect a state-changing <code>GET</code>. CORS preflight is not CSRF protection for simple requests (<code>text/plain</code>, form encodings)</dd>
+    <dt>Login CSRF</dt>
+    <dd>real: an attacker logs you into <em>their</em> account, then reads what you do. Protect the login form too</dd>
+  </dl>
+</section>
+
+<section class="unit" id="u06">
+  <header>
+    <h2><span class="n">06</span>Authentication &amp; passwords</h2>
+    <span class="docs"><a href="https://pages.nist.gov/800-63-4/sp800-63b.html">docs: NIST SP 800-63B-4</a></span>
+  </header>
+  <h3>Passkeys are the default answer <span class="since">WebAuthn L3, W3C REC 2026-08-25</span></h3>
+<pre><code class="language-javascript">// registration - options come from the server; L3 adds the JSON parse helpers
+const cred = await navigator.credentials.create({
+  publicKey: PublicKeyCredential.parseCreationOptionsFromJSON(optionsFromServer),
+});
+// capability detection before you show UI (L3)
+const caps = await PublicKeyCredential.getClientCapabilities();
+if (caps.conditionalGet) { /* show autofill ("conditional") UI */ }
+// tell the provider a credential is gone, so it stops offering it (L3 signal methods)
+await PublicKeyCredential.signalAllAcceptedCredentials({ rpId, userId, allAcceptedCredentialIds });</code></pre>
+  <dl class="rows">
+    <dt>What L3 ratified</dt>
+    <dd>the behaviour browsers shipped from 2024: <code>getClientCapabilities()</code>, <strong>Related Origin Requests</strong> (one passkey across ~5 related domains via <code>/.well-known/webauthn</code>), signal methods, and JSON (de)serialisation helpers</dd>
+    <dt>Server must verify</dt>
+    <dd>challenge freshness, <code>origin</code>, <code>rpIdHash</code>, the <code>UP</code>/<code>UV</code> flags, and the signature counter where the authenticator provides one</dd>
+    <dt>Discoverable credentials</dt>
+    <dd>resident keys enable usernameless login; plan account recovery <em>before</em> you go passwordless</dd>
+    <dt>Scale</dt>
+    <dd>FIDO Alliance reports &gt;15bn accounts passkey-capable and &gt;1bn activations; Microsoft made passkeys the default for new consumer accounts in 2025-05</dd>
+    <dt>Attestation</dt>
+    <dd>usually skip it for consumer flows (privacy, friction); require it only in enterprise/regulated deployments where you must pin authenticator models</dd>
+  </dl>
+  <h3>Passwords, per SP 800-63B-4 <span class="since">final 2025</span></h3>
+  <dl class="rows">
+    <dt>Length</dt>
+    <dd>verifiers <strong>SHALL</strong> require &ge;8 characters and <strong>SHOULD</strong> require &ge;15; accept at least 64. Length is the only complexity knob that helps</dd>
+    <dt>Composition rules</dt>
+    <dd><strong>SHALL NOT</strong> impose them (no &ldquo;1 upper, 1 digit, 1 symbol&rdquo;) &mdash; they produce <code>Password1!</code> and nothing else</dd>
+    <dt>Rotation</dt>
+    <dd><strong>SHALL NOT</strong> require periodic change; force a change only on evidence of compromise</dd>
+    <dt>Character set</dt>
+    <dd>accept all printable ASCII, spaces and Unicode; normalise (NFKC/NFC) before hashing; do not truncate</dd>
+    <dt>Screening</dt>
+    <dd>compare against breached/common/context-specific lists on set and change (k-anonymity range API, or a local corpus). This replaced complexity rules</dd>
+    <dt>Hints &amp; KBA</dt>
+    <dd><strong>SHALL NOT</strong> offer password hints or knowledge-based &ldquo;security questions&rdquo;</dd>
+    <dt>Paste &amp; managers</dt>
+    <dd>must be allowed; blocking paste is an anti-pattern that pushes users to weaker passwords</dd>
+    <dt>SMS OTP</dt>
+    <dd>a <em>restricted</em> authenticator: allowed with a documented risk assessment and a migration plan, not a recommendation. Prefer passkeys, then app-based TOTP/push with number matching</dd>
+  </dl>
+  <h3>Storage &mdash; OWASP parameters</h3>
+  <div class="tw">
+  <table class="grid">
+    <thead><tr><th>Algorithm</th><th>Parameters</th><th>When</th></tr></thead>
+    <tbody>
+      <tr class="hi"><td><strong>Argon2id</strong></td><td><code>m=19456 KiB (19 MiB), t=2, p=1</code> minimum; alternative <code>m=47104 (46 MiB), t=1, p=1</code></td><td>default choice; memory-hard, so GPU/ASIC cracking is expensive</td></tr>
+      <tr><td>scrypt</td><td><code>N=2^17, r=8, p=1</code> (min <code>2^15</code> with higher <code>p</code>)</td><td>when Argon2 is unavailable</td></tr>
+      <tr><td>bcrypt</td><td>work factor &ge;10 (12 typical in 2026)</td><td>legacy systems. <strong>Truncates at 72 bytes</strong> &mdash; pre-hash long inputs with SHA-256 <em>and</em> base64, or you introduce null-byte and collision bugs</td></tr>
+      <tr><td>PBKDF2-HMAC-SHA-256</td><td>&ge;600,000 iterations</td><td>FIPS-constrained environments only</td></tr>
+    </tbody>
+  </table>
+  </div>
+  <dl class="rows">
+    <dt>Salt</dt>
+    <dd>unique, &ge;16 bytes, generated by the KDF; stored in the PHC string (<code>$argon2id$v=19$m=19456,t=2,p=1$…</code>). Never a global salt</dd>
+    <dt>Pepper</dt>
+    <dd>optional second secret in KMS/HSM, applied as HMAC <em>before</em> the KDF &mdash; survives a database-only breach. Plan rotation</dd>
+    <dt>Rehash on login</dt>
+    <dd><code>if (hasher.NeedsRehash(stored)) Store(hasher.Hash(password))</code> &mdash; how you raise cost factors without a mass reset</dd>
+    <dt>Comparison</dt>
+    <dd>constant-time (<code>CryptographicOperations.FixedTimeEquals</code>, <code>crypto.timingSafeEqual</code>, <code>hmac.compare_digest</code>)</dd>
+  </dl>
+  <h3>The rest of the auth surface</h3>
+  <dl class="rows">
+    <dt>Enumeration</dt>
+    <dd>identical response, status and <em>timing</em> for unknown user vs wrong password; run the KDF even when the user does not exist. Registration, forgot-password and login all leak</dd>
+    <dt>Throttling</dt>
+    <dd>per account (exponential backoff), per IP, and per credential-pair; add a CAPTCHA/proof-of-work step rather than a hard lockout (lockout is a DoS primitive)</dd>
+    <dt>Credential stuffing</dt>
+    <dd>breach-list screening + device/IP reputation + step-up on anomaly. Rate limits alone lose to a 50k-IP botnet</dd>
+    <dt>Recovery</dt>
+    <dd>the weakest link in most designs: single-use, short-TTL, hashed-at-rest token; identical response whether or not the account exists; invalidate all sessions and refresh tokens on reset; notify the old address</dd>
+    <dt>MFA bypasses</dt>
+    <dd>push fatigue (use number matching), OTP phishing via reverse proxy (only phishing-resistant factors &mdash; passkeys, mTLS &mdash; stop it), &ldquo;remember this device&rdquo; cookies, and recovery-code paths that skip MFA</dd>
+    <dt>Impersonation / support</dt>
+    <dd>separate the admin path, require re-auth, log the acting <em>and</em> effective identity in every event</dd>
+  </dl>
+</section>
+
+<section class="unit" id="u07">
+  <header>
+    <h2><span class="n">07</span>OAuth 2.1, OIDC &amp; tokens</h2>
+    <span class="docs"><a href="https://datatracker.ietf.org/doc/html/rfc9700">docs: RFC 9700 &mdash; OAuth 2.0 Security BCP</a></span>
+  </header>
+  <p>OAuth 2.1 is OAuth 2.0 with <a href="https://datatracker.ietf.org/doc/html/rfc9700">RFC 9700</a> (Security BCP, 2025-01) folded in and the dangerous parts deleted. Treat the BCP as the spec.</p>
+  <dl class="rows">
+    <dt>Mandatory now</dt>
+    <dd><strong>PKCE on every authorization-code flow</strong>, public and confidential clients alike (<code>S256</code>; never <code>plain</code>)</dd>
+    <dt>Removed</dt>
+    <dd>implicit grant (<code>response_type=token</code>), resource-owner password credentials grant, bearer tokens in query strings</dd>
+    <dt>Redirect URIs</dt>
+    <dd><strong>exact string match</strong> &mdash; no wildcards, no substring, no trailing-path tricks. Open redirect on a registered URI = token theft</dd>
+    <dt>State &amp; nonce</dt>
+    <dd><code>state</code> for CSRF binding (or rely on PKCE), <code>nonce</code> in OIDC bound into the ID token to stop replay</dd>
+    <dt>PAR <span class="since">RFC 9126</span></dt>
+    <dd>push the request server-to-server, get a <code>request_uri</code> &mdash; parameters never touch the browser. Recommended for high-security deployments; required by FAPI 2.0</dd>
+    <dt>Sender-constrained tokens</dt>
+    <dd><strong>DPoP</strong> <span class="since">RFC 9449, 2023-09</span> (app-level proof-of-possession, a per-request signed JWT) or mTLS <span class="since">RFC 8705</span>. A stolen DPoP-bound token is useless without the private key &mdash; the 2026 answer to token exfiltration, and increasingly expected for AI agent clients</dd>
+    <dt>Browser apps</dt>
+    <dd><strong>BFF</strong>: the token lives in a server-side session, the browser gets an <code>HttpOnly</code>, <code>SameSite</code> cookie. Storing access tokens in <code>localStorage</code> is the legacy SPA pattern and is one XSS from full account takeover</dd>
+    <dt>Refresh tokens</dt>
+    <dd>public clients: <strong>rotate</strong> on every use and detect reuse (reuse = replay &rarr; revoke the whole family). Or sender-constrain them</dd>
+    <dt>Mix-up / IdP confusion</dt>
+    <dd>with multiple IdPs, validate <code>iss</code> in the authorization response (RFC 9207) so a rogue IdP cannot get your code redeemed elsewhere</dd>
+    <dt>Device &amp; CIBA flows</dt>
+    <dd>device code phishing is real: show the requesting client, bind to a short code, expire fast</dd>
+    <dt>Scopes vs authorization</dt>
+    <dd>a scope says what the <em>client</em> may ask for; it never says which rows this user may see. Do the object check anyway (unit 02)</dd>
+  </dl>
+  <h3>JWT validation &mdash; the checklist that catches real bugs</h3>
+  <ul class="tight">
+    <li><strong>Algorithm allowlist</strong>, server-side. Never trust the token's <code>alg</code>: <code>none</code> and RS256&rarr;HS256 confusion (public key used as an HMAC secret) are the classics.</li>
+    <li><code>kid</code> looked up in a cached JWKS &mdash; never fetch a URL the token names (<code>jku</code>/<code>x5u</code> are injection vectors); cap the cache refresh rate.</li>
+    <li><code>iss</code> exact match; <code>aud</code> must contain <em>this</em> API; <code>exp</code>/<code>nbf</code>/<code>iat</code> with &le;60 s clock skew; <code>typ</code> checked to stop cross-token substitution (ID token used as an access token).</li>
+    <li>Short lifetime (5&ndash;15 min for access tokens); no PII or secrets in the payload &mdash; a JWT is signed, not encrypted (use JWE if it must be confidential).</li>
+    <li>Revocation: JWTs are not revocable by design &mdash; either keep them short, or check a deny-list / introspection endpoint (RFC 7662) for high-value operations.</li>
+    <li>Use a maintained library, verify then parse, and never <code>decode</code> without <code>verify</code>.</li>
+  </ul>
+  <div class="note"><p>Interview framing: &ldquo;sessions vs JWT&rdquo; is really &ldquo;where does revocation live&rdquo;. Server-side sessions are revocable and need shared state; JWTs are stateless and need short lifetimes plus a revocation path. Most real systems end up with a BFF holding a session and short-lived JWTs behind it.</p></div>
+</section>
+
+<section class="unit" id="u08">
+  <header>
+    <h2><span class="n">08</span>Crypto, TLS &amp; secrets</h2>
+    <span class="docs"><a href="https://cheatsheetseries.owasp.org/cheatsheets/Cryptographic_Storage_Cheat_Sheet.html">docs: OWASP Cryptographic Storage</a></span>
+  </header>
+  <dl class="rows">
+    <dt>Symmetric encryption</dt>
+    <dd>AEAD only: <strong>AES-256-GCM</strong> or <strong>ChaCha20-Poly1305</strong> / XChaCha20-Poly1305. Never ECB; never CBC without a separate MAC (encrypt-then-MAC), and even then prefer AEAD</dd>
+    <dt>Nonce discipline</dt>
+    <dd>GCM nonces are 96 bits: a repeat with the same key destroys confidentiality <em>and</em> forgeability. Random nonces are safe to roughly 2<sup>32</sup> messages per key &mdash; above that use a counter, a fresh key, or XChaCha20 (192-bit nonce)</dd>
+    <dt>Associated data</dt>
+    <dd>bind context into the AEAD's AAD (tenant id, record id, version) so a ciphertext cannot be moved between rows</dd>
+    <dt>Key derivation</dt>
+    <dd>HKDF from a high-entropy secret; Argon2id/scrypt from a password. Never SHA-256 of a passphrase as a key</dd>
+    <dt>Envelope encryption</dt>
+    <dd>data key per record/tenant, wrapped by a KMS/HSM key (AWS KMS, Azure Key Vault Managed HSM, GCP KMS). Rotation then re-wraps keys, not petabytes of data</dd>
+    <dt>Hashing vs MAC vs signature</dt>
+    <dd>SHA-256/SHA-3 for integrity, HMAC-SHA-256 for authenticated integrity with a shared key, Ed25519/ECDSA-P256 for signatures. MD5 and SHA-1 are broken for anything security-relevant</dd>
+    <dt>Randomness</dt>
+    <dd>CSPRNG only: <code>RandomNumberGenerator.GetBytes</code>, <code>crypto.randomBytes</code> / <code>crypto.getRandomValues</code>, <code>secrets.token_bytes</code>. Never <code>Math.random()</code>, <code>System.Random</code>, <code>rand()</code></dd>
+    <dt>Constant time</dt>
+    <dd>compare secrets with <code>FixedTimeEquals</code> / <code>timingSafeEqual</code> / <code>compare_digest</code>; <code>==</code> on a token leaks it byte by byte</dd>
+    <dt>Don't roll your own</dt>
+    <dd>libsodium / <code>System.Security.Cryptography</code> / WebCrypto / Tink. Custom padding, custom KDFs and &ldquo;we XOR it twice&rdquo; are findings</dd>
+  </dl>
+<pre><code class="language-csharp">// AES-256-GCM with context bound into the AAD, .NET
+using var aes = new AesGcm(key, AesGcm.TagByteSizes.MaxSize);      // key: 32 bytes from KMS
+Span&lt;byte&gt; nonce = stackalloc byte[AesGcm.NonceByteSizes.MaxSize]; // 12 bytes
+RandomNumberGenerator.Fill(nonce);
+var ct = new byte[plaintext.Length]; var tag = new byte[16];
+aes.Encrypt(nonce, plaintext, ct, tag, associatedData: Encoding.UTF8.GetBytes($"{tenantId}:{recordId}:v1"));
+// store nonce || tag || ct, plus the key id - you will need it to rotate</code></pre>
+  <h3>TLS in 2026</h3>
+  <dl class="rows">
+    <dt>Versions</dt>
+    <dd>TLS 1.3 preferred, TLS 1.2 with AEAD + forward-secret suites as the floor. TLS 1.0/1.1 disabled everywhere (PCI DSS forbade 1.0 years ago; browsers removed both in 2020)</dd>
+    <dt>Post-quantum key exchange</dt>
+    <dd><strong>X25519MLKEM768</strong> (hybrid X25519 + ML-KEM-768, FIPS 203) is now the default in Chrome, Edge, Firefox and Safari and on the major CDNs; roughly 30&ndash;50% of browser handshakes already use it. Google Cloud Load Balancing defaults it from 2026-10</dd>
+    <dt>Why it matters now</dt>
+    <dd>harvest-now-decrypt-later: traffic captured today is decryptable when a CRQC exists. Key exchange is urgent; <em>signatures</em> (certificates) are not, because a forged signature must be produced live</dd>
+    <dt>PQC timeline</dt>
+    <dd>NIST FIPS 203 (ML-KEM), 204 (ML-DSA), 205 (SLH-DSA) finalised 2024-08; NIST guidance deprecates classical RSA/ECC around 2030 and disallows them by 2035. Start with a crypto inventory (CBOM &mdash; CycloneDX 1.7 carries one)</dd>
+    <dt>Certificates</dt>
+    <dd>automate (ACME); lifetimes are shrinking industry-wide toward ~47 days by 2029, so manual renewal is already a liability. Certificate Transparency is mandatory; monitor CT logs for certs issued on your domains</dd>
+    <dt>mTLS</dt>
+    <dd>service-to-service identity (SPIFFE/SPIRE, service mesh) &mdash; and an OAuth token binding mechanism (RFC 8705)</dd>
+    <dt>Verify certificates</dt>
+    <dd>never <code>ServerCertificateCustomValidationCallback = (…) =&gt; true</code>, <code>rejectUnauthorized: false</code>, <code>verify=False</code>, or <code>curl -k</code> outside a throwaway lab. It is the single most common &ldquo;temporary&rdquo; fix that ships</dd>
+  </dl>
+  <h3>Secrets</h3>
+  <dl class="rows">
+    <dt>Best secret</dt>
+    <dd>none: workload identity / OIDC federation (GitHub Actions &rarr; AWS/Azure/GCP, Kubernetes projected tokens) issues short-lived credentials with no stored value to steal</dd>
+    <dt>Otherwise</dt>
+    <dd>a managed store (Vault, AWS Secrets Manager, Azure Key Vault, GCP Secret Manager) with per-environment scoping, automatic rotation and audit logs</dd>
+    <dt>Never</dt>
+    <dd>in the repo, in a container image layer, in build args, in CI logs, in an error page, in a crash dump, or in a client bundle. <code>git log -p</code> outlives the deletion commit</dd>
+    <dt>Detect</dt>
+    <dd><code>gitleaks detect --redact</code>, <code>trufflehog git file://. --only-verified</code>, GitHub secret scanning + push protection, pre-commit hooks</dd>
+    <dt>On exposure</dt>
+    <dd><strong>rotate first, investigate second</strong>. Rewriting history does not un-leak; assume it was scraped within minutes</dd>
+    <dt>Kubernetes</dt>
+    <dd><code>Secret</code> objects are base64, not encrypted &mdash; enable encryption at rest, use an external store via CSI driver, and never mount cluster-wide secrets into every pod</dd>
+  </dl>
+</section>
+
+<section class="unit" id="u09">
+  <header>
+    <h2><span class="n">09</span>Supply chain &amp; CI/CD <span class="since">A03:2025</span></h2>
+    <span class="docs"><a href="https://slsa.dev/spec/v1.1/">docs: SLSA v1.1</a></span>
+  </header>
+  <div class="note"><p><strong>The 2026 lesson &mdash; TanStack, 2026-05-11.</strong> 84 malicious versions across 42 <code>@tanstack/*</code> packages (including <code>@tanstack/react-router</code>, ~12.7M weekly downloads) were published in six minutes. No token was stolen: a <code>pull_request_target</code> &ldquo;pwn request&rdquo; poisoned the GitHub Actions cache across the fork&harr;base trust boundary, the legitimate release workflow ran with <code>id-token: write</code>, and the attacker lifted the OIDC token from runner memory. The packages shipped with <strong>valid SLSA Build L3 provenance</strong>. Provenance proves <em>where</em> an artefact was built, not that the build was clean &mdash; the campaign (&ldquo;Mini Shai-Hulud&rdquo;, TeamPCP) followed the Shai-Hulud worm of 2025-09 and its 400+-package sequel in 2025-11.</p></div>
+  <h3>Dependencies</h3>
+  <dl class="rows">
+    <dt>Reproducible installs</dt>
+    <dd><code>npm ci</code> · <code>pnpm i --frozen-lockfile</code> · <code>yarn install --immutable</code> · <code>pip install --require-hashes -r requirements.txt</code> · <code>dotnet restore --locked-mode</code> · <code>go mod verify</code>. Lockfiles are committed, always</dd>
+    <dt>Kill install scripts</dt>
+    <dd><code>npm ci --ignore-scripts</code> (or <code>ignore-scripts=true</code> in <code>.npmrc</code>) &mdash; <code>postinstall</code> is how nearly every npm worm executes</dd>
+    <dt>Cooldown</dt>
+    <dd>refuse versions younger than N days: npm <code>minimumReleaseAge</code>, pnpm <code>minimumReleaseAge</code>, Renovate <code>minimumReleaseAge: '7 days'</code>. Most malicious versions are yanked within an hour &mdash; this alone would have stopped TanStack</dd>
+    <dt>Dependency confusion</dt>
+    <dd>scope internal packages, pin the registry per scope, and never let a public registry be a fallback for a private name (<code>npm config set @acme:registry=…</code>, NuGet package source mapping)</dd>
+    <dt>Typo/slopsquatting</dt>
+    <dd>verify package names, especially ones an LLM suggested &mdash; hallucinated names are pre-registered by attackers</dd>
+    <dt>Transitive reality</dt>
+    <dd>you own your transitive tree. <code>npm ls &lt;pkg&gt;</code>, <code>dotnet list package --include-transitive</code>, <code>go mod why</code></dd>
+  </dl>
+  <h3>Publishing &amp; CI</h3>
+  <dl class="rows">
+    <dt>Trusted publishing</dt>
+    <dd>OIDC-based publish from CI with no stored token (npm, PyPI, RubyGems, crates.io). Still the right default &mdash; but scope the release workflow to a protected environment with required reviewers, because the token is only as safe as the job that mints it</dd>
+    <dt>Split the jobs</dt>
+    <dd>build in an untrusted job that produces an artefact; publish in a separate minimal job with <code>id-token: write</code> and nothing else. Never run untrusted code in the job that holds publish rights</dd>
+    <dt><code>pull_request_target</code></dt>
+    <dd>runs with base-repo secrets and default-branch cache. Never check out the PR head in it. <code>actions/checkout</code> v7 refuses the common pwn-request patterns by default <span class="since">2026-06-18</span></dd>
+    <dt>Pin actions</dt>
+    <dd>full 40-char commit SHA, not <code>@v4</code> &mdash; tags move. In 2026-03 attackers force-pushed 75 of 76 <code>trivy-action</code> tags and exfiltrated secrets from every pipeline that scanned with it</dd>
+    <dt>Least privilege</dt>
+    <dd><code>permissions: contents: read</code> at workflow level, widen per job; disable <code>GITHUB_TOKEN</code> write by default org-wide; restrict which actions may run (allowlist)</dd>
+    <dt>Cache is a trust boundary</dt>
+    <dd>a cache written by a fork PR job is readable by base-branch jobs &mdash; the TanStack vector. Scope or disable caches in privileged workflows</dd>
+    <dt>Egress control</dt>
+    <dd>block or audit outbound network from runners (StepSecurity Harden-Runner, self-hosted egress policy); exfiltration is the whole point of these worms</dd>
+    <dt>Self-hosted runners</dt>
+    <dd>ephemeral only; never on public-repo PRs. A persistent runner is a shared shell for anyone who can open a PR</dd>
+  </dl>
+<pre><code class="language-yaml">permissions: { contents: read }          # deny by default at workflow level
+jobs:
+  publish:
+    environment: release                  # protected: reviewers + wait timer
+    permissions: { contents: read, id-token: write }   # only this job mints the OIDC token
+    steps:
+      - uses: actions/checkout@08c6903cd8c0fde910a37f88322edcfb5dd907a8  # v5.0.0 - pin the SHA
+        with: { persist-credentials: false }
+      - run: npm ci --ignore-scripts
+      - run: npm publish --provenance --access public</code></pre>
+  <h3>Provenance, attestation, SBOM</h3>
+  <dl class="rows">
+    <dt>SLSA</dt>
+    <dd>Build L1 provenance exists &rarr; L2 signed by a hosted builder &rarr; L3 hardened, non-forgeable builder. L3 is necessary and, as 2026-05 showed, not sufficient</dd>
+    <dt>Signing</dt>
+    <dd>Sigstore: <code>cosign sign --yes &lt;image&gt;</code> / <code>cosign verify --certificate-identity-regexp … --certificate-oidc-issuer …</code>; keyless via Fulcio + Rekor transparency log. in-toto attestations wrapped in DSSE</dd>
+    <dt>SBOM formats</dt>
+    <dd><strong>CycloneDX 1.7</strong> <span class="since">2026-03</span> &mdash; attestation object aligned with in-toto/SLSA predicates, nested attestations, wider cryptography (CBOM) registry, TLP distribution markers. <strong>SPDX 3.0.1</strong> for licence-led programmes</dd>
+    <dt>Generate</dt>
+    <dd><code>syft &lt;image&gt; -o cyclonedx-json=sbom.json</code>, <code>trivy image --format cyclonedx</code>, <code>dotnet CycloneDX</code>, <code>cdxgen</code>. Generate at build time from the resolved graph, not from the manifest</dd>
+    <dt>VEX</dt>
+    <dd>the &ldquo;not affected, and here is why&rdquo; document (OpenVEX / CSAF VEX / CycloneDX VEX). It is what stops a 400-CVE container report from paralysing a team</dd>
+    <dt>Why it is regulation now</dt>
+    <dd>EU CRA needs component-level visibility to meet the 24-hour actively-exploited-vulnerability report from 2026-09-11; the SBOM mandate itself lands 2027-12-11</dd>
+  </dl>
+</section>
+
+<section class="unit" id="u10">
+  <header>
+    <h2><span class="n">10</span>Scanning &amp; triage commands</h2>
+    <span class="docs"><a href="https://owasp.org/www-community/Source_Code_Analysis_Tools">docs: OWASP tool categories</a></span>
+  </header>
+  <dl class="rows">
+    <dt>SAST (code)</dt>
+    <dd><code>semgrep ci --config auto</code> · <code>semgrep --config p/owasp-top-ten --severity ERROR</code> · <code>codeql database analyze db codeql/&lt;lang&gt;-security-extended</code> · <code>bandit -r . -ll</code></dd>
+    <dt>SCA (dependencies)</dt>
+    <dd><code>osv-scanner scan source -r .</code> · <code>trivy fs --scanners vuln,secret,misconfig .</code> · <code>npm audit --omit=dev --audit-level=high</code> · <code>pip-audit</code> · <code>dotnet list package --vulnerable --include-transitive</code> · <code>cargo audit</code> · <code>govulncheck ./...</code> (call-graph reachable only)</dd>
+    <dt>Containers &amp; IaC</dt>
+    <dd><code>trivy image --severity HIGH,CRITICAL --ignore-unfixed &lt;img&gt;</code> · <code>grype &lt;img&gt;</code> · <code>checkov -d .</code> · <code>tfsec</code>/<code>trivy config</code> · <code>docker scout cves</code></dd>
+    <dt>Secrets</dt>
+    <dd><code>gitleaks detect --redact --report-format sarif</code> · <code>trufflehog git file://. --only-verified</code> · <code>gitleaks protect --staged</code> as a pre-commit hook</dd>
+    <dt>DAST</dt>
+    <dd><code>zap-baseline.py -t https://app -r report.html</code> (passive, CI-friendly) · <code>zap-full-scan.py</code> · <code>nuclei -u https://app -severity high,critical</code> · authenticated scans need a scripted login and a scope allowlist</dd>
+    <dt>API-specific</dt>
+    <dd>fuzz from the OpenAPI spec (<code>schemathesis run openapi.json</code>); diff the spec against the implemented routes &mdash; shadow and zombie endpoints are where BOLA hides</dd>
+    <dt>Headers &amp; TLS</dt>
+    <dd><code>testssl.sh --severity HIGH https://app</code> · <code>sslyze</code> · Mozilla Observatory · <code>curl -sI https://app</code> for a header eyeball</dd>
+    <dt>Wire the results together</dt>
+    <dd>everything above emits SARIF &mdash; upload to code scanning so findings deduplicate, get owners, and fail the build only on <em>new</em> issues (baseline the old ones or you get ignored)</dd>
+  </dl>
+  <h3>Which score decides what</h3>
+  <div class="tw">
+  <table class="grid">
+    <thead><tr><th>Signal</th><th>Answers</th><th>Use it for</th></tr></thead>
+    <tbody>
+      <tr class="hi"><td><strong>CISA KEV</strong></td><td>&ldquo;is it exploited <em>right now</em>?&rdquo;</td><td>first filter. On KEV + present in your stack = drop everything (US federal BOD 22-01 sets due dates; use them as your SLA too)</td></tr>
+      <tr><td><strong>EPSS v4</strong> <span class="since">2025-03-17</span></td><td>&ldquo;probability of exploitation in the next 30 days&rdquo;</td><td>ranking the long tail. A CVSS 7.5 at EPSS 0.94 beats a CVSS 9.1 at EPSS 0.003</td></tr>
+      <tr><td><strong>CVSS 4.0</strong> <span class="since">2023-11</span></td><td>&ldquo;how bad if exploited?&rdquo;</td><td>severity only. Base score alone is not risk; 4.0 adds Threat (CVSS-BT) and Environmental (CVSS-BE) metrics that most teams never fill in</td></tr>
+      <tr><td>Reachability</td><td>&ldquo;does our code call the vulnerable function?&rdquo;</td><td>the biggest noise reduction available (govulncheck, Semgrep/Snyk reachability, Endor-style analysis)</td></tr>
+      <tr><td>VEX</td><td>&ldquo;why we are not affected&rdquo;</td><td>publishing the answer once instead of re-litigating it per customer</td></tr>
+    </tbody>
+  </table>
+  </div>
+  <div class="note"><p>Triage order that survives an audit: <em>KEV &rarr; reachable &rarr; internet-exposed &rarr; EPSS &rarr; CVSS &times; asset criticality</em>. Write the SLA per bucket (e.g. KEV 72 h, critical+reachable 7 days, the rest next sprint) and report ageing, not counts. NVD enrichment backlogs since 2024 mean an unscored CVE is not a safe CVE &mdash; use OSV and vendor advisories as well.</p></div>
+</section>
+
+<section class="unit" id="u11">
+  <header>
+    <h2><span class="n">11</span>Logging, errors &amp; disclosure</h2>
+    <span class="docs"><a href="https://cheatsheetseries.owasp.org/cheatsheets/Logging_Cheat_Sheet.html">docs: OWASP Logging Cheat Sheet</a></span>
+  </header>
+  <h3>A09 &mdash; logging <em>and alerting</em></h3>
+  <dl class="rows">
+    <dt>Log these</dt>
+    <dd>authn success/failure, authz denials, session lifecycle, password/MFA/email changes, privilege changes, admin and impersonation actions, key and secret access, input-validation rejections, payment and export events</dd>
+    <dt>Every event carries</dt>
+    <dd>who (subject + acting identity), what, when (UTC, ISO-8601), where (source IP, user agent, service), outcome, and a correlation/trace id that survives service hops</dd>
+    <dt>Never log</dt>
+    <dd>passwords, tokens, session ids, API keys, full PAN or CVV, MFA codes, raw request bodies of auth endpoints, or PII beyond what the event needs. Redact at the sink <em>and</em> at the source</dd>
+    <dt>Log injection</dt>
+    <dd>strip <code>\r\n</code> and encode user data before it enters a log line &mdash; forged entries break your own investigation. Structured (JSON) logging fixes this by construction</dd>
+    <dt>Integrity</dt>
+    <dd>ship off-host quickly, append-only/WORM retention for security events, restrict who can delete. An attacker's first move is your logs</dd>
+    <dt>The 2025 rename</dt>
+    <dd>&ldquo;monitoring&rdquo; &rarr; &ldquo;<strong>alerting</strong>&rdquo;: a detection with no alert, no owner and no runbook is not a control. Test it &mdash; fire a synthetic event quarterly and time the response</dd>
+    <dt>Retention</dt>
+    <dd>long enough to investigate (90 days hot, 1 year cold is a common floor), short enough to satisfy data-minimisation. Both directions are audit findings</dd>
+  </dl>
+  <h3>A10 &mdash; mishandling of exceptional conditions <span class="since">new in 2025</span></h3>
+  <dl class="rows">
+    <dt>Fail closed</dt>
+    <dd>when the authz service, the token introspection or the feature flag lookup errors, <strong>deny</strong>. &ldquo;Allow on error&rdquo; is the classic outage-turned-breach</dd>
+    <dt>No detail to the client</dt>
+    <dd>generic message + a correlation id; stack traces, SQL text, framework versions and file paths belong in the log. Turn off developer exception pages by environment, not by a flag someone can flip</dd>
+    <dt>Empty catch</dt>
+    <dd><code>catch { }</code>, <code>except: pass</code>, <code>if err != nil { }</code> and ignored promise rejections hide security-relevant failures &mdash; a signature check that throws and is swallowed is a signature check that passed</dd>
+    <dt>Partial failure</dt>
+    <dd>a multi-step operation that half-succeeds leaves inconsistent authorisation state; use transactions or idempotent, resumable steps</dd>
+    <dt>Resource exhaustion</dt>
+    <dd>timeouts on every outbound call, bounded queues and thread pools, request size and body limits, decompression limits, pagination caps. Unbounded is a DoS you shipped</dd>
+    <dt>Error-based oracles</dt>
+    <dd>different messages/timings for &ldquo;no such user&rdquo; vs &ldquo;wrong password&rdquo;, or for &ldquo;not found&rdquo; vs &ldquo;forbidden&rdquo;, leak data. Choose one response and be consistent</dd>
+  </dl>
+  <h3>Disclosure &amp; regulatory clocks</h3>
+  <div class="tw">
+  <table class="grid">
+    <thead><tr><th>Clock</th><th>Deadline</th><th>Trigger</th></tr></thead>
+    <tbody>
+      <tr class="hi"><td><strong>EU CRA</strong> (from 2026-09-11)</td><td>24 h early warning &rarr; 72 h notification &rarr; 14 days final report, via the ENISA Single Reporting Platform</td><td>an <em>actively exploited</em> vulnerability or a severe incident in a product with digital elements sold in the EU &mdash; including products already on the market. Not every CVE</td></tr>
+      <tr><td>GDPR</td><td>72 h to the supervisory authority</td><td>personal data breach; notify data subjects without undue delay if high risk</td></tr>
+      <tr><td>NIS2</td><td>24 h early warning, 72 h notification, 1 month final</td><td>significant incident at an essential/important entity</td></tr>
+      <tr><td>SEC (US listed)</td><td>4 business days (Item 1.05)</td><td>material cybersecurity incident</td></tr>
+    </tbody>
+  </table>
+  </div>
+  <dl class="rows">
+    <dt>Inbound reports</dt>
+    <dd><code>/.well-known/security.txt</code> <span class="since">RFC 9116</span> with <code>Contact</code>, <code>Expires</code>, <code>Policy</code>, <code>Preferred-Languages</code>. A researcher who cannot find you posts publicly instead</dd>
+    <dt>Advisories</dt>
+    <dd>become a CNA or use GitHub Security Advisories; publish CSAF/OSV so downstream scanners consume it automatically</dd>
+    <dt>Incident basics</dt>
+    <dd>declare early, one incident commander, a scribe, a comms lead; preserve evidence before you remediate; rotate every credential in blast radius; blameless post-mortem with dated action items</dd>
+  </dl>
+</section>
+
+<section class="unit" id="u12">
+  <header>
+    <h2><span class="n">12</span>AI, LLM &amp; agent surfaces</h2>
+    <span class="docs"><a href="https://owasp.org/www-project-top-10-for-large-language-model-applications/">docs: OWASP Top 10 for LLM Applications</a></span>
+  </header>
+  <dl class="rows">
+    <dt>The list</dt>
+    <dd>OWASP Top 10 for LLM Applications (2025 edition): LLM01 Prompt Injection, LLM02 Sensitive Information Disclosure, LLM03 Supply Chain, LLM04 Data &amp; Model Poisoning, LLM05 Improper Output Handling, LLM06 Excessive Agency, LLM07 System Prompt Leakage, LLM08 Vector &amp; Embedding Weaknesses, LLM09 Misinformation, LLM10 Unbounded Consumption</dd>
+    <dt>Prompt injection</dt>
+    <dd>#1 for the second edition running, and <strong>unsolved</strong>: there is no reliable way to separate instructions from data inside a prompt. Guardrails and classifiers reduce rate, they do not close the class &mdash; design as if injection succeeds</dd>
+    <dt>Indirect injection</dt>
+    <dd>the dangerous variant: instructions arrive inside a web page, PDF, ticket, email, code comment or retrieved document the model reads. Anything the model ingests is attacker-controlled input</dd>
+    <dt>The lethal trifecta</dt>
+    <dd>access to <em>private data</em> + exposure to <em>untrusted content</em> + an <em>outbound channel</em>. Remove any one leg and exfiltration stops. This is the single most useful design test for an agent feature</dd>
+    <dt>Improper output handling</dt>
+    <dd>model output is untrusted input: encode it for its sink, never <code>eval</code> it, never concatenate it into SQL or a shell, sandbox generated code, and re-authorise every tool call it triggers</dd>
+    <dt>Excessive agency</dt>
+    <dd>least privilege per tool, not per agent: scoped credentials, read-only by default, allowlisted tools, human-in-the-loop for irreversible or externally visible actions (payments, emails, deletes, publishes)</dd>
+    <dt>Markdown exfiltration</dt>
+    <dd>an image or link the model renders can carry data in the URL. Disable auto-rendering of model-supplied URLs, or allowlist the domains &mdash; a CSP on the chat surface helps</dd>
+    <dt>RAG</dt>
+    <dd>the index inherits the source's access control &mdash; enforce per-user filtering at retrieval time, not in the prompt. Poisoned documents are a persistence mechanism</dd>
+    <dt>Unbounded consumption</dt>
+    <dd>token, cost and concurrency caps per tenant; cost is a DoS surface, and model-extraction attacks look like heavy use</dd>
+    <dt>System prompt</dt>
+    <dd>assume it is public. Never put secrets, keys, connection strings or authorisation rules in it</dd>
+  </dl>
+  <h3>MCP and tool-using agents</h3>
+  <dl class="rows">
+    <dt>Trust boundary</dt>
+    <dd>every MCP server is a separate trust boundary that the agent discovers at <em>runtime</em>. The protocol standardises discovery and invocation; authentication, authorisation and transport security are left to each implementation</dd>
+    <dt>Known classes</dt>
+    <dd>tool poisoning (malicious descriptions steering the model), rug-pull updates to a previously approved tool, cross-server shadowing, confused deputy via a shared client id, and token passthrough &mdash; which the spec explicitly forbids</dd>
+    <dt>Controls</dt>
+    <dd>pin and review server versions, allowlist servers and tools, scope one credential per server, keep servers off the public internet, log every tool call with arguments, require confirmation for side-effecting tools, and apply the OAuth rules from unit 07 (PKCE, audience-restricted tokens, no passthrough)</dd>
+    <dt>Guidance to cite</dt>
+    <dd>MCP specification revision 2026-07-28 and its security best-practices page; NSA/CISA cybersecurity information sheet on MCP security design <span class="since">2026-06</span></dd>
+    <dt>Prevalence</dt>
+    <dd>Wiz observed MCP servers in ~80% of cloud environments in early 2026, ~5% of those internet-facing &mdash; assume it is already in your estate</dd>
+  </dl>
+  <h3>AI-assisted development</h3>
+  <ul class="tight">
+    <li>Generated code is a <em>proposal</em>: it goes through the same review, SAST and dependency policy as human code &mdash; no exemptions for velocity.</li>
+    <li>Package hallucination (&ldquo;slopsquatting&rdquo;): verify every suggested dependency exists and is the one you meant, before <code>npm i</code>.</li>
+    <li>Agentic coding tools are a supply-chain path into your repo and CI: least-privilege tokens, no publish rights, and a human on the merge.</li>
+    <li>Don't paste secrets, customer data or unreleased source into a model you do not control; know your provider's retention terms.</li>
+  </ul>
+</section>
+
+<section class="unit" id="u13">
+  <header>
+    <h2><span class="n">13</span>Gotchas &amp; review one-liners</h2>
+    <span class="docs"><a href="https://cheatsheetseries.owasp.org/">docs: OWASP Cheat Sheet Series</a></span>
+  </header>
+  <ul class="tight">
+    <li>A route-level <code>[Authorize]</code> with no ownership check is an IDOR waiting for a customer to notice.</li>
+    <li><code>404</code> instead of <code>403</code> for objects the caller may not see &mdash; a <code>403</code> confirms the record exists.</li>
+    <li>Interpolating into <code>FromSqlRaw</code>/<code>ExecuteSqlRaw</code> is concatenation; only the <code>FormattableString</code> overloads parameterise.</li>
+    <li>ORMs do not stop injection in raw fragments, <code>ORDER BY</code>, <code>LIKE</code> patterns or dynamic table names.</li>
+    <li>A CSP nonce reused across responses (or baked into a cached page) is decorative.</li>
+    <li><code>X-XSS-Protection: 1; mode=block</code> is worse than nothing &mdash; set <code>0</code> or omit it.</li>
+    <li><code>SameSite=Lax</code> does not protect a state-changing <code>GET</code>, and does nothing for same-site subdomain attacks.</li>
+    <li>Naive double-submit CSRF tokens fall to any subdomain that can write a cookie; sign the token to the session.</li>
+    <li><code>localStorage</code> access tokens turn one XSS into full account takeover; <code>HttpOnly</code> cookie + BFF instead.</li>
+    <li>Verifying a JWT with the token's own <code>alg</code>, <code>jku</code> or <code>x5u</code> is verifying nothing.</li>
+    <li>Checking <code>exp</code> but not <code>aud</code> lets a token minted for another service in.</li>
+    <li>bcrypt silently truncates at 72 bytes &mdash; long passphrases collide unless you pre-hash.</li>
+    <li>Skipping the KDF when the user does not exist creates a timing oracle for enumeration.</li>
+    <li>Account lockout without backoff is a denial-of-service feature you built for the attacker.</li>
+    <li>Password reset that does not invalidate existing sessions and refresh tokens leaves the attacker logged in.</li>
+    <li>Reusing an AES-GCM nonce with the same key breaks confidentiality <em>and</em> authenticity, permanently.</li>
+    <li><code>Math.random()</code>, <code>System.Random</code> and <code>uuid</code> v1 are not security tokens.</li>
+    <li><code>==</code> on a token or MAC leaks it through timing; use the constant-time comparer.</li>
+    <li>Disabling certificate validation &ldquo;temporarily&rdquo; is the most-shipped temporary fix in the industry.</li>
+    <li>Redirecting to a raw <code>?returnUrl=</code> is an open redirect and an OAuth token-theft primitive.</li>
+    <li><code>postMessage(data, '*')</code> broadcasts to whatever is framing you.</li>
+    <li>A file upload served from the app's own origin is stored XSS; use a separate domain and <code>Content-Disposition: attachment</code>.</li>
+    <li><code>iframe sandbox="allow-scripts allow-same-origin"</code> is a sandbox that unsandboxes itself.</li>
+    <li>DNS re-resolution between your SSRF check and the connect defeats a host allowlist; validate the IP you actually connect to.</li>
+    <li>Following redirects in a server-side fetch of a user URL undoes every allowlist above it.</li>
+    <li>A <code>.env</code>, <code>.git</code>, source map, <code>/actuator</code> or <code>/swagger</code> endpoint reachable in production is a free map of your app.</li>
+    <li>Docker image layers keep deleted secrets; so does git history after a &ldquo;fix: remove key&rdquo; commit.</li>
+    <li>An unpinned action tag can be force-pushed &mdash; and was, to 75 of 76 <code>trivy-action</code> tags in 2026-03.</li>
+    <li><code>postinstall</code> scripts run before you have read a single line of the package.</li>
+    <li>SLSA provenance proves where a build ran, not that the build was clean (TanStack, 2026-05).</li>
+    <li>Fail-open authorisation when the policy service times out converts an outage into a breach.</li>
+    <li>Swallowed exceptions turn a failed signature check into a successful login.</li>
+    <li>Logging the request body of <code>/login</code> puts every password in your SIEM &mdash; and in your vendor's.</li>
+    <li>Feature flags and admin toggles are authorisation decisions; audit them like code.</li>
+    <li>Rate limiting per IP alone is defeated by any residential proxy pool; limit per identity too.</li>
+    <li>Anything the model reads is untrusted input; anything the model writes is untrusted output.</li>
+  </ul>
+</section>
+
+<section class="unit" id="u14">
+  <header>
+    <h2><span class="n">14</span>Modern vs legacy</h2>
+    <span class="docs"><a href="https://cheatsheetseries.owasp.org/IndexTopTen.html">docs: cheat sheets indexed by Top 10</a></span>
+  </header>
+  <div class="tw">
+  <table class="grid">
+    <thead><tr><th>Task</th><th>Modern</th><th>Legacy still seen</th><th>Since</th></tr></thead>
+    <tbody>
+      <tr class="hi"><td>User login</td><td>Passkeys (WebAuthn L3), password as fallback</td><td>Password + SMS OTP; security questions</td><td>REC 2026-08-25</td></tr>
+      <tr><td>Password policy</td><td>&ge;15 chars encouraged, breach screening, no rotation</td><td>8 chars, 4 character classes, 90-day expiry</td><td>SP 800-63B-4, 2025</td></tr>
+      <tr><td>Password hashing</td><td>Argon2id <code>m=19456,t=2,p=1</code></td><td>bcrypt cost 10; PBKDF2 10k; salted SHA-256; MD5</td><td>OWASP, current</td></tr>
+      <tr><td>SPA token storage</td><td>BFF: <code>HttpOnly</code> <code>__Host-</code> cookie, token server-side</td><td>Access token in <code>localStorage</code>; implicit flow</td><td>RFC 9700, 2025-01</td></tr>
+      <tr><td>OAuth code flow</td><td>Auth code + PKCE (all clients), exact redirect URI, PAR</td><td>Implicit grant; ROPC; wildcard redirect URIs</td><td>OAuth 2.1 / RFC 9700</td></tr>
+      <tr><td>Token theft defence</td><td>DPoP or mTLS sender-constrained tokens</td><td>Long-lived bearer tokens, IP allowlists</td><td>RFC 9449, 2023-09</td></tr>
+      <tr class="hi"><td>XSS defence</td><td>Nonce + <code>strict-dynamic</code> CSP + Trusted Types</td><td>Host-allowlist CSP; <code>X-XSS-Protection</code>; regex &ldquo;sanitisers&rdquo;</td><td>CSP3 / TT</td></tr>
+      <tr><td>HTML sanitisation</td><td><code>Element.setHTML()</code> with a DOMPurify fallback</td><td><code>innerHTML</code> + homemade escaping</td><td>Firefox 148 / Chrome 146</td></tr>
+      <tr><td>Clickjacking</td><td><code>frame-ancestors</code> in CSP</td><td><code>X-Frame-Options</code>; JS framebusting</td><td>CSP2, long since</td></tr>
+      <tr><td>Session cookie</td><td><code>__Host-</code> + <code>Secure</code> + <code>HttpOnly</code> + <code>SameSite=Lax</code></td><td>Bare name, <code>Domain=.example.com</code>, no <code>SameSite</code></td><td>prefixes widely supported</td></tr>
+      <tr><td>Cross-site embed cookie</td><td><code>SameSite=None; Secure; Partitioned</code> (CHIPS)</td><td>Unpartitioned third-party cookie</td><td>Chrome 114+, 2023</td></tr>
+      <tr><td>CSRF</td><td>Synchroniser token + <code>Origin</code>/<code>Sec-Fetch-Site</code> check</td><td>Naive double-submit; referer-only; &ldquo;SameSite is enough&rdquo;</td><td>Fetch Metadata, 2020+</td></tr>
+      <tr><td>Cert pinning</td><td>CT log monitoring, CAA records, short-lived certs</td><td>HPKP (<code>Public-Key-Pins</code>), <code>Expect-CT</code></td><td>HPKP removed 2018</td></tr>
+      <tr class="hi"><td>TLS key exchange</td><td>Hybrid <strong>X25519MLKEM768</strong> (ML-KEM, FIPS 203)</td><td>Classical X25519/P-256 only</td><td>default in all major browsers</td></tr>
+      <tr><td>Symmetric crypto</td><td>AES-256-GCM / ChaCha20-Poly1305 via KMS envelope</td><td>AES-CBC + manual HMAC; ECB; static key in config</td><td>long since</td></tr>
+      <tr><td>CI credentials</td><td>OIDC workload identity, short-lived</td><td>Long-lived PAT / cloud access key in a CI secret</td><td>2022+, universal by 2026</td></tr>
+      <tr><td>Package publishing</td><td>Trusted publishing (OIDC) from a protected environment</td><td>npm classic token in a repo secret</td><td>npm/PyPI 2023&ndash;2025</td></tr>
+      <tr><td>Action references</td><td>Full 40-char commit SHA + lockfile-style pinning</td><td><code>@v4</code>, <code>@main</code></td><td>after 2025&ndash;26 tag attacks</td></tr>
+      <tr><td>Dependency intake</td><td>Lockfile + <code>--ignore-scripts</code> + release cooldown</td><td><code>npm install</code> latest, scripts enabled</td><td>after Shai-Hulud, 2025-09</td></tr>
+      <tr><td>Artefact integrity</td><td>Sigstore/cosign + SLSA provenance + SBOM</td><td>A published SHA-256 in a release note</td><td>SLSA 1.0, 2023</td></tr>
+      <tr><td>SBOM format</td><td>CycloneDX 1.7 or SPDX 3.0.1, generated at build</td><td>A spreadsheet of dependencies; manifest-derived lists</td><td>CycloneDX 1.7, 2026-03</td></tr>
+      <tr><td>Vuln prioritisation</td><td>KEV &rarr; reachability &rarr; EPSS &rarr; CVSS &times; context</td><td>&ldquo;fix everything CVSS &ge; 7&rdquo;</td><td>EPSS v4, 2025-03</td></tr>
+      <tr><td>Severity scoring</td><td>CVSS 4.0 with Threat/Environmental metrics</td><td>CVSS 3.1 base score only</td><td>CVSS 4.0, 2023-11</td></tr>
+      <tr><td>Detection</td><td>Alert with an owner and a runbook, tested</td><td>&ldquo;It is in the logs&rdquo;</td><td>A09 rename, 2025</td></tr>
+      <tr><td>Serialisation</td><td>Schema-bound JSON (<code>System.Text.Json</code>, protobuf)</td><td><code>BinaryFormatter</code>, <code>TypeNameHandling.All</code>, <code>pickle</code></td><td>removed in .NET 9</td></tr>
+      <tr><td>Secrets in config</td><td>Managed store or workload identity</td><td><code>appsettings.json</code>, <code>.env</code> committed, base64 in a k8s <code>Secret</code></td><td>&mdash;</td></tr>
+      <tr><td>Untrusted HTML/AI output</td><td>Treat as input: encode, sandbox, re-authorise</td><td>Render or execute it directly</td><td>LLM05, 2025</td></tr>
+    </tbody>
+  </table>
+  </div>
+</section>
+
+<section class="unit" id="u15">
+  <header>
+    <h2><span class="n">15</span>Version timeline</h2>
+    <span class="docs"><a href="https://owasp.org/Top10/2025/0x00_2025-Introduction/">docs: Top 10:2025 introduction</a></span>
+  </header>
+  <p>Latest first. <span class="chip">stable</span> newly stable, <span class="chip">default</span> newly default, <span class="chip">deprecated</span> newly deprecated or removed.</p>
+  <div class="tw">
+  <table class="grid">
+    <thead><tr><th>Date</th><th>What</th><th>Why it matters</th></tr></thead>
+    <tbody>
+      <tr class="hi"><td>2026-09-11</td><td><strong>EU CRA reporting obligations start</strong> <span class="chip">stable</span></td><td>24 h early warning / 72 h notification / 14 day final report for actively exploited vulnerabilities and severe incidents, via the ENISA Single Reporting Platform. Applies to products <em>already</em> on the EU market (Art. 69(3)); full CRA application follows 2027-12-11</td></tr>
+      <tr class="hi"><td>2026-08-25</td><td><strong>WebAuthn Level 3 becomes a W3C Recommendation</strong> <span class="chip">stable</span></td><td>ratifies <code>getClientCapabilities()</code>, Related Origin Requests, signal methods and JSON helpers &mdash; the passkey behaviour browsers shipped from 2024 is now a finished standard</td></tr>
+      <tr><td>2026-07-28</td><td>MCP specification revision</td><td>current spec revision for tool-using agents, with its security best-practices guidance (token passthrough forbidden, per-server trust boundaries)</td></tr>
+      <tr><td>2026-06-18</td><td><code>actions/checkout</code> v7 safer <code>pull_request_target</code> defaults <span class="chip">default</span></td><td>refuses the common pwn-request checkout patterns by default; still not a substitute for splitting build and publish jobs</td></tr>
+      <tr><td>2026-06</td><td>NSA/CISA information sheet on MCP security design</td><td>first government-level guidance on agent tool protocols</td></tr>
+      <tr class="hi"><td>2026-05-11</td><td><strong>TanStack / &ldquo;Mini Shai-Hulud&rdquo; npm compromise</strong></td><td>84 malicious versions across 42 <code>@tanstack/*</code> packages in six minutes via <code>pull_request_target</code> &rarr; Actions cache poisoning &rarr; OIDC token theft. Published <em>with valid SLSA L3 provenance</em>. The reason cooldowns and job separation became table stakes</td></tr>
+      <tr><td>2026-03</td><td>CycloneDX 1.7 <span class="chip">stable</span></td><td>in-toto/SLSA-aligned attestation object, nested attestations, wider cryptography (CBOM) registry, TLP markers &mdash; the SBOM format to target for CRA work</td></tr>
+      <tr><td>2026-03</td><td><code>trivy-action</code> tag compromise</td><td>75 of 76 version tags force-pushed; secrets exfiltrated from every pipeline that scanned with a moving tag. SHA pinning stopped being optional</td></tr>
+      <tr><td>2026 H1</td><td>Sanitizer API <code>setHTML()</code> ships (Firefox 148, Chrome 146)</td><td>native XSS-safe HTML insertion &mdash; but <strong>not Baseline</strong> (Safari has not implemented), so feature-detect and keep DOMPurify</td></tr>
+      <tr class="hi"><td>2026-01</td><td><strong>OWASP Top 10:2025 final</strong> <span class="chip">stable</span></td><td>announced 2025-11 at Global AppSec DC. New: A03 Software Supply Chain Failures, A10 Mishandling of Exceptional Conditions. A09 renamed to &ldquo;Logging &amp; Alerting&rdquo;. SSRF retired into A01 <span class="chip">deprecated</span></td></tr>
+      <tr><td>2025-11 / 2025-12</td><td>Shai-Hulud 2.0</td><td>self-replicating npm worm hits 400+ packages; accelerated npm's move to trusted publishing, short-lived granular tokens and stricter 2FA <span class="chip">deprecated</span> classic long-lived publish tokens</td></tr>
+      <tr><td>2025-10</td><td>Most Privacy Sandbox APIs retired <span class="chip">deprecated</span></td><td>after Google's 2025-04 reversal on third-party cookie deprecation; CHIPS and a few others survive</td></tr>
+      <tr><td>2025-09</td><td>Shai-Hulud worm; <code>chalk</code>/<code>debug</code> maintainer phishing</td><td>the start of the modern npm worm era &mdash; <code>postinstall</code> as the execution primitive, CI secrets as the payload</td></tr>
+      <tr><td>2025-07/08</td><td>NIST SP 800-63-4 final <span class="chip">stable</span></td><td>four years, two drafts, ~6,000 comments. No composition rules, no forced rotation, &ge;8 SHALL / &ge;15 SHOULD, breach screening, SMS restricted <span class="chip">deprecated</span></td></tr>
+      <tr><td>2025-05-30</td><td>OWASP ASVS 5.0.0 <span class="chip">stable</span></td><td>17 chapters, ~350 requirements, IDs reset from 4.0.3 (mapping document provided)</td></tr>
+      <tr><td>2025-04</td><td>Chrome keeps third-party cookies <span class="chip">default</span></td><td>the deprecation is off; design for partitioned cookies anyway &mdash; Safari, Firefox and Brave still block them</td></tr>
+      <tr><td>2025-03-31</td><td>PCI DSS 4.0.1 future-dated requirements in force</td><td>including client-side script integrity/inventory (6.4.3) and payment-page tamper detection (11.6.1) &mdash; the Magecart clauses</td></tr>
+      <tr><td>2025-03-17</td><td>EPSS v4 <span class="chip">stable</span></td><td>better-calibrated 30-day exploitation probability; the ranking signal for the long tail</td></tr>
+      <tr><td>2025-01</td><td>RFC 9700 &mdash; OAuth 2.0 Security BCP <span class="chip">stable</span></td><td>PKCE everywhere, exact redirect URI matching, no implicit, no ROPC, sender-constrained tokens preferred; folded into OAuth 2.1 <span class="chip">deprecated</span> implicit and password grants</td></tr>
+      <tr><td>2024-12-10</td><td>EU Cyber Resilience Act enters into force</td><td>starts the clock: reporting 2026-09-11, full application 2027-12-11</td></tr>
+      <tr><td>2024-11</td><td>OWASP Top 10 for LLM Applications 2025 edition</td><td>prompt injection stays #1; adds system prompt leakage and vector/embedding weaknesses for RAG</td></tr>
+      <tr><td>2024-08-13</td><td>NIST FIPS 203 / 204 / 205 <span class="chip">stable</span></td><td>ML-KEM, ML-DSA, SLH-DSA finalised &mdash; the basis for hybrid TLS and for the 2030/2035 deprecation of classical RSA/ECC</td></tr>
+      <tr><td>2024-04 &rarr; 2025</td><td>X25519MLKEM768 rolls out <span class="chip">default</span></td><td>Chrome 124 first, then Firefox, Edge, Safari and the major CDNs; ~30&ndash;50% of browser handshakes are hybrid by 2026</td></tr>
+      <tr><td>2023-11</td><td>CVSS 4.0 <span class="chip">stable</span></td><td>Base/Threat/Environmental/Supplemental; most programmes finished migrating from 3.1 during 2026</td></tr>
+      <tr><td>2023-09</td><td>DPoP &mdash; RFC 9449 <span class="chip">stable</span></td><td>application-level sender-constrained access and refresh tokens; the mainstream answer to token exfiltration</td></tr>
+      <tr><td>2021-09</td><td>OWASP Top 10:2021 <span class="chip">deprecated</span></td><td>superseded. If your policy documents still cite A10:2021 SSRF as its own category, they are four years out of date</td></tr>
+    </tbody>
+  </table>
+  </div>
+  <div class="note"><p>Cadence to expect: OWASP Top 10 roughly every four years (next ~2029), ASVS on its own track, the CRA stepping up on 2027-12-11, and post-quantum migration paced by NIST's 2030 deprecation / 2035 disallowance of classical RSA and ECC. Everything in the top third of this table is younger than a year &mdash; re-verify it before you quote a date in an interview.</p></div>
+</section>
+</main>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.11.1/highlight.min.js"></script>
+<script>
+(function () {
+  if (window.hljs) { try { hljs.highlightAll(); } catch (e) { /* highlighting is decoration */ } }
+
+  var toggle = document.querySelector('.navtoggle');
+  var side = document.getElementById('side');
+  if (toggle) {
+    toggle.addEventListener('click', function () {
+      var open = document.body.classList.toggle('nav-open');
+      toggle.setAttribute('aria-expanded', open ? 'true' : 'false');
+    });
+  }
+  if (side) {
+    side.addEventListener('click', function (e) {
+      if (e.target.closest('a')) {
+        document.body.classList.remove('nav-open');
+        if (toggle) toggle.setAttribute('aria-expanded', 'false');
+      }
+    });
+  }
+
+  var links = Array.prototype.slice.call(document.querySelectorAll('.units a'));
+  var units = links.map(function (a) { return document.getElementById(a.getAttribute('href').slice(1)); });
+  var ticking = false;
+  function spy() {
+    ticking = false;
+    var best = 0;
+    for (var i = 0; i < units.length; i++) {
+      if (units[i] && units[i].getBoundingClientRect().top <= 140) best = i;
+    }
+    for (var j = 0; j < links.length; j++) {
+      if (j === best) links[j].setAttribute('aria-current', 'true');
+      else links[j].removeAttribute('aria-current');
+    }
+  }
+  function onScroll() {
+    if (!ticking) { ticking = true; window.requestAnimationFrame(spy); }
+  }
+  window.addEventListener('scroll', onScroll, { passive: true });
+  window.addEventListener('resize', onScroll, { passive: true });
+  spy();
+})();
+</script>
+</body>
+</html>
