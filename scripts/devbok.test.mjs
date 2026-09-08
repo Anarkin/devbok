@@ -6,7 +6,7 @@ import assert from 'node:assert/strict';
 import fs from 'node:fs';
 import os from 'node:os';
 import path from 'node:path';
-import { spawnSync } from 'node:child_process';
+import { spawn, spawnSync } from 'node:child_process';
 import { fileURLToPath } from 'node:url';
 
 const SCRIPT = path.join(path.dirname(fileURLToPath(import.meta.url)), 'devbok.mjs');
@@ -149,7 +149,7 @@ describe('prepare', () => {
     assert.match(r.err, /expects: \{\{slot:goal\}\}, \{\{slot:content\}\}/);
     assert.equal(manifest('s').kinds.study.next, 1);
     assert.deepEqual(manifest('s').kinds.study.pending, []);
-    assert.equal(fs.existsSync(p('.devbok')), false);
+    assert.deepEqual(fs.existsSync(p('.devbok')) ? fs.readdirSync(p('.devbok')) : [], [], 'no brief was written');
     ok(['prepare', 's', 'experience']); // the ready one still works
   });
   test('refuses a prompt that leaves a declared slot unfilled', () => {
@@ -297,7 +297,7 @@ describe('prepare: template, partials and slots', () => {
     fs.writeFileSync(p('prompts', 'study.md'), readyPrompt('study') + '{{include:nope}}\n');
     bad(['prepare', 's', 'study'], /prompts\/study\.md includes \{\{include:nope\}\}/);
     assert.equal(manifest('s').kinds.study.next, 1);
-    assert.equal(fs.existsSync(p('.devbok')), false);
+    assert.deepEqual(fs.existsSync(p('.devbok')) ? fs.readdirSync(p('.devbok')) : [], [], 'no brief was written');
   });
   test('editing the template or a partial marks every kind stale; editing a kind file only that kind', () => {
     shared('q', 'quality v1');
@@ -325,6 +325,47 @@ describe('prepare: template, partials and slots', () => {
     fs.rmSync(p('prompts', 'shared', 'q.md'));
     assert.match(ok(['list']).out, /^s\s+\S.*v1 \S+ \*/m);
     assert.equal(ok(['list', '--json']).json()[0].study.stale, true);
+  });
+});
+
+// ---------------------------------------------------------------- concurrency
+describe('concurrent commands (two sessions at once)', () => {
+  const runAsync = (args, extraEnv = {}) => new Promise((resolve) => {
+    const c = spawn(process.execPath, [SCRIPT, ...args], { env: { ...process.env, DEVBOK_ROOT: root, ...extraEnv } });
+    let out = '', err = '';
+    c.stdout.on('data', (d) => { out += d; });
+    c.stderr.on('data', (d) => { err += d; });
+    c.on('close', (code) => resolve({ code, out, err }));
+  });
+  test('simultaneous prepares of the same kind hand out distinct versions', async () => {
+    initTopic('s');
+    const results = await Promise.all([1, 2, 3].map(() => runAsync(['prepare', 's', 'study'])));
+    assert.ok(results.every((r) => r.code === 0), results.map((r) => r.err).join('\n'));
+    assert.deepEqual(results.map((r) => JSON.parse(r.out).version).sort(), [1, 2, 3]);
+    const k = manifest('s').kinds.study;
+    assert.equal(k.next, 4);
+    assert.deepEqual(k.pending.map((x) => x.v).sort(), [1, 2, 3]);
+    assert.equal(fs.existsSync(p('.devbok', '.lock')), false, 'lock released');
+  });
+  test('simultaneous records on different topics all reach the index', async () => {
+    for (const s of ['a', 'b', 'c']) { initTopic(s, `Topic ${s}`, s.toUpperCase()); writeArtifact(s, 'study', 1); }
+    const results = await Promise.all(['a', 'b', 'c'].map((s) => runAsync(['record', s, 'study', 'v1'])));
+    assert.ok(results.every((r) => r.code === 0), results.map((r) => r.err).join('\n'));
+    assert.deepEqual(indexTopics().map((t) => [t.slug, t.kinds.study.length]), [['a', 1], ['b', 1], ['c', 1]]);
+  });
+  test('a stale lock is ignored; a live lock times out with a clear message; a failing command releases its lock', () => {
+    initTopic('s');
+    fs.mkdirSync(p('.devbok', '.lock'), { recursive: true });
+    const old = new Date(Date.now() - 10 * 60_000);
+    fs.utimesSync(p('.devbok', '.lock'), old, old);
+    assert.equal(ok(['prepare', 's', 'study']).json().version, 1, 'stale lock removed and the command ran');
+    fs.mkdirSync(p('.devbok', '.lock'));
+    const r = spawnSync(process.execPath, [SCRIPT, 'prepare', 's', 'study'], { encoding: 'utf8', env: { ...process.env, DEVBOK_ROOT: root, DEVBOK_LOCK_TIMEOUT_MS: '300' } });
+    assert.equal(r.status, 1);
+    assert.match(r.stderr, /held the lock/);
+    fs.rmdirSync(p('.devbok', '.lock'));
+    bad(['record', 's', 'study', 'v1'], /file not found/);
+    assert.equal(fs.existsSync(p('.devbok', '.lock')), false, 'a failure inside the locked region releases the lock');
   });
 });
 

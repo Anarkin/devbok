@@ -6,7 +6,7 @@
   "created": "2026-09-07",
   "kinds": {
     "study": {
-      "next": 2,
+      "next": 3,
       "versions": [
         {
           "v": 1,
@@ -15,10 +15,16 @@
           "file": "study.v1.html"
         }
       ],
-      "pending": []
+      "pending": [
+        {
+          "v": 2,
+          "prompt": "0b4185bd",
+          "started": "2026-09-08"
+        }
+      ]
     },
     "experience": {
-      "next": 2,
+      "next": 3,
       "versions": [
         {
           "v": 1,
@@ -27,10 +33,16 @@
           "file": "experience.v1.html"
         }
       ],
-      "pending": []
+      "pending": [
+        {
+          "v": 2,
+          "prompt": "7074fd8c",
+          "started": "2026-09-08"
+        }
+      ]
     },
     "interview": {
-      "next": 2,
+      "next": 3,
       "versions": [
         {
           "v": 1,
@@ -39,10 +51,16 @@
           "file": "interview.v1.html"
         }
       ],
-      "pending": []
+      "pending": [
+        {
+          "v": 2,
+          "prompt": "c299b6a0",
+          "started": "2026-09-08"
+        }
+      ]
     },
     "cheatsheet": {
-      "next": 2,
+      "next": 3,
       "versions": [
         {
           "v": 1,
@@ -51,7 +69,13 @@
           "file": "cheatsheet.v1.html"
         }
       ],
-      "pending": []
+      "pending": [
+        {
+          "v": 2,
+          "prompt": "c8cf7b15",
+          "started": "2026-09-08"
+        }
+      ]
     }
   }
 }

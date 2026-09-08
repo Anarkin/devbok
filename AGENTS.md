@@ -66,6 +66,7 @@ node scripts/devbok.mjs index
 - `devbok-new` and `devbok-update` must run in the main context (no `context: fork` in their frontmatter): a forked skill runs as a subagent, and subagents cannot spawn the parallel generation subagents.
 - Version numbers per kind only ever increase (`next` in the manifest), even after deletes. Never renumber files.
 - Do not commit `.devbok/`.
+- Concurrent runs are fine: two sessions may run `/devbok-update` (even on the same topic) at the same time. Every mutating script command holds a lock (`.devbok/.lock`, stale after 2 minutes) and writes manifests and the index atomically, so version numbers are never handed out twice and readers never see half-written files. The only shared cost is API rate limits.
 
 ## Conventions
 
