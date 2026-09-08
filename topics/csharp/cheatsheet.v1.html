@@ -1,0 +1,766 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>C# · cheatsheet · devbok</title>
+<link rel="preconnect" href="https://fonts.googleapis.com/">
+<link rel="preconnect" href="https://fonts.gstatic.com/" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Cascadia+Mono:wght@400;700&amp;display=swap">
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.11.1/styles/github.min.css" media="(prefers-color-scheme: light)">
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.11.1/styles/github-dark.min.css" media="(prefers-color-scheme: dark)">
+<style>
+:root { color-scheme: light;
+  --bg: #ffffff; --fg: #111111; --muted: #6b6b6b; --line: #111111; --soft: #f4f4f4; --border: #cccccc;
+  --accent: #512bd4; --accent-soft: color-mix(in srgb, var(--accent) 12%, var(--bg)); }
+@media (prefers-color-scheme: dark) { :root { color-scheme: dark;
+  --bg: #222222; --fg: #cccccc; --muted: #8f8f8f; --line: #111111; --soft: #2c2c2c; --border: #4a4a4a;
+  --accent: #896fe2; --accent-soft: color-mix(in srgb, var(--accent) 16%, var(--bg)); } }
+
+*, *::before, *::after { box-sizing: border-box; }
+html { -webkit-text-size-adjust: 100%; }
+body { margin: 0; background: var(--bg); color: var(--fg);
+  font-family: system-ui, sans-serif; font-size: 16px; line-height: 1.6; overflow-wrap: break-word; }
+h1, h2, h3 { font-family: system-ui, sans-serif; font-weight: 700; }
+h2 { font-size: 1.5em; }
+h3 { font-size: 1.17em; }
+a { color: var(--accent); }
+a:focus-visible, button:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+img { max-width: 100%; }
+
+code, kbd, pre, .mono, .chip, .since, .docs, .hero .meta, .side, dl.rows dd, table.grid { font-family: "Cascadia Mono", Consolas, monospace; font-size: 12px; }
+code { background: var(--soft); border-radius: 3px; padding: 0 3px; overflow-wrap: anywhere; }
+pre { background: var(--soft); border: 1px solid var(--border); border-radius: 4px;
+  margin: 10px 0 0; padding: 10px 12px; overflow-x: auto; max-width: 100%; line-height: 1.5; }
+pre code { background: none; border: 0; padding: 0; white-space: pre; }
+pre code.hljs { background: transparent; padding: 0; }
+
+.hero { margin: 0 0 24px; padding: 0 0 24px; border-bottom: 2px solid var(--line); }
+.hero h1 { margin: 0 0 8px; font-size: 2em; line-height: 1.2; font-weight: 700; }
+.hero .meta { margin: 0 0 12px; font-family: "Cascadia Mono", Consolas, monospace; font-size: 12px; color: var(--muted); }
+.hero .summary { margin: 0 0 12px; }
+.hero .chips { display: flex; flex-wrap: wrap; gap: 6px; margin: 0; }
+
+.side { position: fixed; top: 0; bottom: 0; left: 0; width: 260px; display: flex; flex-direction: column; background: var(--bg); border-right: 2px solid var(--line); font-family: "Cascadia Mono", Consolas, monospace; font-size: 12px; }
+.units { list-style: none; margin: 0; padding: 12px 0; overflow-y: auto; flex: 1; }
+.units a { display: grid; grid-template-columns: 2.5em 1fr; padding: 9px 20px; color: var(--fg); text-decoration: none; line-height: 1.4; }
+.units .n { color: var(--muted); }
+.units a:hover { background: var(--soft); }
+.units a[aria-current="true"] { background: var(--accent-soft); color: var(--accent); }
+.units a[aria-current="true"] .n { color: var(--accent); }
+.side footer { padding: 12px 20px; border-top: 2px solid var(--line); color: var(--muted); line-height: 1.5; }
+
+.content { margin-left: 260px; padding: 24px; max-width: 120ch; min-width: 0; }
+.unit { border-top: 2px solid var(--line); margin: 0 0 26px; padding: 14px 0 0; min-width: 0; }
+.unit > header { display: flex; flex-wrap: wrap; align-items: baseline; gap: 4px 14px; margin: 0 0 4px; min-width: 0; }
+.unit h2 { margin: 0; line-height: 1.25; }
+.unit h2 .n { font-family: "Cascadia Mono", Consolas, monospace; font-size: 12px; color: var(--muted); margin-right: 10px; }
+.docs { color: var(--muted); }
+.docs a { color: var(--accent); text-decoration: none; }
+.docs a:hover { text-decoration: underline; }
+
+dl.rows { display: grid; grid-template-columns: minmax(0, 30ch) minmax(0, 1fr);
+  margin: 12px 0 0; border-top: 1px solid var(--border); min-width: 0; }
+dl.rows dt { grid-column: 1; margin: 0; padding: 6px 14px 6px 0; border-bottom: 1px solid var(--border);
+  min-width: 0; line-height: 1.35; }
+dl.rows dd { grid-column: 2; margin: 0; padding: 7px 0 6px; border-bottom: 1px solid var(--border);
+  min-width: 0; line-height: 1.5; overflow-wrap: anywhere; }
+dl.rows dd code { background: none; padding: 0; }
+.cmt { color: var(--muted); }
+
+.chip { display: inline-block; text-transform: uppercase; letter-spacing: .03em;
+  background: var(--soft); border: 1px solid var(--border); border-radius: 4px; padding: 2px 7px; }
+.since { display: inline-block; border: 1px solid var(--accent); border-radius: 4px;
+  padding: 0 5px; color: var(--accent); white-space: nowrap; }
+.note { background: var(--soft); border-left: 3px solid var(--accent); padding: 8px 12px; margin: 12px 0 0; }
+.note p { margin: 0; }
+
+.tw { overflow-x: auto; margin: 12px 0 0; min-width: 0; }
+table.grid { border-collapse: collapse; width: 100%; }
+table.grid th { text-align: left; font-weight: 400; color: var(--muted);
+  border-bottom: 1px solid var(--border); padding: 6px 14px 6px 0; vertical-align: bottom; }
+table.grid td { border-bottom: 1px solid var(--border); padding: 6px 14px 6px 0; vertical-align: top; }
+table.grid td code { background: none; padding: 0; }
+table.grid tr.hi td { background: var(--accent-soft); }
+
+ul.tight { margin: 12px 0 0; padding-left: 1.1em; }
+ul.tight li { margin: 0 0 3px; }
+
+.navtoggle { display: none; position: fixed; top: 10px; left: 10px; z-index: 30;
+  font-family: "Cascadia Mono", Consolas, monospace; font-size: 12px; color: var(--fg);
+  background: var(--bg); border: 1px solid var(--line); border-radius: 4px; padding: 6px 10px; cursor: pointer; }
+@media (max-width: 720px) {
+  .navtoggle { display: block; }
+  .side { width: min(260px, 84%); transform: translateX(-102%); transition: transform .15s ease; z-index: 25; }
+  body.nav-open .side { transform: none; }
+  .content { margin-left: 0; padding: 52px 16px 24px; }
+  dl.rows { grid-template-columns: minmax(0, 1fr); }
+  dl.rows dt { padding: 6px 0 0; border-bottom: 0; font-weight: 600; }
+  dl.rows dd { padding: 2px 0 7px; }
+}
+
+@media print {
+  :root { color-scheme: light;
+    --bg: #ffffff; --fg: #000000; --muted: #444444; --line: #000000; --soft: #ffffff; --border: #999999;
+    --accent: #000000; --accent-soft: #ffffff; }
+  .side, .navtoggle { display: none !important; }
+  body { font-size: 9pt; line-height: 1.3; background: #fff; color: #000; }
+  .content { margin: 0; padding: 0; max-width: 100%; }
+  code, kbd, pre, .chip, .since, .docs, .hero .meta, dl.rows dd, table.grid { font-size: 7.5pt; }
+  .hero { padding-bottom: 8pt; margin-bottom: 10pt; border-bottom: 1pt solid #000; }
+  .hero h1 { font-size: 16pt; }
+  .unit { break-inside: avoid; page-break-inside: avoid; margin: 0 0 8pt; padding-top: 6pt; border-top: 1pt solid #000; }
+  .unit h2 { font-size: 11pt; }
+  pre { background: #fff; border: 1pt solid #999; padding: 4pt 6pt; }
+  pre code.hljs, pre code.hljs span { color: #000 !important; background: transparent !important; }
+  .note { background: #fff; border-left: 2pt solid #000; }
+  a, a:visited { color: #000; text-decoration: none; }
+  a[href]::after { content: ""; }
+  @page { size: A4; margin: 11mm; }
+}
+</style>
+</head>
+<body>
+<!-- devbok
+slug: csharp
+kind: cheatsheet
+version: 1
+topic: "C#"
+prompt: cheatsheet.md@eef70255
+generated: 2026-09-08
+-->
+<button class="navtoggle" type="button" aria-expanded="false" aria-controls="side">units</button>
+<nav class="side" id="side" aria-label="Units">
+  <ol class="units">
+    <li><a href="#u01"><span class="n">01</span><span class="t">Types &amp; declarations</span></a></li>
+    <li><a href="#u02"><span class="n">02</span><span class="t">Members, properties &amp; extensions</span></a></li>
+    <li><a href="#u03"><span class="n">03</span><span class="t">Pattern matching &amp; switch</span></a></li>
+    <li><a href="#u04"><span class="n">04</span><span class="t">Null handling</span></a></li>
+    <li><a href="#u05"><span class="n">05</span><span class="t">Collections &amp; LINQ</span></a></li>
+    <li><a href="#u06"><span class="n">06</span><span class="t">Strings, spans &amp; perf</span></a></li>
+    <li><a href="#u07"><span class="n">07</span><span class="t">Generics &amp; generic math</span></a></li>
+    <li><a href="#u08"><span class="n">08</span><span class="t">Async &amp; concurrency</span></a></li>
+    <li><a href="#u09"><span class="n">09</span><span class="t">CLI, project &amp; config</span></a></li>
+    <li><a href="#u10"><span class="n">10</span><span class="t">Idioms &amp; gotchas</span></a></li>
+    <li><a href="#u11"><span class="n">11</span><span class="t">Modern vs legacy</span></a></li>
+    <li><a href="#u12"><span class="n">12</span><span class="t">Version timeline</span></a></li>
+  </ol>
+  <footer>C# · cheatsheet · version 1 · 2026-09-08</footer>
+</nav>
+<main class="content">
+<header class="hero">
+  <h1>C#</h1>
+  <p class="meta">cheatsheet · C# 14 on .NET 10.0.11 · released 2026-08-11</p>
+  <p class="summary">The whole daily language surface on one card: type and member declarations, pattern matching, nullability, collection expressions, LINQ, spans, generic math, async, and the <code>dotnet</code> CLI and project properties that go with them, each row tagged with the version where it became true. It reflects C# 14 on .NET 10 (LTS, GA 2025-11-11; current patch 10.0.11, 2026-08-11), the default language version for <code>net10.0</code>. Anything marked <span class="since">C# 15</span> is preview-only today — it needs <code>&lt;LangVersion&gt;preview&lt;/LangVersion&gt;</code> and a .NET 11 preview SDK, and .NET 11 does not ship until November 2026.</p>
+  <p class="chips"><span class="chip">C# 14</span> <span class="chip">.NET 10.0.11</span> <span class="chip">LTS</span> <span class="chip">GA 2025-11-11</span> <span class="chip">supported to Nov 2028</span> <span class="chip">next: C# 15 / .NET 11, Nov 2026</span> <span class="chip">verified 2026-09-08</span></p>
+</header>
+
+<section class="unit" id="u01">
+  <header>
+    <h2><span class="n">01</span>Types &amp; declarations</h2>
+    <span class="docs"><a href="https://learn.microsoft.com/dotnet/csharp/fundamentals/types/">docs: types in C#</a></span>
+  </header>
+  <dl class="rows">
+    <dt>File-scoped namespace</dt>
+    <dd><code>namespace Acme.Billing;</code> <span class="since">C# 10</span> <span class="cmt">— one per file, no braces, saves an indent level</span></dd>
+    <dt>Global using</dt>
+    <dd><code>global using System.Text.Json;</code> <span class="since">C# 10</span> <span class="cmt">— put them in one <code>GlobalUsings.cs</code>; <code>ImplicitUsings</code> already adds the common set</span></dd>
+    <dt>Top-level statements</dt>
+    <dd>no <code>Main</code>: statements at file scope <span class="since">C# 9</span>; <code>args</code>, <code>await</code> and <code>return</code> exit code all work</dd>
+    <dt>Record class</dt>
+    <dd><code>public record Money(decimal Amount, string Currency);</code> <span class="since">C# 9</span> <span class="cmt">— value equality, <code>with</code>, <code>Deconstruct</code>, <code>ToString</code></span></dd>
+    <dt>Record struct</dt>
+    <dd><code>public readonly record struct Point(int X, int Y);</code> <span class="since">C# 10</span> <span class="cmt">— prefer <code>readonly</code>; mutable record structs have surprising equality-vs-mutation ergonomics</span></dd>
+    <dt>Primary constructor</dt>
+    <dd><code>public class OrderService(IRepo repo, ILogger&lt;OrderService&gt; log) { ... }</code> <span class="since">C# 12</span> <span class="cmt">— on any class/struct, not just records; parameters are in scope in every member</span></dd>
+    <dt>Required member</dt>
+    <dd><code>public required string Name { get; init; }</code> <span class="since">C# 11</span> <span class="cmt">— object initializer must set it; <code>[SetsRequiredMembers]</code> exempts a constructor</span></dd>
+    <dt>Init-only setter</dt>
+    <dd><code>public string Id { get; init; }</code> <span class="since">C# 9</span> <span class="cmt">— settable in an initializer or <code>with</code>, immutable after</span></dd>
+    <dt>Target-typed <code>new</code></dt>
+    <dd><code>Dictionary&lt;string, List&lt;int&gt;&gt; m = new();</code> <span class="since">C# 9</span></dd>
+    <dt>Nondestructive mutation</dt>
+    <dd><code>var b = a with { Currency = "EUR" };</code> <span class="since">C# 9</span> (records), <span class="since">C# 10</span> (structs and anonymous types)</dd>
+    <dt><code>ref struct</code></dt>
+    <dd><code>public ref struct Reader { private ReadOnlySpan&lt;byte&gt; _buf; }</code> — stack-only. Can implement interfaces <span class="since">C# 13</span>, and hold <code>ref</code> fields <span class="since">C# 11</span></dd>
+    <dt><code>readonly struct</code> / member</dt>
+    <dd><code>public readonly struct Vec { public readonly double Len() =&gt; ...; }</code> <span class="since">C# 8</span> <span class="cmt">— stops silent defensive copies</span></dd>
+    <dt>File-local type</dt>
+    <dd><code>file sealed class Helper { }</code> <span class="since">C# 11</span> <span class="cmt">— invisible outside the file; what source generators should emit</span></dd>
+    <dt>Inline array</dt>
+    <dd><code>[InlineArray(8)] public struct Buf8 { private int _e; }</code> <span class="since">C# 12</span> <span class="cmt">— fixed-size struct buffer, usable as a <code>Span&lt;int&gt;</code></span></dd>
+    <dt>Alias any type</dt>
+    <dd><code>using Coord = (int X, int Y);</code> <span class="since">C# 12</span> <span class="cmt">— tuples, arrays, pointers, not just named types</span></dd>
+    <dt>Enum with explicit base</dt>
+    <dd><code>public enum Status : byte { Draft = 0, Sent = 1 }</code> · <code>[Flags]</code> for bit sets</dd>
+    <dt>Union type</dt>
+    <dd><code>public union Pet(Cat, Dog, Bird);</code> <span class="since">C# 15</span> <span class="cmt">— preview; implicit conversion from each case, exhaustive <code>switch</code></span></dd>
+    <dt>Closed hierarchy</dt>
+    <dd><code>public closed record class GateState;</code> <span class="since">C# 15</span> <span class="cmt">— preview; derivable only in the declaring assembly, so <code>switch</code> needs no default arm</span></dd>
+  </dl>
+  <pre><code class="language-csharp">// The 2026 default shape for a small domain type.
+public readonly record struct Money(decimal Amount, string Currency)
+{
+    public static Money Zero(string ccy) =&gt; new(0m, ccy);
+    public Money Add(Money other) =&gt; Currency == other.Currency
+        ? this with { Amount = Amount + other.Amount }
+        : throw new InvalidOperationException($"{Currency} != {other.Currency}");
+}
+
+// Primary constructor + required member: DI in, invariants enforced by the compiler.
+public sealed class Invoice(IClock clock)
+{
+    public required string Number { get; init; }
+    public DateTimeOffset Issued { get; } = clock.UtcNow;   // parameter captured once
+}</code></pre>
+</section>
+
+<section class="unit" id="u02">
+  <header>
+    <h2><span class="n">02</span>Members, properties &amp; extensions</h2>
+    <span class="docs"><a href="https://learn.microsoft.com/dotnet/csharp/programming-guide/classes-and-structs/">docs: classes, structs and members</a></span>
+  </header>
+  <dl class="rows">
+    <dt><code>field</code> keyword</dt>
+    <dd><code>public string Email { get; set =&gt; field = value.Trim(); }</code> <span class="since">C# 14</span> <span class="cmt">— compiler-synthesized backing field, no <code>_email</code>. Disambiguate a real member named <code>field</code> with <code>@field</code> or <code>this.field</code></span></dd>
+    <dt>Lazy property, one line</dt>
+    <dd><code>public HttpClient Http =&gt; field ??= _factory.CreateClient();</code> <span class="since">C# 14</span></dd>
+    <dt>Extension block</dt>
+    <dd><code>extension(IEnumerable&lt;T&gt; src) { public bool IsEmpty =&gt; !src.Any(); }</code> <span class="since">C# 14</span> <span class="cmt">— extension <em>properties</em>, static members and operators, not just methods</span></dd>
+    <dt>Static extension member</dt>
+    <dd><code>extension&lt;T&gt;(IEnumerable&lt;T&gt;) { public static IEnumerable&lt;T&gt; Identity =&gt; []; }</code> <span class="since">C# 14</span> <span class="cmt">— called as <code>IEnumerable&lt;int&gt;.Identity</code></span></dd>
+    <dt>Classic extension method</dt>
+    <dd><code>public static bool IsEmpty&lt;T&gt;(this IEnumerable&lt;T&gt; s)</code> — still valid, still the only form that compiles below C# 14</dd>
+    <dt>Extension indexer</dt>
+    <dd><code>extension(IEnumerable&lt;int&gt; s) { public int this[int i] =&gt; s.ElementAt(i); }</code> <span class="since">C# 15</span> <span class="cmt">— preview</span></dd>
+    <dt>Expression-bodied members</dt>
+    <dd><code>public decimal Total =&gt; _lines.Sum(l =&gt; l.Amount);</code> — methods, properties, ctors, operators, finalizers</dd>
+    <dt>Partial member</dt>
+    <dd><code>partial</code> methods <span class="since">C# 3</span>, properties &amp; indexers <span class="since">C# 13</span>, constructors &amp; events <span class="since">C# 14</span> <span class="cmt">— exactly one defining and one implementing declaration</span></dd>
+    <dt>User-defined compound assignment</dt>
+    <dd><code>public void operator +=(Vector other) { X += other.X; ... }</code> <span class="since">C# 14</span> <span class="cmt">— mutates in place instead of allocating a new instance</span></dd>
+    <dt>Operator overload</dt>
+    <dd><code>public static Money operator +(Money a, Money b) =&gt; a.Add(b);</code> <span class="cmt">— <code>checked operator +</code> for an overflow-throwing variant <span class="since">C# 11</span></span></dd>
+    <dt>Indexer</dt>
+    <dd><code>public Row this[int i] =&gt; _rows[i];</code> · <code>public Row this[Index i]</code> for <code>^1</code> support</dd>
+    <dt>Explicit interface impl</dt>
+    <dd><code>string IFormattable.ToString(string? f, IFormatProvider? p) =&gt; ...</code> <span class="cmt">— hides the member unless cast to the interface</span></dd>
+    <dt>Default interface member</dt>
+    <dd><code>interface ILog { void Warn(string m) =&gt; Write(Level.Warn, m); }</code> <span class="since">C# 8</span> <span class="cmt">— for versioning an interface, not for reuse; not visible on the class</span></dd>
+    <dt>Overload resolution priority</dt>
+    <dd><code>[OverloadResolutionPriority(1)]</code> <span class="since">C# 13</span> <span class="cmt">— steer callers to the <code>Span</code> overload without a breaking change</span></dd>
+    <dt>Module initializer</dt>
+    <dd><code>[ModuleInitializer] internal static void Init() { }</code> <span class="since">C# 9</span> <span class="cmt">— static, void, parameterless; runs before any code in the assembly</span></dd>
+    <dt>Caller info</dt>
+    <dd><code>[CallerArgumentExpression(nameof(x))] string? expr = null</code> <span class="since">C# 10</span> <span class="cmt">— what powers <code>ArgumentNullException.ThrowIfNull</code> messages</span></dd>
+    <dt>Lambda parameter modifiers</dt>
+    <dd><code>TryParse&lt;int&gt; p = (text, out result) =&gt; int.TryParse(text, out result);</code> <span class="since">C# 14</span> <span class="cmt">— <code>ref</code>/<code>in</code>/<code>out</code>/<code>scoped</code> without repeating types; <code>params</code> still needs them</span></dd>
+    <dt>Default lambda parameter</dt>
+    <dd><code>var add = (int x, int y = 1) =&gt; x + y;</code> <span class="since">C# 12</span></dd>
+  </dl>
+  <pre><code class="language-csharp">// C# 14 extension block: properties, statics and operators, all on one receiver.
+public static class SeqExtensions
+{
+    extension&lt;T&gt;(IEnumerable&lt;T&gt; source)
+    {
+        public bool IsEmpty =&gt; !source.Any();                       // extension property
+        public IEnumerable&lt;T&gt; Tap(Action&lt;T&gt; f)                      // extension method
+        {
+            foreach (var x in source) { f(x); yield return x; }
+        }
+    }
+}
+
+// field keyword: validation and change notification with no hand-written backing field.
+public sealed class Session
+{
+    public string Token
+    {
+        get;
+        set =&gt; field = string.IsNullOrWhiteSpace(value)
+            ? throw new ArgumentException("empty token", nameof(value))
+            : value;
+    }
+}</code></pre>
+</section>
+
+<section class="unit" id="u03">
+  <header>
+    <h2><span class="n">03</span>Pattern matching &amp; switch</h2>
+    <span class="docs"><a href="https://learn.microsoft.com/dotnet/csharp/language-reference/operators/patterns">docs: patterns</a></span>
+  </header>
+  <dl class="rows">
+    <dt>Type pattern</dt>
+    <dd><code>if (o is Customer c &amp;&amp; c.IsActive) ...</code> <span class="since">C# 7</span></dd>
+    <dt>Constant / null</dt>
+    <dd><code>x is null</code>, <code>x is not null</code>, <code>x is 0</code> <span class="cmt">— <code>is not null</code> ignores an overloaded <code>==</code>; prefer it in library code</span></dd>
+    <dt>Relational + logical</dt>
+    <dd><code>n switch { &lt; 0 =&gt; "neg", 0 =&gt; "zero", &gt; 0 and &lt; 10 =&gt; "small", _ =&gt; "big" }</code> <span class="since">C# 9</span></dd>
+    <dt>Property pattern</dt>
+    <dd><code>o is { Status: Status.Sent, Total.Amount: &gt; 0 }</code> — nested property access <span class="since">C# 10</span></dd>
+    <dt>Positional pattern</dt>
+    <dd><code>p is (0, var y)</code> <span class="cmt">— needs a <code>Deconstruct</code>; records get one free</span></dd>
+    <dt>List pattern</dt>
+    <dd><code>arr is [1, 2, .. var rest]</code> · <code>arr is [_, _, ..]</code> <span class="since">C# 11</span></dd>
+    <dt>Var pattern + guard</dt>
+    <dd><code>x switch { var v when v.Length &gt; 3 =&gt; ... }</code></dd>
+    <dt>Discard</dt>
+    <dd><code>_ =&gt; throw new UnreachableException()</code> <span class="cmt">— <code>UnreachableException</code> since .NET 7; better than a silent default</span></dd>
+    <dt>Switch expression</dt>
+    <dd><code>var fee = tier switch { Tier.Gold =&gt; 0m, Tier.Silver =&gt; 2m, _ =&gt; 5m };</code> <span class="since">C# 8</span> <span class="cmt">— non-exhaustive gives CS8509 and throws <code>SwitchExpressionException</code> at runtime</span></dd>
+    <dt>Switch on enum</dt>
+    <dd>exhaustiveness is <em>not</em> guaranteed: an enum can hold any underlying value, so always keep a <code>_</code> arm</dd>
+    <dt>Closed-hierarchy switch</dt>
+    <dd><code>state switch { Closed =&gt; ..., Open(var pct) =&gt; ... }</code> <span class="since">C# 15</span> <span class="cmt">— preview; with <code>closed</code>, no default arm and no warning</span></dd>
+    <dt>Labeled break/continue</dt>
+    <dd><code>outer: for (...) { for (...) { continue outer; } }</code> <span class="since">C# 15</span> <span class="cmt">— preview; replaces the bool flag and the <code>goto</code></span></dd>
+    <dt>Deconstruction</dt>
+    <dd><code>var (id, name) = customer;</code> · <code>(a, b) = (b, a);</code> to swap</dd>
+    <dt>Tuple</dt>
+    <dd><code>(int Code, string Reason) Check() =&gt; (404, "missing");</code> <span class="cmt">— equality is element-wise; names are erased at runtime</span></dd>
+  </dl>
+  <pre><code class="language-csharp">// One switch expression replacing a nest of ifs — the shape reviewers expect in 2026.
+static decimal Price(Order o) =&gt; o switch
+{
+    { Lines: [] }                                   =&gt; 0m,
+    { Customer.Tier: Tier.Gold, Total: &gt; 500m }     =&gt; o.Total * 0.85m,
+    { Customer.Tier: Tier.Gold }                    =&gt; o.Total * 0.90m,
+    { Lines: [var only] } when only.Qty &gt; 100       =&gt; o.Total * 0.95m,
+    _                                               =&gt; o.Total,
+};</code></pre>
+</section>
+
+<section class="unit" id="u04">
+  <header>
+    <h2><span class="n">04</span>Null handling</h2>
+    <span class="docs"><a href="https://learn.microsoft.com/dotnet/csharp/nullable-references">docs: nullable reference types</a></span>
+  </header>
+  <dl class="rows">
+    <dt>Enable NRT</dt>
+    <dd><code>&lt;Nullable&gt;enable&lt;/Nullable&gt;</code> in the csproj <span class="since">C# 8</span> <span class="cmt">— on by default in every <code>dotnet new</code> template since .NET 6</span></dd>
+    <dt>Null-conditional</dt>
+    <dd><code>customer?.Address?.City</code> · <code>list?[0]</code> <span class="cmt">— short-circuits the whole chain</span></dd>
+    <dt>Null-conditional assignment</dt>
+    <dd><code>customer?.Order = GetCurrentOrder();</code> <span class="since">C# 14</span> <span class="cmt">— the right side is not evaluated when the left is null. <code>++</code>/<code>--</code> are still not allowed</span></dd>
+    <dt>Null-coalescing</dt>
+    <dd><code>var name = input ?? "anonymous";</code> · <code>_cache ??= Build();</code> <span class="since">C# 8</span></dd>
+    <dt>Null-forgiving</dt>
+    <dd><code>_repo!.Save(x)</code> <span class="cmt">— an assertion to the compiler, no runtime check. Every <code>!</code> in a diff is a review question</span></dd>
+    <dt>Guard clause</dt>
+    <dd><code>ArgumentNullException.ThrowIfNull(order);</code> <span class="since">.NET 6</span> <span class="cmt">— message uses the caller expression; no <code>nameof</code> needed</span></dd>
+    <dt>Other guards</dt>
+    <dd><code>ArgumentException.ThrowIfNullOrWhiteSpace(s)</code> <span class="since">.NET 8</span> · <code>ArgumentOutOfRangeException.ThrowIfNegative(n)</code> <span class="since">.NET 8</span> · <code>ObjectDisposedException.ThrowIf(_disposed, this)</code> <span class="since">.NET 7</span></dd>
+    <dt>Flow attributes</dt>
+    <dd><code>[NotNullWhen(true)]</code>, <code>[MaybeNullWhen(false)]</code>, <code>[MemberNotNull(nameof(_x))]</code>, <code>[NotNullIfNotNull(nameof(input))]</code> <span class="cmt">— teach the analyser what a <code>Try…</code> method guarantees</span></dd>
+    <dt>Nullable value type</dt>
+    <dd><code>int?</code> is <code>Nullable&lt;int&gt;</code>, a real runtime type. <code>string?</code> is only an annotation, erased to <code>string</code> at runtime</dd>
+    <dt>Pattern null test</dt>
+    <dd><code>if (o is not null)</code> beats <code>o != null</code> when <code>==</code> is overloaded (records, test doubles)</dd>
+    <dt>Suppress per file/block</dt>
+    <dd><code>#nullable disable</code> / <code>#nullable restore</code> <span class="cmt">— for staged migration of a legacy file, never as a permanent setting</span></dd>
+    <dt>Fail the build on it</dt>
+    <dd><code>&lt;WarningsAsErrors&gt;nullable&lt;/WarningsAsErrors&gt;</code> <span class="cmt">— the only way the annotations stay honest in a large team</span></dd>
+    <dt>JSON honours it</dt>
+    <dd><code>JsonSerializerOptions.RespectNullableAnnotations = true</code> <span class="since">.NET 9</span> <span class="cmt">— deserializing <code>null</code> into a non-nullable member throws; on by default under <code>Strict</code> <span class="since">.NET 10</span></span></dd>
+  </dl>
+  <pre><code class="language-csharp">// Attributes are what make a TryGet usable under nullable analysis.
+public bool TryGet(string key, [NotNullWhen(true)] out Session? session)
+{
+    session = _map.GetValueOrDefault(key);
+    return session is not null;
+}
+
+if (TryGet(id, out var s))
+    Console.WriteLine(s.Token);   // no warning, no `!`</code></pre>
+</section>
+
+<section class="unit" id="u05">
+  <header>
+    <h2><span class="n">05</span>Collections &amp; LINQ</h2>
+    <span class="docs"><a href="https://learn.microsoft.com/dotnet/csharp/language-reference/operators/collection-expressions">docs: collection expressions</a></span>
+  </header>
+  <dl class="rows">
+    <dt>Collection expression</dt>
+    <dd><code>int[] a = [1, 2, 3];</code> · <code>List&lt;string&gt; l = [];</code> · <code>Span&lt;int&gt; s = [1, 2];</code> <span class="since">C# 12</span> <span class="cmt">— one syntax for arrays, <code>List</code>, <code>Span</code>, <code>ImmutableArray</code>, any <code>[CollectionBuilder]</code> type</span></dd>
+    <dt>Spread</dt>
+    <dd><code>int[] all = [..head, 0, ..tail];</code> <span class="since">C# 12</span></dd>
+    <dt>Collection expression arguments</dt>
+    <dd><code>HashSet&lt;string&gt; s = [with(StringComparer.OrdinalIgnoreCase), "a", "A"];</code> <span class="since">C# 15</span> <span class="cmt">— preview; also <code>[with(capacity: n), ..src]</code></span></dd>
+    <dt>Index &amp; range</dt>
+    <dd><code>a[^1]</code> last · <code>a[1..^1]</code> slice <span class="since">C# 8</span> <span class="cmt">— <code>^1</code> works in object initializers too <span class="since">C# 13</span></span></dd>
+    <dt><code>params</code> collections</dt>
+    <dd><code>void Log(params ReadOnlySpan&lt;string&gt; parts)</code> <span class="since">C# 13</span> <span class="cmt">— <code>params</code> beyond arrays; the span form allocates nothing</span></dd>
+    <dt>Dictionary lookups</dt>
+    <dd><code>TryGetValue</code> · <code>GetValueOrDefault(k, fallback)</code> · <code>CollectionsMarshal.GetValueRefOrAddDefault(dict, k, out bool existed)</code> <span class="cmt">— one hash for read-modify-write</span></dd>
+    <dt>Frozen / immutable</dt>
+    <dd><code>src.ToFrozenDictionary()</code> <span class="since">.NET 8</span> <span class="cmt">— build once, read forever; markedly faster lookups than <code>Dictionary</code></span> · <code>ImmutableArray&lt;T&gt;</code> for shared config</dd>
+    <dt>Ordered dictionary</dt>
+    <dd><code>OrderedDictionary&lt;K,V&gt;</code> <span class="since">.NET 9</span> — insertion order plus indexing; <code>TryAdd(k, v, out int index)</code> with <code>GetAt</code>/<code>SetAt</code> <span class="since">.NET 10</span></dd>
+    <dt>Concurrent</dt>
+    <dd><code>ConcurrentDictionary&lt;K,V&gt;</code> <span class="cmt">— <code>GetOrAdd</code> may run the factory more than once</span> · <code>Channel&lt;T&gt;</code> for producer/consumer</dd>
+    <dt>Core LINQ</dt>
+    <dd><code>Where Select SelectMany OrderBy ThenBy GroupBy Join Distinct Take Skip First Single Any All Sum Aggregate</code></dd>
+    <dt>Modern LINQ additions</dt>
+    <dd><code>Chunk(n)</code> <span class="since">.NET 6</span> · <code>DistinctBy/MaxBy/MinBy</code> <span class="since">.NET 6</span> · <code>Order()/OrderDescending()</code> <span class="since">.NET 7</span> · <code>CountBy/AggregateBy/Index()</code> <span class="since">.NET 9</span></dd>
+    <dt>LINQ in .NET 10</dt>
+    <dd><code>LeftJoin</code>, <code>RightJoin</code> <span class="since">.NET 10</span> <span class="cmt">— replaces the <code>GroupJoin</code> + <code>DefaultIfEmpty</code> dance, and EF Core 10 translates both</span> · <code>Shuffle</code>, <code>Sequence</code> <span class="since">.NET 10</span></dd>
+    <dt>Deferred vs materialized</dt>
+    <dd>every operator is lazy until <code>ToList/ToArray/ToDictionary/Count/foreach</code>. Enumerating twice runs the query twice — the classic double-query bug</dd>
+    <dt>Async LINQ</dt>
+    <dd><code>await foreach (var x in src.WithCancellation(ct))</code> · EF Core: <code>ToListAsync</code>, <code>AnyAsync</code>, <code>FirstOrDefaultAsync</code></dd>
+    <dt>Query syntax</dt>
+    <dd><code>from o in orders where o.Total &gt; 0 select o</code> — still legal, rarely written now; method syntax is the house style almost everywhere</dd>
+  </dl>
+  <pre><code class="language-csharp">// .NET 10: LeftJoin replaces GroupJoin + SelectMany + DefaultIfEmpty.
+var report = customers.LeftJoin(
+    orders,
+    c =&gt; c.Id,
+    o =&gt; o.CustomerId,
+    (c, o) =&gt; new { c.Name, Total = o?.Total ?? 0m });
+
+// Collection expressions compose: no ToArray, no intermediate List.
+ReadOnlySpan&lt;int&gt; head = [1, 2];
+int[] all = [.. head, 3, .. Enumerable.Range(4, 2)];   // 1 2 3 4 5</code></pre>
+</section>
+
+<section class="unit" id="u06">
+  <header>
+    <h2><span class="n">06</span>Strings, spans &amp; perf</h2>
+    <span class="docs"><a href="https://learn.microsoft.com/dotnet/standard/memory-and-spans/">docs: memory and spans</a></span>
+  </header>
+  <dl class="rows">
+    <dt>Raw string literal</dt>
+    <dd><code>var json = """{"a": 1}""";</code> <span class="since">C# 11</span> <span class="cmt">— no escaping; the closing quotes' indentation is stripped from every line</span></dd>
+    <dt>Interpolated raw string</dt>
+    <dd><code>$$"""{ "id": {{id}} }"""</code> <span class="since">C# 11</span> <span class="cmt">— <code>$$</code> means <code>{{ }}</code> is the hole and single braces are literal</span></dd>
+    <dt>UTF-8 literal</dt>
+    <dd><code>ReadOnlySpan&lt;byte&gt; ok = "OK"u8;</code> <span class="since">C# 11</span> <span class="cmt">— compile-time bytes, zero encoding at runtime</span></dd>
+    <dt>Comparison</dt>
+    <dd><code>string.Equals(a, b, StringComparison.Ordinal)</code> for ids · <code>OrdinalIgnoreCase</code> for headers and keys · culture-sensitive only for display. CA1310 flags the culture-sensitive default</dd>
+    <dt>Numeric ordering</dt>
+    <dd><code>StringComparer.Create(culture, CompareOptions.NumericOrdering)</code> <span class="since">.NET 10</span> <span class="cmt">— "Windows 8" sorts before "Windows 10"; not valid for <code>IndexOf</code>/<code>StartsWith</code></span></dd>
+    <dt>Search many values fast</dt>
+    <dd><code>static readonly SearchValues&lt;char&gt; Delims = SearchValues.Create("&amp;;=");</code> <span class="since">.NET 8</span> then <code>span.IndexOfAny(Delims)</code></dd>
+    <dt>Compiled regex</dt>
+    <dd><code>[GeneratedRegex(@"^\d{4}-\d{2}$")] private static partial Regex Ym();</code> <span class="since">.NET 7</span> <span class="cmt">— source-generated, AOT-safe, beats <code>RegexOptions.Compiled</code></span></dd>
+    <dt>Slice without allocating</dt>
+    <dd><code>ReadOnlySpan&lt;char&gt; s = text.AsSpan(4, 8);</code> <span class="cmt">— <code>text[4..12]</code> allocates a new string instead</span></dd>
+    <dt>First-class spans</dt>
+    <dd><code>T[]</code> → <code>Span&lt;T&gt;</code> → <code>ReadOnlySpan&lt;T&gt;</code> implicit conversions now take part in extension-method receivers and generic inference <span class="since">C# 14</span></dd>
+    <dt>Stack buffer</dt>
+    <dd><code>Span&lt;char&gt; buf = stackalloc char[64];</code> <span class="cmt">— keep under ~1 KB and never inside a loop; use <code>ArrayPool&lt;T&gt;.Shared.Rent</code> above that</span></dd>
+    <dt>Build strings</dt>
+    <dd><code>string.Create(len, state, static (span, s) =&gt; ...)</code> for an exact size · <code>StringBuilder</code> for unbounded · plain <code>$"..."</code> for the rest — the interpolated-string handler already avoids boxing <span class="since">C# 10</span></dd>
+    <dt>Parse / format</dt>
+    <dd><code>int.TryParse(s, CultureInfo.InvariantCulture, out var n)</code> · <code>IUtf8SpanFormattable.TryFormat</code> <span class="since">.NET 8</span> for byte output</dd>
+    <dt>Hex / Base64</dt>
+    <dd><code>Convert.ToHexStringLower(bytes)</code> <span class="since">.NET 9</span> · <code>Convert.TryToHexString(utf8, dest, out n)</code> <span class="since">.NET 10</span> · <code>Base64Url</code> <span class="since">.NET 9</span></dd>
+    <dt>Measure, don't guess</dt>
+    <dd>BenchmarkDotNet with <code>[MemoryDiagnoser]</code>; <code>dotnet-counters</code> for live GC and allocation rates. .NET 10's JIT adds array-interface devirtualization and stack allocation of small arrays, so some older micro-optimizations are now net losses</dd>
+  </dl>
+  <pre><code class="language-csharp">// Allocation-free scan of "key=value;key=value" using spans + SearchValues.
+private static readonly SearchValues&lt;char&gt; Sep = SearchValues.Create("=;");
+
+static void Parse(ReadOnlySpan&lt;char&gt; input, Action&lt;string, string&gt; onPair)
+{
+    foreach (Range part in input.Split(';'))            // Span.Split, .NET 9
+    {
+        var slice = input[part];
+        var eq = slice.IndexOfAny(Sep);
+        if (eq &gt; 0) onPair(slice[..eq].ToString(), slice[(eq + 1)..].ToString());
+    }
+}</code></pre>
+</section>
+
+<section class="unit" id="u07">
+  <header>
+    <h2><span class="n">07</span>Generics &amp; generic math</h2>
+    <span class="docs"><a href="https://learn.microsoft.com/dotnet/standard/generics/math">docs: generic math</a></span>
+  </header>
+  <dl class="rows">
+    <dt>Constraints</dt>
+    <dd><code>where T : class</code> · <code>struct</code> · <code>notnull</code> · <code>unmanaged</code> · <code>new()</code> · <code>BaseType</code> · <code>IFace</code> · <code>T : U</code></dd>
+    <dt><code>allows ref struct</code></dt>
+    <dd><code>where T : allows ref struct</code> <span class="since">C# 13</span> <span class="cmt">— lets a generic accept <code>Span&lt;T&gt;</code>; the anti-constraint that unblocked span-generic APIs</span></dd>
+    <dt>Static abstract member</dt>
+    <dd><code>interface IParser&lt;T&gt; { static abstract T Parse(string s); }</code> <span class="since">C# 11</span> <span class="cmt">— the mechanism behind generic math</span></dd>
+    <dt>Generic math interfaces</dt>
+    <dd><code>INumber&lt;T&gt;</code>, <code>IAdditionOperators&lt;,,&gt;</code>, <code>IComparisonOperators&lt;,,&gt;</code>, <code>IBinaryInteger&lt;T&gt;</code>, <code>IFloatingPoint&lt;T&gt;</code> <span class="since">.NET 7</span></dd>
+    <dt>Parse/format contracts</dt>
+    <dd><code>IParsable&lt;T&gt;</code>, <code>ISpanParsable&lt;T&gt;</code>, <code>ISpanFormattable</code>, <code>IUtf8SpanParsable&lt;T&gt;</code> <span class="since">.NET 8</span> <span class="cmt">— implement these and your type drops into generic pipelines</span></dd>
+    <dt>Variance</dt>
+    <dd><code>out T</code> covariant (<code>IEnumerable&lt;out T&gt;</code>) · <code>in T</code> contravariant (<code>IComparer&lt;in T&gt;</code>) — interfaces and delegates only, reference types only</dd>
+    <dt><code>default(T)</code> vs <code>null</code></dt>
+    <dd><code>default</code> is <code>0</code> / <code>null</code> / a zeroed struct. Return <code>default!</code> or annotate <code>[MaybeNull]</code> when <code>T</code> is unconstrained</dd>
+    <dt>Type checks</dt>
+    <dd><code>typeof(T)</code> · <code>typeof(List&lt;&gt;)</code> open generic · <code>nameof(List&lt;&gt;)</code> → <code>"List"</code> <span class="since">C# 14</span></dd>
+    <dt>Generic specialization</dt>
+    <dd>the JIT shares one body across all reference types and emits one per value type — why <code>List&lt;int&gt;</code> boxes nothing but many distinct structs grow code size</dd>
+    <dt>Static in a generic type</dt>
+    <dd><code>Cache&lt;string&gt;.Value</code> and <code>Cache&lt;int&gt;.Value</code> are different fields — a handy per-type cache and a classic surprise</dd>
+    <dt>Generic helpers</dt>
+    <dd><code>EqualityComparer&lt;T&gt;.Default</code> · <code>Comparer&lt;T&gt;.Default</code> · <code>Unsafe.As&lt;TFrom, TTo&gt;</code> <span class="cmt">— the last only behind a benchmark</span></dd>
+    <dt>Tensors</dt>
+    <dd><code>Tensor&lt;T&gt;</code>, <code>IReadOnlyTensor</code> — no longer <code>[Experimental]</code> <span class="since">.NET 10</span>, still shipped in the <code>System.Numerics.Tensors</code> package; arithmetic arrives via C# 14 extension operators</dd>
+  </dl>
+  <pre><code class="language-csharp">// One method, every numeric type — no overload per primitive, no boxing.
+static T Sum&lt;T&gt;(ReadOnlySpan&lt;T&gt; values) where T : INumber&lt;T&gt;
+{
+    T total = T.Zero;
+    foreach (var v in values) total += v;
+    return total;
+}
+
+Sum&lt;int&gt;([1, 2, 3]);         // 6
+Sum&lt;decimal&gt;([1.5m, 2.5m]);  // 4.0</code></pre>
+</section>
+
+<section class="unit" id="u08">
+  <header>
+    <h2><span class="n">08</span>Async &amp; concurrency</h2>
+    <span class="docs"><a href="https://learn.microsoft.com/dotnet/csharp/asynchronous-programming/">docs: asynchronous programming</a></span>
+  </header>
+  <dl class="rows">
+    <dt>Signature</dt>
+    <dd><code>public async Task&lt;Order&gt; GetAsync(int id, CancellationToken ct = default)</code> <span class="cmt">— <code>async void</code> only for event handlers; anywhere else it is an unobservable crash</span></dd>
+    <dt>Return types</dt>
+    <dd><code>Task</code>, <code>Task&lt;T&gt;</code>, <code>ValueTask&lt;T&gt;</code> (hot path, await exactly once), <code>IAsyncEnumerable&lt;T&gt;</code></dd>
+    <dt>Concurrent awaits</dt>
+    <dd><code>var (a, b) = (await ta, await tb);</code> after starting both · <code>await Task.WhenAll(tasks)</code> · <code>await Task.WhenEach(tasks)</code> <span class="since">.NET 9</span> to consume as they finish</dd>
+    <dt>Bounded parallelism</dt>
+    <dd><code>await Parallel.ForEachAsync(items, new ParallelOptions { MaxDegreeOfParallelism = 8, CancellationToken = ct }, WorkAsync);</code> <span class="since">.NET 6</span></dd>
+    <dt>Cancellation</dt>
+    <dd><code>using var cts = CancellationTokenSource.CreateLinkedTokenSource(ct);</code> · <code>cts.CancelAfter(TimeSpan.FromSeconds(5))</code> · <code>ct.ThrowIfCancellationRequested()</code></dd>
+    <dt>Timeout on any task</dt>
+    <dd><code>await task.WaitAsync(TimeSpan.FromSeconds(3), ct);</code> <span class="since">.NET 6</span> <span class="cmt">— throws <code>TimeoutException</code>; replaces the <code>Task.WhenAny</code> + <code>Task.Delay</code> idiom</span></dd>
+    <dt>Library rule</dt>
+    <dd><code>.ConfigureAwait(false)</code> on every await in library code. In ASP.NET Core there is no sync context, so app code can skip it</dd>
+    <dt>Async streams</dt>
+    <dd><code>async IAsyncEnumerable&lt;T&gt; ReadAsync([EnumeratorCancellation] CancellationToken ct)</code> <span class="since">C# 8</span> <span class="cmt">— without the attribute, <code>WithCancellation</code> is silently ignored</span></dd>
+    <dt>Async disposal</dt>
+    <dd><code>await using var conn = ...;</code> <span class="since">C# 8</span> <span class="cmt">— plain <code>using</code> on an <code>IAsyncDisposable</code> takes a blocking path or does nothing</span></dd>
+    <dt>Locks</dt>
+    <dd><code>System.Threading.Lock</code> <span class="since">.NET 9</span> with <code>lock (_gate)</code> — faster than <code>object</code> and the compiler rejects <code>await</code> inside. For async, <code>SemaphoreSlim(1, 1).WaitAsync(ct)</code></dd>
+    <dt>Interlocked / volatile</dt>
+    <dd><code>Interlocked.Increment(ref _count)</code> · <code>Interlocked.CompareExchange</code> · <code>Volatile.Read/Write</code> <span class="cmt">— reach for these before a lock only in measured hot paths</span></dd>
+    <dt>Periodic work</dt>
+    <dd><code>using var timer = new PeriodicTimer(TimeSpan.FromSeconds(30)); while (await timer.WaitForNextTickAsync(ct)) { ... }</code> <span class="since">.NET 6</span></dd>
+    <dt>Fire-and-forget</dt>
+    <dd>there is no safe fire-and-forget: hand work to a <code>BackgroundService</code>, a <code>Channel&lt;T&gt;</code> consumer or a queue. <code>_ = DoAsync();</code> loses the exception</dd>
+    <dt>Never block</dt>
+    <dd><code>.Result</code>, <code>.Wait()</code>, <code>GetAwaiter().GetResult()</code> — deadlock in any SynchronizationContext, thread-pool starvation in ASP.NET Core</dd>
+    <dt>Runtime async</dt>
+    <dd>.NET 11 moves the async state machine into the runtime for cleaner stack traces and lower overhead <span class="cmt">— preview today, no source changes needed</span></dd>
+  </dl>
+  <pre><code class="language-csharp">// Fan out with a ceiling, a shared token and a real timeout.
+using var cts = CancellationTokenSource.CreateLinkedTokenSource(ct);
+cts.CancelAfter(TimeSpan.FromSeconds(30));
+
+await Parallel.ForEachAsync(
+    ids,
+    new ParallelOptions { MaxDegreeOfParallelism = 8, CancellationToken = cts.Token },
+    async (id, token) =&gt; await _client.FetchAsync(id, token));</code></pre>
+  <div class="note"><p>Full coverage of <code>Task</code>, <code>ValueTask</code>, contexts and thread-pool behaviour lives on the separate <em>C# async/await</em> card; this unit is only what you need while writing ordinary C#.</p></div>
+</section>
+
+<section class="unit" id="u09">
+  <header>
+    <h2><span class="n">09</span>CLI, project &amp; config</h2>
+    <span class="docs"><a href="https://learn.microsoft.com/dotnet/core/tools/">docs: .NET CLI</a></span>
+  </header>
+  <dl class="rows">
+    <dt>Scaffold</dt>
+    <dd><code>dotnet new console -o Api --framework net10.0</code> · <code>dotnet new list</code> · <code>dotnet new gitignore</code> · <code>dotnet new editorconfig</code></dd>
+    <dt>Build / run / watch</dt>
+    <dd><code>dotnet build -c Release</code> · <code>dotnet run --project src/Api</code> · <code>dotnet watch</code> (hot reload; <code>--no-hot-reload</code> to restart instead)</dd>
+    <dt>Test</dt>
+    <dd><code>dotnet test --filter "Category=Fast" --logger trx --collect:"XPlat Code Coverage"</code> <span class="cmt">— <code>dotnet test</code> runs Microsoft.Testing.Platform natively when <code>global.json</code> sets <code>"test": { "runner": "Microsoft.Testing.Platform" }</code> <span class="since">.NET 10</span></span></dd>
+    <dt>Packages (noun-first)</dt>
+    <dd><code>dotnet package add Serilog</code> · <code>dotnet package list --outdated --vulnerable</code> · <code>dotnet package remove X</code> <span class="since">.NET 10</span> <span class="cmt">— the old <code>dotnet add package</code> forms still work</span></dd>
+    <dt>References &amp; solutions</dt>
+    <dd><code>dotnet reference add ../Lib/Lib.csproj</code> <span class="since">.NET 10</span> · <code>dotnet sln add **/*.csproj</code> · <code>dotnet restore --locked-mode</code></dd>
+    <dt>Publish</dt>
+    <dd><code>dotnet publish -c Release -r linux-x64 --self-contained</code> · <code>-p:PublishAot=true</code> · <code>-p:PublishSingleFile=true</code> · <code>-p:PublishTrimmed=true</code></dd>
+    <dt>Containers, no Dockerfile</dt>
+    <dd><code>dotnet publish /t:PublishContainer</code> <span class="cmt">— works for console apps with no extra property <span class="since">.NET 10</span>; pick the format with <code>&lt;ContainerImageFormat&gt;OCI&lt;/ContainerImageFormat&gt;</code></span></dd>
+    <dt>File-based app</dt>
+    <dd><code>dotnet run app.cs</code> <span class="since">.NET 10</span> — no project, cached after the first run. <code>dotnet publish app.cs</code> emits a native executable (file-based apps target native AOT by default)</dd>
+    <dt>File-based directives</dt>
+    <dd><code>#:package Humanizer@2.14.1</code> · <code>#:sdk Microsoft.NET.Sdk.Web</code> · <code>#:property PublishAot=false</code> · <code>#:project ../Lib/Lib.csproj</code> · <code>#!/usr/bin/env dotnet</code> shebang</dd>
+    <dt>Graduate a script</dt>
+    <dd><code>dotnet project convert app.cs</code> <span class="cmt">— emits a real csproj that preserves the <code>#:</code> directives</span></dd>
+    <dt>Tools</dt>
+    <dd><code>dotnet tool install -g dotnet-ef</code> · <code>dotnet tool exec dotnetsay</code> or <code>dnx dotnetsay</code> to run without installing <span class="since">.NET 10</span></dd>
+    <dt>Format &amp; introspect</dt>
+    <dd><code>dotnet format --verify-no-changes</code> (CI gate) · <code>dotnet clean --cli-schema</code> emits the command tree as JSON <span class="since">.NET 10</span> · <code>dotnet completions script pwsh</code> <span class="since">.NET 10</span></dd>
+    <dt>Diagnostics</dt>
+    <dd><code>dotnet-counters monitor -n MyApp</code> · <code>dotnet-trace collect</code> · <code>dotnet-dump collect</code> · <code>dotnet-gcdump collect</code></dd>
+    <dt>Core csproj properties</dt>
+    <dd><code>&lt;TargetFramework&gt;net10.0&lt;/TargetFramework&gt;</code> · <code>&lt;Nullable&gt;enable&lt;/Nullable&gt;</code> · <code>&lt;ImplicitUsings&gt;enable&lt;/ImplicitUsings&gt;</code> · <code>&lt;LangVersion&gt;preview&lt;/LangVersion&gt;</code> (only to try C# 15) · <code>&lt;TreatWarningsAsErrors&gt;true&lt;/TreatWarningsAsErrors&gt;</code></dd>
+    <dt>Quality gates</dt>
+    <dd><code>&lt;AnalysisLevel&gt;latest-recommended&lt;/AnalysisLevel&gt;</code> · <code>&lt;EnforceCodeStyleInBuild&gt;true&lt;/EnforceCodeStyleInBuild&gt;</code> · <code>&lt;ContinuousIntegrationBuild&gt;true&lt;/ContinuousIntegrationBuild&gt;</code> · <code>&lt;IsAotCompatible&gt;true&lt;/IsAotCompatible&gt;</code></dd>
+    <dt>Repo-wide files</dt>
+    <dd><code>Directory.Build.props</code> shared properties · <code>Directory.Packages.props</code> + <code>&lt;ManagePackageVersionsCentrally&gt;true&lt;/&gt;</code> for central package management · <code>global.json</code> pins the SDK with <code>rollForward</code> · <code>.editorconfig</code> owns style and severities</dd>
+    <dt>Supply chain</dt>
+    <dd>NuGet Audit prunes framework-provided package references by default on <code>net10.0</code> <span class="since">.NET 10</span> (disable with <code>RestoreEnablePackagePruning=false</code>) · <code>&lt;CheckSdkVulnerabilities&gt;true&lt;/&gt;</code> warns NETSDK1239 on an end-of-life SDK</dd>
+  </dl>
+  <pre><code class="language-csharp">#!/usr/bin/env dotnet
+#:package Spectre.Console@0.49.1
+#:property PublishAot=false
+
+// Save as check.cs, `chmod +x`, run it. `dotnet publish check.cs` makes it a native binary.
+using Spectre.Console;
+AnsiConsole.MarkupLine($"[green]{args.Length}[/] argument(s) on {Environment.Version}");</code></pre>
+</section>
+
+<section class="unit" id="u10">
+  <header>
+    <h2><span class="n">10</span>Idioms &amp; gotchas</h2>
+    <span class="docs"><a href="https://learn.microsoft.com/dotnet/fundamentals/code-analysis/quality-rules/">docs: code-quality rules</a></span>
+  </header>
+  <dl class="rows">
+    <dt>Struct equality</dt>
+    <dd>a plain <code>struct</code> without <code>Equals</code>/<code>GetHashCode</code> falls back to reflection-based comparison — slow and surprising. Use <code>readonly record struct</code></dd>
+    <dt>Records are shallow</dt>
+    <dd><code>with</code> copies references; a list inside a record is shared with the copy. Value equality on a record containing an array compares references</dd>
+    <dt>Primary constructor capture</dt>
+    <dd>a class primary-constructor parameter stays mutable and is captured into a hidden field per use — do not treat it as <code>readonly</code>, and assign it to a field when it matters</dd>
+    <dt><code>field</code> shadowing</dt>
+    <dd>a type that already has a member named <code>field</code> changes meaning under C# 14 — disambiguate with <code>@field</code> or rename. Warning CS9258 flags it</dd>
+    <dt>Extension resolution</dt>
+    <dd>an instance member always beats an extension member; new extension properties do not override existing ones. Adding one to a widely-used type is a source-compat risk</dd>
+    <dt>Iterators are lazy</dt>
+    <dd>argument validation in a <code>yield return</code> method does not run until the first <code>MoveNext</code>. Split into a validating wrapper plus a private iterator</dd>
+    <dt>Closure over the loop variable</dt>
+    <dd><code>foreach</code> captures per-iteration since C# 5, but a <code>for</code> loop variable is still shared — the classic "all lambdas print N"</dd>
+    <dt><code>IDisposable</code> in DI</dt>
+    <dd>a captive dependency (singleton holding a scoped service) leaks for the process lifetime. <code>ValidateScopes</code> catches it in Development only</dd>
+    <dt><code>DateTime</code> vs offsets</dt>
+    <dd>use <code>DateTimeOffset</code> for instants, <code>DateOnly</code>/<code>TimeOnly</code> <span class="since">.NET 6</span> for calendar values, and <code>TimeProvider</code> <span class="since">.NET 8</span> so tests can move the clock</dd>
+    <dt><code>decimal</code> for money</dt>
+    <dd><code>double</code> for currency is a defect, not a style choice. <code>decimal</code> is base-10, 28–29 significant digits</dd>
+    <dt>Enum is not closed</dt>
+    <dd><code>(Status)99</code> is a valid value. Validate at boundaries with <code>Enum.IsDefined</code> and always keep a <code>_</code> arm</dd>
+    <dt><code>HttpClient</code> lifetime</dt>
+    <dd>never <code>new HttpClient()</code> per request (socket exhaustion) and never one static instance forever (stale DNS). Use <code>IHttpClientFactory</code></dd>
+    <dt>Culture leaks</dt>
+    <dd><code>ToString()</code> and <code>Parse</code> default to the current culture. Set <code>&lt;InvariantGlobalization&gt;true&lt;/&gt;</code> for services, or pass <code>CultureInfo.InvariantCulture</code> explicitly</dd>
+    <dt>Trimming &amp; AOT</dt>
+    <dd>reflection-based serialization and DI registration break under trimming. Use the <code>System.Text.Json</code> source generator and set <code>&lt;IsAotCompatible&gt;true&lt;/&gt;</code> to surface IL2xxx/IL3xxx warnings early</dd>
+    <dt>JSON duplicates</dt>
+    <dd>duplicate properties silently take the last value. <code>JsonSerializerOptions.AllowDuplicateProperties = false</code> <span class="since">.NET 10</span>, or the <code>Strict</code> preset, turns that into a <code>JsonException</code></dd>
+    <dt>Exceptions</dt>
+    <dd><code>catch (Exception ex) { throw; }</code> preserves the stack; <code>throw ex;</code> destroys it. Never catch to log-and-swallow at a low level</dd>
+    <dt>ConfigureAwait everywhere</dt>
+    <dd>correct in a library, noise in an ASP.NET Core app (no sync context). Decide once per repo and enforce it with an analyser</dd>
+  </dl>
+</section>
+
+<section class="unit" id="u11">
+  <header>
+    <h2><span class="n">11</span>Modern vs legacy</h2>
+    <span class="docs"><a href="https://learn.microsoft.com/dotnet/csharp/whats-new/">docs: what's new in C#</a></span>
+  </header>
+  <div class="tw">
+  <table class="grid">
+    <thead>
+      <tr><th>Task</th><th>Modern</th><th>Legacy still seen</th><th>Since</th></tr>
+    </thead>
+    <tbody>
+      <tr><td>Backing field for a validated property</td><td><code>{ get; set =&gt; field = Check(value); }</code></td><td><code>private string _x;</code> plus both accessors</td><td>C# 14</td></tr>
+      <tr><td>Extension property</td><td><code>extension(T x) { public bool IsEmpty =&gt; ...; }</code></td><td>a static <code>IsEmpty(this T x)</code> method, or a wrapper type</td><td>C# 14</td></tr>
+      <tr><td>Assign through a maybe-null reference</td><td><code>customer?.Order = value;</code></td><td><code>if (customer is not null) customer.Order = value;</code></td><td>C# 14</td></tr>
+      <tr><td>Left outer join</td><td><code>a.LeftJoin(b, ka, kb, sel)</code></td><td><code>GroupJoin(...).SelectMany(g =&gt; g.DefaultIfEmpty(), ...)</code></td><td>.NET 10</td></tr>
+      <tr><td>Strict JSON contract</td><td><code>new JsonSerializerOptions(JsonSerializerOptions.Strict)</code></td><td>hand-setting four options, or Newtonsoft <code>MissingMemberHandling.Error</code></td><td>.NET 10</td></tr>
+      <tr><td>Run a one-file utility</td><td><code>dotnet run tool.cs</code> with <code>#:package</code></td><td>a throwaway console project, or a <code>.csx</code> script</td><td>.NET 10</td></tr>
+      <tr><td>Run a tool once</td><td><code>dnx &lt;tool&gt;</code> / <code>dotnet tool exec</code></td><td><code>dotnet tool install -g</code> then uninstall</td><td>.NET 10</td></tr>
+      <tr><td>Mutual exclusion</td><td><code>private readonly Lock _gate = new();</code></td><td><code>private readonly object _gate = new();</code></td><td>.NET 9</td></tr>
+      <tr><td>Variadic API without allocating</td><td><code>params ReadOnlySpan&lt;T&gt;</code></td><td><code>params T[]</code></td><td>C# 13</td></tr>
+      <tr><td>Build a collection</td><td><code>List&lt;int&gt; x = [1, 2, ..rest];</code></td><td><code>new List&lt;int&gt; { 1, 2 }</code> then <code>AddRange</code></td><td>C# 12</td></tr>
+      <tr><td>Inject dependencies</td><td>primary constructor on the class</td><td>constructor plus one <code>readonly</code> field per parameter</td><td>C# 12</td></tr>
+      <tr><td>Mandatory property</td><td><code>required</code> member</td><td>a long constructor, or runtime null checks in <code>OnValidate</code></td><td>C# 11</td></tr>
+      <tr><td>Embedded JSON / SQL in source</td><td>raw string literal <code>"""…"""</code></td><td><code>@"…"</code> with doubled quotes, or string concatenation</td><td>C# 11</td></tr>
+      <tr><td>Numeric algorithm over any type</td><td><code>where T : INumber&lt;T&gt;</code></td><td>one overload per primitive, or <code>dynamic</code></td><td>.NET 7</td></tr>
+      <tr><td>Regex in a hot path</td><td><code>[GeneratedRegex]</code> partial method</td><td><code>new Regex(p, RegexOptions.Compiled)</code> in a static field</td><td>.NET 7</td></tr>
+      <tr><td>Argument guard</td><td><code>ArgumentNullException.ThrowIfNull(x)</code></td><td><code>if (x is null) throw new ArgumentNullException(nameof(x));</code></td><td>.NET 6</td></tr>
+      <tr><td>Date without a time</td><td><code>DateOnly</code> / <code>TimeOnly</code></td><td><code>DateTime</code> with the time forced to midnight</td><td>.NET 6</td></tr>
+      <tr><td>Serialize JSON</td><td><code>System.Text.Json</code> + source generator</td><td><code>Newtonsoft.Json</code> (still fine for dynamic/JSON-patch scenarios)</td><td>.NET Core 3.0</td></tr>
+      <tr><td>Branch on shape</td><td>switch expression with patterns</td><td><code>if/else if</code> chains of <code>is</code> + cast, or a visitor</td><td>C# 8</td></tr>
+      <tr class="hi"><td>Sum type</td><td><code>union</code> / <code>closed</code> hierarchy — <em>preview</em></td><td>abstract base + sealed subclasses, or OneOf/LanguageExt</td><td>C# 15 (preview)</td></tr>
+    </tbody>
+  </table>
+  </div>
+</section>
+
+<section class="unit" id="u12">
+  <header>
+    <h2><span class="n">12</span>Version timeline</h2>
+    <span class="docs"><a href="https://learn.microsoft.com/dotnet/core/releases-and-support">docs: releases and support</a></span>
+  </header>
+  <div class="tw">
+  <table class="grid">
+    <thead>
+      <tr><th>C#</th><th>Runtime</th><th>Released</th><th>Headline changes</th></tr>
+    </thead>
+    <tbody>
+      <tr><td>15</td><td>.NET 11 (STS)</td><td>preview; GA Nov 2026</td><td><strong>Not stable.</strong> Union types and <code>closed</code> hierarchies (exhaustive switches), collection expression arguments <code>[with(...)]</code>, extension indexers, labeled <code>break</code>/<code>continue</code>, first step of the new memory-safety model (pointer declarations, <code>fixed</code>, <code>stackalloc</code>, <code>sizeof</code> outside <code>unsafe</code>; <code>unsafe(expr)</code>). Runtime: runtime-level async, CoreCLR on WebAssembly, BFloat16, Zstandard. Needs <code>LangVersion=preview</code>.</td></tr>
+      <tr class="hi"><td>14</td><td>.NET 10 (LTS)</td><td>2025-11-11</td><td><strong>Current.</strong> Newly stable: extension members (properties, statics, operators), the <code>field</code> keyword, null-conditional assignment, <code>partial</code> constructors and events, user-defined compound assignment, implicit span conversions, <code>nameof</code> on unbound generics, lambda parameter modifiers. Newly default: C# 14 for <code>net10.0</code>; native AOT for file-based apps; framework-package pruning. Libraries: <code>LeftJoin</code>/<code>RightJoin</code>/<code>Shuffle</code>, <code>JsonSerializerOptions.Strict</code>, async ZIP, post-quantum <code>MLKem</code>/<code>MLDsa</code>, <code>CompareOptions.NumericOrdering</code>. Latest patch 10.0.11 (2026-08-11); supported to Nov 2028.</td></tr>
+      <tr><td>13</td><td>.NET 9 (STS)</td><td>2024-11-12</td><td><code>params</code> collections, <code>System.Threading.Lock</code>, <code>allows ref struct</code>, <code>ref struct</code> implementing interfaces, partial properties and indexers, <code>ref</code>/<code>unsafe</code> in iterators and async, <code>\e</code> escape, <code>[OverloadResolutionPriority]</code>. STS support ends Nov 2026 — plan the move to .NET 10.</td></tr>
+      <tr><td>12</td><td>.NET 8 (LTS)</td><td>2023-11-14</td><td>Collection expressions and spread, primary constructors on classes and structs, alias any type, default lambda parameters, inline arrays, <code>ref readonly</code> parameters. LTS support ends Nov 2026: still the most common production baseline, and the one you will be asked to migrate.</td></tr>
+      <tr><td>11</td><td>.NET 7 (STS)</td><td>2022-11-08</td><td>Raw string literals, generic math via <code>static abstract</code> interface members, <code>required</code> members, list patterns, UTF-8 literals, <code>file</code> types, <code>ref</code> fields and <code>scoped</code>. Out of support.</td></tr>
+      <tr><td>10</td><td>.NET 6 (LTS)</td><td>2021-11-08</td><td>File-scoped namespaces, global usings, record structs, <code>with</code> on structs, extended property patterns, interpolated string handlers, constant interpolated strings. Out of support (ended Nov 2024).</td></tr>
+      <tr><td>9</td><td>.NET 5</td><td>2020-11-10</td><td>Records, init-only setters, top-level statements, target-typed <code>new</code>, relational and logical patterns, module initializers, native ints, function pointers. Out of support.</td></tr>
+      <tr><td>8</td><td>.NET Core 3.0</td><td>2019-09-23</td><td>Nullable reference types, switch expressions, async streams, ranges and indices, default interface members, <code>using</code> declarations, <code>??=</code>. The line below which a codebase reads as legacy.</td></tr>
+      <tr><td>7.0–7.3</td><td>.NET Core 2.x / Framework</td><td>2017–2018</td><td>Tuples and deconstruction, pattern matching v1, local functions, <code>in</code>/<code>ref readonly</code>, <code>Span&lt;T&gt;</code> support, async <code>Main</code>. <em>Deprecated in practice:</em> anything still targeting .NET Framework 4.8 is maintenance-only — .NET Framework gets security fixes, no new language features.</td></tr>
+    </tbody>
+  </table>
+  </div>
+  <div class="note"><p>Cadence: a major runtime every November, alternating LTS (even, 3 years) and STS (odd, 2 years). Today .NET 10 (LTS), .NET 9 and .NET 8 are supported; .NET 8 and .NET 9 both end support in November 2026, so every project on either has a deadline this year.</p></div>
+</section>
+</main>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.11.1/highlight.min.js"></script>
+<script>
+(function () {
+  if (window.hljs) { try { hljs.highlightAll(); } catch (e) { /* highlighting is decoration */ } }
+
+  var toggle = document.querySelector('.navtoggle');
+  var side = document.getElementById('side');
+  if (toggle) {
+    toggle.addEventListener('click', function () {
+      var open = document.body.classList.toggle('nav-open');
+      toggle.setAttribute('aria-expanded', open ? 'true' : 'false');
+    });
+  }
+  if (side) {
+    side.addEventListener('click', function (e) {
+      if (e.target.closest('a')) {
+        document.body.classList.remove('nav-open');
+        if (toggle) toggle.setAttribute('aria-expanded', 'false');
+      }
+    });
+  }
+
+  var links = Array.prototype.slice.call(document.querySelectorAll('.units a'));
+  var units = links.map(function (a) { return document.getElementById(a.getAttribute('href').slice(1)); });
+  var ticking = false;
+  function spy() {
+    ticking = false;
+    var best = 0;
+    for (var i = 0; i < units.length; i++) {
+      if (units[i] && units[i].getBoundingClientRect().top <= 140) best = i;
+    }
+    for (var j = 0; j < links.length; j++) {
+      if (j === best) links[j].setAttribute('aria-current', 'true');
+      else links[j].removeAttribute('aria-current');
+    }
+  }
+  function onScroll() {
+    if (!ticking) { ticking = true; window.requestAnimationFrame(spy); }
+  }
+  window.addEventListener('scroll', onScroll, { passive: true });
+  window.addEventListener('resize', onScroll, { passive: true });
+  spy();
+})();
+</script>
+</body>
+</html>
