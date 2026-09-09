@@ -1,0 +1,1027 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Web performance & browser platform · experience · devbok</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Cascadia+Mono:wght@400;700&display=swap" rel="stylesheet">
+<style>
+  :root { color-scheme: light;
+    --bg: #ffffff; --fg: #111111; --muted: #6b6b6b; --line: #111111; --soft: #f4f4f4; --border: #cccccc;
+    --accent: #f44b21; --accent-soft: color-mix(in srgb, var(--accent) 12%, var(--bg));
+    --code: color-mix(in srgb, var(--accent) 70%, var(--fg));
+    --hl-kw: #a626a4; --hl-str: #50a14f; --hl-num: #986801; --hl-cmt: #6b6b6b; --hl-type: #0184bc; --hl-fn: #4078f2; --hl-attr: #986801; }
+  @media (prefers-color-scheme: dark) { :root { color-scheme: dark;
+    --bg: #222222; --fg: #cccccc; --muted: #8f8f8f; --line: #111111; --soft: #2c2c2c; --border: #4a4a4a;
+    --accent: #f7795a; --accent-soft: color-mix(in srgb, var(--accent) 16%, var(--bg));
+    --hl-kw: #c678dd; --hl-str: #98c379; --hl-num: #d19a66; --hl-cmt: #8f8f8f; --hl-type: #56b6c2; --hl-fn: #61afef; --hl-attr: #e5c07b; } }
+
+  * { box-sizing: border-box; }
+  html, body { margin: 0; padding: 0; }
+  body { background: var(--bg); color: var(--fg); font-family: system-ui, sans-serif; font-size: 16px; line-height: 1.6; }
+  h1, h2, h3 { font-family: system-ui, sans-serif; font-weight: 700; }
+  h2 { font-size: 1.5em; margin: 0 0 12px; }
+  h3 { font-size: 1.17em; margin: 20px 0 8px; }
+  p { margin: 0 0 12px; }
+  a { color: var(--accent); }
+  :focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+
+  /* hero, verbatim */
+  .hero { margin: 0 0 24px; padding: 0 0 24px; border-bottom: 2px solid var(--line); }
+  .hero h1 { margin: 0 0 8px; font-size: 2em; line-height: 1.2; font-weight: 700; }
+  .hero .meta { margin: 0 0 12px; font-family: "Cascadia Mono", Consolas, monospace; font-size: 12px; color: var(--muted); }
+  .hero .summary { margin: 0 0 12px; }
+  .hero .chips { display: flex; flex-wrap: wrap; gap: 6px; margin: 0; }
+
+  /* code palette, verbatim */
+  code { background: var(--soft); border: 1px solid var(--border); border-radius: 3px; padding: 0 .3em; color: var(--code); overflow-wrap: anywhere; }
+  pre { background: var(--soft); border: 1px solid var(--border); border-radius: 4px; padding: 12px 14px; overflow-x: auto; line-height: 1.5; margin: 14px 0; max-width: 100%; }
+  pre code { background: none; border: 0; border-radius: 0; padding: 0; color: inherit; white-space: pre; overflow-wrap: normal; }
+  .hljs { color: var(--fg); background: transparent; }
+  .hljs-keyword, .hljs-built_in, .hljs-literal, .hljs-selector-tag { color: var(--hl-kw); }
+  .hljs-string, .hljs-regexp, .hljs-selector-attr { color: var(--hl-str); }
+  .hljs-number, .hljs-symbol { color: var(--hl-num); }
+  .hljs-comment, .hljs-quote, .hljs-doctag { color: var(--hl-cmt); font-style: italic; }
+  .hljs-title, .hljs-title.class_, .hljs-type, .hljs-name, .hljs-section, .hljs-selector-class, .hljs-selector-pseudo { color: var(--hl-type); }
+  .hljs-title.function_ { color: var(--hl-fn); }
+  .hljs-meta, .hljs-attr, .hljs-attribute, .hljs-tag, .hljs-property, .hljs-variable { color: var(--hl-attr); }
+  .hljs-template-tag, .hljs-template-variable { color: var(--hl-attr); }
+  .hljs-code, .hljs-formula { color: var(--hl-cmt); }
+  .hljs-operator, .hljs-subst, .hljs-punctuation, .hljs-params { color: var(--fg); }
+  .hljs-emphasis { font-style: italic; } .hljs-strong { font-weight: 700; }
+
+  /* sidebar, verbatim */
+  .side { position: fixed; top: 0; bottom: 0; left: 0; width: 260px; display: flex; flex-direction: column; background: var(--bg); border-right: 2px solid var(--line); font-family: "Cascadia Mono", Consolas, monospace; font-size: 12px; }
+  .units { list-style: none; margin: 0; padding: 12px 0; overflow-y: auto; flex: 1; }
+  .units a { display: grid; grid-template-columns: 2.5em 1fr; padding: 9px 20px 9px 17px; border-left: 3px solid transparent; color: var(--fg); text-decoration: none; line-height: 1.4; }
+  .units .n { color: var(--muted); font-weight: 400; }
+  .units a:hover { background: var(--soft); }
+  .units a[aria-current="true"] { background: var(--accent-soft); border-left-color: var(--accent); font-weight: 700; }
+  .side footer { padding: 12px 20px; border-top: 2px solid var(--line); color: var(--muted); line-height: 1.5; }
+
+  /* layout */
+  .content { margin-left: 260px; padding: 24px; max-width: 80ch; min-width: 0; }
+  .side-toggle { display: none; }
+  @media (max-width: 720px) {
+    .side { transform: translateX(-100%); transition: transform .15s ease; z-index: 20; width: min(260px, 84vw); }
+    .side.open { transform: translateX(0); }
+    .content { margin-left: 0; padding: 24px 16px 24px; }
+    .side-toggle {
+      display: block; position: fixed; top: 10px; left: 10px; z-index: 21;
+      font-family: "Cascadia Mono", Consolas, monospace; font-size: 12px; text-transform: uppercase;
+      background: var(--soft); color: var(--fg); border: 1px solid var(--border); border-radius: 4px;
+      padding: 6px 10px; cursor: pointer;
+    }
+  }
+
+  /* components */
+  .chip { display: inline-block; font-family: "Cascadia Mono", Consolas, monospace; font-size: 12px; text-transform: uppercase; background: var(--soft); border: 1px solid var(--border); border-radius: 4px; padding: 3px 8px; }
+  .callout { background: var(--soft); border-left: 3px solid var(--accent); border-radius: 0 4px 4px 0; padding: 10px 14px; margin: 14px 0; min-width: 0; }
+  .callout p:last-child { margin-bottom: 0; }
+  .table-wrap { overflow-x: auto; margin: 14px 0; min-width: 0; }
+  table { width: 100%; border-collapse: collapse; font-size: 15px; }
+  th, td { border-bottom: 1px solid var(--border); padding: 7px 10px; text-align: left; vertical-align: top; }
+  th { color: var(--muted); font-weight: 700; font-size: 14px; }
+  .coverage td, .coverage th { white-space: normal; }
+
+  .unit { padding-top: 8px; margin-bottom: 44px; scroll-margin-top: 12px; }
+  .unit:last-of-type { margin-bottom: 8px; }
+  .story-head { display: flex; flex-wrap: wrap; align-items: baseline; gap: 8px; margin-bottom: 14px; }
+  .story-head h2 { margin: 0; flex: 1 1 auto; min-width: 0; }
+
+  details.quiz { border: 1px solid var(--border); border-radius: 4px; padding: 10px 14px; margin: 10px 0; min-width: 0; }
+  details.quiz summary { font-weight: 700; cursor: pointer; }
+  details.quiz summary::marker { color: var(--accent); }
+  details.quiz[open] summary { margin-bottom: 8px; }
+  details.quiz p:last-child { margin-bottom: 0; }
+
+  .recall li { margin-bottom: 10px; }
+  .recall details { display: inline-block; margin-top: 4px; }
+  .recall details summary { color: var(--accent); cursor: pointer; font-family: "Cascadia Mono", Consolas, monospace; font-size: 12px; text-transform: uppercase; }
+  .recall details summary::marker { color: var(--accent); }
+  .recall details p { margin: 6px 0 0; }
+
+  .scaffold dl { margin: 0; }
+  .scaffold dt { font-family: "Cascadia Mono", Consolas, monospace; font-size: 12px; text-transform: uppercase; color: var(--muted); margin-top: 12px; }
+  .scaffold dt:first-child { margin-top: 0; }
+  .scaffold dd { margin: 4px 0 0; }
+
+  .qa-theme { margin-top: 26px; }
+  .qa-theme h3 { border-top: 1px solid var(--border); padding-top: 18px; }
+  .qa-theme:first-of-type h3 { border-top: 0; padding-top: 0; }
+
+  .cheat ol { padding-left: 1.4em; }
+  .cheat li { margin-bottom: 10px; }
+</style>
+</head>
+<body>
+<!-- devbok
+slug: web-perf
+kind: experience
+version: 1
+topic: "The browser platform and front-end performance (rendering path, critical CSS, Core Web Vitals and how to move each one, bundling and code splitting, caching and HTTP/2-3, images and fonts, memory leaks, DevTools and Lighthouse profiling; framework-agnostic — assume React and Angular specifics are mostly covered separately)"
+prompt: experience.md@2bcfefa8
+generated: 2026-09-08
+-->
+<button class="side-toggle" id="sideToggle" aria-expanded="false" aria-controls="sidebar">☰ Units</button>
+<nav class="side" id="sidebar" aria-label="Units">
+  <ol class="units">
+    <li><a href="#u01"><span class="n">01</span><span class="t">The hero image that made LCP miss by 2.3 seconds</span></a></li>
+    <li><a href="#u02"><span class="n">02</span><span class="t">SSR, SSG, or islands: choosing a rendering strategy</span></a></li>
+    <li><a href="#u03"><span class="n">03</span><span class="t">The dashboard tab that ate 4GB by lunchtime</span></a></li>
+    <li><a href="#u04"><span class="n">04</span><span class="t">Cutting the build over from Webpack to Vite</span></a></li>
+    <li><a href="#u05"><span class="n">05</span><span class="t">The lazy-load-everything argument</span></a></li>
+    <li><a href="#u06"><span class="n">06</span><span class="t">The layout shift that only happened on slow connections</span></a></li>
+    <li><a href="#u07"><span class="n">07</span><span class="t">The CDN cache-hit ratio that fell off a cliff in APAC</span></a></li>
+    <li><a href="#u08"><span class="n">08</span><span class="t">A third-party script with no integrity hash</span></a></li>
+    <li><a href="#u09"><span class="n">09</span><span class="t">Eleven megabytes of JavaScript nobody could name</span></a></li>
+    <li><a href="#u10"><span class="n">10</span><span class="t">Teaching a junior to read a flame chart</span></a></li>
+    <li><a href="#u11"><span class="n">11</span><span class="t">Talking the launch team out of a chat widget on day one</span></a></li>
+    <li><a href="#u12"><span class="n">12</span><span class="t">The offline drafts that disappeared when storage ran out</span></a></li>
+    <li><a href="#u13"><span class="n">13</span><span class="t">"Just make it fast" had no metric behind it</span></a></li>
+    <li><a href="#u14"><span class="n">14</span><span class="t">Marketing kept adding scripts I couldn't see</span></a></li>
+    <li><a href="#u15"><span class="n">15</span><span class="t">The streaming-SSR rewrite we walked away from</span></a></li>
+    <li><a href="#u16"><span class="n">16</span><span class="t">Cutting the image bill with AVIF and real srcset</span></a></li>
+    <li><a href="#u17"><span class="n">17</span><span class="t">Putting a performance budget in CI</span></a></li>
+    <li><a href="#u18"><span class="n">18</span><span class="t">The analytics vendor that took the homepage down with it</span></a></li>
+    <li><a href="#u19"><span class="n">19</span><span class="t">Lighthouse CI was too noisy to trust</span></a></li>
+    <li><a href="#u20"><span class="n">20</span><span class="t">Saying no to an autoplay hero video</span></a></li>
+    <li><a href="#u21"><span class="n">21</span><span class="t">The big behavioural Q&amp;A</span></a></li>
+    <li><a href="#u22"><span class="n">22</span><span class="t">Night-before cheat sheet</span></a></li>
+  </ol>
+  <footer>Web performance &amp; browser platform · experience · version 1 · 2026-09-08</footer>
+</nav>
+<main class="content" id="content">
+
+<header class="hero">
+  <h1>Web performance & browser platform</h1>
+  <p class="meta">experience · Core Web Vitals: LCP · INP · CLS · INP stable since 2024-03</p>
+  <p class="summary">Twenty story scaffolds plus a closing Q&amp;A, calibrated for a lead/principal engineer: rendering-strategy trade-offs, incident command on memory leaks and third-party outages, and "how did you get the team to agree" over API recall. Every worked example is fiction tagged <code>EXAMPLE — replace with your own</code> — read it, then use the recall prompts to find your real equivalent and the drill chain to pressure-test it before you say it out loud. The stable Core Web Vitals trio hasn't moved since INP replaced FID as the responsiveness metric in March 2024 — LCP ≤2.5s, INP ≤200ms, CLS ≤0.1 at p75 is still the bar — but the diagnostic tooling has: the Long Animation Frames API (<code>PerformanceLongAnimationFrameTiming</code>) now attributes a slow interaction down to the offending script, and the Speculation Rules API for prerendering is still Chrome-only and outside Baseline. One scoping note stated once: read broadly across the rendering path, bundling, caching, images/fonts, memory and profiling, framework-agnostic, since React- and Angular-specific mechanics are assumed to live elsewhere.</p>
+  <p class="chips"><span class="chip">20 stories</span> <span class="chip">20 archetypes</span> <span class="chip">Mid → Principal</span> <span class="chip">LCP · INP · CLS</span></p>
+</header>
+
+<h2>Coverage at a glance</h2>
+<div class="table-wrap">
+<table class="coverage">
+  <thead><tr><th>#</th><th>Story title</th><th>Archetype</th><th>Tier</th></tr></thead>
+  <tbody>
+    <tr><td>01</td><td>The hero image that made LCP miss by 2.3 seconds</td><td>Performance problem</td><td>Senior</td></tr>
+    <tr><td>02</td><td>SSR, SSG, or islands: choosing a rendering strategy</td><td>Architectural trade-off</td><td>Staff</td></tr>
+    <tr><td>03</td><td>The dashboard tab that ate 4GB by lunchtime</td><td>Production incident</td><td>Senior</td></tr>
+    <tr><td>04</td><td>Cutting the build over from Webpack to Vite</td><td>Migration / upgrade</td><td>Staff</td></tr>
+    <tr><td>05</td><td>The lazy-load-everything argument</td><td>Technical disagreement</td><td>Senior</td></tr>
+    <tr><td>06</td><td>The layout shift that only happened on slow connections</td><td>Nasty debugging session</td><td>Mid</td></tr>
+    <tr><td>07</td><td>The CDN cache-hit ratio that fell off a cliff in APAC</td><td>Scaling challenge</td><td>Senior</td></tr>
+    <tr><td>08</td><td>A third-party script with no integrity hash</td><td>Security issue</td><td>Staff</td></tr>
+    <tr><td>09</td><td>Eleven megabytes of JavaScript nobody could name</td><td>Tech-debt paydown</td><td>Senior</td></tr>
+    <tr><td>10</td><td>Teaching a junior to read a flame chart</td><td>Mentoring</td><td>Senior</td></tr>
+    <tr><td>11</td><td>Talking the launch team out of a chat widget on day one</td><td>Scope / deadline negotiation</td><td>Staff</td></tr>
+    <tr><td>12</td><td>The offline drafts that disappeared when storage ran out</td><td>Data-loss scare</td><td>Senior</td></tr>
+    <tr><td>13</td><td>"Just make it fast" had no metric behind it</td><td>Ambiguous requirements</td><td>Staff</td></tr>
+    <tr><td>14</td><td>Marketing kept adding scripts I couldn't see</td><td>Cross-team dependency</td><td>Principal</td></tr>
+    <tr><td>15</td><td>The streaming-SSR rewrite we walked away from</td><td>Failed / cancelled project</td><td>Principal</td></tr>
+    <tr><td>16</td><td>Cutting the image bill with AVIF and real srcset</td><td>Cost optimisation</td><td>Staff</td></tr>
+    <tr><td>17</td><td>Putting a performance budget in CI</td><td>Introducing a new tool</td><td>Senior</td></tr>
+    <tr><td>18</td><td>The analytics vendor that took the homepage down with it</td><td>On-call firefighting</td><td>Mid</td></tr>
+    <tr><td>19</td><td>Lighthouse CI was too noisy to trust</td><td>CI / reliability improvement</td><td>Senior</td></tr>
+    <tr><td>20</td><td>Saying no to an autoplay hero video</td><td>Stakeholder pushback</td><td>Principal</td></tr>
+  </tbody>
+</table>
+</div>
+
+<section id="u01" class="unit">
+<div class="story-head"><h2>01 The hero image that made LCP miss by 2.3 seconds</h2><span class="chip">Senior</span><span class="chip">Performance problem</span></div>
+
+<h3>(a) Worked example <span class="chip">EXAMPLE — replace with your own</span></h3>
+<p>A marketing landing page had an LCP of 4.8 seconds in the field (CrUX, p75) against a 2.5-second "good" bar, and the product team wanted to know why "the page felt slow" before they'd approve a design change nobody had asked me to make. I opened the Performance panel, recorded a throttled trace, and read the LCP breakdown by its four sub-phases instead of guessing: TTFB was fine at ~400ms, but load delay was over 1.8 seconds — the hero <code>&lt;img&gt;</code> wasn't discovered until the render-blocking Google Fonts CSS and a synchronous analytics <code>&lt;script&gt;</code> in <code>&lt;head&gt;</code> had both finished, because the browser's preload scanner had nothing to find until the HTML parser got past them. Load duration added another 900ms because the image was an unoptimized 2400px-wide JPEG served at its native size with no <code>srcset</code>. Fixes, in order of what actually moved the needle: <code>&lt;link rel="preload" as="image"&gt;</code> plus <code>fetchpriority="high"</code> on the hero image so the preload scanner could start the fetch immediately; moved the analytics tag to <code>async</code>; self-hosted the two font weights we actually used instead of a Google Fonts request, cutting a full DNS+TLS round trip; and swapped the JPEG for AVIF with <code>srcset</code>/<code>sizes</code> sized to the actual rendered width. LCP came down to 1.9 seconds in the field within a week of rollout. What I'd do differently: I'd have set an explicit <code>width</code>/<code>height</code> (or <code>aspect-ratio</code>) on the hero image from day one — it happened not to shift layout here because the CSS already reserved space, but that was luck, not design, and I only noticed after the fact.</p>
+<div class="table-wrap">
+<table>
+  <thead><tr><th>LCP sub-phase</th><th>Before</th><th>After</th><th>Lever pulled</th></tr></thead>
+  <tbody>
+    <tr><td>TTFB</td><td>~400ms</td><td>~400ms</td><td>Untouched — server was never the bottleneck</td></tr>
+    <tr><td>Load delay</td><td>~1.8s</td><td>~50ms</td><td><code>fetchpriority="high"</code> + preload, defer non-critical scripts</td></tr>
+    <tr><td>Load duration</td><td>~900ms</td><td>~250ms</td><td>AVIF + correctly sized <code>srcset</code></td></tr>
+    <tr><td>Render delay</td><td>~700ms</td><td>~150ms</td><td>Self-hosted font, no external render-blocking request</td></tr>
+  </tbody>
+</table>
+</div>
+<div class="callout"><p><strong>What the interviewer is really probing:</strong> whether you diagnose LCP by its sub-phases instead of pattern-matching "images are slow, compress it," and whether you have field data (CrUX/RUM) alongside a lab trace rather than just one or the other. The common failure is naming a fix that sounds right (lazy-load the hero image, ironically making LCP worse) without having looked at where the actual milliseconds went.</p></div>
+
+<h3>(b) STAR/CARL scaffold</h3>
+<div class="scaffold"><dl>
+<dt>Situation</dt><dd>The metric that missed its bar, and whether you had field data or only an anecdote to start from.</dd>
+<dt>Task</dt><dd>The specific target you set (a number, a percentile), not "make it feel faster."</dd>
+<dt>Action</dt><dd>How you split the metric into sub-phases before touching anything, and the order you fixed things in.</dd>
+<dt>Result</dt><dd>Before/after numbers in the field, not just in one lab run.</dd>
+<dt>Do differently</dt><dd>The thing that worked by luck rather than by design, that you'd pin down explicitly next time.</dd>
+</dl></div>
+
+<h3>(c) Recall prompts</h3>
+<ul class="recall">
+  <li>When did you last look at an LCP breakdown by sub-phase instead of the single headline number? <details><summary>hint</summary><p>Chrome DevTools' Performance panel and the <code>web-vitals</code> JS library's attribution build both expose this; if you've only ever seen the single number, that's a gap worth closing before this interview.</p></details></li>
+  <li>What's a page where the LCP element wasn't the one you assumed it would be? <details><summary>hint</summary><p>A background CSS image, a late-swapped font glyph, or a skeleton loader that never got replaced are common surprises.</p></details></li>
+  <li>Have you ever made a metric worse by "optimizing" the wrong thing (lazy-loading the LCP image itself, for instance)? <details><summary>hint</summary><p>A good, honest answer here reads as more senior than a story with no mistakes in it.</p></details></li>
+  <li>Which of your production pages have you actually checked against CrUX field data rather than only a local Lighthouse run? <details><summary>hint</summary><p>Lab and field diverge most on real device/network variance — a gap here is common and fine to admit.</p></details></li>
+</ul>
+
+<h3>(d) Follow-up drill chain</h3>
+<div class="drill">
+<details class="quiz"><summary>Why does fetchpriority alone not fix load delay if the image is still discovered late?</summary><p><code>fetchpriority="high"</code> only raises the priority of a request the browser already knows about — it does nothing if the preload scanner hasn't found the <code>&lt;img&gt;</code> yet because render-blocking resources are still ahead of it in the document. That's why the fix pairs it with an explicit <code>&lt;link rel="preload"&gt;</code> or simply removing what's blocking discovery.</p></details>
+<details class="quiz"><summary>What if the hero image had been injected by client-side JS instead of present in the initial HTML?</summary><p>Then no static preload scanner trick helps — the browser can't discover it until that script runs and executes. I'd push to render the LCP element server-side or in the initial HTML specifically because it's the one element where discovery time is non-negotiable.</p></details>
+<details class="quiz"><summary>At what scale does self-hosting fonts stop being a clear win?</summary><p>If you're already on a multi-region CDN and only use one or two weights, self-hosting is close to free. It gets more nuanced with a large variable-font family across many locales, where Google Fonts' shared, highly-cached edge network can occasionally out-cache a smaller origin — I'd measure both rather than assume.</p></details>
+<details class="quiz"><summary>What did you trade away by preloading the hero image with high priority?</summary><p>Bandwidth contention with whatever else is loading in that same window — on a constrained connection, over-preloading can delay other important requests. I scoped it to exactly one image, not a blanket policy, and watched the network waterfall to confirm nothing else got crowded out.</p></details>
+<details class="quiz"><summary>How would this diagnosis differ on a page using an SSR framework with streaming?</summary><p>Streaming can push TTFB down and the hero element earlier into the byte stream, which usually helps load delay directly, but if the framework's own bootstrap script sits ahead of the image in the HTML, you can reintroduce the same blocking pattern one layer up — the sub-phase breakdown is the same regardless of framework.</p></details>
+<details class="quiz"><summary>What would you do differently now?</summary><p>Add an LCP regression check to CI keyed off the sub-phases specifically, not just the aggregate number, so a future change that trades load delay for render delay doesn't silently cancel out and hide a regression behind a flat total.</p></details>
+</div>
+</section>
+
+<section id="u02" class="unit">
+<div class="story-head"><h2>02 SSR, SSG, or islands: choosing a rendering strategy</h2><span class="chip">Staff</span><span class="chip">Architectural trade-off</span></div>
+
+<h3>(a) Worked example <span class="chip">EXAMPLE — replace with your own</span></h3>
+<p>A content-heavy marketing and docs site was a fully client-rendered SPA: fast to build features on, but TTFB-to-interactive was dominated by shipping and hydrating a JS bundle for pages that were, structurally, mostly static text. I owned the call on where to take it, for a team of five with no dedicated infra engineer. I ran a two-week spike comparing three shapes on the same three representative pages: static-site generation (build-time HTML, zero client JS by default), server-side rendering with the existing framework's hydration model, and an islands architecture (static HTML with small, independently hydrated interactive components — a search box, a feedback widget). SSG won on every Core Web Vital by a wide margin — there's no hydration cost at all for a page that's 95% static content — but it meant a content change needed a full rebuild-and-deploy, which our CMS team's editors weren' t going to tolerate for typo fixes. Full SSR with framework hydration gave us live content but paid the hydration tax on every page even where nothing was interactive. Islands gave us static-by-default pages with the two or three genuinely interactive widgets hydrating independently and lazily, at the cost of a less mature ecosystem and a real learning curve for a team used to one rendering model everywhere. I chose islands, prototyped the CMS-triggered incremental rebuild path to satisfy the editors' turnaround requirement, and wrote down the decision with the actual trace numbers. What I'd do differently: I underestimated the ecosystem cost — finding component libraries that played well with partial, framework-agnostic hydration took longer than the technical spike suggested it would.</p>
+<div class="table-wrap">
+<table>
+  <thead><tr><th></th><th>Full CSR (SPA)</th><th>SSG</th><th>SSR + hydration</th><th>Islands</th></tr></thead>
+  <tbody>
+    <tr><td>JS shipped for a static page</td><td>Full app bundle</td><td>~0</td><td>Full app bundle</td><td>Only the interactive widgets</td></tr>
+    <tr><td>TTFB / first paint</td><td>Fast TTFB, slow paint</td><td>Fastest</td><td>Slower TTFB, fast paint</td><td>Fast, near-SSG</td></tr>
+    <tr><td>Fresh content</td><td>Live</td><td>Rebuild required</td><td>Live</td><td>Live (per-route)</td></tr>
+    <tr><td>Best fit</td><td>App-like, highly interactive</td><td>Mostly static content</td><td>Personalized, live, interactive</td><td>Mostly static + a few interactive widgets</td></tr>
+  </tbody>
+</table>
+</div>
+<div class="callout"><p><strong>What the interviewer is really probing:</strong> whether you can reason about rendering strategy as a spectrum of hydration cost versus content freshness rather than reciting "SSR is better for SEO." The mistake is picking the currently fashionable architecture without naming what it costs the team that has to operate it, or ignoring a non-engineering constraint (the editors' workflow) that ends up mattering as much as the metrics.</p></div>
+
+<h3>(b) STAR/CARL scaffold</h3>
+<div class="scaffold"><dl>
+<dt>Situation</dt><dd>The current rendering model, its concrete cost, and who was affected besides engineering.</dd>
+<dt>Task</dt><dd>What you were deciding and the representative pages you tested it against.</dd>
+<dt>Action</dt><dd>The spike, what you measured, and the non-technical constraint that shaped the final call.</dd>
+<dt>Result</dt><dd>What you chose and the trade you knowingly accepted.</dd>
+<dt>Do differently</dt><dd>The cost you underestimated going in.</dd>
+</dl></div>
+
+<h3>(c) Recall prompts</h3>
+<ul class="recall">
+  <li>What's a rendering-strategy decision you made or inherited, and what did it cost the team operationally? <details><summary>hint</summary><p>Look past the metrics win to who had to learn a new mental model or workflow.</p></details></li>
+  <li>Have you ever had to weigh a non-engineering constraint (an editorial workflow, a compliance need) against the technically cleanest option? <details><summary>hint</summary><p>The strongest version names the constraint specifically and how you satisfied it without abandoning the technical win.</p></details></li>
+  <li>What's a page on something you maintain that's rendered the "wrong" way for what it actually needs? <details><summary>hint</summary><p>A mostly-static page shipping a full SPA bundle is the classic case.</p></details></li>
+</ul>
+
+<h3>(d) Follow-up drill chain</h3>
+<div class="drill">
+<details class="quiz"><summary>Why does hydration cost scale with component tree size rather than page complexity as perceived by a user?</summary><p>Hydration re-runs the framework's reconciliation against server-rendered markup for every hydrated component, so the cost is proportional to how much of the tree is marked interactive, not how the page looks. A visually simple page with one deeply nested interactive widget can hydrate more expensively than a visually busy but fully static one.</p></details>
+<details class="quiz"><summary>What if the CMS team's rebuild-turnaround requirement had been non-negotiable and incremental rebuilds weren't feasible?</summary><p>Then SSG would have been ruled out regardless of its metrics win, and I'd have picked SSR with aggressive edge caching and short-TTL revalidation instead — the content-freshness constraint dominates the decision once it's truly non-negotiable.</p></details>
+<details class="quiz"><summary>At what scale does an islands architecture's tooling immaturity stop being worth the metrics win?</summary><p>If the team is large and needs a wide, mature component ecosystem with predictable framework support, the integration tax can exceed the hydration savings. It paid off here specifically because we had few enough interactive widgets that hand-rolling islands support for them was a bounded, one-time cost.</p></details>
+<details class="quiz"><summary>What did you trade away choosing islands over plain SSG?</summary><p>Some simplicity — the team now reasons about two rendering models (static shell, independently hydrated islands) instead of one, which is a real ongoing cognitive cost even though it's smaller than the alternative's hydration cost.</p></details>
+<details class="quiz"><summary>How would resumability (skipping hydration's re-execution step entirely) change this trade-off?</summary><p>A resumable framework serializes enough state to resume interactivity without replaying component logic on the client, which narrows the CSR/SSR hydration-cost gap considerably. I'd re-run the spike against it before assuming the original conclusion still holds if the team were choosing today.</p></details>
+<details class="quiz"><summary>What would you do differently now?</summary><p>Timebox a "day in the life of a content editor" trial during the spike itself, not just a technical benchmark — the requirement that actually decided the fine details only surfaced because an editor complained after the fact, not during planning.</p></details>
+</div>
+</section>
+
+<section id="u03" class="unit">
+<div class="story-head"><h2>03 The dashboard tab that ate 4GB by lunchtime</h2><span class="chip">Senior</span><span class="chip">Production incident</span></div>
+
+<h3>(a) Worked example <span class="chip">EXAMPLE — replace with your own</span></h3>
+<p>Support tickets described the same pattern: an internal analytics dashboard, left open in a tab all day, would slow to a crawl and eventually crash the tab by early afternoon. I reproduced it by leaving the dashboard open with DevTools' Memory panel recording, and took heap snapshots roughly every 20 minutes rather than trusting a single snapshot. The three-snapshot technique — take one, do a normal work cycle, take another, do it again, then diff snapshot two against snapshot three for objects that only ever grow — pointed at a detached DOM tree count climbing steadily: a chart-redraw function on a <code>setInterval</code> was adding a new <code>resize</code> listener on the window on every redraw without ever removing the previous one, and each listener's closure held a reference to the old chart container element, which kept the whole detached subtree alive even after the chart itself had been replaced. Nothing was visibly wrong from the outside for the first hour — the leak was small per cycle — which is exactly why nobody had noticed it until a full day of uptime made it obvious. Fix: store the listener reference and call <code>removeEventListener</code> before attaching a new one, and switch the redraw trigger from <code>setInterval</code> to a <code>ResizeObserver</code> so there was one listener for the container's lifetime instead of one per redraw. Memory growth flattened from roughly 40MB/hour to near zero after a day. What I'd do differently: I'd have added a memory-growth check to our own internal-tools monitoring long before a support ticket found it — nobody owns "the dashboard felt slow by 3pm" as a metric unless someone deliberately decides to.</p>
+<div class="callout"><p><strong>What the interviewer is really probing:</strong> whether you actually know the retained-size diffing technique (comparing two snapshots taken during steady-state activity, not one snapshot at startup) rather than saying "we found a memory leak" with no method behind it. The mistake is stopping at "we added <code>removeEventListener</code>" without explaining why the DOM subtree stayed detached-but-alive in the first place — that's the part that demonstrates you understand the GC's reachability model, not just the symptom.</p></div>
+
+<h3>(b) STAR/CARL scaffold</h3>
+<div class="scaffold"><dl>
+<dt>Situation</dt><dd>The symptom as reported by someone who wasn't debugging it — slow by afternoon, eventually crashes.</dd>
+<dt>Task</dt><dd>Reproduce reliably before trying to fix anything.</dd>
+<dt>Action</dt><dd>The snapshot-diffing method, what it isolated, and the actual root cause (listener never removed, keeping a detached tree reachable).</dd>
+<dt>Result</dt><dd>Memory-growth rate before and after, in a comparable unit (MB/hour).</dd>
+<dt>Do differently</dt><dd>The monitoring gap that let it run undetected for as long as it did.</dd>
+</dl></div>
+
+<h3>(c) Recall prompts</h3>
+<ul class="recall">
+  <li>What's a long-running page or tab you've debugged for a memory leak, and how did you reproduce it reliably? <details><summary>hint</summary><p>A monitoring dashboard, an admin console, or anything left open all day is the classic shape.</p></details></li>
+  <li>Have you used heap snapshot diffing (not a single snapshot) to isolate a leak? <details><summary>hint</summary><p>If you've only ever eyeballed a single snapshot's dominators view, that's worth practicing before this interview — the diff between two steady-state snapshots is the actual technique.</p></details></li>
+  <li>What's an event listener or subscription in something you maintain that you're not 100% sure gets cleaned up? <details><summary>hint</summary><p>Anything registered in a loop, a redraw callback, or a component that can remount is worth auditing right now.</p></details></li>
+  <li>Have you ever caught a leak from a metric (steadily rising memory) rather than a user complaint? <details><summary>hint</summary><p>If not, that's the monitoring gap this story's "do differently" names — worth having an honest answer either way.</p></details></li>
+</ul>
+
+<h3>(d) Follow-up drill chain</h3>
+<div class="drill">
+<details class="quiz"><summary>Why does a detached DOM node stay in memory at all if it's no longer in the document?</summary><p>The garbage collector only reclaims objects that are unreachable from a GC root. A closure captured by a still-registered event listener holding a reference to that node keeps it reachable — "detached" describes its relationship to the document, not its reachability to the collector, and that distinction is exactly what the fix depends on.</p></details>
+<details class="quiz"><summary>What if the leak had been in a third-party charting library's internals rather than our own callback?</summary><p>I'd isolate it with the same snapshot-diffing technique to confirm it's genuinely upstream, then check the library's issue tracker and changelog before assuming I need a workaround — a surprising number of "our code" leaks turn out to be a documented, already-fixed issue in a version behind current.</p></details>
+<details class="quiz"><summary>At what point does a small per-cycle leak become worth root-causing versus just recommending a periodic tab refresh?</summary><p>A workaround is reasonable as an immediate mitigation for a long-lived internal tool, but I wouldn't stop there — 40MB/hour compounding for a full workday is a multi-gigabyte problem, and "just refresh the tab" doesn't scale to more dashboards or a version where the interval is shorter.</p></details>
+<details class="quiz"><summary>What did you trade away switching from setInterval to ResizeObserver?</summary><p>A small amount of redraw-timing predictability — a <code>ResizeObserver</code> fires on actual size changes rather than a fixed cadence, so any code that assumed a steady tick needed to be checked for hidden dependence on that assumption.</p></details>
+<details class="quiz"><summary>How would this differ debugging a memory leak in a single-page app that never does a full page reload?</summary><p>The stakes are higher precisely because there's no reload to reset accumulated state — every route change that doesn't fully tear down its previous view's subscriptions and closures compounds for the entire session, which is why SPA teardown logic deserves the same scrutiny as this dashboard's redraw loop.</p></details>
+<details class="quiz"><summary>What would you do differently now?</summary><p>Add a synthetic long-running session to our internal monitoring that just leaves the dashboard open and graphs its own memory over hours, so growth shows up as a metric trend before it shows up as a support ticket.</p></details>
+</div>
+</section>
+
+<section id="u04" class="unit">
+<div class="story-head"><h2>04 Cutting the build over from Webpack to Vite</h2><span class="chip">Staff</span><span class="chip">Migration / upgrade</span></div>
+
+<h3>(a) Worked example <span class="chip">EXAMPLE — replace with your own</span></h3>
+<p>Local dev server startup on a mid-sized app had crept to nearly a minute, and a hot-module reload after a one-line change took 4-8 seconds — long enough that engineers had started batching changes to amortize the wait, which is its own quiet productivity tax. I owned migrating the build tooling from a Webpack config that had accreted loaders and plugins over several years to Vite, whose dev server serves native ESM directly to the browser and only bundles for production, using esbuild for fast dependency pre-bundling. I didn't do a big-bang cutover: I ran Vite alongside the existing Webpack config behind a feature flag for local dev only, kept the production build on Webpack until dev parity was proven, and migrated loader-equivalent behavior (SVG-as-component, CSS modules, a legacy <code>require.context</code> glob import with no direct Vite equivalent) one at a time, each with its own before/after check against real pages. Dev server startup dropped from ~55 seconds to under 2 seconds, and HMR became near-instant, because the browser only re-requests and re-evaluates the one changed module instead of Webpack re-bundling a dependency graph around it. The production build cutover came last and needed the most care: Rollup (Vite's production bundler) has different default chunking heuristics than Webpack, so our route-based code-splitting boundaries shifted slightly and I had to re-verify bundle sizes per route rather than assume the aggregate number told the whole story. What I'd do differently: I'd have inventoried every Webpack-specific plugin behavior (loader ordering quirks especially) into an explicit checklist before starting, instead of discovering a couple of them as broken pages during migration — nothing was lost permanently, but it cost debugging time that a checklist would have caught up front.</p>
+<div class="table-wrap">
+<table>
+  <thead><tr><th></th><th>Webpack (before)</th><th>Vite (after)</th></tr></thead>
+  <tbody>
+    <tr><td>Dev server cold start</td><td>~55s</td><td>&lt;2s</td></tr>
+    <tr><td>HMR after a change</td><td>4-8s</td><td>&lt;200ms</td></tr>
+    <tr><td>Dev-time module handling</td><td>Bundles everything upfront</td><td>Native ESM, on-demand per request</td></tr>
+    <tr><td>Production bundler</td><td>Webpack</td><td>Rollup (different chunking heuristics)</td></tr>
+  </tbody>
+</table>
+</div>
+<div class="callout"><p><strong>What the interviewer is really probing:</strong> whether you understand mechanically why the dev-server experience changed (native ESM versus eager bundling), not just that it got faster, and whether you staged a risky tooling migration safely. The mistake is describing only the dev-experience win and skipping the production-build risk, which is where a naive migration actually breaks something a user sees.</p></div>
+
+<h3>(b) STAR/CARL scaffold</h3>
+<div class="scaffold"><dl>
+<dt>Situation</dt><dd>The specific pain (startup time, HMR latency) and the behavior it was quietly causing (batching changes).</dd>
+<dt>Task</dt><dd>Migrate without a big-bang cutover or breaking the production build.</dd>
+<dt>Action</dt><dd>The parallel-run strategy, and the trickiest loader-equivalent you had to replicate.</dd>
+<dt>Result</dt><dd>Dev-experience numbers, and how the production cutover went.</dd>
+<dt>Do differently</dt><dd>The checklist you'd build upfront instead of discovering gaps mid-migration.</dd>
+</dl></div>
+
+<h3>(c) Recall prompts</h3>
+<ul class="recall">
+  <li>What's a build-tooling migration you've done or lived through, and what was the trickiest legacy behavior to replicate? <details><summary>hint</summary><p>Custom webpack loaders, path aliases, and environment-variable injection are common sticking points.</p></details></li>
+  <li>Have you staged a risky tooling change behind a flag rather than cutting everyone over at once? <details><summary>hint</summary><p>Dev-only first, production last, is the safer order — naming that ordering explicitly is the strong detail.</p></details></li>
+  <li>What's a quiet productivity tax (like batching changes to avoid a slow HMR loop) you've noticed a team adapting to instead of fixing? <details><summary>hint</summary><p>Slow feedback loops train people to work around them silently — that's worth noticing and naming.</p></details></li>
+</ul>
+
+<h3>(d) Follow-up drill chain</h3>
+<div class="drill">
+<details class="quiz"><summary>Why does native ESM serving make HMR faster mechanically, not just "because Vite is newer"?</summary><p>Webpack's dev server re-bundles a dependency graph around a changed module because it ships one (or a few) bundle files; Vite serves each module as its own request, so on a change the browser only re-requests and re-evaluates that one module via the existing module graph already in memory — there's no bundling step in the loop at all during dev.</p></details>
+<details class="quiz"><summary>What if a legacy loader had no Vite-ecosystem equivalent at all?</summary><p>I'd write a small custom Vite plugin replicating just the transform we needed rather than searching indefinitely for a drop-in replacement — Vite's plugin API is intentionally close to Rollup's, so a narrow, purpose-built plugin is usually a bounded, low-risk piece of work.</p></details>
+<details class="quiz"><summary>At what point would you not recommend this migration to another team?</summary><p>If the app is small enough that Webpack's cold start was never actually painful, or if the team depends heavily on a Webpack-specific plugin ecosystem with no Rollup equivalent, the migration cost isn't worth the dev-experience win — I'd say so directly rather than push a fashionable tool where it doesn't pay off.</p></details>
+<details class="quiz"><summary>What did you trade away moving the production bundler to Rollup?</summary><p>Some familiarity — a few engineers had built a mental model of Webpack's chunk-splitting behavior over years, and that model doesn't transfer directly, so there was a real (if temporary) drop in "I know exactly why this chunk looks like this" confidence across the team.</p></details>
+<details class="quiz"><summary>How does this migration interact with a monorepo using multiple frameworks?</summary><p>Vite's per-framework plugins (React, Vue, etc.) can coexist in one config, but shared internal packages need to publish ESM-compatible output or you reintroduce the same resolution headaches Webpack had — I'd audit the monorepo's internal package formats before migrating, not after.</p></details>
+<details class="quiz"><summary>What would you do differently now?</summary><p>Build the loader-equivalence checklist first, as a shared doc the whole team could add entries to during their own testing, rather than relying on me alone to enumerate every custom Webpack behavior from memory.</p></details>
+</div>
+</section>
+
+<section id="u05" class="unit">
+<div class="story-head"><h2>05 The lazy-load-everything argument</h2><span class="chip">Senior</span><span class="chip">Technical disagreement</span></div>
+
+<h3>(a) Worked example <span class="chip">EXAMPLE — replace with your own</span></h3>
+<p>A well-meaning teammate proposed a blanket rule during a perf sprint: add <code>loading="lazy"</code> to every <code>&lt;img&gt;</code> tag in the codebase via a codemod, on the theory that lazy-loading is strictly better for performance. I pushed back, and it turned into a real disagreement in review rather than a quiet override, because the rule sounded obviously correct and I needed to explain the exception clearly rather than just say "no." The <code>loading="lazy"</code> attribute defers a <code>&lt;img&gt;</code>'s fetch until it's near the viewport, which is exactly right for below-the-fold images — but applying it to an above-the-fold hero image (frequently the LCP element) actively delays the one fetch you want the browser's preload scanner to start immediately, turning a fast image into a slow LCP. I asked for the codemod to explicitly exclude anything in the first viewport-height of a page template, backed by a quick A/B on our two highest-traffic templates showing LCP regressing by several hundred milliseconds when the hero image was included versus excluded. We shipped the codemod with that carve-out, and I wrote a one-paragraph rule of thumb into our frontend guidelines doc so the next person wouldn't need to relearn it in a code review. What I'd do differently: I'd have proposed the carve-out proactively in the first review comment instead of only after a full back-and-forth — the actual technical point was simple, and I let the disagreement run longer than it needed to.</p>
+<div class="callout"><p><strong>What the interviewer is really probing:</strong> whether you can disagree with a plausible-sounding but wrong generalization using a concrete mechanism (preload scanner discovery) rather than just asserting seniority, and whether the disagreement stayed collaborative and ended in a durable fix (the guideline doc) rather than a one-off override. The mistake is a story where you were simply right and everyone conceded immediately — real disagreements have friction, and naming it is more credible than pretending there wasn't any.</p></div>
+
+<h3>(b) STAR/CARL scaffold</h3>
+<div class="scaffold"><dl>
+<dt>Situation</dt><dd>The plausible-sounding rule someone proposed, and why it sounded right.</dd>
+<dt>Task</dt><dd>Disagree persuasively without just pulling rank.</dd>
+<dt>Action</dt><dd>The concrete mechanism you explained, and the data you brought rather than just an assertion.</dd>
+<dt>Result</dt><dd>What shipped, and the durable artifact (a doc, a lint rule) that prevented a repeat.</dd>
+<dt>Do differently</dt><dd>Where the disagreement ran longer than the substance required.</dd>
+</dl></div>
+
+<h3>(c) Recall prompts</h3>
+<ul class="recall">
+  <li>What's a performance "best practice" you've seen applied too broadly, past the case it actually helps? <details><summary>hint</summary><p>Lazy-loading, minification of already-small files, and blanket code-splitting are common over-applied rules.</p></details></li>
+  <li>Have you disagreed with a teammate's proposal using a mechanism, not just an opinion? <details><summary>hint</summary><p>The strongest disagreements name specifically why the general rule breaks in this one case.</p></details></li>
+  <li>What's a guideline or lint rule you've written specifically to prevent a mistake from recurring? <details><summary>hint</summary><p>A durable artifact beats "I explained it once and hoped."</p></details></li>
+</ul>
+
+<h3>(d) Follow-up drill chain</h3>
+<div class="drill">
+<details class="quiz"><summary>Why does the preload scanner not "just figure out" that the hero image is high priority?</summary><p>The preload scanner discovers resources by speculatively parsing the HTML ahead of the main parser, but <code>loading="lazy"</code> is an explicit signal telling the browser to defer the fetch regardless of position — it overrides the scanner's normal eager behavior for images, which is precisely why the attribute is wrong for anything that might be the LCP element.</p></details>
+<details class="quiz"><summary>What if the teammate had pushed back on your carve-out as "premature optimization for an edge case"?</summary><p>I'd have pointed to the A/B data directly — a several-hundred-millisecond LCP regression on our two highest-traffic templates isn't an edge case, it's the majority of real traffic, which is exactly the kind of claim that needs a number rather than a debate about principle.</p></details>
+<details class="quiz"><summary>At what point would a blanket lazy-load rule actually be fine?</summary><p>On a template with no image in the first viewport at all — a text-only article listing, say — the blanket rule is harmless because there's nothing above the fold to protect. The exception is about position, not a universal "never lazy-load" rule.</p></details>
+<details class="quiz"><summary>What did the guideline doc trade away versus a lint rule that enforces it automatically?</summary><p>Enforcement — a doc relies on someone reading it at the right moment, where a lint rule (flagging <code>loading="lazy"</code> on anything matched by a known "likely-hero" selector) would catch a regression automatically. I'd consider that a follow-up if the mistake recurred even once after the doc shipped.</p></details>
+<details class="quiz"><summary>How does this generalize past images — what's the same mistake applied to JS?</summary><p>Deferring or lazily importing a script that's actually needed for the initial interactive state (a route's main bundle, say) causes the same category of problem: a general "defer things" instinct applied to the one thing that needs to be eager.</p></details>
+<details class="quiz"><summary>What would you do differently now?</summary><p>Lead the review comment with the carve-out proposal itself, framed as "this rule is right except for one case, here's why," instead of disagreeing first and only supplying the fix once asked — it would have been the same outcome with less friction.</p></details>
+</div>
+</section>
+
+<section id="u06" class="unit">
+<div class="story-head"><h2>06 The layout shift that only happened on slow connections</h2><span class="chip">Mid</span><span class="chip">Nasty debugging session</span></div>
+
+<h3>(a) Worked example <span class="chip">EXAMPLE — replace with your own</span></h3>
+<p>Our CLS metric looked fine in every local test I ran, but the field data (real-user CLS in the p75) was well above the 0.1 "good" threshold, and I couldn't reproduce it on my own fast office connection no matter how many times I loaded the page. I switched Chrome DevTools' network throttling to "Slow 3G" instead of the default "no throttling," and the shift appeared immediately and repeatably: a promo banner injected by an ad-tech script was arriving late enough on a slow connection that it pushed the entire article body down after the reader had already started reading, whereas on a fast connection it arrived early enough to slot in before anyone noticed. The fix was to reserve the banner's space with a fixed-height container (using the ad slot's known dimensions) regardless of whether the script had loaded yet, so its eventual insertion filled a space that already existed instead of pushing content. Field CLS dropped from roughly 0.28 to 0.04 within a few days of rollout. What I'd do differently: this was the first time I'd relied on network throttling to reproduce a field-reported issue rather than assuming "works on my machine" was good enough evidence — I'd reach for it much earlier now, especially for anything that smells like a timing-dependent layout issue.</p>
+<div class="callout"><p><strong>What the interviewer is really probing:</strong> whether you know that lab testing on a fast, unthrottled connection can systematically miss real-world CLS and other timing-dependent issues, and whether you reach for network throttling deliberately rather than only debugging on your own conditions. The mistake is describing the fix (reserve space) without describing why the bug was invisible locally — that gap is exactly what separates a mid-level debugging story from a rote answer.</p></div>
+
+<h3>(b) STAR/CARL scaffold</h3>
+<div class="scaffold"><dl>
+<dt>Situation</dt><dd>The mismatch between field data and what you could reproduce locally.</dd>
+<dt>Task</dt><dd>Find a reliable way to reproduce it before trying to fix anything.</dd>
+<dt>Action</dt><dd>Throttling to match real-world conditions, and what that revealed.</dd>
+<dt>Result</dt><dd>The CLS number before and after, in the field.</dd>
+<dt>Do differently</dt><dd>The debugging habit you'd adopt earlier next time.</dd>
+</dl></div>
+
+<h3>(c) Recall prompts</h3>
+<ul class="recall">
+  <li>What's a bug you could only reproduce under throttled network or CPU conditions? <details><summary>hint</summary><p>DevTools has both network and CPU throttling — a timing bug can depend on either.</p></details></li>
+  <li>Have you used field/RUM data to notice a problem your own local testing missed entirely? <details><summary>hint</summary><p>"Works on my machine" is a common trap for anything timing-sensitive.</p></details></li>
+  <li>What's a piece of third-party content on a page you maintain that isn't given reserved space? <details><summary>hint</summary><p>Ads, embeds, and injected banners are the classic unreserved-space culprits.</p></details></li>
+</ul>
+
+<h3>(d) Follow-up drill chain</h3>
+<div class="drill">
+<details class="quiz"><summary>Why does reserving space with a fixed-height container fix CLS even though the content still loads late?</summary><p>CLS measures unexpected movement of already-rendered content, not the mere lateness of a resource. If the container's dimensions are known upfront and reserved via CSS, the late-arriving content fills a space that was already there — nothing else on the page has to move to make room.</p></details>
+<details class="quiz"><summary>What if the ad slot's dimensions weren't known in advance — say, a responsive ad that could be several different sizes?</summary><p>I'd reserve space for the largest likely size and accept a bit of empty space on the smaller-content case, or use <code>min-height</code> with <code>aspect-ratio</code> tied to whichever ratio the ad network guarantees — some empty space beneath a smaller ad is a much smaller problem than reflowing the entire page under it.</p></details>
+<details class="quiz"><summary>At what point would you push back on hosting this ad script at all rather than just reserving its space?</summary><p>If it were also blocking the main thread long enough to hurt INP, or if its bytes were a meaningful fraction of total page weight, I'd escalate beyond a CLS fix to renegotiating the vendor relationship — the layout-shift fix treats a symptom, not every underlying cost.</p></details>
+<details class="quiz"><summary>What did you trade away reserving fixed space for a slot that sometimes never loads content at all (blocked by an ad blocker)?</summary><p>Some visual tidiness — a certain fraction of readers now see a reserved blank box where a filled one used to (sometimes) collapse to nothing. I judged that trade worth it because a stable blank box beats an unpredictable shift for the readers who do see the ad.</p></details>
+<details class="quiz"><summary>How would you have caught this before it reached the field at all?</summary><p>A synthetic Lighthouse CI run under throttled conditions in the deploy pipeline, rather than only unthrottled — if the CI check had matched the conditions that actually exposed the bug, it would have failed before merge instead of after rollout.</p></details>
+<details class="quiz"><summary>What would you do differently now?</summary><p>Default to testing any timing-sensitive change under throttled network and CPU from the start, rather than treating throttled testing as a special step reserved for when something's already gone wrong in the field.</p></details>
+</div>
+</section>
+
+<section id="u07" class="unit">
+<div class="story-head"><h2>07 The CDN cache-hit ratio that fell off a cliff in APAC</h2><span class="chip">Senior</span><span class="chip">Scaling challenge</span></div>
+
+<h3>(a) Worked example <span class="chip">EXAMPLE — replace with your own</span></h3>
+<p>After a regional expansion added a large new user base in APAC, our synthetic monitoring from US and EU test locations still looked fine, but support tickets from APAC users described a consistently slower experience, and our CDN's own dashboard showed the cache-hit ratio for that region sitting well below the 90%+ we saw elsewhere. I pulled the CDN's per-edge-node logs and found two compounding causes: our <code>Cache-Control</code> headers used a short max-age intended for content that changed often, which was fine when most traffic hit a well-warmed edge node near our primary regions, but meant the newer, less-frequently-hit APAC edge nodes were re-validating (and often re-fetching from origin, which was still only in the US) far more often relative to their traffic volume; and a <code>Vary: Accept-Language</code> header on nearly every response was fragmenting the cache into far more variants than the actual number of served languages justified, because we were forwarding the full raw header instead of normalizing it to our supported locale set first. I extended <code>max-age</code> for the truly static assets and added <code>stale-while-revalidate</code> so a cache miss could still serve a slightly stale response instantly while refreshing in the background, and normalized the <code>Vary</code> key at the edge (a small edge-compute function mapping arbitrary <code>Accept-Language</code> values down to our actual supported locales before the cache lookup). Cache-hit ratio in APAC rose from roughly 40% to over 85% within about a week as the edge caches re-warmed. What I'd do differently: our synthetic monitoring locations should have included APAC from the day we expanded there — the gap wasn't in our fix, it was in noticing the problem three weeks later than we could have.</p>
+<div class="callout"><p><strong>What the interviewer is really probing:</strong> whether you understand cache-key fragmentation (an overly broad <code>Vary</code> header multiplying cache variants) as a distinct failure mode from a too-short TTL, since both look like "low cache-hit ratio" but need different fixes. The mistake is treating a regional performance complaint as purely a network/latency problem without pulling CDN-level cache diagnostics first.</p></div>
+
+<h3>(b) STAR/CARL scaffold</h3>
+<div class="scaffold"><dl>
+<dt>Situation</dt><dd>The mismatch between synthetic monitoring (fine) and real regional complaints (not fine), and the monitoring gap that let it hide.</dd>
+<dt>Task</dt><dd>Diagnose a cache-hit ratio problem specific to one region.</dd>
+<dt>Action</dt><dd>The two compounding causes — TTL sized for the wrong traffic pattern, and Vary-header cache-key fragmentation — and the fix for each.</dd>
+<dt>Result</dt><dd>Cache-hit ratio before and after, and the timeframe for edge re-warming.</dd>
+<dt>Do differently</dt><dd>The monitoring-coverage gap that delayed detection.</dd>
+</dl></div>
+
+<h3>(c) Recall prompts</h3>
+<ul class="recall">
+  <li>What's a CDN or caching problem you've diagnosed that turned out to have more than one cause? <details><summary>hint</summary><p>Compounding causes (TTL and cache-key fragmentation together) are common and worth naming explicitly.</p></details></li>
+  <li>Have you used a Vary header, and do you know exactly which header values it's actually fragmenting your cache by? <details><summary>hint</summary><p>An unnormalized Accept-Language or User-Agent Vary is a classic cache-fragmentation trap.</p></details></li>
+  <li>Where does your synthetic monitoring run from, and does it match where your actual users are? <details><summary>hint</summary><p>A monitoring blind spot for a whole region is exactly the gap this story's "do differently" names.</p></details></li>
+</ul>
+
+<h3>(d) Follow-up drill chain</h3>
+<div class="drill">
+<details class="quiz"><summary>Why does stale-while-revalidate improve perceived latency without sacrificing freshness the way a long max-age alone would?</summary><p><code>stale-while-revalidate</code> serves the cached (possibly stale) response immediately while triggering a background refetch, so the user never waits on the network round trip, and the cache is refreshed for the next request — it decouples "serve fast" from "serve fresh" instead of forcing a single TTL to satisfy both.</p></details>
+<details class="quiz"><summary>What if normalizing the Vary key at the edge had introduced a locale mismatch bug — serving the wrong language to some users?</summary><p>I'd roll back the edge-compute normalization function immediately and re-verify against a full matrix of real-world Accept-Language header values before re-deploying — a correctness bug in a caching layer is worse than the performance problem it was meant to fix, because it's silently wrong rather than visibly slow.</p></details>
+<details class="quiz"><summary>At what point does moving to a multi-region origin (not just a CDN edge) become the right call instead of tuning caching further?</summary><p>Once cache-hit ratio is already high and origin round-trip time for the remaining misses is still the dominant cost, that's the signal caching has been tuned about as far as it can go and the next lever is origin placement itself.</p></details>
+<details class="quiz"><summary>What did you trade away extending max-age on the static assets?</summary><p>Some deploy-time freshness — a longer TTL means a bad asset update takes longer to fully evict from edge caches. I paired the longer TTL with content-hashed filenames so a genuinely new asset always gets a new URL and isn't blocked by the old cache entry's TTL at all.</p></details>
+<details class="quiz"><summary>How would HTTP/3 (QUIC) change this specific problem?</summary><p>QUIC's connection setup and multiplexing improvements mainly help the per-request round-trip and head-of-line blocking, which matters most on the requests that do reach origin — it doesn't change the cache-hit ratio itself, so I'd still consider it a complementary win rather than a substitute for fixing the Vary fragmentation.</p></details>
+<details class="quiz"><summary>What would you do differently now?</summary><p>Add cache-hit ratio, broken down per region, as a standing dashboard metric with an alert threshold, rather than something I only look at once a regional complaint has already surfaced.</p></details>
+</div>
+</section>
+
+<section id="u08" class="unit">
+<div class="story-head"><h2>08 A third-party script with no integrity hash</h2><span class="chip">Staff</span><span class="chip">Security issue</span></div>
+
+<h3>(a) Worked example <span class="chip">EXAMPLE — replace with your own</span></h3>
+<p>During a security review ahead of a compliance audit, I was asked to inventory every third-party script loaded on our main site, and found a customer-support chat widget loaded directly from the vendor's CDN with no Subresource Integrity (<code>integrity</code> attribute) and no Content-Security-Policy restricting which script hosts could execute at all — meaning if that vendor's CDN were ever compromised, or DNS-hijacked, the injected script would run with full access to our page, including any session cookies not marked <code>httpOnly</code>. This intersected with performance work I was already doing, because the same widget was also the single largest render-blocking script on the page, loaded synchronously in <code>&lt;head&gt;</code>. I treated the two problems together: added a <code>Content-Security-Policy</code> <code>script-src</code> allowlist naming only the specific hosts we intentionally load from, added SRI hashes pinned to the vendor's currently-served script version with a CI check that flags a build if the vendor's script changes without a corresponding hash update, and moved the widget to load via <code>Partytown</code> (a library that runs third-party scripts in a web worker, off the main thread) with a deferred, <code>requestIdleCallback</code>-triggered load instead of synchronously in <code>&lt;head&gt;</code>. This cut the widget's main-thread blocking time to near zero and closed the CSP/SRI gap in the same change, which was a highly efficient way to spend one migration's worth of review and testing effort on two categories of risk at once. What I'd do differently: I'd have proposed CSP and SRI as a standing checklist for onboarding any new third-party script, rather than something that only got caught because a compliance audit happened to schedule a review — the next unreviewed vendor script is one integration away from repeating exactly this gap.</p>
+<div class="callout"><p><strong>What the interviewer is really probing:</strong> whether you see performance and security as often the same underlying problem (an unaccountable third-party script) rather than two separate workstreams competing for the same review budget, and whether you understand what SRI and CSP actually protect against mechanically. The mistake is treating this as a purely security story with no performance angle, or vice versa — the strongest answer shows you spotted and solved both with one piece of work.</p></div>
+
+<h3>(b) STAR/CARL scaffold</h3>
+<div class="scaffold"><dl>
+<dt>Situation</dt><dd>What the audit was checking for, and the gap you found.</dd>
+<dt>Task</dt><dd>Fix the security gap, and whether you noticed the performance angle was the same script.</dd>
+<dt>Action</dt><dd>CSP allowlist, SRI hash plus CI enforcement, and moving the load off the main thread.</dd>
+<dt>Result</dt><dd>Both risk categories closed by one piece of work, and the measurable main-thread win.</dd>
+<dt>Do differently</dt><dd>The standing process gap that let an unreviewed script ship in the first place.</dd>
+</dl></div>
+
+<h3>(c) Recall prompts</h3>
+<ul class="recall">
+  <li>What's a third-party script on something you maintain that you couldn't currently name the CSP/SRI status of off the top of your head? <details><summary>hint</summary><p>If you're not sure, that's itself the answer to this prompt — go check before the interview.</p></details></li>
+  <li>Have you found a case where a security fix and a performance fix were, mechanically, the same change? <details><summary>hint</summary><p>Reducing what a third-party script can do and reducing how much it costs to load are often the same intervention.</p></details></li>
+  <li>What's a one-time audit finding you turned into a standing check (CI, lint, checklist) instead of a one-off fix? <details><summary>hint</summary><p>The durable version prevents the next instance, not just this one.</p></details></li>
+</ul>
+
+<h3>(d) Follow-up drill chain</h3>
+<div class="drill">
+<details class="quiz"><summary>Why does SRI protect against a compromised CDN when CSP already restricts which hosts can load scripts?</summary><p>CSP restricts <em>where</em> a script can come from, but if that trusted host itself serves a tampered file (a supply-chain compromise, not a rogue new host), CSP alone doesn't catch it. SRI checks the fetched file's hash against a pinned value regardless of source, so a tampered response from an otherwise-trusted host still gets rejected by the browser.</p></details>
+<details class="quiz"><summary>What if the vendor pushed script updates frequently, making the CI hash-mismatch check fire constantly?</summary><p>I'd ask the vendor for a versioned URL (many chat-widget and analytics vendors offer one) instead of an unversioned "latest" endpoint, so updates are opt-in on our side — a hash check that fires on every vendor deploy regardless of our intent isn't protecting us, it's just noise we'll eventually start ignoring.</p></details>
+<details class="quiz"><summary>At what point would you refuse to load a third-party script at all rather than sandbox it?</summary><p>If the vendor won't support SRI or a scoped CSP host at all (some ad-tech scripts genuinely can't, by design, because they load further sub-resources dynamically), I'd escalate to whoever owns the vendor relationship with a clear statement of the residual risk, rather than quietly accepting an unmitigatable gap.</p></details>
+<details class="quiz"><summary>What did you trade away moving the widget into a Partytown web worker?</summary><p>Some capability — a script running in a worker can't touch the DOM directly, so anything the widget needed to do synchronously to the main page (a very small set of interactions, in our case) needed a proxying layer. I verified with the vendor's own worker-compatibility docs before committing to the migration.</p></details>
+<details class="quiz"><summary>How does this interact with a Content-Security-Policy report-only rollout?</summary><p>I shipped the policy in <code>report-only</code> mode first specifically so a legitimate script we'd forgotten to allowlist would show up as a CSP violation report instead of silently breaking in production — a hard rollout of a new CSP without that step is a common way to cause an unrelated outage.</p></details>
+<details class="quiz"><summary>What would you do differently now?</summary><p>Write the CSP-and-SRI checklist into our actual vendor-onboarding process (the doc a team fills out before adding any new third-party script), so the next instance is caught before code review rather than by the next scheduled audit.</p></details>
+</div>
+</section>
+
+<section id="u09" class="unit">
+<div class="story-head"><h2>09 Eleven megabytes of JavaScript nobody could name</h2><span class="chip">Senior</span><span class="chip">Tech-debt paydown</span></div>
+
+<h3>(a) Worked example <span class="chip">EXAMPLE — replace with your own</span></h3>
+<p>Our main bundle had grown to 11MB uncompressed (roughly 2.8MB gzipped) over several years with no one person accountable for its size, and when I asked in a team meeting "does anyone know what's in here," nobody had a confident answer. I generated a bundle visualization (a treemap of what each module actually contributes, sized by bytes) and found three unaccountable categories: a moment.js dependency plus every locale it ships, pulled in transitively by one date-formatting call in a rarely-used admin page; a charting library imported at the top level and bundled into the main chunk even though only two of our forty routes ever rendered a chart; and duplicate copies of a utility library at two different versions because two internal packages pinned incompatible ranges. I fixed each differently rather than reaching for one blanket technique: swapped moment.js for <code>date-fns</code> with explicit tree-shakeable imports (no locale bloat by default) for that one call site; moved the charting library behind a dynamic <code>import()</code> so only the two routes that need it pay for it; and aligned the internal packages' version ranges so the bundler could dedupe the utility library into one copy. Main bundle dropped to about 3.4MB uncompressed (roughly 950KB gzipped), and route-level code-splitting meant most users never downloaded the charting library at all. What I'd do differently: I'd have set a CI bundle-size budget the day I finished this cleanup instead of a few weeks later — the bundle had already crept back up by almost 200KB in that gap from unrelated changes nobody was watching for.</p>
+<div class="table-wrap">
+<table>
+  <thead><tr><th>Contributor</th><th>Size</th><th>Fix</th></tr></thead>
+  <tbody>
+    <tr><td>moment.js + all locales</td><td>~700KB</td><td>Replaced with tree-shakeable date-fns import</td></tr>
+    <tr><td>Charting library, top-level import</td><td>~450KB</td><td>Dynamic <code>import()</code>, only 2 of 40 routes pay for it</td></tr>
+    <tr><td>Duplicate utility library (2 versions)</td><td>~180KB</td><td>Aligned internal package version ranges, bundler deduped</td></tr>
+  </tbody>
+</table>
+</div>
+<div class="callout"><p><strong>What the interviewer is really probing:</strong> whether you diagnose bundle bloat with an actual visualization tool rather than guessing, and whether you match the fix to the specific cause (a locale-heavy dependency, an unsplit route-specific library, a version-range duplication are three different problems) instead of applying one generic "just minify more" fix everywhere. The mistake is a story that ends at "we reduced bundle size" without a durable guard (the CI budget) against it silently regressing again.</p></div>
+
+<h3>(b) STAR/CARL scaffold</h3>
+<div class="scaffold"><dl>
+<dt>Situation</dt><dd>The unowned, unexamined bundle and the moment nobody could explain its size.</dd>
+<dt>Task</dt><dd>Diagnose what was actually in it before proposing any fix.</dd>
+<dt>Action</dt><dd>The visualization tool, the three distinct causes it revealed, and the matched fix for each.</dd>
+<dt>Result</dt><dd>Bundle size before/after, and the code-splitting win beyond the raw number.</dd>
+<dt>Do differently</dt><dd>The gap between finishing the cleanup and putting a guard in place.</dd>
+</dl></div>
+
+<h3>(c) Recall prompts</h3>
+<ul class="recall">
+  <li>Have you generated a bundle visualization (treemap or similar) for something you maintain, and did the result surprise you? <details><summary>hint</summary><p>webpack-bundle-analyzer, Vite's rollup-plugin-visualizer, or source-map-explorer are common tools — if you haven't run one recently, that's worth doing before this interview.</p></details></li>
+  <li>What's a dependency you've pulled in for one small feature that turned out to cost far more than expected? <details><summary>hint</summary><p>A date/time library, an icon set, or a UI component library pulled in wholesale for one component are classic cases.</p></details></li>
+  <li>Do you have (or has your team ever had) a CI-enforced bundle-size budget, and what happened when it was removed or never added? <details><summary>hint</summary><p>Bundle size regressions are gradual and easy to miss without an automated guard.</p></details></li>
+</ul>
+
+<h3>(d) Follow-up drill chain</h3>
+<div class="drill">
+<details class="quiz"><summary>Why does dynamic import() reduce the main bundle's size instead of just deferring when the same bytes download?</summary><p><code>import()</code> tells the bundler to put that module and its dependencies in a separate chunk, so it's a distinct, cacheable file that only loads when the code path executes — it's not merely "load it later," it's "don't ship it to everyone by default at all."</p></details>
+<details class="quiz"><summary>What if aligning the two internal packages' version ranges had actually required a breaking API change in one of them?</summary><p>Then I'd treat it as its own migration with its own review and rollout, not bundle it into the same change as the moment.js and charting fixes — a breaking internal API change deserves isolated blast radius and a clear rollback path, separate from a pure bundle-size cleanup.</p></details>
+<details class="quiz"><summary>At what point does further bundle-size reduction stop being worth the engineering effort?</summary><p>Once the remaining bytes are load-bearing code actually used by most users on most routes, further splitting mostly adds request overhead (more round trips) without a real download-size win — I'd stop chasing bytes and look at caching/compression instead once we hit that point.</p></details>
+<details class="quiz"><summary>What did you trade away moving the charting library behind a dynamic import?</summary><p>A small amount of latency on the two routes that do use it — the chart now has a brief loading state on first visit to those routes instead of rendering instantly from an already-downloaded bundle. I judged that acceptable because those routes are a small fraction of total traffic.</p></details>
+<details class="quiz"><summary>How would HTTP/2 or HTTP/3 multiplexing change the calculus around code-splitting granularity?</summary><p>Multiplexed connections make many small chunk requests cheaper than they were under HTTP/1.1's per-connection request limits, which is part of why aggressive route- and component-level code-splitting became a mainstream default rather than a niche optimization — the protocol layer changed what "too many small files" actually costs.</p></details>
+<details class="quiz"><summary>What would you do differently now?</summary><p>Add the CI bundle-size budget in the same pull request as the cleanup itself, not as a follow-up ticket that competes with the next sprint's priorities and risks never getting done.</p></details>
+</div>
+</section>
+
+<section id="u10" class="unit">
+<div class="story-head"><h2>10 Teaching a junior to read a flame chart</h2><span class="chip">Senior</span><span class="chip">Mentoring</span></div>
+
+<h3>(a) Worked example <span class="chip">EXAMPLE — replace with your own</span></h3>
+<p>A junior engineer on my team had a ticket to fix janky scrolling on a list page, and their first instinct was to start guessing — "maybe it's the images, let me try lazy-loading them" — without recording a trace first. Rather than just telling them the answer once I'd looked at it myself, I sat with them and recorded a Performance panel trace together while reproducing the jank, then walked through reading the flame chart bottom-up: find the widest bars near the top of a long task (those are what's actually taking the time, not the function that merely called them), and check whether the color-coding said "scripting" (yellow), "rendering" (purple), or "painting" (green) before assuming which layer owned the cost. We found a purple "Recalculate Style" block taking 40ms per scroll event, traced it to a scroll handler that read <code>element.offsetHeight</code> (forcing a synchronous layout) immediately after writing a style change in the same function — a layout thrashing pattern where reads and writes are interleaved instead of batched. I had them fix it by batching all the style reads before any writes, and re-record the trace themselves to confirm the purple block disappeared, so they experienced the full diagnose-fix-verify loop rather than just receiving my answer. What I'd do differently: I should have had them narrate their reasoning out loud while reading the flame chart the first time, rather than mostly narrating mine — I only realized afterward that watching me do it once doesn't build the same muscle as making the calls themselves with me there to correct wrong turns.</p>
+<div class="callout"><p><strong>What the interviewer is really probing:</strong> whether you can teach a diagnostic method, not just deliver an answer — the difference between "I fixed it" and "I built their ability to fix the next one themselves." The mistake is a mentoring story where you did all the analysis and the junior person was mostly a spectator; the strongest version has them doing the verification step themselves.</p></div>
+
+<h3>(b) STAR/CARL scaffold</h3>
+<div class="scaffold"><dl>
+<dt>Situation</dt><dd>The junior engineer's task and their first (guessing) instinct.</dd>
+<dt>Task</dt><dd>Teach the diagnostic method, not just supply the fix.</dd>
+<dt>Action</dt><dd>Recording the trace together, reading the flame chart bottom-up, and identifying the layout-thrashing pattern.</dd>
+<dt>Result</dt><dd>The fix, and — more importantly — them re-verifying it themselves.</dd>
+<dt>Do differently</dt><dd>Whose reasoning was actually being exercised during the walkthrough.</dd>
+</dl></div>
+
+<h3>(c) Recall prompts</h3>
+<ul class="recall">
+  <li>What's a time you taught a debugging method rather than just fixing something for someone? <details><summary>hint</summary><p>The strongest version has the other person doing a meaningful part of the work, not just watching.</p></details></li>
+  <li>Can you explain reading a flame chart bottom-up (widest bars, not the top-level caller) to someone who's never seen one? <details><summary>hint</summary><p>If you can't explain it simply out loud right now, practice that before the interview — it's likely to come up as a direct technical follow-up.</p></details></li>
+  <li>What's a case of layout thrashing (interleaved reads/writes forcing synchronous layout) you've found or fixed? <details><summary>hint</summary><p><code>offsetHeight</code>, <code>getBoundingClientRect()</code>, and similar layout-triggering reads right after a style write are the classic pattern.</p></details></li>
+</ul>
+
+<h3>(d) Follow-up drill chain</h3>
+<div class="drill">
+<details class="quiz"><summary>Why does reading offsetHeight right after a style write force a synchronous layout?</summary><p>The browser batches layout calculations lazily by default, but a read that depends on up-to-date geometry (offsetHeight, getBoundingClientRect, and similar) must force layout immediately to return a correct value — if that read follows a write in the same task, you pay for a synchronous recalculation right there instead of once per frame.</p></details>
+<details class="quiz"><summary>What if the junior engineer's original guess (lazy-load the images) had actually also been a real contributing factor?</summary><p>I'd still insist on the trace first — a correct guess arrived at without evidence teaches the wrong lesson just as much as a wrong one does, and the next bug won't have an equally lucky guess available.</p></details>
+<details class="quiz"><summary>At what point would you stop pairing on a trace and just tell them the answer?</summary><p>If we were up against a genuine incident deadline where teaching time wasn't available, I'd fix it myself and schedule the teaching walkthrough afterward on a non-urgent version of the same problem — the mentoring investment matters, but not at the cost of an active incident.</p></details>
+<details class="quiz"><summary>What did you trade away having them re-verify the fix themselves instead of just confirming it yourself?</summary><p>Some time — pairing through the full loop takes longer than fixing it solo would have. I judged the investment worthwhile because the goal was a repeatable skill, not just a closed ticket, and a closed ticket alone doesn't compound the way a new skill on the team does.</p></details>
+<details class="quiz"><summary>How does this generalize to React or Angular-specific rendering, which this artifact otherwise treats as covered elsewhere?</summary><p>The underlying mechanism (interleaved layout reads and writes forcing synchronous recalculation) is framework-agnostic — it happens identically inside a React effect or an Angular change-detection cycle that reads layout geometry mid-render, so the flame-chart-reading skill transfers directly even though the framework-specific avoidance patterns differ.</p></details>
+<details class="quiz"><summary>What would you do differently now?</summary><p>Ask them to narrate their own reasoning while reading the chart the first time, even haltingly, and only correct wrong turns — rather than modeling the correct narration myself and hoping it transferred by observation alone.</p></details>
+</div>
+</section>
+
+<section id="u11" class="unit">
+<div class="story-head"><h2>11 Talking the launch team out of a chat widget on day one</h2><span class="chip">Staff</span><span class="chip">Scope / deadline negotiation</span></div>
+
+<h3>(a) Worked example <span class="chip">EXAMPLE — replace with your own</span></h3>
+<p>Two weeks before a high-visibility product launch, the support team asked to add a live-chat widget to the new landing page for launch day, reasonably wanting to catch early customer questions in real time. I'd already set a performance budget for this specific page given how much paid traffic would hit it, and the chat vendor's own script — by their own published numbers — added over 300ms of main-thread blocking time and roughly 150KB gzipped, which would have blown the LCP and INP budgets we'd committed to for the launch. Rather than just saying no, I proposed an alternative that met the actual underlying need: a lightweight "email us" link with a promise of a fast response time for launch day, with the chat widget added the following week once the initial traffic spike had passed and we had headroom to accommodate its cost properly (ideally loaded via a deferred, idle-triggered pattern rather than synchronously). I brought the vendor's own performance numbers to the conversation rather than a vague "it'll be slow," which turned it from a subjective disagreement into a shared look at a concrete trade-off, and the support lead agreed once they saw the actual data. The launch page held its performance budget, and the chat widget shipped exactly one week later with the deferred-load pattern in place. What I'd do differently: I'd have proactively flagged the performance budget to the support team weeks earlier, before they'd already built momentum and expectations around having chat live on day one — the negotiation was smoother than it could have been, but it still cost social capital that a heads-up would have avoided spending.</p>
+<div class="callout"><p><strong>What the interviewer is really probing:</strong> whether you can say no to a reasonable-sounding request under deadline pressure without being obstructive — bringing data and a real alternative rather than just asserting a budget exists. The mistake is a story where "no" wins purely because you have more authority over the codebase; the strongest version wins because the alternative genuinely served the underlying need.</p></div>
+
+<h3>(b) STAR/CARL scaffold</h3>
+<div class="scaffold"><dl>
+<dt>Situation</dt><dd>The request, the deadline pressure, and the reasonable underlying need behind it.</dd>
+<dt>Task</dt><dd>Protect the performance budget without just blocking the request.</dd>
+<dt>Action</dt><dd>The concrete cost data you brought, and the alternative that met the actual need.</dd>
+<dt>Result</dt><dd>What shipped on launch day, and what shipped the week after.</dd>
+<dt>Do differently</dt><dd>The earlier heads-up that would have avoided the late-stage friction entirely.</dd>
+</dl></div>
+
+<h3>(c) Recall prompts</h3>
+<ul class="recall">
+  <li>What's a feature request you've pushed back on for performance reasons, and did you offer an alternative or just a no? <details><summary>hint</summary><p>A no with an alternative is a materially stronger story than a no alone.</p></details></li>
+  <li>Do you have (or have you set) an explicit performance budget for a specific page, and what happens when something threatens to blow it? <details><summary>hint</summary><p>A budget only matters if there's a real process for what happens when a request would exceed it.</p></details></li>
+  <li>What's a time you brought a vendor's own published numbers into a negotiation rather than your own estimate? <details><summary>hint</summary><p>Using the other side's own data is often more persuasive than your own measurement would be.</p></details></li>
+</ul>
+
+<h3>(d) Follow-up drill chain</h3>
+<div class="drill">
+<details class="quiz"><summary>Why would loading the chat widget via an idle-triggered deferred pattern the following week not just reintroduce the same cost later?</summary><p>It does still cost the same bytes and main-thread time eventually — the point wasn't to avoid the cost forever, it was to avoid paying it during the highest-traffic, highest-scrutiny window, and to pay it in a way (deferred to idle time, off the critical initial-load path) that's less likely to blow the specific budget that mattered for launch day.</p></details>
+<details class="quiz"><summary>What if the support team had insisted chat absolutely had to be live on day one, budget or not?</summary><p>I'd escalate the trade-off explicitly to whoever owned the launch decision, framed as "here's what shipping chat costs in LCP/INP, here's what missing budget could cost in ad-spend efficiency or bounce rate, you choose" — at that point it's a business trade-off above my authority to unilaterally resolve, and forcing it through myself would be overstepping.</p></details>
+<details class="quiz"><summary>At what point would you not push back on a similar request?</summary><p>If the page in question weren't the specific budget-constrained launch page — an internal tool, or a low-traffic page — the same chat widget request wouldn't warrant the same pushback at all; the story's stakes come specifically from which page was affected.</p></details>
+<details class="quiz"><summary>What did you trade away delaying the widget by one week?</summary><p>Some potential lost early support interactions during the highest-traffic window — a real cost to the support team's stated goal, which is why I made sure they saw it named explicitly rather than treating the delay as free.</p></details>
+<details class="quiz"><summary>How would a performance budget enforced in CI (failing a build that exceeds it) have changed this negotiation?</summary><p>It would have made the trade-off visible days earlier, as a failing CI check on the actual pull request adding the widget, rather than as a conversation I had to initiate proactively — I'd consider that a more scalable version of what I did manually here.</p></details>
+<details class="quiz"><summary>What would you do differently now?</summary><p>Publish the launch page's performance budget to the wider team the moment it was set, not just keep it as something I'd reference reactively when a request threatened it.</p></details>
+</div>
+</section>
+
+<section id="u12" class="unit">
+<div class="story-head"><h2>12 The offline drafts that disappeared when storage ran out</h2><span class="chip">Senior</span><span class="chip">Data-loss scare</span></div>
+
+<h3>(a) Worked example <span class="chip">EXAMPLE — replace with your own</span></h3>
+<p>A note-taking feature saved drafts to IndexedDB so users could keep working offline, and a support escalation reported that a user's in-progress draft had simply vanished with no error shown anywhere. I reproduced it by filling a test profile's storage close to capacity with other site data, and found that browsers treat most web storage (IndexedDB, localStorage, Cache API) as "best-effort": under storage pressure, the browser can silently evict an origin's data to free space for other origins, and our code was writing to IndexedDB with no <code>try</code>/<code>catch</code> around the write and no check of whether the write actually succeeded, so an eviction — or even a quota-exceeded write failure — failed completely silently from the user's point of view. I made two changes: called <code>navigator.storage.persist()</code> (requesting, not guaranteeing, that our storage be exempted from eviction, which the browser grants more readily for a site with meaningful engagement) and, more importantly, wrapped every write in error handling that surfaced a visible "couldn't save, here's your text, please copy it" fallback instead of failing silently, plus a periodic <code>navigator.storage.estimate()</code> check that warned the user proactively when their overall storage was getting tight. The <code>persist()</code> call reduced eviction-related reports significantly, but the honest fix was the visible failure path — <code>persist()</code> is a request the browser can still decline, and I didn't want a repeat of "silent data loss" even in the cases where persistence wasn't granted. What I'd do differently: I'd have written the visible-failure fallback from the very first version of this feature — treating local storage as reliable-by-default was the actual mistake, not any particular API choice.</p>
+<div class="callout"><p><strong>What the interviewer is really probing:</strong> whether you know that browser storage is explicitly best-effort and can be evicted under pressure, not a guaranteed durable store, and whether your instinct is to make failure visible rather than to chase a permission API as if it were a complete fix. The mistake is treating <code>navigator.storage.persist()</code> as solving the problem outright — it's a request the browser can decline, and the interviewer wants to hear you know that.</p></div>
+
+<h3>(b) STAR/CARL scaffold</h3>
+<div class="scaffold"><dl>
+<dt>Situation</dt><dd>The silent data loss report and what "best-effort" storage actually means.</dd>
+<dt>Task</dt><dd>Stop silent loss, not just reduce its frequency.</dd>
+<dt>Action</dt><dd>The persist() request, and — the more important piece — the visible failure/fallback path.</dd>
+<dt>Result</dt><dd>Reduced eviction reports, and zero more silent losses regardless of eviction.</dd>
+<dt>Do differently</dt><dd>The default assumption (storage is reliable) that was the real root cause.</dd>
+</dl></div>
+
+<h3>(c) Recall prompts</h3>
+<ul class="recall">
+  <li>Does anything you've built write to localStorage or IndexedDB with no error handling around the write? <details><summary>hint</summary><p>If you're not sure, that's worth checking before this interview — silent write failures are an easy thing to have never tested for.</p></details></li>
+  <li>What's a case where you treated a "best-effort" or "request, not guarantee" API as if it were a hard guarantee? <details><summary>hint</summary><p>Storage persistence, notification permissions, and background sync are all request-not-guarantee by design.</p></details></li>
+  <li>Have you designed a visible failure path for something that used to fail silently? <details><summary>hint</summary><p>The instinct to surface failure to the user, rather than paper over it, is the strength this story is testing for.</p></details></li>
+</ul>
+
+<h3>(d) Follow-up drill chain</h3>
+<div class="drill">
+<details class="quiz"><summary>Why can the browser evict one origin's storage even if that origin is well under its own quota?</summary><p>Storage quota is typically a shared pool across all origins on a device (a percentage of free disk space), so a completely different site consuming a lot of space can create device-wide storage pressure that the browser resolves in part by evicting other, less-recently-used or less-engaged origins — being under your own limit doesn't protect you from a global squeeze.</p></details>
+<details class="quiz"><summary>What if navigator.storage.persist() had actually been granted but the draft still disappeared?</summary><p>Then eviction wasn't the cause and I'd look elsewhere — a bug in the write path itself, a quota-exceeded error on a single oversized draft, or a race between two tabs writing to the same IndexedDB database — persist() only rules out one specific cause, it doesn't rule out every way local storage can lose data.</p></details>
+<details class="quiz"><summary>At what point would you not rely on client-side storage for this feature at all?</summary><p>If draft loss were unacceptable regardless of frequency — a legal document editor, say — I'd sync to a server periodically as the durable source of truth and treat local storage purely as an offline cache layered on top, rather than as the only copy that exists.</p></details>
+<details class="quiz"><summary>What did you trade away adding the periodic storage.estimate() check?</summary><p>A small amount of complexity and a background timer running while the user works — I scoped the check to run infrequently (not on every keystroke) specifically to keep that cost negligible relative to the data-loss risk it mitigates.</p></details>
+<details class="quiz"><summary>How does this differ for a Cache API–backed service worker versus IndexedDB?</summary><p>Both are subject to the same best-effort eviction model, but a service worker's cache is typically for the app shell/assets rather than user-generated content, so eviction there degrades performance (falls back to network) rather than causing data loss — the stakes of silent eviction are different even though the underlying browser behavior is the same.</p></details>
+<details class="quiz"><summary>What would you do differently now?</summary><p>Treat "what happens when this write fails" as a required design question for any client-storage feature from day one, the same way error handling for a network request is assumed rather than optional.</p></details>
+</div>
+</section>
+
+<section id="u13" class="unit">
+<div class="story-head"><h2>13 "Just make it fast" had no metric behind it</h2><span class="chip">Staff</span><span class="chip">Ambiguous requirements</span></div>
+
+<h3>(a) Worked example <span class="chip">EXAMPLE — replace with your own</span></h3>
+<p>A VP asked our team to "make the checkout flow fast" ahead of a big sales event, with no further specification — no target metric, no baseline, no definition of done. Rather than start optimizing immediately on instinct, I spent the first day turning the ask into something testable: pulled our existing field data to find the actual current numbers (LCP at 3.1s, INP at 340ms, both at p75 on the checkout page specifically, which nobody had been tracking as its own dashboard segment before — it was buried inside a site-wide aggregate), proposed concrete targets (LCP under 2.5s, INP under 200ms, both the Core Web Vitals "good" thresholds) as what "fast" would concretely mean, and confirmed those targets with the VP in a five-minute conversation before doing any further work. That confirmation mattered: it turned a vague mandate into something the whole team could work against and something I could report progress on with actual numbers instead of a subjective "it feels snappier." We landed at LCP 2.3s and INP 180ms two weeks before the sales event, with margin verified under simulated load. What I'd do differently: I'd ask for the specific metric and target in the very first conversation, before doing even the one day of digging myself — going away and coming back with a proposal cost a day the sales-event deadline didn't really have room to spare, and a five-minute upfront question would have gotten to the same confirmed target sooner.</p>
+<div class="callout"><p><strong>What the interviewer is really probing:</strong> whether you translate an ambiguous mandate into a measurable target before acting, rather than starting to optimize on instinct and hoping it satisfies whoever asked. The mistake is a story where you did good technical work but never checked that "fast" meant what you assumed it meant — the confirmation step is what separates this from a story about just doing your job well.</p></div>
+
+<h3>(b) STAR/CARL scaffold</h3>
+<div class="scaffold"><dl>
+<dt>Situation</dt><dd>The vague ask, and why it had no built-in definition of done.</dd>
+<dt>Task</dt><dd>Turn it into a measurable target before doing the actual optimization work.</dd>
+<dt>Action</dt><dd>Pulling the baseline, proposing concrete thresholds, and confirming them before proceeding.</dd>
+<dt>Result</dt><dd>The final numbers against the confirmed target, with margin before the deadline.</dd>
+<dt>Do differently</dt><dd>Where you could have asked the clarifying question sooner.</dd>
+</dl></div>
+
+<h3>(c) Recall prompts</h3>
+<ul class="recall">
+  <li>What's a vague performance ask ("make it snappier," "users say it feels slow") you've had to translate into a number? <details><summary>hint</summary><p>The translation step itself — not just the eventual fix — is what this story is about.</p></details></li>
+  <li>Have you confirmed a target with a stakeholder before doing the work, rather than after? <details><summary>hint</summary><p>Confirming upfront is cheaper than discovering a mismatch after the work is done.</p></details></li>
+  <li>What's a metric you had to newly instrument (like this story's checkout-specific dashboard) because it had only ever existed as part of a broader aggregate? <details><summary>hint</summary><p>A site-wide average can hide a specific page's real problem entirely.</p></details></li>
+</ul>
+
+<h3>(d) Follow-up drill chain</h3>
+<div class="drill">
+<details class="quiz"><summary>Why might the checkout page's real numbers have been hidden inside a site-wide aggregate specifically?</summary><p>A site-wide p75 blends traffic across every page, and if checkout is a smaller fraction of total pageviews than, say, the homepage, its worse numbers get diluted into an aggregate that still looks acceptable — a segment-specific metric is necessary whenever a page's traffic share doesn't match its business importance.</p></details>
+<details class="quiz"><summary>What if the VP had rejected the proposed Core Web Vitals thresholds as not ambitious enough?</summary><p>I'd ask what specific outcome they were actually optimizing for — conversion rate, cart abandonment, a competitor comparison — and work backward from that to a stricter target if the data supported one, rather than just picking an arbitrarily lower number to sound more ambitious.</p></details>
+<details class="quiz"><summary>At what point would you have started optimizing before getting explicit confirmation?</summary><p>If the deadline genuinely had no room for even a same-day confirmation loop, I'd propose the targets in writing and start the highest-confidence, lowest-risk optimizations immediately while awaiting a reply, rather than blocking all progress on a conversation that might take an hour to schedule.</p></details>
+<details class="quiz"><summary>What did the five-minute confirmation conversation actually protect against?</summary><p>Doing two weeks of work toward a target that turned out not to be what the VP meant by "fast" — a five-minute cost against a two-week risk is an easy trade, which is exactly the argument for asking early rather than assuming.</p></details>
+<details class="quiz"><summary>How would you have handled this if lab data and field data disagreed about the current baseline?</summary><p>I'd trust field data (real users, real devices, real networks) as the source of truth for the baseline and target, and use lab data only for fast iteration during the actual fix — that split is exactly why both exist, and conflating them is a common way to optimize the wrong number.</p></details>
+<details class="quiz"><summary>What would you do differently now?</summary><p>Ask "what number, by when" as close to immediately as professionally reasonable, rather than spending a day producing a fully-formed proposal before checking whether I'd understood the ask correctly.</p></details>
+</div>
+</section>
+
+<section id="u14" class="unit">
+<div class="story-head"><h2>14 Marketing kept adding scripts I couldn't see</h2><span class="chip">Principal</span><span class="chip">Cross-team dependency</span></div>
+
+<h3>(a) Worked example <span class="chip">EXAMPLE — replace with your own</span></h3>
+<p>Our homepage's performance regressed gradually over a quarter with no corresponding code change from engineering, and when I finally traced it, marketing had been adding tags through a tag-management system with self-service publishing — no code review, no CI gate, and no visibility to engineering at all until the damage was already live and measured. The organizational challenge wasn't the individual tags (each one, on its own, was a small, reasonable-looking marketing or analytics request); it was that a system explicitly designed to let a non-engineering team ship to production with zero engineering gate was, structurally, guaranteed to erode a performance budget over time with nobody accountable for the aggregate effect. I didn't try to take away marketing's self-service capability — that would have created exactly the kind of cross-team friction that gets a policy quietly worked around six months later. Instead I proposed, and got budget approval to build, a lightweight governance layer: every tag manager change ran through an automated performance-impact check (a synthetic Lighthouse comparison against the prior state) that posted its result back into the tag manager's own approval workflow, so marketing kept their existing speed of iteration but could see the cost of a change before publishing it, and a running "tag budget" dashboard visible to both teams so a specific team's cumulative footprint was traceable to them rather than an anonymous total. This took real cross-team negotiation — marketing's leadership initially read it as engineering trying to reclaim control, and I spent real time in their team meetings showing the automated check wouldn't block anything, only inform. The homepage's field metrics stabilized within the following quarter, and — more durably — a repeat of "nobody knew this was happening" became structurally much harder. What I'd do differently: I'd have proposed the visibility layer the first time I noticed a self-service publishing system with no performance gate, rather than after a full quarter of drift had already happened — the organizational failure mode was predictable in hindsight.</p>
+<div class="callout"><p><strong>What the interviewer is really probing:</strong> whether you can diagnose an organizational/process root cause (a governance gap) behind a technical symptom, and negotiate a durable cross-team fix without resorting to a unilateral technical block that damages trust. The mistake at this level is treating the problem as purely technical (just find and remove the offending scripts) without addressing why it will recur — the process fix is the actual senior content of this story.</p></div>
+
+<h3>(b) STAR/CARL scaffold</h3>
+<div class="scaffold"><dl>
+<dt>Situation</dt><dd>The gradual regression with no engineering-side code change, and the structural cause once found.</dd>
+<dt>Task</dt><dd>Fix the recurring pattern, not just the current instance, without alienating another team.</dd>
+<dt>Action</dt><dd>The governance layer that informed rather than blocked, and the negotiation to get it adopted.</dd>
+<dt>Result</dt><dd>Stabilized metrics, and a structurally harder-to-repeat failure mode.</dd>
+<dt>Do differently</dt><dd>How much earlier the visibility gap itself should have been flagged.</dd>
+</dl></div>
+
+<h3>(c) Recall prompts</h3>
+<ul class="recall">
+  <li>What's a performance regression you traced to a process gap (a self-service tool, an unreviewed pipeline) rather than a code change? <details><summary>hint</summary><p>The organizational diagnosis, not just the technical one, is the point of this recall.</p></details></li>
+  <li>Have you negotiated a governance change with another team without unilaterally taking away their autonomy? <details><summary>hint</summary><p>"Inform, don't block" is a specific, describable design choice worth having ready.</p></details></li>
+  <li>What's a "nobody owns the aggregate effect" pattern you've seen anywhere in an organization you've worked in? <details><summary>hint</summary><p>Individually-reasonable decisions compounding into a collectively bad outcome is a common shape, not unique to performance.</p></details></li>
+</ul>
+
+<h3>(d) Follow-up drill chain</h3>
+<div class="drill">
+<details class="quiz"><summary>Why does an "inform, don't block" gate work better here than a hard CI-style gate that would reject an over-budget tag?</summary><p>A hard block on a non-engineering team's own publishing tool would either get escalated as engineering overreach or get quietly bypassed through some other channel entirely — informing preserves the team's existing authority over their own workflow while making the cost visible, which is what actually changes behavior sustainably rather than provoking a workaround.</p></details>
+<details class="quiz"><summary>What if marketing leadership had refused the visibility layer even after seeing it wouldn't block anything?</summary><p>I'd escalate to whoever both teams reported up to jointly, framed strictly around the business cost (measured conversion or revenue impact of the regression) rather than an engineering preference — at that point it's a resourcing and priority decision above both teams individually, not something to force through informally.</p></details>
+<details class="quiz"><summary>At what point would a hard gate actually be the right call instead?</summary><p>If the tags being added posed a security or compliance risk rather than "only" a performance one, I'd argue for a hard gate specifically on that narrower risk category — performance degradation is a cost to negotiate over time, but some categories of risk justify blocking outright regardless of relationship cost.</p></details>
+<details class="quiz"><summary>What did the synthetic Lighthouse check trade away compared to field data?</summary><p>Some realism — a synthetic check runs under controlled lab conditions and won't perfectly predict field impact, but it runs fast enough to sit in a pre-publish workflow, where field data (by definition) only exists after the change is already live. I treated it as an early-warning signal, not a substitute for watching the field dashboard afterward.</p></details>
+<details class="quiz"><summary>How does this generalize beyond marketing tags to any other self-service publishing surface?</summary><p>The same governance pattern — visibility and attribution without a hard block — applies to any system where a non-engineering team can ship to production performance-affecting changes on their own cadence: CMS-authored embeds, no-code A/B testing tools, and feature-flag-driven experiments all share the same structural risk.</p></details>
+<details class="quiz"><summary>What would you do differently now?</summary><p>Do a lightweight audit of every self-service publishing surface touching our production pages the moment I join a new team, specifically looking for this pattern, instead of waiting for a quarter of drift to surface it.</p></details>
+</div>
+</section>
+
+<section id="u15" class="unit">
+<div class="story-head"><h2>15 The streaming-SSR rewrite we walked away from</h2><span class="chip">Principal</span><span class="chip">Failed / cancelled project</span></div>
+
+<h3>(a) Worked example <span class="chip">EXAMPLE — replace with your own</span></h3>
+<p>I sponsored a project to rewrite our main application's rendering layer to use streaming SSR (sending HTML to the browser progressively as the server produces it, rather than waiting for the full page to render before sending anything), projecting a meaningful TTFB and LCP improvement based on a promising proof-of-concept on one route. Three months in, with roughly forty percent of routes migrated, I made the call to cancel the rewrite and revert the migrated routes back to the prior rendering model. Two things had gone wrong that the proof-of-concept hadn't surfaced: our data-fetching layer had deep, implicit assumptions that a full page's data was available synchronously before any rendering began, and untangling that for genuinely progressive streaming touched far more of the codebase than the routes' own template code — closer to a full data-layer rewrite than a rendering-layer one; and our specific hosting infrastructure's connection-handling model made long-lived streaming responses meaningfully more expensive at our request volume than the proof-of-concept's small-scale test had revealed, which only showed up once we'd migrated enough real traffic to see the infrastructure cost curve. I brought both findings to leadership with a clear recommendation to stop rather than push forward on sunk-cost momentum, framed around what continuing would actually cost against a revised, much larger estimate versus the original business case. What I'd do differently: I'd have run the proof-of-concept against a route that actually exercised our real data-fetching patterns and against production-representative traffic volume, rather than the simplest, most streaming-friendly route we had — the POC's optimism was baked in by which route we happened to pick to prove the concept, not by the technique's real fit for our whole application.</p>
+<div class="callout"><p><strong>What the interviewer is really probing:</strong> whether you can recognize and own a failing initiative early enough to limit the damage, and whether you can explain a technical failure in terms leadership can act on (revised cost estimate vs. business case) rather than only in engineering detail. The mistake at this level is a story where the "failure" was actually someone else's call, or where you frame walking away as itself the achievement without a clear account of what you got wrong in scoping it.</p></div>
+
+<h3>(b) STAR/CARL scaffold</h3>
+<div class="scaffold"><dl>
+<dt>Situation</dt><dd>The initial promising POC, and the projected win it was based on.</dd>
+<dt>Task</dt><dd>Recognize when the real cost had diverged from the original estimate, and decide whether to continue.</dd>
+<dt>Action</dt><dd>The two specific findings (data-layer coupling, infrastructure cost curve) and the decision to stop.</dd>
+<dt>Result</dt><dd>What you communicated to leadership and how the decision was received.</dd>
+<dt>Do differently</dt><dd>The specific scoping mistake (which route/traffic the POC used) that baked in the false optimism.</dd>
+</dl></div>
+
+<h3>(c) Recall prompts</h3>
+<ul class="recall">
+  <li>What's a project you sponsored or led that you eventually cancelled, and what specifically changed between the proof-of-concept and the real rollout? <details><summary>hint</summary><p>Naming the exact gap between POC conditions and production reality is the strongest version of this story.</p></details></li>
+  <li>Have you made the call to stop something on sunk-cost grounds rather than push forward on momentum alone? <details><summary>hint</summary><p>Recognizing sunk-cost reasoning in yourself, and naming it, reads as more senior than avoiding the topic.</p></details></li>
+  <li>How do you typically communicate a technical failure to a non-technical leadership audience? <details><summary>hint</summary><p>Framing around revised cost vs. original business case, not engineering detail, is what this recall is testing.</p></details></li>
+</ul>
+
+<h3>(d) Follow-up drill chain</h3>
+<div class="drill">
+<details class="quiz"><summary>Why does streaming SSR specifically strain an application's data-fetching assumptions more than a rendering-technique change usually would?</summary><p>Streaming requires the server to start emitting HTML for parts of the page before all of the page's data has necessarily resolved, which only works cleanly if the data-fetching layer can express "this piece is ready, this piece isn't yet" per-section — an architecture built around one synchronous "fetch everything, then render everything" step has to be substantially restructured to support that, not merely templated differently.</p></details>
+<details class="quiz"><summary>What if the infrastructure cost problem had been solvable with a configuration change rather than requiring architectural rework?</summary><p>Then I'd have continued the migration — the decision to cancel was made because both problems, together, meant the real cost had grown past what the original business case justified, not because either problem alone was necessarily unsolvable. A genuinely cheap fix to one of the two would have changed the math.</p></details>
+<details class="quiz"><summary>At what point should this have been caught — earlier in the POC, or was three months in actually a reasonable point to learn it?</summary><p>Earlier — specifically, by choosing a POC route and traffic profile that matched our hardest real cases instead of our easiest one. Three months in was a reasonable point to <em>decide</em> given what we knew, but what we knew was later than it should have been because of how the POC itself was scoped.</p></details>
+<details class="quiz"><summary>What did reverting the already-migrated forty percent of routes cost, versus leaving them on the new model?</summary><p>Some throwaway engineering effort on those routes' migrations, but leaving a minority of routes on a rendering model the rest of the team had decided to abandon would have left a permanent maintenance fork — two rendering mental models in one codebase indefinitely — which I judged a worse long-term cost than the sunk migration effort on those routes.</p></details>
+<details class="quiz"><summary>How do you distinguish "this needs more time" from "this needs to stop" when you're the one who sponsored it?</summary><p>I look for whether the new information changes the fundamental cost-benefit shape (not just the timeline) — a slipping deadline with the same expected payoff is a "more time" conversation, but a payoff that's shrunk while the cost has grown is a "stop" conversation, and conflating the two is exactly what sunk-cost reasoning does.</p></details>
+<details class="quiz"><summary>What would you do differently now?</summary><p>Require any future POC I sponsor to explicitly justify why its chosen test case represents the hardest, not the easiest, real-world scenario — and if it doesn't, treat the POC's result as directional at best, not as validation of the full rollout's business case.</p></details>
+</div>
+</section>
+
+<section id="u16" class="unit">
+<div class="story-head"><h2>16 Cutting the image bill with AVIF and real srcset</h2><span class="chip">Staff</span><span class="chip">Cost optimisation</span></div>
+
+<h3>(a) Worked example <span class="chip">EXAMPLE — replace with your own</span></h3>
+<p>Our CDN's monthly bandwidth bill had grown steadily and, when I broke it down by content type, images accounted for over 70% of served bytes on a content-heavy site with tens of thousands of user-uploaded photos. Most images were being served as JPEG at a single fixed size regardless of the requesting device's actual viewport, meaning a phone displaying a 400px-wide thumbnail was frequently downloading the same 1600px-wide file a desktop user got. I built an image-processing pipeline (using an existing CDN image-transformation feature rather than writing our own resizing service) that generated AVIF as the primary format with a WebP fallback and original-format fallback further back, served through a proper <code>srcset</code>/<code>sizes</code> pair so the browser itself chose the smallest sufficient file for its actual layout width and device pixel ratio, and set long-lived immutable caching on the transformed variants since a given size/format combination for a given source image never needs to change once generated. Total image bytes served dropped by roughly 60%, translating directly into CDN bandwidth cost, and LCP improved as a side effect on any page where an image happened to be the LCP element, purely because the correctly-sized file downloaded faster. What I'd do differently: I initially generated every size/format combination eagerly for every uploaded image, which wasted processing cost on combinations that were rarely or never actually requested — switching to on-demand generation with the CDN caching the result after first request would have saved meaningfully more without changing the user-facing outcome at all.</p>
+<div class="table-wrap">
+<table>
+  <thead><tr><th></th><th>Before</th><th>After</th></tr></thead>
+  <tbody>
+    <tr><td>Format</td><td>JPEG, single fixed size</td><td>AVIF → WebP → original, via srcset</td></tr>
+    <tr><td>Image bytes served</td><td>Baseline</td><td>~60% reduction</td></tr>
+    <tr><td>Sizing</td><td>One size for every device</td><td>Browser picks smallest sufficient size</td></tr>
+    <tr><td>Generation</td><td>N/A</td><td>Initially eager (wasteful), later on-demand + cached</td></tr>
+  </tbody>
+</table>
+</div>
+<div class="callout"><p><strong>What the interviewer is really probing:</strong> whether you understand that <code>srcset</code>/<code>sizes</code> puts the actual sizing decision in the browser's hands rather than the server guessing, and whether you can connect a performance intervention directly to an infrastructure cost line, which is a very concrete, board-legible way to justify performance work. The mistake is stopping at "we used a modern image format" without the sizing story — format alone without correct sizing leaves most of the possible savings on the table.</p></div>
+
+<h3>(b) STAR/CARL scaffold</h3>
+<div class="scaffold"><dl>
+<dt>Situation</dt><dd>The cost breakdown that revealed images as the dominant bandwidth line.</dd>
+<dt>Task</dt><dd>Reduce image bytes served without degrading visual quality.</dd>
+<dt>Action</dt><dd>Modern-format pipeline with proper fallback chain, plus correct srcset/sizes so the browser picks the right file.</dd>
+<dt>Result</dt><dd>The bandwidth reduction and its LCP side-effect.</dd>
+<dt>Do differently</dt><dd>The eager-generation inefficiency you caught after the fact.</dd>
+</dl></div>
+
+<h3>(c) Recall prompts</h3>
+<ul class="recall">
+  <li>Have you broken down a hosting or CDN bill by content type to find where the actual cost concentrates? <details><summary>hint</summary><p>Images are the most common dominant cost on a content-heavy site, but it's worth checking your own numbers rather than assuming.</p></details></li>
+  <li>What's an image-heavy page you maintain that serves a single fixed size to every device? <details><summary>hint</summary><p>If you're not sure whether <code>srcset</code> is doing real work there or just present as boilerplate, check the actual served sizes in DevTools' Network panel.</p></details></li>
+  <li>Have you connected a performance change directly to an infrastructure cost number rather than only a UX metric? <details><summary>hint</summary><p>A cost framing is often the fastest way to get leadership buy-in for performance work.</p></details></li>
+</ul>
+
+<h3>(d) Follow-up drill chain</h3>
+<div class="drill">
+<details class="quiz"><summary>Why does the browser need both srcset and sizes to pick correctly, rather than srcset alone?</summary><p><code>srcset</code> lists the available candidate files and their intrinsic widths, but the browser can't know how large the image will actually render in the page's layout without <code>sizes</code> telling it the image's rendered width relative to the viewport — without sizes, the browser has to guess conservatively, typically defaulting toward a larger candidate than necessary.</p></details>
+<details class="quiz"><summary>What if a user's browser didn't support AVIF at all?</summary><p>That's exactly what the WebP-then-original fallback chain in the same <code>&lt;picture&gt;</code>/srcset structure handles — the browser evaluates format support declaratively via the <code>&lt;source type&gt;</code> attribute and picks the first format it can decode, so an older browser transparently falls back with no extra code needed per request.</p></details>
+<details class="quiz"><summary>At what point would on-demand generation with caching become worse than eager generation?</summary><p>If nearly every size/format combination were actually requested at roughly uniform frequency (unlikely for images, but possible for some content types), the cold-cache penalty on first request for every combination could add up to worse total cost than generating everything once upfront — I'd check actual request-pattern data before assuming on-demand always wins, rather than treating it as a universal rule.</p></details>
+<details class="quiz"><summary>What did you trade away moving to on-demand generation with CDN caching?</summary><p>A cold-cache latency penalty on the very first request for any specific size/format combination, borne by whichever user happens to be first — I accepted that because it's a one-time cost per combination and the CDN's cache then serves every subsequent request instantly.</p></details>
+<details class="quiz"><summary>How does self-hosting versus a managed CDN image-transformation service change this trade-off?</summary><p>A managed service trades a per-transformation cost and vendor dependency for not having to build and maintain resizing/encoding infrastructure ourselves — for our scale, that vendor cost was well below what building and operating an equivalent pipeline in-house would have cost in engineering time, but I'd re-run that comparison at meaningfully different scale.</p></details>
+<details class="quiz"><summary>What would you do differently now?</summary><p>Model the request-frequency distribution across size/format combinations before choosing eager versus on-demand generation, rather than defaulting to eager first and only correcting course after noticing the waste in a later cost review.</p></details>
+</div>
+</section>
+
+<section id="u17" class="unit">
+<div class="story-head"><h2>17 Putting a performance budget in CI</h2><span class="chip">Senior</span><span class="chip">Introducing a new tool</span></div>
+
+<h3>(a) Worked example <span class="chip">EXAMPLE — replace with your own</span></h3>
+<p>Performance regressions on our main app kept shipping unnoticed until they showed up in monthly field-data reviews, weeks after the change that caused them, by which point tracing a regression back to its actual commit meant sifting through weeks of unrelated changes. I proposed adding Lighthouse CI to our pipeline, running against every pull request and failing the build if a defined set of metrics (bundle size, LCP and TFT in a controlled lab environment, not field data) regressed past a set threshold versus the base branch. The rollout needed care: I ran it in report-only mode (visible in the PR, not blocking) for three weeks first to calibrate thresholds against real noise in our own CI environment before switching it to blocking, because an overly strict or noisy gate that blocks merges erodes trust in the tool within days and gets disabled by the first frustrated engineer with merge access. Even after calibration, I built in an explicit, logged override path (a specific PR label plus a required justification comment) for the rare legitimate case — a deliberate trade-off, like the marketing-tag governance case, where a temporary regression is an accepted cost of shipping something more important. Regressions caught before merge went from effectively zero to catching several genuine ones per month, each traceable to one commit instead of a weeks-wide window. What I'd do differently: I'd have looked harder for existing noise-reduction techniques (running each measurement multiple times and taking a median, rather than a single run) from the start — several of the early false-positive complaints during calibration turned out to be single-run CI environment variance, which cost trust in the tool for no real information gained.</p>
+<div class="callout"><p><strong>What the interviewer is really probing:</strong> whether you know that introducing a blocking CI gate requires an explicit trust-building rollout (report-only first, calibrated thresholds, an override path) rather than flipping it on and hoping it's calibrated correctly from day one. The mistake is a story where the tool is introduced and just works — real rollouts have noise, false positives, and a period where the team's trust in the gate is actively being earned or lost.</p></div>
+
+<h3>(b) STAR/CARL scaffold</h3>
+<div class="scaffold"><dl>
+<dt>Situation</dt><dd>The detection lag between a regression shipping and someone noticing it.</dd>
+<dt>Task</dt><dd>Introduce an automated gate without eroding trust through false positives.</dd>
+<dt>Action</dt><dd>Report-only calibration period, the eventual blocking switch, and the explicit override path.</dd>
+<dt>Result</dt><dd>Regressions now caught pre-merge and traceable to a single commit.</dd>
+<dt>Do differently</dt><dd>The noise-reduction technique you should have used from day one.</dd>
+</dl></div>
+
+<h3>(c) Recall prompts</h3>
+<ul class="recall">
+  <li>Have you rolled out a blocking CI gate, and did you run it report-only first to calibrate? <details><summary>hint</summary><p>Skipping the calibration period is a common way a good idea gets disabled within its first month.</p></details></li>
+  <li>What's a CI check you've seen disabled or ignored because it was too noisy? <details><summary>hint</summary><p>Naming a failure mode you've witnessed (even if not one you caused) shows you understand the risk this story is about.</p></details></li>
+  <li>Does your team's performance CI gate (if you have one) have an explicit, logged override path for legitimate exceptions? <details><summary>hint</summary><p>A gate with no escape hatch tends to get bypassed informally instead, which is worse than a logged, deliberate override.</p></details></li>
+</ul>
+
+<h3>(d) Follow-up drill chain</h3>
+<div class="drill">
+<details class="quiz"><summary>Why does taking a median of multiple runs reduce false positives better than a single measurement?</summary><p>Lab performance measurements are subject to CI-environment noise (shared runner CPU contention, cold caches, GC timing) that varies run to run; a single run's regression can just be that run's noise, while a median across several runs filters out one-off outliers and reflects the change's actual typical impact more reliably.</p></details>
+<details class="quiz"><summary>What if a regression only showed up in field data, not in the lab-based CI check at all?</summary><p>That's a real, known gap — lab conditions (fixed device/network profile, no real-world traffic mix) can miss regressions that only manifest under real-world diversity of devices and networks. I'd treat the CI gate as a first line of defense, not a complete substitute for the field-data review that catches what the lab can't.</p></details>
+<details class="quiz"><summary>At what point would you loosen a threshold rather than defend it?</summary><p>If calibration data showed the threshold was tripping on legitimate, intentional trade-offs more often than on genuine regressions, I'd loosen it — a gate that's technically working as configured but flagging the wrong things needs its configuration questioned, not just its message dismissed as noise.</p></details>
+<details class="quiz"><summary>What did the report-only calibration period cost versus just launching blocking immediately?</summary><p>Three weeks of regressions that could still merge unblocked — a real, accepted cost, but one I judged smaller than the alternative risk of a broken-trust gate getting disabled entirely after one bad week and losing the capability altogether.</p></details>
+<details class="quiz"><summary>How does this differ for a monorepo with many teams versus the single-team rollout described here?</summary><p>Threshold calibration and the override path both need to be visible and consistent across teams, or one team's looser interpretation becomes a perceived unfairness — I'd centralize the threshold-setting and override-approval process rather than let each team calibrate independently.</p></details>
+<details class="quiz"><summary>What would you do differently now?</summary><p>Adopt a multi-run median (or a similar noise-reduction technique) as the default from the very first day of the report-only period, instead of discovering the need for it partway through calibration after losing some early trust to preventable false positives.</p></details>
+</div>
+</section>
+
+<section id="u18" class="unit">
+<div class="story-head"><h2>18 The analytics vendor that took the homepage down with it</h2><span class="chip">Mid</span><span class="chip">On-call firefighting</span></div>
+
+<h3>(a) Worked example <span class="chip">EXAMPLE — replace with your own</span></h3>
+<p>I was paged for a full outage — the homepage was returning a blank white screen for a significant fraction of users — and initial triage suggested nothing had deployed on our side in the preceding hours, which made it confusing until I checked the Network panel and found a third-party analytics script's endpoint hanging with no response, and our own inline script tag had no <code>async</code> or <code>defer</code> attribute, meaning the browser's parser was blocked waiting on that script before it could continue building and rendering the rest of the page. The vendor was having their own outage; our page had an unrelated but load-bearing dependency on their uptime that nobody had thought about until this exact moment, because it had simply always worked before. The immediate fix was operational, not a code change: I coordinated with whoever had access to our CDN/edge configuration to add a rule stripping that specific script tag from the served HTML entirely until the vendor recovered, restoring the page within about fifteen minutes of the page firing. The follow-up fix, once the immediate fire was out, was to add <code>async</code> to that script tag (and audit our other third-party tags for the same missing attribute) so that a future vendor outage would degrade that one script's functionality without ever again being able to block the entire page's render. What I'd do differently: this was the first full outage I'd on-call'd for that was caused entirely by someone else's infrastructure, and my early triage instinct was to keep looking at our own recent deploys well past the point where the evidence (nothing had deployed) should have redirected me toward an external cause sooner.</p>
+<div class="callout"><p><strong>What the interviewer is really probing:</strong> whether you understand mechanically why a synchronous script tag with no async/defer can let a third party's outage become your outage, and whether your on-call triage process correctly widens to external causes once internal ones are ruled out, rather than getting stuck re-checking the same internal evidence. The mistake is a story that jumps straight to "we added async" without explaining the actual failure mechanism, or one where the triage delay isn't acknowledged.</p></div>
+
+<h3>(b) STAR/CARL scaffold</h3>
+<div class="scaffold"><dl>
+<dt>Situation</dt><dd>The full outage with no matching internal deploy.</dd>
+<dt>Task</dt><dd>Find the actual cause and restore service quickly.</dd>
+<dt>Action</dt><dd>The Network-panel finding, the immediate operational mitigation, and the follow-up code fix.</dd>
+<dt>Result</dt><dd>Time to restore, and the durable fix that prevents a repeat with any vendor.</dd>
+<dt>Do differently</dt><dd>The triage delay caused by not widening the search to external causes sooner.</dd>
+</dl></div>
+
+<h3>(c) Recall prompts</h3>
+<ul class="recall">
+  <li>Have you been on-call for an outage caused entirely by a third party's infrastructure, not your own code? <details><summary>hint</summary><p>The interesting part of this story is the triage process, not just the eventual root cause.</p></details></li>
+  <li>Do you know, right now, which of your site's third-party script tags are missing async or defer? <details><summary>hint</summary><p>If you're not sure, that's worth checking — it's a very common, very findable gap.</p></details></li>
+  <li>What's a mitigation you've applied that was operational (a config change, a feature flag) rather than a code deploy, specifically because it was faster? <details><summary>hint</summary><p>Speed of mitigation during an active incident often matters more than elegance.</p></details></li>
+</ul>
+
+<h3>(d) Follow-up drill chain</h3>
+<div class="drill">
+<details class="quiz"><summary>Why does a missing async attribute let a hanging network request block the entire page, not just that one script's own functionality?</summary><p>Without <code>async</code> or <code>defer</code>, the HTML parser must fetch, download, and execute a <code>&lt;script&gt;</code> tag before it can continue parsing the rest of the document — if the fetch itself hangs (a slow or unresponsive server), the parser is blocked indefinitely at that exact point, so nothing after that tag in the HTML renders until it resolves or times out.</p></details>
+<details class="quiz"><summary>What if stripping the script tag at the edge had itself broken something else that depended on it loading?</summary><p>I'd have checked, before applying the mitigation, what else on the page depended on that script (any code that referenced a global it defined, for instance) — in this case the analytics script was genuinely self-contained with nothing else depending on its presence, which is part of why the mitigation was safe to apply quickly.</p></details>
+<details class="quiz"><summary>At what point would defer be the wrong choice compared to async for a similar script?</summary><p><code>defer</code> guarantees execution order and waits until after parsing completes, which is right for scripts with dependencies on the DOM or on each other; <code>async</code> executes as soon as it's fetched, with no ordering guarantee, which suits an independent script like this analytics tag with no interaction with anything else on the page.</p></details>
+<details class="quiz"><summary>What did the edge-config mitigation cost us versus doing nothing and waiting for the vendor to recover?</summary><p>Some analytics data loss for the mitigation window — we weren't capturing that vendor's events while the tag was stripped — a clearly acceptable trade against a fully broken homepage for however long the vendor's own outage lasted.</p></details>
+<details class="quiz"><summary>How would a Content-Security-Policy or Speculation Rules–based approach have changed this incident?</summary><p>Neither directly prevents this failure mode — CSP restricts what a script can do, not whether the page waits on its network request, and Speculation Rules is about prerendering likely-next navigations, unrelated to this. The actual fix (async/defer) is specifically about not letting the parser block on a synchronous fetch, which is a different mechanism entirely.</p></details>
+<details class="quiz"><summary>What would you do differently now?</summary><p>Build a standing audit (even a simple script scanning our served HTML for script tags with neither async nor defer) rather than relying on catching it during an incident review of one specific outage.</p></details>
+</div>
+</section>
+
+<section id="u19" class="unit">
+<div class="story-head"><h2>19 Lighthouse CI was too noisy to trust</h2><span class="chip">Senior</span><span class="chip">CI / reliability improvement</span></div>
+
+<h3>(a) Worked example <span class="chip">EXAMPLE — replace with your own</span></h3>
+<p>A Lighthouse CI check that another engineer had introduced a year earlier had, over time, become something most of the team clicked past without reading — it failed often enough on unrelated pull requests that "just re-run it, it's probably flaky" had become the default response, which meant it was providing essentially zero real signal by the time I looked into it despite still gating merges nominally. I instrumented the check's own history: pulled the last few months of CI run results and found the failure rate was over 30% on PRs that made no performance-relevant change at all, which confirmed the "it's flaky" folk wisdom was actually correct and not just an excuse. The root causes were mundane once measured rather than assumed: our CI runners were shared, variably-loaded machines with no CPU throttling normalization, so the same code could measure as fast or slow depending on what else happened to be running on that runner at that moment, and the check compared against a single baseline run rather than a distribution. I moved the check to a dedicated, consistently-provisioned runner pool, switched to a median-of-five-runs comparison with a wider tolerance band tuned against several weeks of the new setup's own noise floor, and added a clear, specific failure message naming which metric regressed by how much instead of a generic "performance check failed" that told nobody anything actionable. False-positive rate dropped to under 3%, and — more importantly than the number itself — the team's own trust in the check visibly recovered; people started actually reading the failure messages again instead of reflexively re-running. What I'd do differently: I'd have measured the actual false-positive rate the moment the "just re-run it" pattern first became common team folklore, rather than letting a whole year pass with a nominally-blocking check that had, in practice, already stopped meaningfully blocking anything.</p>
+<div class="callout"><p><strong>What the interviewer is really probing:</strong> whether you diagnose "this check is unreliable" with actual historical failure-rate data rather than accepting team folklore at face value, and whether you understand the specific infrastructure causes of CI performance-measurement noise (shared runners, single-run comparisons). The mistake is a story that just says "we made it more reliable" without the mechanism — a vague fix reads as having gotten lucky rather than having understood the problem.</p></div>
+
+<h3>(b) STAR/CARL scaffold</h3>
+<div class="scaffold"><dl>
+<dt>Situation</dt><dd>The check that had quietly stopped providing real signal, and the "just re-run it" folklore around it.</dd>
+<dt>Task</dt><dd>Confirm the actual problem with data before proposing a fix.</dd>
+<dt>Action</dt><dd>The failure-rate measurement, the two infrastructure root causes, and the fixes for each.</dd>
+<dt>Result</dt><dd>The false-positive rate, and the team's trust visibly recovering.</dd>
+<dt>Do differently</dt><dd>How long the folklore was allowed to stand before anyone measured it.</dd>
+</dl></div>
+
+<h3>(c) Recall prompts</h3>
+<ul class="recall">
+  <li>What's a CI check on your team that people reflexively re-run rather than trust the first time? <details><summary>hint</summary><p>If one exists, that's a live version of this exact story waiting to be fixed.</p></details></li>
+  <li>Have you measured a check's actual false-positive rate rather than relying on team folklore about its reliability? <details><summary>hint</summary><p>Pulling historical CI run data to confirm or refute a belief is the concrete method this recall is testing.</p></details></li>
+  <li>What's a generic, unhelpful failure message you've replaced with something specific and actionable? <details><summary>hint</summary><p>"Check failed" versus "LCP regressed by 400ms on route X" is the exact contrast this story draws.</p></details></li>
+</ul>
+
+<h3>(d) Follow-up drill chain</h3>
+<div class="drill">
+<details class="quiz"><summary>Why does a shared, variably-loaded CI runner specifically break performance measurements more than it breaks, say, a unit test?</summary><p>A unit test's pass/fail is generally independent of how fast it runs, so contention just makes it slower without changing the result — a performance measurement's result <em>is</em> the timing, so the same contention that only costs a unit test some wall-clock time directly corrupts a performance check's actual signal.</p></details>
+<details class="quiz"><summary>What if moving to a dedicated runner pool wasn't within budget?</summary><p>I'd lean harder on the statistical side of the fix — more runs per check (median or even trimmed-mean of a larger sample) and a wider tolerance band calibrated to the noisier shared-runner environment's actual variance, accepting a less sensitive check as the cost of not having dedicated hardware.</p></details>
+<details class="quiz"><summary>At what point would you recommend removing a check like this entirely rather than trying to fix it?</summary><p>If, after genuinely trying to fix the noise sources, the false-positive rate stayed high enough that the team's trust couldn't realistically recover, I'd rather remove the gate and rely on the field-data review cadence than keep a nominally-blocking check that everyone has learned to ignore — a check nobody trusts is worse than no check, because it creates a false sense of coverage.</p></details>
+<details class="quiz"><summary>What did the wider tolerance band trade away?</summary><p>Some sensitivity — a genuinely small regression is now more likely to slip through unflagged than it would with a tighter band. I judged that trade worth making because a check that's too sensitive to catch everything, but is trusted by nobody, catches less in practice than a slightly less sensitive check people actually read.</p></details>
+<details class="quiz"><summary>How does this generalize to other kinds of flaky CI checks beyond performance?</summary><p>The same diagnostic pattern — measure the actual historical failure rate instead of trusting folklore, find the specific infrastructure or test-design root cause, fix that root cause rather than just retrying more — applies just as directly to flaky integration or end-to-end tests, which suffer from analogous environmental noise sources.</p></details>
+<details class="quiz"><summary>What would you do differently now?</summary><p>Set a standing quarterly check on every blocking CI gate's actual false-positive rate, rather than waiting for folklore to build up and then reacting to it once someone happens to investigate.</p></details>
+</div>
+</section>
+
+<section id="u20" class="unit">
+<div class="story-head"><h2>20 Saying no to an autoplay hero video</h2><span class="chip">Principal</span><span class="chip">Stakeholder pushback</span></div>
+
+<h3>(a) Worked example <span class="chip">EXAMPLE — replace with your own</span></h3>
+<p>A newly-hired CMO, coming from a brand-marketing background, wanted the homepage redesigned around a full-bleed, autoplaying background video in the hero section, modeled on a competitor's site they admired. I'd already seen this exact pattern cost a previous team dearly — autoplaying video is a significant, sustained main-thread and network cost that actively fights good LCP and INP, and on mobile networks (where a meaningful share of our traffic came from) it could add real, measurable cost to users on metered data plans. Rather than simply refusing a VP-level, brand-driven request — which would have been both organizationally unwise and not actually in the company's interest, since the underlying goal (an impactful, premium-feeling hero) was completely legitimate — I asked for a short discovery conversation to understand what specifically about the competitor's video the CMO found compelling, and it turned out to be the sense of motion and production quality, not literally "video" as a technical requirement. I proposed and prototyped an alternative: a short, muted, <code>&lt;video&gt;</code> fallback-to-static-poster-image approach for capable connections, using the <code>prefers-reduced-motion</code> media query to skip video entirely for users who'd expressed that preference, lazy-initializing the video only after the LCP-critical poster image had already painted so the video was strictly additive rather than something the page waited on, and capping it to a connection-quality check (<code>navigator.connection.effectiveType</code> where available) that fell back to the static poster image entirely on a slow connection. I walked the CMO through both versions side by side rather than just describing the difference, and they preferred the prototype once they saw it looked and felt like what they wanted, at a fraction of the performance cost of true unconditional autoplay. What I'd do differently: I'd have framed the initial conversation entirely around their actual goal (impact, motion, premium feel) from my very first sentence, instead of opening with a technical objection to their proposed literal implementation — leading with the shared goal would likely have gotten to the same collaborative outcome with noticeably less initial friction.</p>
+<div class="callout"><p><strong>What the interviewer is really probing:</strong> whether you can push back on a senior stakeholder's specific request without dismissing their underlying (legitimate) goal, by separating "what they asked for" from "what they actually need" and prototyping an alternative rather than just arguing in the abstract. The mistake at principal level is a story where the stakeholder is simply overruled by technical authority — the strongest version finds and delivers what they actually wanted, at a cost they're happy to pay.</p></div>
+
+<h3>(b) STAR/CARL scaffold</h3>
+<div class="scaffold"><dl>
+<dt>Situation</dt><dd>The senior stakeholder's specific, brand-driven request and its real performance cost.</dd>
+<dt>Task</dt><dd>Address the underlying goal without either rubber-stamping the literal request or dismissing it outright.</dd>
+<dt>Action</dt><dd>The discovery conversation, the prototype built around the actual goal, and the safeguards (reduced-motion, connection-aware fallback, non-blocking load) built into it.</dd>
+<dt>Result</dt><dd>The stakeholder's own preference for the prototype once they saw it.</dd>
+<dt>Do differently</dt><dd>How the initial framing could have led with the shared goal instead of a technical objection.</dd>
+</dl></div>
+
+<h3>(c) Recall prompts</h3>
+<ul class="recall">
+  <li>What's a senior stakeholder's specific request you pushed back on by addressing their underlying goal instead of just saying no? <details><summary>hint</summary><p>The separation between "what they asked for" and "what they actually need" is the core move this story tests.</p></details></li>
+  <li>Have you prototyped an alternative rather than only argued for one in the abstract? <details><summary>hint</summary><p>Showing, not just describing, is often what actually changes a stakeholder's mind.</p></details></li>
+  <li>What's a case where you built a fallback specifically for reduced-motion, low-bandwidth, or another accessibility/inclusivity preference? <details><summary>hint</summary><p>Naming the specific mechanism (a media query, a connection check) shows real, not just claimed, care about it.</p></details></li>
+</ul>
+
+<h3>(d) Follow-up drill chain</h3>
+<div class="drill">
+<details class="quiz"><summary>Why does deferring the video's initialization until after the poster image paints protect LCP specifically?</summary><p>If the LCP element is the poster image, its paint timing is what's measured — as long as the video initialization happens strictly after that paint and doesn't block or compete with the resources needed for it, the video's own cost falls outside the LCP window entirely rather than delaying it.</p></details>
+<details class="quiz"><summary>What if the CMO had insisted on true unconditional autoplay even after seeing the prototype?</summary><p>I'd present the actual metric cost in business terms (a specific projected LCP/INP impact on the mobile traffic segment, and what that segment's conversion sensitivity to speed has historically looked like) and let them make the final call as the accountable stakeholder — at that point it's a legitimate business trade-off for them to own, not a technical decision for me to make unilaterally.</p></details>
+<details class="quiz"><summary>At what point would you not push back on a similar request at all?</summary><p>If the page in question were low-traffic or not performance-sensitive by design (an internal-only marketing preview page, say), the same request wouldn't warrant the same pushback — the stakes here came specifically from this being the public homepage carrying real traffic and real conversion sensitivity.</p></details>
+<details class="quiz"><summary>What did the connection-quality fallback trade away?</summary><p>Some consistency of experience — users on the same page can see meaningfully different heroes (video vs. static poster) depending on their measured connection quality, which is a real design compromise. I judged it worth accepting because a uniformly bad experience for slow-connection users is a worse outcome than an inconsistent-but-locally-optimized one.</p></details>
+<details class="quiz"><summary>How does the Speculation Rules API or the Long Animation Frames API relate to a decision like this one?</summary><p>Neither directly — Speculation Rules is about prerendering a likely next navigation and Long Animation Frames is a diagnostic API for attributing main-thread jank, and this decision was about avoiding adding the jank-causing cost in the first place. They're complementary tools for a different stage of the same overall performance practice, not alternatives to this specific fix.</p></details>
+<details class="quiz"><summary>What would you do differently now?</summary><p>Open the very first conversation with "help me understand what feeling you want the hero to create" before I'd said anything about performance cost at all — starting from their goal rather than my objection would likely have reached the same prototype with a shorter, less adversarial path there.</p></details>
+</div>
+</section>
+
+<section id="u21" class="unit">
+<div class="story-head"><h2>21 The big behavioural Q&amp;A</h2><span class="chip">cross-cutting</span></div>
+<p>Twenty prompts an interviewer might ask that don't map to one story alone. Each names which story above (u01–u20) answers it best and what the interviewer is actually listening for. Open one, answer out loud, then check it against the story.</p>
+
+<h3 class="qa-theme">Failure &amp; ownership</h3>
+<div class="drill">
+<details class="quiz"><summary>Tell me about a time you made a decision that turned out to be wrong.</summary><p>Deploy u15 (the streaming-SSR rewrite you cancelled) or u02 (choosing islands over SSG/SSR) — either shows a defensible call at the time that had to be revisited. Own the call itself, not the information you had or the people who later disagreed with it.</p></details>
+<details class="quiz"><summary>Describe a production incident you caused or significantly contributed to.</summary><p>Deploy u03 (the 4GB memory leak) or u18 (the analytics vendor outage) — both are diagnostic misses or gaps you own, not someone else's bug alone. Listen for whether you name the actual mechanism, not just "we fixed it."</p></details>
+<details class="quiz"><summary>What's the biggest technical mistake of your career?</summary><p>Deploy u09 (11MB of unaccountable JavaScript) — it's concrete, has a real consequence, and has a durable fix (the CI bundle budget) attached, which is what separates a good answer here from a generic one.</p></details>
+<details class="quiz"><summary>How do you handle being wrong in front of your team?</summary><p>Deploy u05 (the lazy-load disagreement) or u15 — both involve being challenged or having to reverse a public position. The interviewer is checking for defensiveness versus a straightforward account.</p></details>
+</div>
+
+<h3 class="qa-theme">Conflict &amp; influence</h3>
+<div class="drill">
+<details class="quiz"><summary>Tell me about a disagreement with a manager or more senior person.</summary><p>Deploy u20 (the autoplay hero video) or u11 (the launch-day chat widget) — both are pushback on a specific, defensible line, with a proposed alternative, not a flat refusal.</p></details>
+<details class="quiz"><summary>How do you get buy-in for something people are resistant to?</summary><p>Deploy u17 (the Lighthouse CI rollout) — a report-only calibration period that earned trust before blocking is a stronger answer than "I convinced them," because it shows a mechanism, not just persistence.</p></details>
+<details class="quiz"><summary>Describe a time you had to say no to a request.</summary><p>Deploy u11 — the key beat is that you didn't just say no, you offered a scoped, cheaper alternative that still served the underlying need on the original timeline.</p></details>
+<details class="quiz"><summary>Tell me about a conflict with a peer, not a manager.</summary><p>Deploy u05 (the lazy-load codemod disagreement) reframed around the teammate who proposed it, or u04 (the Webpack-to-Vite migration) around whoever preferred the familiar tooling — both are disagreements about the right technical call, not about status.</p></details>
+</div>
+
+<h3 class="qa-theme">Leadership &amp; mentoring</h3>
+<div class="drill">
+<details class="quiz"><summary>Tell me about mentoring someone less experienced.</summary><p>Deploy u10 (teaching a junior to read a flame chart) — the strong beat is the diagnostic habit you handed off (reading bottom-up, verifying the fix themselves), not just "I explained the bug to them."</p></details>
+<details class="quiz"><summary>How do you approach onboarding someone onto a system you own?</summary><p>Deploy u10 or u09 (the unowned bundle) — both show building a repeatable diagnostic process rather than a one-off explanation.</p></details>
+<details class="quiz"><summary>Describe a time you had to influence without direct authority.</summary><p>Deploy u14 (marketing's tag-management governance) or u17 (Lighthouse CI rollout) — both require getting another team to change behavior with no reporting line involved.</p></details>
+<details class="quiz"><summary>What's your approach to setting standards across teams?</summary><p>Deploy u14 (the tag-budget governance layer) — the strong beat is a negotiated, informing-not-blocking system rather than an unwritten expectation everyone quietly resents or works around.</p></details>
+</div>
+
+<h3 class="qa-theme">Ambiguity &amp; prioritisation</h3>
+<div class="drill">
+<details class="quiz"><summary>Tell me about a time requirements were unclear or shifting.</summary><p>Deploy u13 ("just make it fast" with no metric) — the strong beat is turning a vague mandate into a confirmed, measurable target before doing any optimization work.</p></details>
+<details class="quiz"><summary>How do you decide what to fix now versus later?</summary><p>Deploy u16 (image-bandwidth cost) or u09 (bundle cleanup) — both show a scoped, high-leverage fix now plus a durable guard (a CI budget, on-demand caching) for the rest, rather than an all-or-nothing rewrite.</p></details>
+<details class="quiz"><summary>Describe a time you had to make a call with incomplete information.</summary><p>Deploy u02 (the original rendering-strategy spike) — it was a reasonable call given what the two-week spike could show, which is the honest way to frame a decision made under real uncertainty.</p></details>
+<details class="quiz"><summary>Tell me about a project that got cancelled or deprioritised.</summary><p>Deploy u15 — the streaming-SSR rewrite is a cancelled-project story that isn't really about failure, which is exactly the nuance this question is probing for.</p></details>
+</div>
+
+<h3 class="qa-theme">Values &amp; motivation</h3>
+<div class="drill">
+<details class="quiz"><summary>What kind of work energises you?</summary><p>Deploy whichever story you told with the most genuine detail in this bank — enthusiasm doesn't survive a flat retelling, so pick the one you actually enjoy explaining, likely u01, u10, or u16.</p></details>
+<details class="quiz"><summary>Tell me about a time you went beyond what was asked.</summary><p>Deploy u07 (the CDN cache-hit ratio) or u19 (fixing the noisy Lighthouse CI check) — both start from a problem nobody assigned you and end with a systemic fix, which is the shape this question wants.</p></details>
+<details class="quiz"><summary>How do you think about security trade-offs in your day-to-day work?</summary><p>Deploy u08 (the missing SRI/CSP on a chat widget) — grounding the abstract principle in a specific mechanism (a compromised CDN, a supply-chain risk) is what makes this answer land instead of sounding like a slogan.</p></details>
+<details class="quiz"><summary>What's a piece of feedback that changed how you work?</summary><p>Deploy u06 (the throttled-connection CLS bug) or u12 (the silent storage eviction) — the "what I'd do differently" beat in either story is effectively feedback you gave yourself; say so directly if you don't have an external example.</p></details>
+</div>
+</section>
+
+<section id="u22" class="unit">
+<div class="story-head"><h2>22 Night-before cheat sheet</h2><span class="chip">final review</span></div>
+<p>Ten sentences to read once, out loud, the night before. Not new content — a compression of everything above into what you actually need to remember walking in.</p>
+<div class="cheat"><ol>
+<li>Open every story with the situation in one plain sentence before any detail — the interviewer is oriented in the first five seconds or not at all.</li>
+<li>Every story needs a number: a percentile, a millisecond figure, a byte count, a percentage. If you don't have one, say the honest qualitative version instead of inventing a precise-sounding fake.</li>
+<li>Know your Core Web Vitals cold: LCP ≤2.5s, INP ≤200ms, CLS ≤0.1, all at the 75th percentile of real-user field data — and that INP replaced FID as the official responsiveness metric in March 2024.</li>
+<li>Always answer "what would you do differently" with something specific, not "communicate better" — name the concrete check, default, or policy that should have existed.</li>
+<li>Distinguish lab data (Lighthouse, a local trace) from field data (CrUX, real-user monitoring) explicitly — conflating them is a common tell that you haven't actually shipped a fix and watched it land.</li>
+<li>Every technical decision had a trade-off; name what you gave up, not just what you gained — a story with no downside sounds rehearsed, not real.</li>
+<li>Name the actual constraint you were under (a deadline, a legacy dependency, a non-engineering stakeholder's need) — it's what makes a decision legible instead of arbitrary.</li>
+<li>For an incident or security story, state what changed in your process afterward, not just that the immediate issue got fixed — a fix without a process change invites the same question twice.</li>
+<li>Keep any API or platform specifics you cite honest about how settled they are — say plainly when something (Speculation Rules, Long Animation Frames) is still evolving rather than presenting it as long-established.</li>
+<li>Never fake a story you don't have — say plainly you haven't hit that situation yet and reason out loud how you'd approach it; that reads as more senior than a fabricated example.</li>
+</ol></div>
+</section>
+
+</main>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/highlight.min.js"></script>
+<script>
+(function () {
+  try { if (window.hljs) hljs.highlightAll(); } catch (e) { /* decoration only */ }
+
+  var toggle = document.getElementById('sideToggle');
+  var sidebar = document.getElementById('sidebar');
+  if (toggle && sidebar) {
+    toggle.addEventListener('click', function () {
+      var open = sidebar.classList.toggle('open');
+      toggle.setAttribute('aria-expanded', open ? 'true' : 'false');
+    });
+    sidebar.querySelectorAll('a').forEach(function (a) {
+      a.addEventListener('click', function () { sidebar.classList.remove('open'); toggle.setAttribute('aria-expanded', 'false'); });
+    });
+  }
+
+  var links = Array.prototype.slice.call(document.querySelectorAll('.units a'));
+  var units = links.map(function (a) { return document.querySelector(a.getAttribute('href')); });
+  function setCurrent(id) {
+    links.forEach(function (a) { a.setAttribute('aria-current', a.getAttribute('href') === '#' + id ? 'true' : 'false'); });
+  }
+  if ('IntersectionObserver' in window) {
+    var observer = new IntersectionObserver(function (entries) {
+      var visible = entries.filter(function (e) { return e.isIntersecting; })
+        .sort(function (a, b) { return b.intersectionRatio - a.intersectionRatio; });
+      if (visible.length) setCurrent(visible[0].target.id);
+    }, { rootMargin: '-10% 0px -70% 0px', threshold: [0, 0.25, 0.5, 0.75, 1] });
+    units.forEach(function (u) { if (u) observer.observe(u); });
+  }
+  if (links.length) setCurrent(links[0].getAttribute('href').slice(1));
+})();
+</script>
+</body>
+</html>

@@ -125,6 +125,49 @@ window.DEVBOK_TOPICS = [
     }
   },
   {
+    "slug": "api-design",
+    "title": "API design (REST, gRPC, GraphQL)",
+    "topic": "API design (e.g., REST resource modelling and Richardson maturity, versioning strategies, pagination and filtering, idempotency, error contracts and problem details, OpenAPI, HATEOAS, REST vs gRPC vs GraphQL trade-offs, rate limiting and deprecation; mainly for .NET developers — assume ASP.NET Core framework mechanics are mostly covered separately)",
+    "category": "backend",
+    "accent": "#6ba539",
+    "accentDark": "#a5d27e",
+    "created": "2026-09-08",
+    "kinds": {
+      "study": [
+        {
+          "v": 1,
+          "generated": "2026-09-08",
+          "prompt": "e02cbdee",
+          "file": "topics/api-design/study.v1.html"
+        }
+      ],
+      "experience": [
+        {
+          "v": 1,
+          "generated": "2026-09-08",
+          "prompt": "2bcfefa8",
+          "file": "topics/api-design/experience.v1.html"
+        }
+      ],
+      "interview": [
+        {
+          "v": 1,
+          "generated": "2026-09-08",
+          "prompt": "008cfc76",
+          "file": "topics/api-design/interview.v1.html"
+        }
+      ],
+      "cheatsheet": [
+        {
+          "v": 1,
+          "generated": "2026-09-08",
+          "prompt": "7ff70aff",
+          "file": "topics/api-design/cheatsheet.v1.html"
+        }
+      ]
+    }
+  },
+  {
     "slug": "appsec",
     "title": "Application security",
     "topic": "Application security",
@@ -206,6 +249,49 @@ window.DEVBOK_TOPICS = [
           "generated": "2026-09-08",
           "prompt": "7ff70aff",
           "file": "topics/aspnet/cheatsheet.v1.html"
+        }
+      ]
+    }
+  },
+  {
+    "slug": "auth",
+    "title": "Authn & authz (.NET, OAuth/OIDC)",
+    "topic": "Authentication & authorization (OAuth 2.1, OpenID Connect, JWT vs cookies, the ASP.NET Core authn/authz stack, Entra ID, token lifetimes and revocation; mainly for .NET developers)",
+    "category": "practice",
+    "accent": "#047857",
+    "accentDark": "#57f9cb",
+    "created": "2026-09-08",
+    "kinds": {
+      "study": [
+        {
+          "v": 1,
+          "generated": "2026-09-08",
+          "prompt": "e02cbdee",
+          "file": "topics/auth/study.v1.html"
+        }
+      ],
+      "experience": [
+        {
+          "v": 1,
+          "generated": "2026-09-08",
+          "prompt": "2bcfefa8",
+          "file": "topics/auth/experience.v1.html"
+        }
+      ],
+      "interview": [
+        {
+          "v": 1,
+          "generated": "2026-09-08",
+          "prompt": "008cfc76",
+          "file": "topics/auth/interview.v1.html"
+        }
+      ],
+      "cheatsheet": [
+        {
+          "v": 1,
+          "generated": "2026-09-08",
+          "prompt": "7ff70aff",
+          "file": "topics/auth/cheatsheet.v1.html"
         }
       ]
     }
@@ -383,6 +469,92 @@ window.DEVBOK_TOPICS = [
     }
   },
   {
+    "slug": "docker",
+    "title": "Docker / Containerization",
+    "topic": "Docker / Containerization",
+    "category": "ops",
+    "accent": "#2496ed",
+    "accentDark": "#5fb2f2",
+    "created": "2026-09-08",
+    "kinds": {
+      "study": [
+        {
+          "v": 1,
+          "generated": "2026-09-08",
+          "prompt": "e02cbdee",
+          "file": "topics/docker/study.v1.html"
+        }
+      ],
+      "experience": [
+        {
+          "v": 1,
+          "generated": "2026-09-08",
+          "prompt": "2bcfefa8",
+          "file": "topics/docker/experience.v1.html"
+        }
+      ],
+      "interview": [
+        {
+          "v": 1,
+          "generated": "2026-09-08",
+          "prompt": "008cfc76",
+          "file": "topics/docker/interview.v1.html"
+        }
+      ],
+      "cheatsheet": [
+        {
+          "v": 1,
+          "generated": "2026-09-08",
+          "prompt": "7ff70aff",
+          "file": "topics/docker/cheatsheet.v1.html"
+        }
+      ]
+    }
+  },
+  {
+    "slug": "ddd",
+    "title": "Domain-Driven Design (.NET)",
+    "topic": "Domain Driven Design (mainly for .NET developers)",
+    "category": "architecture",
+    "accent": "#be185d",
+    "accentDark": "#ec659d",
+    "created": "2026-09-08",
+    "kinds": {
+      "study": [
+        {
+          "v": 1,
+          "generated": "2026-09-08",
+          "prompt": "e02cbdee",
+          "file": "topics/ddd/study.v1.html"
+        }
+      ],
+      "experience": [
+        {
+          "v": 1,
+          "generated": "2026-09-08",
+          "prompt": "2bcfefa8",
+          "file": "topics/ddd/experience.v1.html"
+        }
+      ],
+      "interview": [
+        {
+          "v": 1,
+          "generated": "2026-09-08",
+          "prompt": "008cfc76",
+          "file": "topics/ddd/interview.v1.html"
+        }
+      ],
+      "cheatsheet": [
+        {
+          "v": 1,
+          "generated": "2026-09-08",
+          "prompt": "7ff70aff",
+          "file": "topics/ddd/cheatsheet.v1.html"
+        }
+      ]
+    }
+  },
+  {
     "slug": "entityframework",
     "title": "Entity Framework",
     "topic": "Entity Framework",
@@ -421,6 +593,49 @@ window.DEVBOK_TOPICS = [
           "generated": "2026-09-08",
           "prompt": "7ff70aff",
           "file": "topics/entityframework/cheatsheet.v1.html"
+        }
+      ]
+    }
+  },
+  {
+    "slug": "iac",
+    "title": "IaC (Terraform & Bicep)",
+    "topic": "IaC, Terraform, Bicep",
+    "category": "ops",
+    "accent": "#7b42bc",
+    "accentDark": "#a67fd2",
+    "created": "2026-09-08",
+    "kinds": {
+      "study": [
+        {
+          "v": 1,
+          "generated": "2026-09-08",
+          "prompt": "e02cbdee",
+          "file": "topics/iac/study.v1.html"
+        }
+      ],
+      "experience": [
+        {
+          "v": 1,
+          "generated": "2026-09-08",
+          "prompt": "2bcfefa8",
+          "file": "topics/iac/experience.v1.html"
+        }
+      ],
+      "interview": [
+        {
+          "v": 1,
+          "generated": "2026-09-08",
+          "prompt": "008cfc76",
+          "file": "topics/iac/interview.v1.html"
+        }
+      ],
+      "cheatsheet": [
+        {
+          "v": 1,
+          "generated": "2026-09-08",
+          "prompt": "7ff70aff",
+          "file": "topics/iac/cheatsheet.v1.html"
         }
       ]
     }
@@ -598,6 +813,49 @@ window.DEVBOK_TOPICS = [
     }
   },
   {
+    "slug": "payments",
+    "title": "Payment systems & integrations",
+    "topic": "Payment systems & integrations (PSP APIs such as Stripe and Adyen, idempotency and retries, webhook handling, 3-D Secure/SCA, PCI DSS scope reduction, refunds, chargebacks, ledgers and reconciliation; mainly for .NET developers)",
+    "category": "backend",
+    "accent": "#635bff",
+    "accentDark": "#635bff",
+    "created": "2026-09-08",
+    "kinds": {
+      "study": [
+        {
+          "v": 1,
+          "generated": "2026-09-08",
+          "prompt": "e02cbdee",
+          "file": "topics/payments/study.v1.html"
+        }
+      ],
+      "experience": [
+        {
+          "v": 1,
+          "generated": "2026-09-08",
+          "prompt": "2bcfefa8",
+          "file": "topics/payments/experience.v1.html"
+        }
+      ],
+      "interview": [
+        {
+          "v": 1,
+          "generated": "2026-09-08",
+          "prompt": "008cfc76",
+          "file": "topics/payments/interview.v1.html"
+        }
+      ],
+      "cheatsheet": [
+        {
+          "v": 1,
+          "generated": "2026-09-08",
+          "prompt": "7ff70aff",
+          "file": "topics/payments/cheatsheet.v1.html"
+        }
+      ]
+    }
+  },
+  {
     "slug": "react",
     "title": "React",
     "topic": "React",
@@ -636,6 +894,49 @@ window.DEVBOK_TOPICS = [
           "generated": "2026-09-08",
           "prompt": "7ff70aff",
           "file": "topics/react/cheatsheet.v1.html"
+        }
+      ]
+    }
+  },
+  {
+    "slug": "redis",
+    "title": "Redis (for .NET developers)",
+    "topic": "Redis (mainly for .NET developers)",
+    "category": "data",
+    "accent": "#dc382d",
+    "accentDark": "#e6726a",
+    "created": "2026-09-08",
+    "kinds": {
+      "study": [
+        {
+          "v": 1,
+          "generated": "2026-09-08",
+          "prompt": "e02cbdee",
+          "file": "topics/redis/study.v1.html"
+        }
+      ],
+      "experience": [
+        {
+          "v": 1,
+          "generated": "2026-09-08",
+          "prompt": "2bcfefa8",
+          "file": "topics/redis/experience.v1.html"
+        }
+      ],
+      "interview": [
+        {
+          "v": 1,
+          "generated": "2026-09-08",
+          "prompt": "008cfc76",
+          "file": "topics/redis/interview.v1.html"
+        }
+      ],
+      "cheatsheet": [
+        {
+          "v": 1,
+          "generated": "2026-09-08",
+          "prompt": "7ff70aff",
+          "file": "topics/redis/cheatsheet.v1.html"
         }
       ]
     }
@@ -722,6 +1023,49 @@ window.DEVBOK_TOPICS = [
           "generated": "2026-09-08",
           "prompt": "7ff70aff",
           "file": "topics/system-design/cheatsheet.v1.html"
+        }
+      ]
+    }
+  },
+  {
+    "slug": "web-perf",
+    "title": "Web performance & browser platform",
+    "topic": "The browser platform and front-end performance (rendering path, critical CSS, Core Web Vitals and how to move each one, bundling and code splitting, caching and HTTP/2-3, images and fonts, memory leaks, DevTools and Lighthouse profiling; framework-agnostic — assume React and Angular specifics are mostly covered separately)",
+    "category": "frontend",
+    "accent": "#f44b21",
+    "accentDark": "#f7795a",
+    "created": "2026-09-08",
+    "kinds": {
+      "study": [
+        {
+          "v": 1,
+          "generated": "2026-09-08",
+          "prompt": "e02cbdee",
+          "file": "topics/web-perf/study.v1.html"
+        }
+      ],
+      "experience": [
+        {
+          "v": 1,
+          "generated": "2026-09-08",
+          "prompt": "2bcfefa8",
+          "file": "topics/web-perf/experience.v1.html"
+        }
+      ],
+      "interview": [
+        {
+          "v": 1,
+          "generated": "2026-09-08",
+          "prompt": "008cfc76",
+          "file": "topics/web-perf/interview.v1.html"
+        }
+      ],
+      "cheatsheet": [
+        {
+          "v": 1,
+          "generated": "2026-09-08",
+          "prompt": "7ff70aff",
+          "file": "topics/web-perf/cheatsheet.v1.html"
         }
       ]
     }

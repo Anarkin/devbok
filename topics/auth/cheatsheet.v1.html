@@ -1,0 +1,424 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Authn & authz (.NET, OAuth/OIDC) · cheatsheet · devbok</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Cascadia+Mono:wght@400;700&display=swap">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/highlight.min.js"></script>
+<style>
+:root { color-scheme: light;
+  --bg: #ffffff; --fg: #111111; --muted: #6b6b6b; --line: #111111; --soft: #f4f4f4; --border: #cccccc;
+  --accent: #047857; --accent-soft: color-mix(in srgb, var(--accent) 12%, var(--bg));
+  --code: color-mix(in srgb, var(--accent) 70%, var(--fg));
+  --hl-kw: #a626a4; --hl-str: #50a14f; --hl-num: #986801; --hl-cmt: #6b6b6b; --hl-type: #0184bc; --hl-fn: #4078f2; --hl-attr: #986801; }
+@media (prefers-color-scheme: dark) { :root { color-scheme: dark;
+  --bg: #222222; --fg: #cccccc; --muted: #8f8f8f; --line: #111111; --soft: #2c2c2c; --border: #4a4a4a;
+  --accent: #57f9cb; --accent-soft: color-mix(in srgb, var(--accent) 16%, var(--bg));
+  --hl-kw: #c678dd; --hl-str: #98c379; --hl-num: #d19a66; --hl-cmt: #8f8f8f; --hl-type: #56b6c2; --hl-fn: #61afef; --hl-attr: #e5c07b; } }
+
+* { box-sizing: border-box; }
+html, body { margin: 0; padding: 0; background: var(--bg); color: var(--fg); }
+body { font-family: system-ui, sans-serif; font-size: 16px; line-height: 1.6; }
+h1, h2, h3 { font-family: system-ui, sans-serif; font-weight: 700; }
+h2 { font-size: 1.5em; margin: 0 0 12px; display: flex; align-items: baseline; gap: 8px; }
+h2 .num { font-family: "Cascadia Mono", Consolas, monospace; font-size: 12px; color: var(--muted); font-weight: 400; }
+h3 { font-size: 1.17em; margin: 20px 0 8px; }
+a { color: var(--accent); }
+p { margin: 0 0 10px; }
+
+.layout { display: flex; min-width: 0; }
+.main { margin-left: 260px; flex: 1; min-width: 0; padding: 24px; max-width: 120ch; }
+
+.hero { margin: 0 0 24px; padding: 0 0 24px; border-bottom: 2px solid var(--line); }
+.hero h1 { margin: 0 0 8px; font-size: 2em; line-height: 1.2; font-weight: 700; }
+.hero .meta { margin: 0 0 12px; font-family: "Cascadia Mono", Consolas, monospace; font-size: 12px; color: var(--muted); }
+.hero .summary { margin: 0 0 12px; }
+.hero .chips { display: flex; flex-wrap: wrap; gap: 6px; margin: 0; }
+
+.chip { font-family: "Cascadia Mono", Consolas, monospace; font-size: 12px; text-transform: uppercase; background: var(--soft); border: 1px solid var(--border); border-radius: 4px; padding: 3px 8px; color: var(--fg); white-space: nowrap; }
+
+.side { position: fixed; top: 0; bottom: 0; left: 0; width: 260px; display: flex; flex-direction: column; background: var(--bg); border-right: 2px solid var(--line); font-family: "Cascadia Mono", Consolas, monospace; font-size: 12px; z-index: 10; }
+.units { list-style: none; margin: 0; padding: 12px 0; overflow-y: auto; flex: 1; }
+.units a { display: grid; grid-template-columns: 2.5em 1fr; padding: 9px 20px 9px 17px; border-left: 3px solid transparent; color: var(--fg); text-decoration: none; line-height: 1.4; }
+.units .n { color: var(--muted); font-weight: 400; }
+.units a:hover { background: var(--soft); }
+.units a[aria-current="true"] { background: var(--accent-soft); border-left-color: var(--accent); font-weight: 700; }
+.side footer { padding: 12px 20px; border-top: 2px solid var(--line); color: var(--muted); line-height: 1.5; }
+.side-toggle { display: none; }
+
+code { background: var(--soft); border: 1px solid var(--border); border-radius: 3px; padding: 0 .3em; color: var(--code); overflow-wrap: anywhere; }
+pre { background: var(--soft); border: 1px solid var(--border); border-radius: 4px; padding: 12px 14px; overflow-x: auto; line-height: 1.5; margin: 14px 0; max-width: 100%; }
+pre code { background: none; border: 0; border-radius: 0; padding: 0; color: inherit; white-space: pre; overflow-wrap: normal; }
+.hljs { color: var(--fg); background: transparent; }
+.hljs-keyword, .hljs-built_in, .hljs-literal, .hljs-selector-tag { color: var(--hl-kw); }
+.hljs-string, .hljs-regexp, .hljs-selector-attr { color: var(--hl-str); }
+.hljs-number, .hljs-symbol { color: var(--hl-num); }
+.hljs-comment, .hljs-quote, .hljs-doctag { color: var(--hl-cmt); font-style: italic; }
+.hljs-title, .hljs-title.class_, .hljs-type, .hljs-name, .hljs-section, .hljs-selector-class, .hljs-selector-pseudo { color: var(--hl-type); }
+.hljs-title.function_ { color: var(--hl-fn); }
+.hljs-meta, .hljs-attr, .hljs-attribute, .hljs-tag, .hljs-property, .hljs-variable { color: var(--hl-attr); }
+.hljs-template-tag, .hljs-template-variable { color: var(--hl-attr); }
+.hljs-code, .hljs-formula { color: var(--hl-cmt); }
+.hljs-operator, .hljs-subst, .hljs-punctuation, .hljs-params { color: var(--fg); }
+.hljs-emphasis { font-style: italic; } .hljs-strong { font-weight: 700; }
+
+.card { background: var(--bg); border: 1px solid var(--border); border-radius: 6px; padding: 16px 18px; margin: 0 0 28px; min-width: 0; }
+.card > *:last-child { margin-bottom: 0; }
+.callout { background: var(--soft); border-left: 3px solid var(--accent); padding: 8px 12px; margin: 10px 0; border-radius: 0 4px 4px 0; min-width: 0; }
+.callout p { margin: 0; }
+.callout strong { color: var(--accent); }
+
+.table-wrap { overflow-x: auto; margin: 10px 0; min-width: 0; }
+table { border-collapse: collapse; width: 100%; font-size: 15px; }
+th, td { text-align: left; padding: 7px 10px; border-bottom: 1px solid var(--border); vertical-align: top; }
+th { color: var(--muted); font-weight: 700; font-size: 13px; text-transform: uppercase; }
+td code, th code { font-size: 12px; }
+tr:last-child td { border-bottom: none; }
+.tight td, .tight th { padding: 5px 10px; }
+.row-highlight { background: var(--accent-soft); }
+
+.grid2 { display: grid; grid-template-columns: 1fr; gap: 4px 16px; min-width: 0; }
+.grid2 .k { font-family: "Cascadia Mono", Consolas, monospace; font-size: 12px; }
+
+ul.pitfalls { margin: 6px 0 6px 0; padding-left: 1.2em; }
+ul.pitfalls li { margin: 0 0 6px; }
+
+.docs { font-size: 13px; color: var(--muted); margin-top: 10px; }
+.docs a { color: var(--muted); }
+
+@media (max-width: 720px) {
+  .side { transform: translateX(-100%); transition: transform .15s ease; }
+  .side.open { transform: translateX(0); }
+  .main { margin-left: 0; padding: 60px 16px 24px; }
+  .side-toggle { display: block; position: fixed; top: 10px; left: 10px; z-index: 20; font-family: "Cascadia Mono", Consolas, monospace; font-size: 12px; background: var(--bg); color: var(--fg); border: 1px solid var(--border); border-radius: 4px; padding: 6px 10px; }
+}
+
+:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+
+@media print {
+  .side, .side-toggle { display: none !important; }
+  .main { margin-left: 0; max-width: 100%; padding: 0; }
+  body { font-size: 11px; line-height: 1.35; }
+  .card { border: 1px solid #999; break-inside: avoid; page-break-inside: avoid; margin-bottom: 12px; }
+  .hero { border-bottom: 1px solid #000; }
+  a { color: #000 !important; text-decoration: none; }
+  a[href]::after { content: " (" attr(href) ")"; font-size: 9px; color: #444; }
+  .chip, .callout { border-color: #999 !important; background: transparent !important; }
+  code, .hljs, .hljs span { color: #000 !important; background: transparent !important; }
+  pre { border: 1px solid #999; }
+  h2 { break-after: avoid; }
+  @page { margin: 14mm; }
+}
+</style>
+</head>
+<body>
+<!-- devbok
+slug: auth
+kind: cheatsheet
+version: 1
+topic: "Authentication & authorization (OAuth 2.1, OpenID Connect, JWT vs cookies, the ASP.NET Core authn/authz stack, Entra ID, token lifetimes and revocation; mainly for .NET developers)"
+prompt: cheatsheet.md@7ff70aff
+generated: 2026-09-08
+-->
+<button class="side-toggle" id="sideToggle" aria-label="Toggle navigation" aria-expanded="false">☰ units</button>
+<div class="layout">
+<nav class="side" aria-label="Units" id="side">
+  <ol class="units">
+    <li><a href="#u01"><span class="n">01</span><span class="t">OAuth 2.1 grants & flows</span></a></li>
+    <li><a href="#u02"><span class="n">02</span><span class="t">PKCE & request hardening</span></a></li>
+    <li><a href="#u03"><span class="n">03</span><span class="t">OpenID Connect essentials</span></a></li>
+    <li><a href="#u04"><span class="n">04</span><span class="t">JWT structure, algs & validation</span></a></li>
+    <li><a href="#u05"><span class="n">05</span><span class="t">ASP.NET Core authentication</span></a></li>
+    <li><a href="#u06"><span class="n">06</span><span class="t">ASP.NET Core authorization</span></a></li>
+    <li><a href="#u07"><span class="n">07</span><span class="t">Cookies vs bearer / BFF</span></a></li>
+    <li><a href="#u08"><span class="n">08</span><span class="t">Entra ID & MSAL</span></a></li>
+    <li><a href="#u09"><span class="n">09</span><span class="t">Lifetimes, revocation & CAE</span></a></li>
+    <li><a href="#u10"><span class="n">10</span><span class="t">Idioms & gotchas</span></a></li>
+    <li><a href="#u11"><span class="n">11</span><span class="t">Modern vs legacy</span></a></li>
+    <li><a href="#u12"><span class="n">12</span><span class="t">Version timeline</span></a></li>
+  </ol>
+  <footer>Authn & authz (.NET, OAuth/OIDC) · cheatsheet · version 1 · 2026-09-08</footer>
+</nav>
+<div class="main">
+
+<header class="hero">
+  <h1>Authn & authz (.NET, OAuth/OIDC)</h1>
+  <p class="meta">cheatsheet · .NET 10 (LTS) · released 2025-11-11</p>
+  <p class="summary">Syntax, defaults and API calls for OAuth 2.1, OpenID Connect, JWT validation, the ASP.NET Core 10 authn/authz stack and Microsoft Entra ID, current as of 2026-09-08. Anchored to .NET 10 (LTS, GA 2025-11-11, .NET 11 already in preview), OAuth 2.1 draft-16 (2026-09-03, still an IETF draft rather than an RFC), Microsoft.IdentityModel.JsonWebTokens 8.22.0 and Microsoft.Identity.Web 4.14.2 (both 2026-07). Assumption: "OAuth 2.1" below means that draft's consolidated rules (PKCE mandatory, implicit and password grants removed), not a ratified RFC number.</p>
+  <p class="chips">
+    <span class="chip">.NET 10 LTS</span>
+    <span class="chip">ASP.NET Core 10</span>
+    <span class="chip">OAuth 2.1 draft-16</span>
+    <span class="chip">OIDC Core 1.0</span>
+    <span class="chip">Entra ID v2.0 tokens</span>
+    <span class="chip">IdentityModel 8.22</span>
+  </p>
+</header>
+
+<section class="card" id="u01">
+<h2><span class="num">01</span> OAuth 2.1 grants & flows</h2>
+<p>OAuth 2.1 is a consolidating IETF draft, not yet a published RFC: it folds RFC 6749/6750 plus the Security BCP, PKCE, Native Apps and Browser-Based Apps guidance into one document. It <strong>removes</strong> the Implicit grant and Resource Owner Password Credentials (ROPC) outright, and makes PKCE mandatory for every client using the authorization code grant.</p>
+<div class="table-wrap"><table>
+<tr><th>Task</th><th>Grant / endpoint</th><th>Notes</th></tr>
+<tr><td>Interactive user login (web, SPA, native, mobile)</td><td><code>response_type=code</code> + PKCE</td><td>The only interactive grant in 2.1 — same shape for every client type</td></tr>
+<tr><td>Service-to-service, no user</td><td><code>grant_type=client_credentials</code></td><td>Confidential clients only; scopes are app-level, not delegated</td></tr>
+<tr><td>Silently renew an access token</td><td><code>grant_type=refresh_token</code></td><td>Rotate on every use; treat the old value as burned</td></tr>
+<tr><td>CLI / TV / no browser on the device</td><td>RFC 8628 device code</td><td><code>POST /device_authorization</code> → poll <code>/token</code> with <code>urn:ietf:params:oauth:grant-type:device_code</code></td></tr>
+<tr><td>Approve on a second device (decoupled auth)</td><td>CIBA</td><td><code>POST /bc-authorize</code>, then poll or receive a push/ping callback</td></tr>
+<tr><td>API-to-API delegation (gateway → downstream)</td><td>RFC 8693 token exchange</td><td><code>grant_type=urn:ietf:params:oauth:grant-type:token-exchange</code>; Entra ID's On-Behalf-Of flow is this grant</td></tr>
+<tr class="row-highlight"><td>Removed in 2.1</td><td>Implicit (<code>response_type=token</code>), ROPC (<code>grant_type=password</code>)</td><td>Tokens in a URL fragment / raw passwords through the client are both gone — migrate to code+PKCE</td></tr>
+</table></div>
+<pre><code class="language-http">POST /token HTTP/1.1
+Host: as.example.com
+Content-Type: application/x-www-form-urlencoded
+
+grant_type=authorization_code
+&code=SplxlOBeZQQYbYS6WxSbIA
+&redirect_uri=https%3A%2F%2Fapp.example.com%2Fcallback
+&client_id=6e74172b-be56-4843
+&code_verifier=dBjftJeZ4CVP-mB92K27uhbUJU1p1r_wW1gFWFOEjXk</code></pre>
+<p class="docs">Docs: <a href="https://datatracker.ietf.org/doc/draft-ietf-oauth-v2-1/">draft-ietf-oauth-v2-1</a> · <a href="https://www.rfc-editor.org/rfc/rfc8628">RFC 8628 device flow</a> · <a href="https://www.rfc-editor.org/rfc/rfc8693">RFC 8693 token exchange</a></p>
+</section>
+
+<section class="card" id="u02">
+<h2><span class="num">02</span> PKCE & request hardening</h2>
+<div class="table-wrap"><table>
+<tr><th>Task</th><th>Syntax / API</th><th>Notes</th></tr>
+<tr><td>Generate a code verifier</td><td>43-128 char random string (unreserved chars)</td><td>New per authorization request, never reused</td></tr>
+<tr><td>Derive the challenge</td><td><code>code_challenge = BASE64URL(SHA256(code_verifier))</code></td><td><code>code_challenge_method=S256</code> — <code>plain</code> is a legacy fallback, avoid it</td></tr>
+<tr><td>CSRF-protect the redirect</td><td><code>state</code> param, opaque, verified on callback</td><td>Bind it to the browser session server-side, don't just echo it</td></tr>
+<tr><td>Replay-protect the id_token (OIDC)</td><td><code>nonce</code> param, checked against the token's <code>nonce</code> claim</td><td>Separate from <code>state</code>; OIDC-specific</td></tr>
+<tr><td>Push the request server-side first</td><td>RFC 9126 PAR — <code>POST /par</code> → <code>request_uri</code>, then <code>/authorize?request_uri=...&client_id=...</code></td><td>Required at the FAPI 2.0 security-profile baseline; keeps params off the browser URL</td></tr>
+<tr><td>Sign the whole request object</td><td>RFC 9101 JAR — <code>request=</code> (or <code>request_uri=</code>) carries a signed JWT of the params</td><td>Stops parameter tampering/injection on the authorize URL</td></tr>
+<tr><td>Bind the token to the calling client</td><td>RFC 9449 DPoP — <code>DPoP</code> header (a signed JWT proof) on both the token request and every resource call</td><td>Server checks the proof's JWK thumbprint against the token's <code>cnf.jkt</code> claim; no mTLS infrastructure needed</td></tr>
+<tr><td>Bind via TLS instead</td><td>RFC 8705 mTLS certificate-bound tokens</td><td>Alternative to DPoP; heavier to operate, common in FAPI/banking</td></tr>
+</table></div>
+<div class="callout"><p><strong>2.1 tightens redirect matching:</strong> the authorization server must do an exact string comparison on <code>redirect_uri</code> — no wildcard subdomains, no path-prefix matching. Register every redirect URI literally.</p></div>
+<p class="docs">Docs: <a href="https://www.rfc-editor.org/rfc/rfc7636">RFC 7636 PKCE</a> · <a href="https://www.rfc-editor.org/rfc/rfc9126">RFC 9126 PAR</a> · <a href="https://www.rfc-editor.org/rfc/rfc9449">RFC 9449 DPoP</a></p>
+</section>
+
+<section class="card" id="u03">
+<h2><span class="num">03</span> OpenID Connect essentials</h2>
+<div class="table-wrap"><table>
+<tr><th>Task</th><th>Syntax / API</th><th>Notes</th></tr>
+<tr><td>Discover endpoints</td><td><code>GET /.well-known/openid-configuration</code></td><td>Returns <code>authorization_endpoint</code>, <code>token_endpoint</code>, <code>jwks_uri</code>, <code>end_session_endpoint</code>, …</td></tr>
+<tr><td>Fetch signing keys</td><td><code>GET {jwks_uri}</code></td><td>A JWK Set (RFC 7517); pick the key by the token's <code>kid</code></td></tr>
+<tr><td>Get extra profile claims</td><td><code>GET /userinfo</code>, <code>Authorization: Bearer {access_token}</code></td><td>Claims not worth bloating the id_token with</td></tr>
+<tr><td>End the session (browser-initiated)</td><td>RP-Initiated Logout — <code>GET {end_session_endpoint}?id_token_hint=...&post_logout_redirect_uri=...</code></td><td>Clears the OP's own session cookie, not your app's</td></tr>
+<tr><td>End the session (OP-initiated, e.g. admin revokes)</td><td>Back-Channel Logout 1.0 — OP <code>POST</code>s a <code>logout_token</code> JWT to each RP's registered <code>backchannel_logout_uri</code></td><td>Server-to-server, survives third-party cookie blocking</td></tr>
+<tr><td>Front-channel logout</td><td>OP loads each RP's logout URI in a hidden iframe</td><td>Increasingly unreliable — browsers block third-party iframe storage/cookies; prefer back-channel</td></tr>
+</table></div>
+<h3>id_token claims you actually check</h3>
+<div class="table-wrap"><table class="tight">
+<tr><th>Claim</th><th>Meaning</th></tr>
+<tr><td><code>iss</code></td><td>Issuer — must exactly match the discovery document's <code>issuer</code></td></tr>
+<tr><td><code>aud</code></td><td>Your client ID</td></tr>
+<tr><td><code>sub</code></td><td>Stable, unique subject identifier — the actual account key</td></tr>
+<tr><td><code>exp</code> / <code>iat</code></td><td>Expiry / issued-at, both in Unix seconds</td></tr>
+<tr><td><code>nonce</code></td><td>Echoes the request's nonce — replay defence</td></tr>
+<tr><td><code>auth_time</code> / <code>acr</code> / <code>amr</code></td><td>When/how strongly/by what method the user authenticated — drives step-up decisions</td></tr>
+</table></div>
+<p class="docs">Docs: <a href="https://openid.net/specs/openid-connect-core-1_0.html">OpenID Connect Core 1.0</a> · <a href="https://openid.net/specs/openid-connect-backchannel-1_0.html">Back-Channel Logout 1.0</a></p>
+</section>
+
+<section class="card" id="u04">
+<h2><span class="num">04</span> JWT structure, algorithms & validation</h2>
+<p><code>header.payload.signature</code>, each segment base64url-encoded (RFC 7519 JWT, RFC 7515 JWS, RFC 7518 JWA).</p>
+<div class="table-wrap"><table>
+<tr><th>Algorithm</th><th>Kind</th><th>Use it when</th></tr>
+<tr><td><code>RS256</code></td><td>RSA, asymmetric</td><td>Default for OIDC/Entra ID — verifier only ever needs the public key from JWKS</td></tr>
+<tr><td><code>ES256</code></td><td>ECDSA, asymmetric</td><td>Smaller signatures, cheaper to verify; growing adoption alongside RS256</td></tr>
+<tr><td><code>EdDSA</code> (Ed25519)</td><td>Asymmetric</td><td>Newest, fast and misuse-resistant; check library support before committing</td></tr>
+<tr><td><code>HS256</code></td><td>HMAC, symmetric</td><td>Only when issuer and verifier share the secret directly (e.g. your own service-to-service tokens) — never for third-party-issued tokens</td></tr>
+<tr class="row-highlight"><td><code>none</code></td><td>—</td><td>Never valid. Reject it — this is the classic "alg confusion" attack vector</td></tr>
+</table></div>
+<h3>Validate with Microsoft.IdentityModel.JsonWebTokens (modern)</h3>
+<pre><code class="language-csharp">var handler = new Microsoft.IdentityModel.JsonWebTokens.JsonWebTokenHandler();
+var result = await handler.ValidateTokenAsync(rawJwt, new TokenValidationParameters
+{
+    ValidIssuer = "https://login.microsoftonline.com/{tid}/v2.0",
+    ValidAudience = "api://my-api",
+    ValidAlgorithms = ["RS256"],           // allowlist — never trust the header's alg alone
+    IssuerSigningKeyResolver = (t, tok, kid, p) => ResolveFromJwks(kid),
+    ValidateLifetime = true,
+    ClockSkew = TimeSpan.FromMinutes(2),
+});
+if (!result.IsValid) throw result.Exception!;</code></pre>
+<div class="callout"><p><strong>Legacy:</strong> <code>System.IdentityModel.Tokens.Jwt.JwtSecurityTokenHandler</code> does the same job through reflection-heavy <code>JwtSecurityToken</code> objects. <code>JwtBearerOptions.TokenHandlers</code> (since ASP.NET Core 8) lets you swap it for <code>JsonWebTokenHandler</code>, which is the current default and materially faster.</p></div>
+<p class="docs">Docs: <a href="https://www.rfc-editor.org/rfc/rfc7519">RFC 7519 JWT</a> · <a href="https://learn.microsoft.com/en-us/dotnet/api/microsoft.identitymodel.jsonwebtokens.jsonwebtokenhandler">JsonWebTokenHandler</a></p>
+</section>
+
+<section class="card" id="u05">
+<h2><span class="num">05</span> ASP.NET Core authentication</h2>
+<div class="table-wrap"><table>
+<tr><th>Task</th><th>Syntax / API</th><th>Notes</th></tr>
+<tr><td>Wire up bearer JWT validation</td><td><code>builder.Services.AddAuthentication().AddJwtBearer(o => {...})</code></td><td>Set <code>Authority</code> + <code>Audience</code>, or a full <code>TokenValidationParameters</code></td></tr>
+<tr><td>Wire up cookie auth</td><td><code>.AddCookie(o => { o.Cookie.HttpOnly = true; o.Cookie.SameSite = SameSiteMode.Lax; })</code></td><td>Backs classic MVC/Razor sign-in and the BFF pattern's own session cookie</td></tr>
+<tr><td>Wire up an OIDC login redirect</td><td><code>.AddOpenIdConnect(o => { o.Authority = ...; o.ResponseType = "code"; o.UsePkce = true; })</code></td><td><code>UsePkce</code> defaults to <code>true</code> already</td></tr>
+<tr><td>Pick a scheme per request</td><td><code>.AddPolicyScheme("Smart", o => o.ForwardDefaultSelector = ctx => ...)</code></td><td>Route browser requests to the cookie handler, API calls to JWT bearer, from one pipeline</td></tr>
+<tr><td>Turn the pipeline on</td><td><code>app.UseAuthentication(); app.UseAuthorization();</code></td><td>Must sit after <code>UseRouting()</code> and before endpoint mapping</td></tr>
+<tr><td>Token-based Identity endpoints for a SPA</td><td><code>builder.Services.AddIdentityApiEndpoints&lt;TUser&gt;()</code> + <code>app.MapIdentityApi&lt;TUser&gt;()</code></td><td>Since .NET 8 — ships <code>/register</code>, <code>/login</code>, <code>/refresh</code>, 2FA and confirmation endpoints returning access+refresh tokens</td></tr>
+<tr><td>Passkey (WebAuthn/FIDO2) sign-in</td><td><code>AddIdentityCore&lt;TUser&gt;().AddApiEndpoints()</code> + passkey endpoints; Blazor Web App template wires the client JS</td><td>New in .NET 10 — phishing-resistant, device-bound credential, no shared secret at all</td></tr>
+</table></div>
+<div class="callout"><p><strong>ASP.NET Core 10 breaking change:</strong> unauthenticated/unauthorized calls to <code>[ApiController]</code> actions, minimal APIs returning JSON/<code>TypedResults</code>, and SignalR endpoints now return <strong>401/403 directly</strong> instead of redirecting to the cookie login page. Opt back into the old redirect via <code>options.Events.OnRedirectToLogin</code> / <code>OnRedirectToAccessDenied</code> on <code>AddCookie</code> if something still depends on it.</p></div>
+<p class="docs">Docs: <a href="https://learn.microsoft.com/en-us/aspnet/core/security/authentication/">ASP.NET Core authentication</a> · <a href="https://learn.microsoft.com/en-us/aspnet/core/release-notes/aspnetcore-10.0">ASP.NET Core 10 release notes</a></p>
+</section>
+
+<section class="card" id="u06">
+<h2><span class="num">06</span> ASP.NET Core authorization</h2>
+<div class="table-wrap"><table>
+<tr><th>Task</th><th>Syntax / API</th><th>Notes</th></tr>
+<tr><td>Gate an MVC/API action</td><td><code>[Authorize]</code>, <code>[Authorize(Roles = "Admin")]</code>, <code>[Authorize(Policy = "CanEdit")]</code>, <code>[AllowAnonymous]</code></td><td>Attribute-based, evaluated per endpoint</td></tr>
+<tr><td>Register a policy (modern)</td><td><code>builder.Services.AddAuthorizationBuilder().AddPolicy("CanEdit", p =&gt; p.RequireClaim("scope", "edit"))</code></td><td>Since .NET 8 — fluent, no separate <code>AddAuthorization</code> call</td></tr>
+<tr><td>Register a policy (legacy)</td><td><code>services.AddAuthorization(o =&gt; o.AddPolicy("CanEdit", p =&gt; ...))</code></td><td>Still works, just verbose next to the builder form</td></tr>
+<tr><td>Gate a minimal API route</td><td><code>app.MapGet("/orders", ...).RequireAuthorization("CanEdit")</code></td><td>Also available on <code>MapGroup(...)</code> for a whole route group</td></tr>
+<tr><td>Custom business-rule requirement</td><td><code>class MinAge : IAuthorizationRequirement</code> + <code>class MinAgeHandler : AuthorizationHandler&lt;MinAge&gt;</code> overriding <code>HandleRequirementAsync</code></td><td>Register the handler in DI; combine several requirements in one policy</td></tr>
+<tr><td>Authorize against a loaded object, not just claims</td><td><code>await authorizationService.AuthorizeAsync(User, resource, "OwnerOnly")</code></td><td>Resource-based auth — the handler receives the entity, e.g. to check ownership</td></tr>
+<tr><td>Accept either auth scheme on one endpoint</td><td><code>[Authorize(AuthenticationSchemes = "Cookies,Bearer")]</code></td><td>Useful while migrating an MVC app's APIs to bearer tokens</td></tr>
+</table></div>
+<p class="docs">Docs: <a href="https://learn.microsoft.com/en-us/aspnet/core/security/authorization/policies">Policy-based authorization</a> · <a href="https://learn.microsoft.com/en-us/aspnet/core/security/authorization/resourcebased">Resource-based authorization</a></p>
+</section>
+
+<section class="card" id="u07">
+<h2><span class="num">07</span> Cookies vs bearer tokens / the BFF pattern</h2>
+<div class="table-wrap"><table>
+<tr><th>Task</th><th>Cookie session</th><th>Bearer JWT</th></tr>
+<tr><td>Where the credential lives</td><td>Browser cookie jar, invisible to page JS when <code>HttpOnly</code></td><td>Wherever the client code puts it — the risk surface is exactly that choice</td></tr>
+<tr><td>Cross-site request forgery</td><td>Needs an antiforgery token (ambient credential auto-attaches)</td><td>Not applicable — nothing auto-attaches a header</td></tr>
+<tr><td>Cross-site theft via script</td><td>Immune if <code>HttpOnly</code> — JS can't read it even via XSS</td><td>Any XSS that finds it in <code>localStorage</code>/<code>sessionStorage</code>/JS memory can exfiltrate it</td></tr>
+<tr><td>Cross-origin API calls</td><td>Awkward — needs <code>SameSite=None; Secure</code>, still first-party-adjacent</td><td>Natural fit — just a header, any origin</td></tr>
+<tr><td>Key flags</td><td><code>HttpOnly</code>, <code>Secure</code>, <code>SameSite=Lax\|Strict\|None</code></td><td>—</td></tr>
+</table></div>
+<div class="callout"><p><strong>Modern default for browser apps:</strong> the SPA never holds an OAuth token at all. A same-site, confidential <strong>Backend-for-Frontend (BFF)</strong> does the OAuth dance and keeps access/refresh tokens server-side; the browser gets only a same-site <code>HttpOnly</code> session cookie to talk to its own BFF. This is the consolidated guidance formerly known as "OAuth 2.0 for Browser-Based Apps", now folded into the OAuth 2.1 draft. <code>Duende.BFF</code> is the common off-the-shelf implementation on ASP.NET Core; a hand-rolled version is just <code>AddCookie</code> + a reverse proxy (e.g. YARP) that attaches the real token server-side.</p></div>
+<p class="docs">Docs: <a href="https://docs.duendesoftware.com/identityserver/bff/">Duende.BFF</a> · <a href="https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers/Set-Cookie/SameSite">SameSite cookies</a></p>
+</section>
+
+<section class="card" id="u08">
+<h2><span class="num">08</span> Microsoft Entra ID & MSAL</h2>
+<div class="table-wrap"><table>
+<tr><th>Task</th><th>Syntax / API</th><th>Notes</th></tr>
+<tr><td>Identify an app registration</td><td>Application (client) ID + Directory (tenant) ID</td><td>Redirect URI's registered <em>platform</em> (Web / SPA / mobile-desktop) changes what the token endpoint will hand back</td></tr>
+<tr><td>Confidential client credential — legacy</td><td>Client secret</td><td>Expires, must be rotated and stored; avoid for new apps</td></tr>
+<tr><td>Confidential client credential — better</td><td>X.509 certificate (<code>.WithCertificate(cert)</code>)</td><td>No shared secret in config, but still a stored private key</td></tr>
+<tr><td>Confidential client credential — modern</td><td>Federated identity credential (workload identity federation)</td><td>Trusts an external OIDC token (GitHub Actions, another Entra app, Kubernetes) — zero secrets to leak or rotate</td></tr>
+<tr><td>App-only token (no user)</td><td><code>ConfidentialClientApplicationBuilder.Create(id).WithCertificate(cert).Build().AcquireTokenForClient(scopes)</code></td><td>MSAL.NET; equivalent to the client_credentials grant</td></tr>
+<tr><td>Delegate a user's identity to a downstream API</td><td><code>.AcquireTokenOnBehalfOf(scopes, userAssertion)</code></td><td>Entra's On-Behalf-Of flow = RFC 8693 token exchange</td></tr>
+<tr><td>One-call web API auth wiring</td><td><code>builder.Services.AddMicrosoftIdentityWebApiAuthentication(builder.Configuration)</code></td><td>Microsoft.Identity.Web — sets up JwtBearer + validation + token cache together</td></tr>
+<tr><td>Call a downstream API with auto token acquisition</td><td><code>.AddDownstreamApi("Graph", builder.Configuration.GetSection("Graph"))</code></td><td>Handles caching and OBO exchange behind an injected <code>IDownstreamApi</code></td></tr>
+<tr><td>Token cache for a multi-instance service</td><td><code>.AddDistributedTokenCaches()</code> over Redis</td><td><code>AddInMemoryTokenCaches()</code> is fine for a single dev instance only</td></tr>
+<tr><td>Resource-to-resource with zero secrets</td><td>Managed Identity — <code>DefaultAzureCredential</code> / <code>ManagedIdentityCredential</code></td><td>The Azure-hosted equivalent of federated credentials, for Azure→Azure calls</td></tr>
+</table></div>
+<p class="docs">Docs: <a href="https://learn.microsoft.com/en-us/entra/identity-platform/">Microsoft identity platform</a> · <a href="https://learn.microsoft.com/en-us/entra/msal/dotnet/">MSAL.NET</a> · <a href="https://github.com/AzureAD/microsoft-identity-web">Microsoft.Identity.Web</a></p>
+</section>
+
+<section class="card" id="u09">
+<h2><span class="num">09</span> Token lifetimes, revocation & CAE</h2>
+<div class="table-wrap"><table>
+<tr><th>Token / mechanism</th><th>Default</th><th>Notes</th></tr>
+<tr><td>Entra ID access token</td><td>Randomized 60–90 min (~75 min average)</td><td>The jitter spreads renewal load; override with a Configurable Token Lifetime (CTL) policy</td></tr>
+<tr><td>Access token with CAE enabled</td><td>Long-lived window 20–28 h</td><td>Trades a longer nominal lifetime for near-real-time revocation on critical events (see below)</td></tr>
+<tr><td>Refresh token</td><td>90-day sliding inactivity window</td><td>Single-use — rotates on every redemption; revoked immediately by a password reset or security-stamp change</td></tr>
+<tr><td>Explicit client-side revoke</td><td>RFC 7009 — <code>POST /revoke {token, token_type_hint}</code></td><td>What a real "log out everywhere" button should call, in addition to clearing local state</td></tr>
+<tr><td>Centralized active/inactive check</td><td>RFC 7662 — <code>POST /introspect {token}</code> → <code>{"active": true, ...}</code></td><td>For opaque/reference tokens, or when you don't trust exp alone</td></tr>
+<tr><td>ASP.NET Core Identity "sign out everywhere"</td><td><code>await userManager.UpdateSecurityStampAsync(user)</code></td><td>Invalidates every existing cookie/session tied to that stamp; polled via <code>SecurityStampValidatorOptions.ValidationInterval</code></td></tr>
+</table></div>
+<div class="callout"><p><strong>Continuous Access Evaluation (CAE):</strong> instead of waiting out a token's nominal lifetime, Entra ID pushes near-real-time revocation to CAE-aware resources (Graph, Exchange, SharePoint, and your own CAE-enabled API) when a user is disabled, a password changes, or a risky sign-in is detected. Distinct from <strong>Token Protection</strong>, Entra's own device-bound Primary Refresh Token mechanism (GA for native Windows/iOS/macOS apps, still preview for browsers and limited to Azure Resource Manager) — that's a proprietary PRT binding, not the IETF DPoP standard from unit 02.</p></div>
+<p class="docs">Docs: <a href="https://learn.microsoft.com/en-us/entra/identity-platform/access-tokens">Entra access tokens</a> · <a href="https://learn.microsoft.com/en-us/entra/identity-platform/concept-continuous-access-evaluation">Continuous Access Evaluation</a></p>
+</section>
+
+<section class="card" id="u10">
+<h2><span class="num">10</span> Idioms & gotchas</h2>
+<ul class="pitfalls">
+<li>Always check <code>alg</code> against a server-side allowlist — never let the token header pick its own verification algorithm.</li>
+<li><code>aud</code> must exactly match your API's own identifier; accepting a token meant for a different resource is the confused-deputy bug.</li>
+<li>Validating a multi-tenant issuer: substitute the token's own <code>tid</code> into the templated <code>{tenantid}</code> issuer, then compare exactly — don't just accept any tenant.</li>
+<li>A client that merely received an access token shouldn't parse or trust its contents — it's opaque to that client; only the resource server validates it.</li>
+<li>Rotate signing keys by <code>kid</code>: refresh your JWKS cache on a <code>kid</code> miss, not purely on a fixed timer, or a rotation window locks users out.</li>
+<li>Never put a refresh token in <code>localStorage</code>/<code>sessionStorage</code>. MSAL.js keeps it in memory and relies on silent renewal or a BFF instead.</li>
+<li><code>SameSite=None</code> cookies must also set <code>Secure</code>, or the browser drops them silently.</li>
+<li><code>Access-Control-Allow-Credentials: true</code> can never be paired with a wildcard <code>Access-Control-Allow-Origin: *</code> — the browser rejects that combination.</li>
+<li>A cookie-authenticated endpoint still needs CSRF/antiforgery protection; a pure bearer-token endpoint doesn't (no ambient credential to forge).</li>
+<li>On ASP.NET Core 10, an unauthenticated call to an API-shaped endpoint now 401s instead of redirecting — check any SPA logic that used the old redirect response to detect a dead session.</li>
+</ul>
+</section>
+
+<section class="card" id="u11">
+<h2><span class="num">11</span> Modern vs legacy</h2>
+<div class="table-wrap"><table>
+<tr><th>Task</th><th>Modern</th><th>Legacy still seen</th><th>Since</th></tr>
+<tr><td>Browser/native/SPA login flow</td><td>Authorization Code + PKCE</td><td>Implicit grant (token in URL fragment)</td><td>PKCE mandatory, implicit removed — OAuth 2.1</td></tr>
+<tr><td>First-party password login</td><td>Authorization Code + PKCE against your own IdP</td><td>Resource Owner Password Credentials</td><td>ROPC removed — OAuth 2.1</td></tr>
+<tr><td>JWT handling in .NET</td><td><code>Microsoft.IdentityModel.JsonWebTokens.JsonWebTokenHandler</code></td><td><code>System.IdentityModel.Tokens.Jwt.JwtSecurityTokenHandler</code></td><td>.NET 8 (<code>JwtBearerOptions.TokenHandlers</code>)</td></tr>
+<tr><td>Minimal API policy wiring</td><td><code>AddAuthorizationBuilder().AddPolicy(...)</code></td><td><code>AddAuthorization(o =&gt; o.AddPolicy(...))</code></td><td>.NET 8</td></tr>
+<tr><td>SPA token custody</td><td>BFF — tokens stay server-side, browser holds only a session cookie</td><td>Access/refresh tokens read straight out of <code>localStorage</code></td><td>"OAuth for Browser-Based Apps" guidance, folded into 2.1</td></tr>
+<tr><td>Confidential client auth to Entra ID</td><td>Certificate or federated identity credential (workload identity federation)</td><td>Long-lived client secret</td><td>FIC since 2022; secretless is the current push</td></tr>
+<tr><td>Proof that the token holder is the legitimate client</td><td>DPoP (RFC 9449) or mTLS (RFC 8705)</td><td>Bearer token alone — any holder can replay it</td><td>RFC 9449 published 2023</td></tr>
+<tr><td>Delivering the authorize request</td><td>Pushed Authorization Requests (PAR), <code>request_uri</code></td><td>Params appended straight to the <code>/authorize</code> redirect URL</td><td>RFC 9126 (2021); mandatory at FAPI 2.0 baseline</td></tr>
+<tr><td>ASP.NET Core response to an unauthenticated API call</td><td>Direct 401/403</td><td>302 redirect to <code>/Account/Login</code></td><td>ASP.NET Core 10, for API-shaped endpoints</td></tr>
+<tr><td>Passwordless step-up credential</td><td>Passkeys / WebAuthn (FIDO2)</td><td>TOTP authenticator-app codes</td><td>ASP.NET Core Identity passkeys, .NET 10</td></tr>
+</table></div>
+</section>
+
+<section class="card" id="u12">
+<h2><span class="num">12</span> Version timeline</h2>
+<div class="table-wrap"><table class="tight">
+<tr><th>When</th><th>What changed</th></tr>
+<tr><td>2026-09-03</td><td>OAuth 2.1 draft-16 — still an active IETF draft, not an RFC. Watch the datatracker for eventual RFC publication before calling anything "OAuth 2.1, ratified".</td></tr>
+<tr><td>2026-08-11</td><td>.NET 10.0.11 servicing release. .NET 10 itself is LTS (GA 2025-11-11, supported to 2028-11-14); .NET 11 is already in public preview.</td></tr>
+<tr><td>2026-07</td><td>Microsoft.IdentityModel.JsonWebTokens 8.22.0 and Microsoft.Identity.Web 4.14.2: token-cache partitioning by audience, mTLS proof-of-possession for confidential clients, background token-refresh callbacks.</td></tr>
+<tr><td>2025-11-11 (.NET 10 GA)</td><td>ASP.NET Core: API-shaped endpoints return 401/403 directly instead of redirecting to the cookie login page (breaking change); ASP.NET Core Identity gains built-in passkey/WebAuthn support; new OpenTelemetry metrics for authentication, authorization and Identity.</td></tr>
+<tr><td>2023 (RFC 9449)</td><td>DPoP finalized — sender-constrained tokens without mutual TLS.</td></tr>
+<tr><td>2023-11 (.NET 8)</td><td><code>AddAuthorizationBuilder()</code> and <code>AddIdentityApiEndpoints&lt;TUser&gt;()</code>/<code>MapIdentityApi&lt;TUser&gt;()</code> ship — fluent policy registration and token-based Identity endpoints become the default for new APIs and SPAs.</td></tr>
+<tr><td>2021 (RFC 9126)</td><td>Pushed Authorization Requests (PAR) published; later mandated by the FAPI 2.0 baseline profile.</td></tr>
+<tr><td>2019 (RFC 8628)</td><td>Device Authorization Grant for CLIs, TVs and other browserless devices.</td></tr>
+<tr><td>2014</td><td>OpenID Connect Core 1.0 finalized — still the current version today, extended only by errata since.</td></tr>
+</table></div>
+</section>
+
+</div>
+</div>
+
+<script>
+(function () {
+  try { hljs.highlightAll(); } catch (e) { /* decoration only; page reads fine without it */ }
+
+  var toggle = document.getElementById('sideToggle');
+  var side = document.getElementById('side');
+  if (toggle && side) {
+    toggle.addEventListener('click', function () {
+      var open = side.classList.toggle('open');
+      toggle.setAttribute('aria-expanded', open ? 'true' : 'false');
+    });
+  }
+
+  var links = Array.prototype.slice.call(document.querySelectorAll('.units a'));
+  var sections = links.map(function (a) { return document.querySelector(a.getAttribute('href')); });
+
+  function setCurrent() {
+    var pos = window.scrollY + 120;
+    var current = 0;
+    for (var i = 0; i < sections.length; i++) {
+      if (sections[i] && sections[i].offsetTop <= pos) current = i;
+    }
+    links.forEach(function (a, i) {
+      if (i === current) a.setAttribute('aria-current', 'true');
+      else a.removeAttribute('aria-current');
+    });
+  }
+  document.addEventListener('scroll', setCurrent, { passive: true });
+  setCurrent();
+
+  links.forEach(function (a) {
+    a.addEventListener('click', function () {
+      if (side.classList.contains('open')) {
+        side.classList.remove('open');
+        toggle.setAttribute('aria-expanded', 'false');
+      }
+    });
+  });
+})();
+</script>
+</body>
+</html>

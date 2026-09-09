@@ -1,0 +1,956 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Payment systems &amp; integrations · study · devbok</title>
+<link rel="preconnect" href="https://fonts.gstatic.com/" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Cascadia+Mono:wght@400;700&display=swap" rel="stylesheet">
+<style>
+:root { color-scheme: light;
+  --bg: #ffffff; --fg: #111111; --muted: #6b6b6b; --line: #111111; --soft: #f4f4f4; --border: #cccccc;
+  --accent: #635bff; --accent-soft: color-mix(in srgb, var(--accent) 12%, var(--bg));
+  --code: color-mix(in srgb, var(--accent) 70%, var(--fg));
+  --hl-kw: #a626a4; --hl-str: #50a14f; --hl-num: #986801; --hl-cmt: #6b6b6b; --hl-type: #0184bc; --hl-fn: #4078f2; --hl-attr: #986801; }
+@media (prefers-color-scheme: dark) { :root { color-scheme: dark;
+  --bg: #222222; --fg: #cccccc; --muted: #8f8f8f; --line: #111111; --soft: #2c2c2c; --border: #4a4a4a;
+  --accent: #635bff; --accent-soft: color-mix(in srgb, var(--accent) 16%, var(--bg));
+  --hl-kw: #c678dd; --hl-str: #98c379; --hl-num: #d19a66; --hl-cmt: #8f8f8f; --hl-type: #56b6c2; --hl-fn: #61afef; --hl-attr: #e5c07b; } }
+
+* { box-sizing: border-box; }
+html, body { margin: 0; }
+body { background: var(--bg); color: var(--fg); font-family: system-ui, sans-serif; font-size: 16px; line-height: 1.6; }
+h1, h2, h3 { font-family: system-ui, sans-serif; font-weight: 700; }
+h1 { font-size: 2em; }
+h2 { font-size: 1.5em; margin: 44px 0 16px; padding-top: 8px; border-top: 1px solid var(--line); }
+section.unit:first-of-type h2 { border-top: 0; }
+h3 { font-size: 1.17em; margin: 26px 0 10px; }
+p { margin: 0 0 14px; }
+a { color: var(--accent); }
+a:hover { text-decoration: underline; }
+:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+ul, ol { padding-left: 1.3em; }
+li { margin: 0 0 6px; }
+
+.hero { margin: 0 0 24px; padding: 0 0 24px; border-bottom: 2px solid var(--line); }
+.hero h1 { margin: 0 0 8px; font-size: 2em; line-height: 1.2; font-weight: 700; }
+.hero .meta { margin: 0 0 12px; font-family: "Cascadia Mono", Consolas, monospace; font-size: 12px; color: var(--muted); }
+.hero .summary { margin: 0 0 12px; }
+.hero .chips { display: flex; flex-wrap: wrap; gap: 6px; margin: 0; }
+
+code { background: var(--soft); border: 1px solid var(--border); border-radius: 3px; padding: 0 .3em; color: var(--code); overflow-wrap: anywhere; }
+pre { background: var(--soft); border: 1px solid var(--border); border-radius: 4px; padding: 12px 14px; overflow-x: auto; line-height: 1.5; margin: 14px 0; max-width: 100%; min-width: 0; }
+pre code { background: none; border: 0; border-radius: 0; padding: 0; color: inherit; white-space: pre; overflow-wrap: normal; }
+.hljs { color: var(--fg); background: transparent; }
+.hljs-keyword, .hljs-built_in, .hljs-literal, .hljs-selector-tag { color: var(--hl-kw); }
+.hljs-string, .hljs-regexp, .hljs-selector-attr { color: var(--hl-str); }
+.hljs-number, .hljs-symbol { color: var(--hl-num); }
+.hljs-comment, .hljs-quote, .hljs-doctag { color: var(--hl-cmt); font-style: italic; }
+.hljs-title, .hljs-title.class_, .hljs-type, .hljs-name, .hljs-section, .hljs-selector-class, .hljs-selector-pseudo { color: var(--hl-type); }
+.hljs-title.function_ { color: var(--hl-fn); }
+.hljs-meta, .hljs-attr, .hljs-attribute, .hljs-tag, .hljs-property, .hljs-variable { color: var(--hl-attr); }
+.hljs-template-tag, .hljs-template-variable { color: var(--hl-attr); }
+.hljs-code, .hljs-formula { color: var(--hl-cmt); }
+.hljs-operator, .hljs-subst, .hljs-punctuation, .hljs-params { color: var(--fg); }
+.hljs-emphasis { font-style: italic; } .hljs-strong { font-weight: 700; }
+
+.side { position: fixed; top: 0; bottom: 0; left: 0; width: 260px; display: flex; flex-direction: column; background: var(--bg); border-right: 2px solid var(--line); font-family: "Cascadia Mono", Consolas, monospace; font-size: 12px; }
+.units { list-style: none; margin: 0; padding: 12px 0; overflow-y: auto; flex: 1; }
+.units a { display: grid; grid-template-columns: 2.5em 1fr; padding: 9px 20px 9px 17px; border-left: 3px solid transparent; color: var(--fg); text-decoration: none; line-height: 1.4; }
+.units .n { color: var(--muted); font-weight: 400; }
+.units a:hover { background: var(--soft); }
+.units a[aria-current="true"] { background: var(--accent-soft); border-left-color: var(--accent); font-weight: 700; }
+.side footer { padding: 12px 20px; border-top: 2px solid var(--line); color: var(--muted); line-height: 1.5; }
+
+.content { margin-left: 260px; padding: 24px; max-width: 80ch; min-width: 0; }
+section.unit { min-width: 0; }
+
+.chips .chip, .chip { display: inline-block; font-family: "Cascadia Mono", Consolas, monospace; font-size: 11px; text-transform: uppercase; letter-spacing: .02em; background: var(--soft); border: 1px solid var(--border); border-radius: 4px; padding: 3px 8px; color: var(--fg); }
+
+.callout { background: var(--soft); border-left: 3px solid var(--accent); border-radius: 0 4px 4px 0; padding: 12px 16px; margin: 16px 0; min-width: 0; }
+.callout .label { display: block; font-family: "Cascadia Mono", Consolas, monospace; font-size: 11px; text-transform: uppercase; letter-spacing: .04em; color: var(--accent); margin: 0 0 6px; font-weight: 700; }
+.callout p:last-child { margin-bottom: 0; }
+
+.tryit { border: 1px dashed var(--border); border-radius: 4px; padding: 12px 16px; margin: 16px 0; min-width: 0; }
+.tryit .label { display: block; font-family: "Cascadia Mono", Consolas, monospace; font-size: 11px; text-transform: uppercase; letter-spacing: .04em; color: var(--muted); margin: 0 0 8px; font-weight: 700; }
+.tryit ol { margin: 0 0 8px; }
+.tryit details { margin-top: 8px; }
+
+.tablewrap { overflow-x: auto; margin: 14px 0; min-width: 0; }
+table { border-collapse: collapse; width: 100%; font-size: .95em; }
+th, td { text-align: left; padding: 7px 10px; border-bottom: 1px solid var(--border); vertical-align: top; }
+th { color: var(--muted); font-weight: 700; white-space: nowrap; }
+td code, th code { white-space: normal; }
+
+details.qa { border: 1px solid var(--border); border-radius: 4px; padding: 10px 14px; margin: 10px 0; background: var(--bg); min-width: 0; }
+details.qa > summary { font-weight: 700; cursor: pointer; }
+details.qa > summary::marker { color: var(--accent); }
+details.qa .a { margin-top: 10px; padding-top: 10px; border-top: 1px solid var(--border); }
+details.qa .a p:last-child { margin-bottom: 0; }
+
+.qa-theme { margin: 30px 0 12px; padding-bottom: 4px; border-bottom: 1px solid var(--border); color: var(--muted); font-family: "Cascadia Mono", Consolas, monospace; font-size: 12px; text-transform: uppercase; letter-spacing: .04em; }
+.qa-theme:first-of-type { margin-top: 18px; }
+
+.cheat-list { list-style: none; padding: 0; margin: 16px 0; }
+.cheat-list li { counter-increment: cheat; background: var(--soft); border: 1px solid var(--border); border-radius: 4px; padding: 10px 14px 10px 40px; margin: 0 0 8px; position: relative; }
+.cheat-list { counter-reset: cheat; }
+.cheat-list li::before { content: counter(cheat); position: absolute; left: 12px; top: 10px; color: var(--accent); font-family: "Cascadia Mono", Consolas, monospace; font-weight: 700; }
+
+.menu-toggle { display: none; position: fixed; top: 10px; left: 10px; z-index: 60; width: 34px; height: 34px; background: var(--bg); border: 1px solid var(--border); border-radius: 4px; font-family: "Cascadia Mono", Consolas, monospace; font-size: 14px; color: var(--fg); }
+
+@media (max-width: 720px) {
+  .side { transform: translateX(-100%); transition: transform .2s ease; z-index: 55; box-shadow: 2px 0 12px rgba(0,0,0,.2); }
+  .side.open { transform: translateX(0); }
+  .content { margin-left: 0; padding: 60px 16px 24px; }
+  .menu-toggle { display: block; }
+}
+</style>
+</head>
+<body>
+<!-- devbok
+slug: payments
+kind: study
+version: 1
+topic: "Payment systems & integrations (PSP APIs such as Stripe and Adyen, idempotency and retries, webhook handling, 3-D Secure/SCA, PCI DSS scope reduction, refunds, chargebacks, ledgers and reconciliation; mainly for .NET developers)"
+prompt: study.md@e02cbdee
+generated: 2026-09-08
+-->
+<button class="menu-toggle" type="button" aria-label="Toggle unit list" aria-expanded="false" onclick="document.querySelector('.side').classList.toggle('open'); this.setAttribute('aria-expanded', document.querySelector('.side').classList.contains('open'))">&#9776;</button>
+<nav class="side" aria-label="Units">
+  <ol class="units">
+    <li><a href="#u01"><span class="n">01</span><span class="t">PSP integration models</span></a></li>
+    <li><a href="#u02"><span class="n">02</span><span class="t">Payment lifecycle &amp; state</span></a></li>
+    <li><a href="#u03"><span class="n">03</span><span class="t">Idempotency &amp; retries</span></a></li>
+    <li><a href="#u04"><span class="n">04</span><span class="t">Webhook handling</span></a></li>
+    <li><a href="#u05"><span class="n">05</span><span class="t">3-D Secure &amp; SCA</span></a></li>
+    <li><a href="#u06"><span class="n">06</span><span class="t">PCI DSS scope</span></a></li>
+    <li><a href="#u07"><span class="n">07</span><span class="t">Refunds &amp; chargebacks</span></a></li>
+    <li><a href="#u08"><span class="n">08</span><span class="t">Ledgers &amp; double-entry</span></a></li>
+    <li><a href="#u09"><span class="n">09</span><span class="t">Reconciliation &amp; resiliency</span></a></li>
+    <li><a href="#u10"><span class="n">10</span><span class="t">The big Q&amp;A</span></a></li>
+    <li><a href="#u11"><span class="n">11</span><span class="t">Night-before cheat sheet</span></a></li>
+  </ol>
+  <footer>Payment systems &amp; integrations · study · version 1 · 2026-09-08</footer>
+</nav>
+<main class="content">
+<header class="hero">
+  <h1>Payment systems &amp; integrations</h1>
+  <p class="meta">study · Stripe API 2026-08-26 &#8220;Dahlia&#8221; · Adyen .NET SDK v35.0.0 · PCI DSS 4.0.1 · released 2026-08-26</p>
+  <p class="summary">Payment integration in 2026 means orchestrating one or more PSPs (Stripe, Adyen, and increasingly a second processor for resiliency) behind idempotent, webhook-driven state machines, with PCI scope pushed onto the PSP via tokenization and hosted UI rather than absorbed by your own servers. Stripe's API now ships two webhook shapes side by side &mdash; full &ldquo;snapshot&rdquo; events, and, from the Clover release onward, lean &ldquo;thin&rdquo; events you fetch on demand &mdash; and its latest named version, Dahlia (2026-08-26), keeps extending Billing and Connect. Adyen's official .NET library jumped to a breaking v35 in mid-2025, replacing constructor-based models with object initializers; EMV 3-D Secure sits at 2.3.1.1, with 2.3.x's richer risk data now live on major PSPs. Most consequentially, PCI DSS 4.0.1's future-dated requirements &mdash; payment-page script inventory and tamper detection (11.6.1) chief among them &mdash; stopped being optional on 31 March 2026, so a &ldquo;grandfathered&rdquo; SAQ&nbsp;A integration that still loads third-party scripts unmonitored is now non-compliant, not just risky. Code throughout is C#/.NET (Stripe.net, Adyen's .NET library, ASP.NET Core) since that's the stated audience, but the underlying models &mdash; idempotency, webhook trust, state machines, ledgers &mdash; hold in any language.</p>
+  <p class="chips"><span class="chip">Stripe API 2026-08-26</span> <span class="chip">Adyen .NET SDK v35</span> <span class="chip">PCI DSS 4.0.1</span> <span class="chip">3DS 2.3 / SCA</span> <span class="chip">Double-entry ledgers</span></p>
+</header>
+
+<section class="unit" id="u01">
+<h2>01&nbsp; PSP integration models</h2>
+
+<p>A payment service provider (PSP) exists to hide an ugly graph from you: card networks (Visa, Mastercard, Amex), issuing banks, acquiring banks, and increasingly local rails (Pix, iDEAL, Bacs, SEPA) that all speak different protocols and settle on different schedules. Stripe and Adyen are both PSP-plus-acquirer stacks &mdash; they hold the acquiring relationship themselves rather than routing through a third party &mdash; which is why they can offer a single API for authorization, capture, refunds and payouts instead of stitching together a gateway, a processor and a merchant account yourself. The mental model that matters at lead level isn't &ldquo;how do I call the API&rdquo;, it's &ldquo;where does raw card data live, and who is liable for it while it's there&rdquo;. Every integration choice below is really a choice about that.</p>
+
+<p>There are four integration shapes, and they trade PCI scope against UI control. <strong>Direct/server-side API</strong> means your backend receives the PAN (card number) directly, typically from a form your frontend posts to your own server; you then forward it to the PSP. This is the highest-scope, and Stripe and Adyen actively discourage it &mdash; Stripe's raw card-token endpoints require special permission and Adyen's is intentionally undocumented for that flow. <strong>Client-side tokenization with hosted fields</strong> &mdash; Stripe Elements/Payment Element, Adyen Web Components &mdash; renders the card inputs inside an iframe the PSP controls; your JavaScript never sees the PAN, only a token or a completed <code>PaymentMethod</code>/payment-method encrypted blob. This is the sweet spot for most product teams: full control over surrounding UI, PCI scope collapses to SAQ&nbsp;A (or A-EP if you touch the iframe's integrity, see unit&nbsp;06). <strong>Fully hosted checkout</strong> &mdash; Stripe Checkout, Adyen Drop-in in redirect mode, or a PSP-hosted payment page &mdash; hands the whole page over; you get a return URL and a webhook. Least engineering effort, least brand control, and it's still the right default for a first payment integration or a low-volume side project. <strong>Orchestration</strong> sits a layer above all three: a routing service (built in-house, or a vendor like Spreedly/Primer) that picks a PSP per transaction based on cost, success rate or geography, and normalizes their different object models behind one internal API.</p>
+
+<p>Concretely, Stripe models a payment as a <code>PaymentIntent</code>: a stateful object you create once (amount, currency, capture method) and then confirm, possibly multiple times, as the customer completes authentication or retries. A <code>PaymentMethod</code> (card, wallet, bank redirect) attaches to it, and a successful confirmation produces one or more underlying <code>Charge</code> objects. Adyen's equivalent is the <code>/payments</code> call plus a <code>PaymentDetails</code> follow-up call for the same reason &mdash; both APIs had to solve &ldquo;this might take three network round-trips because the issuer wants to challenge the customer,&rdquo; and both converged on the same shape: create, then resolve. That convergence is the real lesson &mdash; once you've internalized Stripe's model, reading Adyen's docs is translation, not re-learning.</p>
+
+<p><strong>Recent reality:</strong> Stripe's default recommendation is now the unified <code>PaymentElement</code>, a single client-side component that renders whichever of 100+ payment methods you've enabled (cards, wallets, BNPL, bank debits) instead of one Element per method; the older per-method Elements (<code>cardElement</code>, <code>ibanElement</code>) still work but are the path you'll find in a five-year-old codebase, not the one you'd start today. Adyen's parallel move is <strong>Drop-in</strong> over hand-assembled Components for the same reason: one integration point, server-driven method list, less client code to keep in sync with what Risk has enabled this week.</p>
+
+<div class="tablewrap"><table>
+<tr><th>Model</th><th>Card data touches your code?</th><th>Typical PCI scope</th><th>UI control</th><th>Stripe / Adyen</th></tr>
+<tr><td>Direct server-side API</td><td>Yes, raw PAN</td><td>SAQ D</td><td>Full</td><td>Discouraged / undocumented</td></tr>
+<tr><td>Client-side tokenization, hosted fields</td><td>No, iframe/native SDK only</td><td>SAQ A (A-EP if you inject into the iframe boundary)</td><td>High &mdash; you own layout, not the input</td><td>Payment Element / Web Components</td></tr>
+<tr><td>Fully hosted checkout</td><td>No, PSP-owned page</td><td>SAQ A</td><td>Low</td><td>Checkout / Drop-in (redirect)</td></tr>
+<tr><td>Orchestration layer over multiple PSPs</td><td>No (delegates to one of the above per PSP)</td><td>Same as chosen leaf model</td><td>Highest effort, highest flexibility</td><td>Custom, or Spreedly/Primer/Basis Theory</td></tr>
+</table></div>
+
+<pre><code class="language-csharp">// ASP.NET Core minimal API - server side, using Stripe.net.
+// The client already turned the card into a PaymentMethod via the Payment Element;
+// this endpoint never sees a PAN.
+app.MapPost("/api/checkout/intent", async (CreateIntentRequest req, IOptions&lt;StripeOptions&gt; opts) =&gt;
+{
+    var service = new PaymentIntentService();
+    var intent = await service.CreateAsync(new PaymentIntentCreateOptions
+    {
+        Amount = req.AmountMinorUnits,               // Stripe wants the smallest currency unit
+        Currency = req.Currency,
+        AutomaticPaymentMethods = new() { Enabled = true },
+        Metadata = new Dictionary&lt;string, string&gt; { ["orderId"] = req.OrderId }
+    }, new RequestOptions { IdempotencyKey = $"intent-create-{req.OrderId}" });
+
+    return Results.Ok(new { clientSecret = intent.ClientSecret });
+});
+</code></pre>
+
+<pre><code class="language-csharp">// Same shape, Adyen: create a payment session server-side, hand the session data to Drop-in.
+var client = new Client(apiKey, Environment.Test);
+var checkout = new PaymentsService(client);
+var session = await checkout.SessionsAsync(new CreateCheckoutSessionRequest
+{
+    Amount = new Amount { Currency = "EUR", Value = req.AmountMinorUnits },
+    Reference = req.OrderId,
+    ReturnUrl = "https://shop.example.com/checkout/return",
+    MerchantAccount = merchantAccount
+});
+return Results.Ok(new { sessionData = session.SessionData, sessionId = session.Id });
+</code></pre>
+
+<div class="callout"><span class="label">Interview trap</span>
+<p>Candidates say &ldquo;we use Stripe Elements so we're PCI compliant.&rdquo; Elements reduces <em>scope</em> (you self-attest with the shorter SAQ&nbsp;A questionnaire); it does not make you compliant by itself &mdash; you still have to actually complete the SAQ, keep TLS current, and, as of PCI DSS 4.0.1's now-mandatory 11.6.1, inventory and monitor every script that runs on the checkout page for tampering. A second, subtler trap: a PSP token is not a harmless opaque string forever &mdash; it can usually be charged again without re-authentication, so treat stored tokens (and the customer/PaymentMethod IDs that reference them) as sensitive credentials with their own access control, not as free-to-log identifiers.</p></div>
+
+<div class="tryit"><span class="label">Try it</span>
+<ol>
+<li>Stand up a throwaway ASP.NET Core minimal API, wire in Stripe.net with a test key, and create a <code>PaymentIntent</code> for a fixed amount. Confirm it with a Stripe test card (<code>4242 4242 4242 4242</code>) using the hosted Payment Element demo, then retrieve the <code>PaymentIntent</code> server-side and print its <code>status</code> transitions to the console.</li>
+<li>Break it on purpose: send the same create-intent request twice without an idempotency key, then again with one. Observe two <code>PaymentIntent</code> IDs in the first case and one in the second.</li>
+</ol>
+<details><summary>Expected outcome</summary><div class="a"><p>Without a key, Stripe treats the two requests as unrelated and happily creates two intents for the same order &mdash; the bug you'd only notice in production when finance flags a double authorization. With a key, the second call returns the exact same <code>PaymentIntent</code> object (same ID, same client secret) instead of creating a new one, which is the whole point of unit&nbsp;03.</p></div></details>
+</div>
+
+<details class="qa"><summary>Why do Stripe and Adyen both require a two-step create-then-confirm flow instead of a single call?</summary><div class="a"><p>Because authentication (3-D Secure) is asynchronous by nature &mdash; the issuer might approve instantly, might redirect the customer to their banking app, or might need a second round-trip after a challenge. Modeling the payment as a persistent object you can re-query and re-confirm means your server doesn't have to hold a synchronous connection open for however long the issuer takes, and it gives you a stable ID to reconcile against webhooks, retries and support tickets. A single call-and-response API would force you to either block indefinitely or lose the transaction context between steps.</p></div></details>
+
+<details class="qa"><summary>When would you deliberately choose a fully hosted checkout page over Elements/Components, at a company that already has frontend engineers?</summary><div class="a"><p>When the cost of maintaining PCI scope and UI consistency for a low-traffic or non-core flow exceeds the value of owning the pixels &mdash; think an internal admin tool that occasionally takes a manual card payment, a one-off invoice-payment link, or a new market you're testing before investing in a branded flow. Hosted checkout also wins when you need the PSP's fraud and localization logic (available payment methods per country, language) with zero maintenance, which matters more early on than brand polish.</p></div></details>
+
+<details class="qa"><summary>What's the actual difference between a PSP token (Stripe's PaymentMethod ID) and a card-network token (Visa Token Service / Mastercard MDES)?</summary><div class="a"><p>A PSP token is scoped to that PSP &mdash; it's meaningless outside Stripe's or Adyen's systems and is what you store to charge a returning customer. A network token is issued by the card network itself and replaces the PAN everywhere, including inside the PSP; its value is that it survives card reissuance (a lost card gets a new PAN, but a well-implemented network token updates automatically via <em>Account Updater</em>-style flows) and it can carry better interchange rates. Increasingly, PSPs request network tokens under the hood on your behalf, so you may be benefiting from this without any code change &mdash; but if you're asked in an interview, know that they solve different problems: PSP tokens are about vaulting, network tokens are about the PAN's own lifecycle.</p></div></details>
+
+<details class="qa"><summary>Your team wants to switch primary PSP without a customer-facing outage. What's the hard part?</summary><div class="a"><p>It's rarely the API integration &mdash; it's the stored payment methods. Card tokens are not portable between PSPs; Stripe can't charge an Adyen token and vice versa. You either re-collect payment details from customers (friction, drop-off), use a PSP-agnostic vault like Basis Theory or VGS that both PSPs can tokenize from, or run a migration window where new charges go to the new PSP while old customers' saved cards are charged through the old one until they naturally re-enter details. The second hard part is webhook and reconciliation logic: it's usually written assuming one PSP's event shapes and IDs, so a second processor means an abstraction layer, not a find-and-replace.</p></div></details>
+
+<details class="qa"><summary>What's the practical benefit of an orchestration/routing layer over multiple PSPs, beyond avoiding lock-in?</summary><div class="a"><p>Success-rate arbitrage: issuers and networks have processor-specific quirks, and routing a declined authorization to a second PSP before giving up (&ldquo;cascading&rdquo;) recovers a real, measurable slice of revenue at scale &mdash; often 1&ndash;3% of otherwise-lost transactions. It also gives you leverage in interchange-plus pricing negotiations and a blast-radius limit when one PSP has an outage or a compliance freeze on your account. The cost is real: you now maintain two integrations, two webhook contracts, and a reconciliation process that has to merge two settlement report formats into one ledger.</p></div></details>
+
+<details class="qa"><summary>What does "PSP-plus-acquirer" mean, and why does it matter that Stripe and Adyen are both that?</summary><div class="a"><p>A classic gateway (like a legacy Authorize.Net setup) only routes the transaction to a separate acquiring bank you contract with directly; Stripe and Adyen are acquirers themselves (or have acquiring licenses), so they underwrite your merchant risk, hold the settlement funds, and can offer one contract and one API for authorization through payout. It matters because it's why disputes, reserves and payout holds come from the PSP directly rather than a bank you've never spoken to, and why "switching acquirers" and "switching PSPs" are the same project when you're on Stripe or Adyen.</p></div></details>
+
+<details class="qa"><summary>How would you explain to a skeptical product manager why the checkout page can't just POST the card number to your own API?</summary><div class="a"><p>Frame it as scope, not paranoia: the instant your server process handles a raw PAN, your entire deployment &mdash; logs, backups, load balancers, the VM images &mdash; falls inside PCI DSS's strictest tier (SAQ D), with quarterly scans and an on-site-equivalent assessment. Tokenizing client-side keeps the PAN inside the PSP's iframe and collapses that same checklist to a one-page self-attestation. It's a business decision with a dollar figure attached (assessor fees, engineering hours, ongoing scans), not a preference.</p></div></details>
+
+<details class="qa"><summary>What breaks if you try to reuse the same client-side Elements instance across two different PaymentIntents?</summary><div class="a"><p>An Elements/Components instance is bound to the client secret (Stripe) or session data (Adyen) it was mounted with; the DOM nodes stay but the underlying payment context doesn't follow a new intent. In practice teams hit this when retrying a failed payment without a full page reload &mdash; they update state but keep the old mount, and confirmation silently targets the expired intent. The fix is always the same: fetch a fresh client secret/session for the new intent and re-mount, rather than trying to "rebind" the existing instance.</p></div></details>
+
+<details class="qa"><summary>A junior engineer proposes storing the last 4 digits and expiry of a card in your own database "for the receipts page." Where's the line?</summary><div class="a"><p>That's fine and normal &mdash; last-4, brand, and expiry are explicitly out of PCI's cardholder-data definition when stored without the PAN, and every PSP returns them on the PaymentMethod/Card object precisely so you can display them. The line is anything that, combined with other fields, could reconstruct or verify the PAN: full card number, CVV (never store CVV, full stop, even encrypted), or magnetic-stripe track data. Storing the PSP's own token alongside last-4 is the standard, safe pattern.</p></div></details>
+
+<details class="qa"><summary>How do you decide, at the architecture level, whether a new payment method (say, a BNPL provider or a local bank redirect) belongs behind your existing PaymentElement/Drop-in or needs its own bespoke integration?</summary><div class="a"><p>If the PSP you're already on supports it as a payment method inside their unified element, that's almost always the right default &mdash; you inherit their webhook events, dispute handling and compliance work for free. Bespoke integration is justified when the method isn't offered by your PSP at all, when contractual terms require going direct (some BNPL providers negotiate better rates outside PSP resale), or when the method has fundamentally different settlement timing (e.g., a multi-day bank transfer) that your PSP's abstraction doesn't model well and you need the raw provider API to build correct customer messaging.</p></div></details>
+
+<details class="qa"><summary>Stripe's <code>automatic_payment_methods</code> versus explicitly listing <code>payment_method_types</code> &mdash; why does the recommended default matter architecturally?</summary><div class="a"><p><code>automatic_payment_methods</code> lets the Dashboard-configured, Risk-approved method list drive what the PaymentIntent will accept, so enabling a new wallet or BNPL option for a market is a Dashboard change, not a deploy. Explicitly listing types is more predictable for testing and for markets with regulatory constraints on which methods you're allowed to surface, but it means your code and your Dashboard configuration can silently drift &mdash; someone disables a method in the Dashboard and your list still offers it, and the confirm call fails. Default to automatic unless you have a specific compliance reason not to.</p></div></details>
+</section>
+
+<section class="unit" id="u02">
+<h2>02&nbsp; Payment lifecycle &amp; state</h2>
+
+<p>Every PSP payment is a state machine, and the state machine exists because <em>authorization</em> and <em>capture</em> are two different, separately reversible operations that happen to usually occur together. Authorization asks the issuer &ldquo;will you honor this charge&rdquo; and, if yes, places a hold on the cardholder's available credit or balance &mdash; no money has moved. Capture is the instruction to actually pull the funds; it can happen at authorization time (the default, <code>capture_method=automatic</code> in Stripe, straight-through in Adyen) or be deferred (<code>capture_method=manual</code> / Adyen's separate <code>/payments/{id}/captures</code> call). Deferred capture is what lets an e-commerce checkout authorize at order time but only capture &mdash; and only for the shipped amount &mdash; once the warehouse confirms stock. Get this wrong and you either capture money for items you can't fulfil, or you let an authorization expire (issuers release holds after a network-defined window, commonly around seven days, longer for some merchant categories and travel/hospitality) and have to re-authorize, which the customer's bank sees as a second hold.</p>
+
+<p>Stripe's <code>PaymentIntent.status</code> and Adyen's <code>resultCode</code> encode the same underlying machine with different vocabularies: both need a state for &ldquo;needs a payment method,&rdquo; &ldquo;needs the customer to complete authentication,&rdquo; &ldquo;an async method is pending bank confirmation,&rdquo; and terminal success/failure/cancellation states. The states that trip people up are the non-terminal ones: <code>requires_action</code> (Stripe) / <code>RedirectShopper</code> (Adyen) means a 3-D Secure challenge or bank-redirect is in flight and your UI must resume the flow, not treat it as failure; <code>processing</code> means an async payment method (ACH debit, some wallets) has been accepted by the rails but won't have a final outcome for one to several business days &mdash; your order-fulfillment logic has to decide whether &ldquo;processing&rdquo; is good enough to ship (usually: not for high-value goods) or whether you wait for the terminal event.</p>
+
+<p>The other axis of the lifecycle is cancellation. A <em>void</em> cancels an authorization before capture &mdash; no money ever moved, so it's free and instant from the network's perspective (the hold simply expires early). A <em>refund</em> reverses a capture that already happened &mdash; money moved and now has to move back, which takes the same multi-day settlement time as the original payment and, unlike a void, usually carries no processing-fee refund from the network even though your PSP may refund its own fee. Confusing the two in your data model (treating every cancellation as a refund, or vice versa) is a common source of finance-team escalations, because voids and refunds appear completely differently on a statement and in dispute defense.</p>
+
+<p><strong>Recent reality:</strong> both Stripe and Adyen now support multiple partial captures against a single authorization as a first-class feature (useful for split shipments), where a few years ago multi-capture required contacting support to enable. The design implication: your order model should track a list of captures against an authorization, not a single capture flag, even if today you only ever capture once.</p>
+
+<div class="tablewrap"><table>
+<tr><th>Concept</th><th>Stripe</th><th>Adyen</th><th>Money moved?</th></tr>
+<tr><td>Authorize</td><td><code>PaymentIntent</code> confirmed, <code>capture_method=manual</code></td><td><code>/payments</code> with manual capture</td><td>No, hold only</td></tr>
+<tr><td>Capture (full or partial)</td><td><code>PaymentIntent.Capture</code></td><td><code>/payments/{id}/captures</code></td><td>Yes</td></tr>
+<tr><td>Void / cancel</td><td><code>PaymentIntent.Cancel</code></td><td><code>/payments/{id}/cancels</code></td><td>No &mdash; releases the hold</td></tr>
+<tr><td>Refund</td><td><code>Refund.Create</code></td><td><code>/payments/{id}/refunds</code></td><td>Yes, reverses a prior capture</td></tr>
+<tr><td>Async method pending</td><td><code>processing</code></td><td><code>Received</code> / <code>Pending</code></td><td>Not yet &mdash; can still fail (e.g. ACH return)</td></tr>
+</table></div>
+
+<pre><code class="language-csharp">// Manual capture: authorize now, capture only what actually ships.
+var intents = new PaymentIntentService();
+var intent = await intents.CreateAsync(new PaymentIntentCreateOptions
+{
+    Amount = order.TotalMinorUnits,
+    Currency = "usd",
+    CaptureMethod = "manual",
+    PaymentMethod = clientPaymentMethodId,
+    Confirm = true
+}, new RequestOptions { IdempotencyKey = $"auth-{order.Id}" });
+
+// ... days later, warehouse confirms partial shipment ...
+var captured = await intents.CaptureAsync(intent.Id, new PaymentIntentCaptureOptions
+{
+    AmountToCapture = shippedLineItems.TotalMinorUnits   // less than or equal to the authorized amount
+}, new RequestOptions { IdempotencyKey = $"capture-{order.Id}-{shipmentId}" });
+
+if (captured.Status == "succeeded" &amp;&amp; captured.AmountCapturable > 0)
+{
+    // partial capture leaves the remainder authorized for a later shipment,
+    // up to the PSP's multi-capture limit and the issuer's hold expiry.
+}
+</code></pre>
+
+<div class="callout"><span class="label">Interview trap</span>
+<p>&ldquo;<code>payment_intent.succeeded</code> fired, so the money is in our account&rdquo; is wrong twice over. First, <code>succeeded</code> means the authorization-and-capture sequence completed from the PSP's point of view &mdash; settlement into your bank account is a separate, batched process that lags by days (see unit&nbsp;09). Second, for async methods like ACH, &ldquo;succeeded&rdquo; can still be followed by a return/failure days later if the bank account had insufficient funds or was closed &mdash; there is no card-network-style dispute here, it's a different failure mode that arrives as its own webhook and has to debit your ledger retroactively. Design your order-fulfillment gate around the payment method's actual finality window, not around the first success event you see.</p></div>
+
+<div class="tryit"><span class="label">Try it</span>
+<ol>
+<li>Create a manual-capture <code>PaymentIntent</code>, confirm it, then capture only 60% of the amount. Inspect <code>amount_capturable</code> afterward.</li>
+<li>Break it on purpose: try to capture the remaining 40% a second time after already capturing it once, and separately, try to cancel a <code>PaymentIntent</code> after it has already been fully captured.</li>
+</ol>
+<details><summary>Expected outcome</summary><div class="a"><p>The first partial capture succeeds and leaves <code>amount_capturable</code> reduced accordingly (multi-capture support permitting); attempting to over-capture beyond the remaining authorized amount raises an <code>invalid_request_error</code>. Cancelling an already-fully-captured intent fails with a state error &mdash; cancellation only works on an intent that still has money on hold, not money already moved, which is exactly the void-vs-refund distinction from the prose above made concrete.</p></div></details>
+</div>
+
+<details class="qa"><summary>Why does deferred (manual) capture exist at all &mdash; why not always capture immediately and refund if something goes wrong?</summary><div class="a"><p>Refunding costs more than voiding in every dimension that matters: refunds take days to settle back to the customer (voids are same-day, since the hold simply lapses), refunds don't return the network's processing fee in most cases while voids never incurred a capture fee, and a pattern of frequent refunds on your account is a signal card networks' monitoring programs watch &mdash; too many can trigger scrutiny that a clean authorize/void cycle never will. Deferred capture is the correct default whenever fulfillment isn't instantaneous or certain, which is most physical-goods commerce.</p></div></details>
+
+<details class="qa"><summary>A customer's authorization holds funds for a week, then your capture attempt fails with "the PaymentIntent could not be captured because it has expired." What happened and what do you do?</summary><div class="a"><p>The issuer's authorization hold window lapsed before you captured &mdash; each network defines a rough validity period (commonly around seven days) after which the hold is automatically released back to the cardholder, and neither Stripe nor Adyen can force a capture past that. The fix is not retrying the same intent; you need a fresh authorization, which means the customer's payment method has to be re-run (ideally without re-prompting them if you have a stored, reusable PaymentMethod), and your fulfillment SLA should be built around not exceeding this window in the first place.</p></div></details>
+
+<details class="qa"><summary>How would you model captures in your own database schema, given multi-capture is now standard?</summary><div class="a"><p>Never a single boolean or amount on the order row. Model an <code>authorizations</code> table (one row per PaymentIntent/payment, with the authorized amount and status) and a <code>captures</code> table with a foreign key to it, one row per capture call, each carrying its own idempotency key and its own amount. Sum captured amounts against the authorized amount to know what's capturable-remaining, and treat "fully captured" as a derived state, not a stored one, so it can never drift out of sync with reality.</p></div></details>
+
+<details class="qa"><summary>What's the risk of shipping product as soon as an async payment method (e.g., ACH debit) shows "processing" or "succeeded" rather than waiting for final settlement?</summary><div class="a"><p>ACH debits can be returned by the receiving bank up to several business days after initial acceptance &mdash; insufficient funds, closed account, or an unauthorized-transaction claim &mdash; and unlike a card chargeback there's typically less structured evidence/defense tooling. For low-value, low-risk goods (a $10 digital download) many businesses accept this risk for better conversion; for high-value or easily-resold physical goods, gating fulfillment on the final settlement webhook (which both Stripe and Adyen expose distinctly from the initial acceptance event) is the standard risk control.</p></div></details>
+
+<details class="qa"><summary>Adyen exposes both a synchronous /payments response and asynchronous webhooks for the same authorization. Which do you trust as the source of truth, and why?</summary><div class="a"><p>The webhook, always &mdash; for exactly the reason 3-D Secure and async methods exist: the synchronous response can legitimately be a non-final "pending further action" state, and even a synchronous "authorised" response is Adyen's immediate read, not a guarantee that a later fraud check or issuer-side reversal won't change it before capture. The synchronous response is useful for immediate UI feedback ("processing your payment&hellip;"); the webhook (<code>AUTHORISATION</code> notification, correctly signature-verified) is what should actually flip your order state, exactly as covered in unit&nbsp;04.</p></div></details>
+
+<details class="qa"><summary>Why do both Stripe and Adyen require a separate confirm/complete step instead of returning a final result from the create call, even for a simple card payment with no 3-D Secure?</summary><div class="a"><p>Because the API can't know in advance whether this particular transaction will need a challenge until the issuer's authorization response comes back with that information &mdash; risk-based authentication decides per-transaction (see unit&nbsp;05), not per-integration. Splitting create from confirm also lets you build the payment method and validate the amount/currency before committing to the network call, and lets the same PaymentIntent be confirmed with a different payment method if the first attempt fails, without allocating a new object and a new ID for what is, to the customer, one attempt to pay.</p></div></details>
+
+<details class="qa"><summary>How do you handle a capture call that times out at the network level &mdash; you don't know if it succeeded on the PSP's side?</summary><div class="a"><p>Retry the exact same capture request with the exact same idempotency key. That's the entire point of unit&nbsp;03: a timed-out request is ambiguous locally but not on the PSP's side, and re-sending with the same key returns the original result (whether that was success or a specific failure) rather than risking a second real capture. Never retry a capture with a freshly generated key "to be safe" &mdash; that's precisely how double-captures happen.</p></div></details>
+
+<details class="qa"><summary>What does it mean for an authorization to be "incremental," and when would you use it?</summary><div class="a"><p>Incremental authorization lets you raise the held amount on an existing, uncaptured authorization instead of voiding and re-authorizing for a higher figure &mdash; used for open-ended holds like hotel stays or car rentals where the final bill isn't known upfront, or a restaurant tab. Both major PSPs support it as an explicit API call distinct from a new authorization; it preserves the original auth date for expiry-window purposes and avoids putting a second hold on the cardholder while the first is still outstanding.</p></div></details>
+
+<details class="qa"><summary>Your on-call engineer sees an order stuck in "requires_action" for six hours with no customer follow-up. What do you tell them to check, and what's the eventual resolution?</summary><div class="a"><p>First check whether this is expected: <code>requires_action</code> is a customer-facing state, meaning the shopper abandoned the challenge page or closed the tab &mdash; it's often not a system bug at all. If it's genuinely stuck (webhook never arrived, or your handler crashed processing it), the resolution is to re-fetch the PaymentIntent/payment object directly from the PSP's API (never trust only the webhook stream for state you can also pull), and if it's still non-terminal after a reasonable window, treat it as abandoned: cancel it if uncaptured, or surface it to the customer to retry, rather than leaving orders in limbo indefinitely.</p></div></details>
+
+<details class="qa"><summary>Why is "cancel an authorization" sometimes rejected by the PSP even though no capture has happened?</summary><div class="a"><p>Some issuers process the authorization hold on their own timeline and won't accept a reversal message before it's fully posted on their side, or the acquirer's processor doesn't support real-time voids for that card brand/region, silently downgrading a void request into "let the hold expire naturally." This is one of the sharper edges of the abstraction: the PSP's API can accept your cancel call successfully while the actual release of funds to the cardholder still takes the network's normal expiry window &mdash; worth knowing before promising a customer "the hold will disappear immediately" in a support macro.</p></div></details>
+</section>
+
+<section class="unit" id="u03">
+<h2>03&nbsp; Idempotency &amp; retries</h2>
+
+<p>The fundamental problem is simple to state and expensive to get wrong: over a network, a client that doesn't receive a response cannot distinguish &ldquo;the server never got my request&rdquo; from &ldquo;the server processed it and the response was lost.&rdquo; Every payment API call is a request to move or hold money, so retrying blindly after a timeout risks charging the customer twice; not retrying at all risks silently dropping a payment the issuer actually approved. Idempotency keys resolve this by moving the decision from &ldquo;did the network succeed&rdquo; to &ldquo;did this specific logical operation already happen,&rdquo; a question the PSP, not the network, can answer definitively.</p>
+
+<p>Mechanically: you generate a unique key (Stripe and Adyen both recommend a UUID v4, but any sufficiently unique string works) once per logical operation &mdash; not once per HTTP attempt &mdash; and attach it to the request (Stripe: an <code>Idempotency-Key</code> header; Adyen: a <code>idempotencyKey</code> field in the request body). The PSP caches the first response it produced for that key, for a bounded window (Stripe currently retains keys for 24 hours), and returns the identical cached response &mdash; same object, same ID, same status code &mdash; for any subsequent request bearing that key, without re-executing the underlying charge. If you send the same key with a <em>different</em> request body, that's treated as a bug, not a retry, and the PSP rejects it rather than guessing which version you meant. If two requests with the same key arrive concurrently while the first is still being processed, only one is allowed to proceed; the other fails immediately with an in-progress error rather than racing.</p>
+
+<p>The subtlety lead engineers are expected to know: the key has to be generated <strong>once, at the point where the logical operation is decided</strong>, and then reused across every retry of that same operation &mdash; not regenerated inside the retry loop. This sounds obvious written down and is nonetheless the single most common idempotency bug in real codebases, usually introduced by a well-meaning refactor that moves key generation from &ldquo;when the job is created&rdquo; to &ldquo;when the HTTP call is made.&rdquo; A durable job queue or outbox pattern is the natural home for the key: persist it alongside the job the moment you decide to charge someone, so a process crash and restart still retries with the same key instead of a fresh one.</p>
+
+<p>Idempotency at the PSP boundary doesn't absolve you of idempotency at your <em>own</em> boundary. Your webhook handler, your internal &ldquo;mark order as paid&rdquo; endpoint, anything with an externally-visible side effect and at-least-once delivery upstream (which, per unit&nbsp;04, webhooks always are) needs the same treatment: either natural idempotency (an <code>UPSERT</code> keyed on a business key, where applying the same write twice is a no-op) or an explicit dedup table &mdash; a unique constraint on the event/operation ID that makes a second attempt fail fast and get treated as &ldquo;already handled&rdquo; rather than reprocessed.</p>
+
+<p><strong>Retry strategy</strong> is the other half. Not every failure is the same: a <code>5xx</code> or a connection timeout is transient and safe to retry (with the same key); a <code>4xx</code> almost always means the request itself is wrong (bad parameter, expired card) and retrying identically will just fail identically &mdash; the fix is to change the request, or stop. Exponential backoff with jitter avoids synchronized retry storms across many customers' failed requests hitting the PSP at the same moment; a sane default is a handful of attempts capped at a total budget of well under a minute for anything in a synchronous checkout path, with genuinely async operations (payouts, batch refunds) allowed a longer, queued retry horizon.</p>
+
+<div class="tablewrap"><table>
+<tr><th>Operation</th><th>Safe to retry without a key?</th><th>Why</th></tr>
+<tr><td>Retrieve a PaymentIntent/payment (GET)</td><td>Yes</td><td>No side effect &mdash; naturally idempotent</td></tr>
+<tr><td>Create a charge/PaymentIntent/refund (POST)</td><td>No</td><td>Side-effecting; needs an idempotency key reused across attempts</td></tr>
+<tr><td>Cancel/void an already-cancelled intent</td><td>Mostly</td><td>Often a no-op server-side, but rely on the documented behaviour, not an assumption</td></tr>
+<tr><td>Your own webhook handler re-invoked for the same event ID</td><td>No</td><td>Needs your own dedup by event ID; the PSP's key doesn't cover your side effects</td></tr>
+</table></div>
+
+<pre><code class="language-csharp">// The key is generated where the decision to pay is made - e.g. when the order is
+// placed - and persisted with the job, never regenerated per HTTP attempt.
+public record ChargeJob(string OrderId, long AmountMinorUnits, string IdempotencyKey);
+
+public async Task&lt;PaymentIntent&gt; ChargeWithRetryAsync(ChargeJob job, PaymentIntentService intents)
+{
+    var policy = Policy
+        .Handle&lt;StripeException&gt;(e =&gt; e.HttpStatusCode &gt;= HttpStatusCode.InternalServerError)
+        .Or&lt;TaskCanceledException&gt;()               // timeout
+        .WaitAndRetryAsync(3, attempt =&gt; TimeSpan.FromSeconds(Math.Pow(2, attempt))
+            + TimeSpan.FromMilliseconds(Random.Shared.Next(0, 250)));
+
+    return await policy.ExecuteAsync(() =&gt; intents.CreateAsync(new PaymentIntentCreateOptions
+    {
+        Amount = job.AmountMinorUnits,
+        Currency = "usd",
+        Confirm = true,
+        PaymentMethod = job.OrderId // resolved elsewhere
+    }, new RequestOptions { IdempotencyKey = job.IdempotencyKey }));   // <- same key, every attempt
+}
+</code></pre>
+
+<div class="callout"><span class="label">Interview trap</span>
+<p>The bug that reliably separates candidates who've operated payments in production from candidates who've only read the docs: <code>new RequestOptions { IdempotencyKey = Guid.NewGuid().ToString() }</code> written <em>inside</em> the retry callback. It compiles, it looks defensive, and it silently disables idempotency entirely &mdash; every retry becomes a brand-new logical operation as far as the PSP is concerned. Ask where the key is generated relative to the retry loop before you ask anything else about someone's retry code.</p></div>
+
+<div class="tryit"><span class="label">Try it</span>
+<ol>
+<li>Write a small console app that calls Stripe's create-PaymentIntent with a fixed idempotency key three times in a row. Confirm all three calls return the same <code>PaymentIntent.Id</code>.</li>
+<li>Break it on purpose: call it a fourth time with the same key but a different <code>Amount</code>. Observe the error, then fix your understanding of what the key actually guarantees.</li>
+</ol>
+<details><summary>Expected outcome</summary><div class="a"><p>The first three calls return byte-identical PaymentIntent representations (aside from Stripe's own housekeeping fields) because the second and third never re-executed &mdash; they replayed the cached first response. The fourth call fails with an idempotency error naming the mismatched parameter, which is the PSP protecting you from a bug: it refuses to guess whether you meant to change the amount of an existing operation or start a genuinely new one under an accidentally-reused key.</p></div></details>
+</div>
+
+<details class="qa"><summary>Why 24 hours, specifically, for Stripe's idempotency key retention &mdash; what would break with a much shorter or much longer window?</summary><div class="a"><p>It's a pragmatic bound on how long a retry is plausible versus how long the PSP is willing to keep response caches around: 24 hours comfortably covers any realistic retry storm, including a client that was down for a few hours and replays its outbox on recovery, without keeping unbounded state. Shorter (say, five minutes) would fail legitimate slow-recovery scenarios &mdash; a queue consumer that was paused for an hour would generate what looks like a brand-new charge on resume. Much longer serves little purpose since any client design should have converged on success or a permanent failure well within a day, and it costs the PSP more storage for the tail of keys nobody will ever replay.</p></div></details>
+
+<details class="qa"><summary>Your service calls a downstream PSP, the HTTP call times out, but the PSP actually processed it successfully. What's the correct recovery, in order?</summary><div class="a"><p>Retry the identical request with the identical idempotency key &mdash; that's it, that's the mechanism working as designed; the retried call returns the already-created object rather than creating a second one. What you must not do is fall back to "check some other way first" as a required step (e.g., always list recent charges before retrying) &mdash; that's extra complexity the idempotency key already makes unnecessary, though querying to confirm before user-facing messaging is reasonable defensive UX, not a correctness requirement.</p></div></details>
+
+<details class="qa"><summary>How do you generate idempotency keys for an operation that can legitimately happen more than once for the same order &mdash; e.g., multiple partial captures?</summary><div class="a"><p>The key has to encode the specific instance of the operation, not just the order: something like <code>capture-{orderId}-{shipmentId}</code> rather than <code>capture-{orderId}</code>. Get the granularity wrong in either direction and you either collide two legitimately-different captures into one (the second silently no-ops, and that shipment never gets billed) or fail to dedupe retries of the same capture (defeating the whole point). The rule of thumb: the key should be derivable purely from data that already uniquely identifies "this exact side effect," so recomputing it from scratch after a crash gives you back the same value.</p></div></details>
+
+<details class="qa"><summary>Do you need an idempotency key for a refund the same way you do for a charge?</summary><div class="a"><p>Yes, for the same reason and with the same failure mode if you skip it &mdash; an ambiguous-outcome retry of a refund call can double-refund a customer, which is a real financial loss with no dispute-style clawback path. It's easy to underweight because refunds feel "safer" than charges, but from the PSP's perspective a refund is just another money-moving POST, and it gets the identical idempotency treatment.</p></div></details>
+
+<details class="qa"><summary>What's the difference between PSP-level idempotency keys and idempotency in your own internal APIs (e.g., an internal "mark order as fulfilled" endpoint)?</summary><div class="a"><p>They solve the same problem at different boundaries. The PSP's key protects you from your own client-to-PSP network being unreliable. Your internal API needs the same protection against unreliability between your services &mdash; a retrying HTTP client, a message queue redelivering, a Kubernetes pod restarting mid-request &mdash; and the PSP's key does nothing for that hop. In practice this usually means propagating a request ID or using natural idempotency (an upsert on order ID) at every internal boundary that has a side effect, not just the outermost one.</p></div></details>
+
+<details class="qa"><summary>How would you design idempotency for a webhook handler that has to call a downstream PSP API as part of processing the event (e.g., automatically issuing a follow-up refund when a fraud-review webhook fires)?</summary><div class="a"><p>Two layers, composed: dedupe the inbound webhook by event ID first (unit&nbsp;04) so a redelivered webhook doesn't even reach your business logic twice, and separately derive the outbound refund's idempotency key from the event ID itself (e.g. <code>refund-for-event-{eventId}</code>) so that even if your dedup layer had a gap, the downstream call is still safe. Defense in depth here is cheap and the failure mode (duplicate refund) is expensive enough to justify it.</p></div></details>
+
+<details class="qa"><summary>A teammate argues idempotency keys are unnecessary if you just wrap the charge and the order-update in one database transaction. What's wrong with that reasoning?</summary><div class="a"><p>A local database transaction can make your own state changes atomic, but it has no power over whether the PSP actually executed the charge before your process crashed or the network dropped &mdash; the transaction boundary is on the wrong side of the failure. You can roll your database transaction back perfectly and still have genuinely charged the customer at the PSP, or roll it back and have not charged them while your retry logic (lacking a key) charges them a second time on resume. Idempotency keys and local transactions solve different halves of the same problem and you need both.</p></div></details>
+
+<details class="qa"><summary>How does idempotency interact with rate limiting &mdash; if a request is rejected with a 429, do you retry with the same key?</summary><div class="a"><p>Yes: a 429 means the request was never processed at all, so it's unambiguously safe (and correct) to retry with the same key after backing off for the duration the PSP suggests (often via a <code>Retry-After</code> header). This is different from a genuine idempotency conflict (400 on key reuse with different parameters) or an in-progress conflict (409-style, meaning a concurrent identical request is still running) &mdash; both of those mean "don't just retry," where a 429 means "retry, just not yet."</p></div></details>
+
+<details class="qa"><summary>What would you look for in a code review of someone's payment retry logic, beyond key placement?</summary><div class="a"><p>Whether the retry budget is bounded and appropriate to the calling context (a synchronous checkout request shouldn't retry for two minutes while a customer stares at a spinner); whether backoff includes jitter to avoid thundering-herd retries after a PSP-side blip affecting many customers at once; whether the code distinguishes retryable failure classes (timeouts, 5xx, 429) from non-retryable ones (4xx validation errors, declined cards) instead of catching every exception the same way; and whether the idempotency key is derived deterministically from durable state, so a process restart mid-retry reconstructs the same key rather than losing it.</p></div></details>
+
+<details class="qa"><summary>Is it ever correct to intentionally omit an idempotency key?</summary><div class="a"><p>For genuinely read-only calls, yes &mdash; there's no operation to deduplicate. For anything that creates or mutates state, omitting the key is only defensible when you've made retries structurally impossible (a strictly one-shot, fire-and-forget call with no retry path anywhere in the stack, including infrastructure-level ones like a load balancer's automatic retry-on-timeout), which in a production payment path is rare enough that "we didn't bother" is the honest and wrong answer far more often than "we deliberately verified no retry path exists."</p></div></details>
+</section>
+
+<section class="unit" id="u04">
+<h2>04&nbsp; Webhook handling</h2>
+
+<p>A webhook exists because the synchronous API response you get from creating a PaymentIntent is a snapshot, not a promise: the customer's bank can still take seconds to minutes (card 3DS challenge) or days (SEPA Direct Debit, ACH) to actually settle the payment, and your checkout process can't hold an HTTP connection open that long. Webhooks are the PSP's way of telling you, out of band, &ldquo;this thing you were watching just changed state.&rdquo; That reframes the whole design problem: your webhook endpoint isn't a notification inbox, it's a second entry point into your payment state machine, one that fires asynchronously, out of order, and potentially more than once for the same event.</p>
+
+<p>Every serious PSP webhook design shares three guarantees, and all three are guarantees of unreliability, not reliability: delivery is <strong>at-least-once</strong> (expect duplicates &mdash; your handler must be idempotent, per unit&nbsp;03), delivery is <strong>not ordered</strong> (a <code>payment_intent.succeeded</code> can arrive before a <code>payment_intent.created</code> you'd naively expect first, especially across retries), and delivery is <strong>not guaranteed within any particular time bound</strong> (an outage on your end queues retries for hours). The corollary that trips people up: never trust the <em>timestamp inside the payload</em> to establish order. Use the object's own resource state fetched fresh, or compare event IDs/sequence data the PSP explicitly provides for ordering, not the event's <code>created</code> field.</p>
+
+<p><strong>Verification is non-negotiable and is the part people skip under deadline pressure.</strong> Anyone can POST a JSON blob that looks like a Stripe event to your public endpoint; without verifying it, an attacker can fabricate a <code>payment_intent.succeeded</code> and get you to ship goods for free. Stripe signs every webhook with a per-endpoint signing secret: the <code>Stripe-Signature</code> header carries a timestamp and an HMAC-SHA256 computed over <code>{timestamp}.{raw request body}</code>, and you recompute the same HMAC server-side and compare; Stripe's official libraries also enforce a default five-minute tolerance on the timestamp to blunt replay of an old, legitimately-signed payload. Adyen's HMAC verification works on the same principle over its own notification payload shape. The detail that breaks people in practice: you must verify against the <strong>raw, unparsed request body bytes</strong>, not a re-serialized version of the JSON your framework parsed and reformatted &mdash; ASP.NET Core model binding will happily hand you a re-shaped object whose byte-for-byte serialization no longer matches what was signed, so the signature check has to run on the raw stream before any model binding touches it.</p>
+
+<p><strong>What changed recently:</strong> Stripe's newer API versions (from the 2024-2025 &ldquo;Clover&rdquo; lineage onward, current as of this writing being the 2026-08-26 &ldquo;Dahlia&rdquo; release) support <em>thin events</em> as an alternative to the long-standing snapshot payload: instead of embedding the full object state at the moment the event fired, a thin event carries just the event type, the object ID, and a related-object reference, and your handler is expected to fetch the current state via the API when it needs it. This flips the reliability model in your favour &mdash; a thin event you process ten minutes late (after a retry backlog) always reflects a <em>fetch-fresh</em> state rather than a potentially-stale embedded snapshot, which directly closes the out-of-order-delivery gap described above. It's an opt-in, additive change; snapshot events remain fully supported, and most existing integrations still use them, so recognize both shapes rather than assuming one.</p>
+
+<pre><code class="language-csharp">// ASP.NET Core minimal API - verify against the RAW body, before any model binding.
+app.MapPost("/webhooks/stripe", async (HttpRequest req) =&gt;
+{
+    using var reader = new StreamReader(req.Body);
+    var json = await reader.ReadToEndAsync();               // raw bytes as text, unparsed
+    var sigHeader = req.Headers["Stripe-Signature"];
+
+    Event stripeEvent;
+    try
+    {
+        stripeEvent = EventUtility.ConstructEvent(json, sigHeader, webhookSecret,
+            tolerance: 300); // seconds; rejects stale/replayed payloads
+    }
+    catch (StripeException)
+    {
+        return Results.BadRequest();                        // bad signature - do NOT process
+    }
+
+    // Idempotency: dedupe by event.Id (unique constraint / upsert), not by re-deriving state.
+    if (await _eventStore.AlreadyProcessedAsync(stripeEvent.Id))
+        return Results.Ok();                                 // ack, don't reprocess
+
+    if (stripeEvent.Type == "payment_intent.succeeded")
+    {
+        var pi = (PaymentIntent)stripeEvent.Data.Object;      // snapshot event: safe to read directly
+        await _orders.MarkPaidAsync(pi.Id, pi.AmountReceived);
+    }
+
+    await _eventStore.MarkProcessedAsync(stripeEvent.Id);
+    return Results.Ok();                                      // 2xx = "stop retrying"; anything else = "retry"
+});
+</code></pre>
+
+<div class="tablewrap"><table>
+<tr><th></th><th>Stripe</th><th>Adyen</th></tr>
+<tr><td>Verification</td><td><code>Stripe-Signature</code> header, HMAC-SHA256 over <code>timestamp.body</code></td><td>HMAC-SHA256 signature field in the notification payload</td></tr>
+<tr><td>Retry backoff</td><td>Exponential, retries for up to ~3 days on non-2xx</td><td>Exponential, similar multi-day retry window</td></tr>
+<tr><td>Ack contract</td><td>Any 2xx stops retries; non-2xx (incl. 3xx/4xx/5xx) triggers redelivery</td><td><code>[accepted]</code> plain-text 200 response expected; anything else retries</td></tr>
+<tr><td>Payload shape</td><td>Snapshot (full object) or thin (ID + fetch) event, per API version</td><td>Notification item with the resource's current status fields</td></tr>
+<tr><td>Ordering</td><td>Not guaranteed; use event ID for dedup, not <code>created</code> for ordering</td><td>Not guaranteed across notification items</td></tr>
+</table></div>
+
+<div class="callout"><span class="label">Interview trap</span>
+<p>&ldquo;We verify the webhook signature, so we're secure&rdquo; is half the story. The second half interviewers probe for: what does your handler do if it receives the <em>same, validly-signed</em> event twice (it will &mdash; at-least-once delivery is a guarantee, not an edge case), and what does it do if two different event types for the same PaymentIntent arrive out of order? A handler that isn't idempotent by event ID, and that mutates state by "apply this event's payload" rather than "reconcile to the object's true current status," will eventually double-fulfill an order or revert a later state to an earlier one on a delayed retry.</p></div>
+
+<div class="tryit"><span class="label">Try it</span>
+<ol>
+<li>Stand up a minimal webhook endpoint and use the Stripe CLI's <code>stripe listen --forward-to</code> plus <code>stripe trigger payment_intent.succeeded</code> to fire a real, signed test event at it locally.</li>
+<li>Break it on purpose: comment out the signature check, then hand-craft a POST with curl containing a fabricated <code>payment_intent.succeeded</code> body and no valid signature. Confirm your (temporarily unprotected) endpoint processes it, then restore the check and confirm the same request now gets rejected.</li>
+</ol>
+<details><summary>Expected outcome</summary><div class="a"><p>With the check in place, the CLI-triggered event verifies successfully (the CLI signs it with your endpoint's actual webhook secret) and your handler runs its business logic exactly once. With the check removed, the forged curl request is processed identically to a real one &mdash; which is the vulnerability made concrete: anything that can reach your public endpoint's URL can manufacture "this order was paid" without an actual payment happening. Restoring the check causes the same forged request to be rejected with a signature-mismatch error before any business logic runs.</p></div></details>
+</div>
+
+<details class="qa"><summary>Your webhook handler needs to call your database and, on success, call a downstream service. The downstream call fails. Should you retry it inline before returning a response to the PSP, or return success and handle the downstream failure separately?</summary><div class="a"><p>Return success to the PSP as soon as the event is durably recorded (written to your own event/outbox table), then process the downstream effect asynchronously with your own retry policy. Blocking the webhook response on a downstream call couples your PSP's retry timing and backoff to a dependency it knows nothing about, and if the downstream call fails, you now have to decide whether a non-2xx response (triggering a PSP-level retry of the whole webhook, including whatever already succeeded) is even the right recovery mechanism. Decoupling means the webhook's only job is "durably record that this happened," which is fast and rarely fails.</p></div></details>
+
+<details class="qa"><summary>How do you decide what HTTP status code to return from a webhook handler when processing partially fails?</summary><div class="a"><p>The status code is entirely a signal to the PSP about whether to redeliver, so the decision is "would redelivery help or hurt": a genuinely transient failure (DB connection blip) should return a 5xx so the PSP retries; a permanently unprocessable event (a bug that will fail identically every time) should still often return 2xx to stop a retry storm you can't benefit from, paired with alerting on your side, because an infinite redelivery loop for an error only you can fix wastes both sides' resources.</p></div></details>
+
+<details class="qa"><summary>Why can't you rely on webhook delivery order to reconstruct a PaymentIntent's lifecycle (created → processing → succeeded)?</summary><div class="a"><p>Retries are per-event: if the "created" webhook's first delivery attempt fails and gets queued for retry while "succeeded" fires and is delivered successfully on its first attempt, "succeeded" can physically arrive at your endpoint before "created" does. Your handler has to be written so that receiving events out of order still converges to the correct final state — typically by treating each event as "go re-check/reconcile the object's authoritative current state" rather than "apply this event's delta to whatever state I already have."</p></div></details>
+
+<details class="qa"><summary>What's the security risk of logging the full raw webhook payload for debugging, and how do you mitigate it?</summary><div class="a"><p>Payment webhook payloads routinely include PII and payment-adjacent metadata (customer email, last-4, billing address, sometimes internal order notes echoed back) that shouldn't sit unencrypted in a general-purpose log aggregator with broad read access — it quietly expands your compliance surface. Mitigate by redacting known-sensitive fields before logging, or logging only the event ID and type by default with full-payload capture gated behind a specific, audited debug flag.</p></div></details>
+
+<details class="qa"><summary>A teammate wants to skip signature verification in a staging environment "since it's not real money anyway." What do you say?</summary><div class="a"><p>Staging environments are a common vector for exactly this kind of forged-event testing precisely because they're assumed to be low-stakes, and staging code has a habit of getting copy-pasted into production or left half-migrated. There's also a practical cost to skipping it: you lose the chance to catch signature-verification bugs (wrong secret, body being re-serialized before the check) before they reach production. Keep verification on everywhere; use the PSP's official test-event triggers (which sign correctly) rather than disabling the check.</p></div></details>
+
+<details class="qa"><summary>How would you design monitoring/alerting specifically for webhook health, separate from general API monitoring?</summary><div class="a"><p>Track delivery lag (time between the PSP's event timestamp and your processing timestamp) and endpoint error rate as first-class metrics, alerting on both — a rising error rate means your handler is broken and the PSP's retry queue is silently growing as your safety net; rising lag with a flat error rate can mean you're falling behind on volume. Also alert on "PSP dashboard shows the endpoint disabled/failing," since PSPs will auto-disable a chronically-failing webhook endpoint after enough consecutive failures, which is a silent, total loss of your async payment-state pipeline if nobody's watching for it.</p></div></details>
+
+<details class="qa"><summary>Explain thin events vs snapshot events, and when you'd choose one over the other for a new integration.</summary><div class="a"><p>A snapshot event embeds the full object state as of the moment it fired; a thin event carries only the event type and an object reference, requiring a follow-up API call to get current state. For a new integration, thin events are generally preferable specifically because they can't go stale between firing and processing — a delayed retry re-fetches truth rather than replaying an old snapshot — at the cost of one extra API call per event and a hard dependency on the API being reachable when you process the backlog. Existing integrations built on snapshot events don't need to migrate reactively; it's an additive option, not a deprecation.</p></div></details>
+
+<details class="qa"><summary>What's the failure mode of using a single shared webhook secret across multiple environments (dev, staging, prod)?</summary><div class="a"><p>Any environment with access to that secret can forge signed events indistinguishable from real ones for every other environment sharing it, and a leak in your least-protected environment (dev, typically) compromises verification everywhere. Each environment should have its own webhook endpoint registration and its own distinct signing secret, so a compromise is contained.</p></div></details>
+
+<details class="qa"><summary>Your on-call engineer wants to manually replay a webhook event from the PSP's dashboard to fix a stuck order. What should they check before doing that?</summary><div class="a"><p>Whether the handler is genuinely idempotent by event ID for that event type — if it is, replaying is safe and often the fastest fix; if the handler has any non-idempotent side effect for that path (a bug, or a code path that predates the dedup layer), a manual replay can duplicate the very side effect you're trying to trigger, like re-sending a fulfillment notification. When in doubt, check the effect directly (was the order actually marked paid) rather than only checking whether the webhook fired.</p></div></details>
+
+<details class="qa"><summary>How do webhooks interact with idempotency keys from unit 3 — are they the same mechanism?</summary><div class="a"><p>No, they solve adjacent but distinct problems at different points in the flow. An idempotency key protects an outbound request you make to the PSP from being duplicated by your own retries. Webhook event-ID deduplication protects your handler from an inbound, PSP-initiated redelivery of the same notification. You need both, and confusing them (e.g., assuming your idempotency key somehow also dedupes webhook deliveries) leaves one side unprotected.</p></div></details>
+
+<details class="qa"><summary>Design review: a webhook handler processes the event, updates the order, and then, in the same request, calls Stripe again to capture a manual-capture PaymentIntent. What would you flag?</summary><div class="a"><p>Two things: first, that outbound call needs its own idempotency key derived from the event ID (unit 3's cross-boundary composition), or a retry of the webhook will attempt a duplicate capture. Second, and more structurally, doing a slow outbound API call synchronously inside the webhook handler risks the whole request exceeding the PSP's response-time expectations and being treated as a failed delivery even though your side effect actually succeeded — safer to durably record the intent to capture and perform the capture asynchronously, decoupled from the webhook's own request/response cycle.</p></div></details>
+</section>
+
+<section class="unit" id="u05">
+<h2>05&nbsp; 3-D Secure &amp; SCA</h2>
+
+<p>3-D Secure (3DS) exists to shift liability. Card networks and issuers built it so that, for a properly-authenticated transaction, fraud liability moves from the merchant to the issuer &mdash; which is why merchants care about it even though it adds friction: an unchallenged, undisputed chargeback for card-not-present fraud otherwise lands on the merchant's books. In the EU/UK, this got a regulatory teeth-grind with PSD2's Strong Customer Authentication (SCA) mandate: most online card payments now legally require two of three independent authentication factors (something you know, something you have, something you are) unless a specific exemption applies, and 3DS2 is the mechanism the industry converged on to satisfy that requirement while still authenticating in milliseconds for the overwhelming majority of transactions.</p>
+
+<p>The generational shift that matters for anyone building today is 3DS1 → 3DS2. 3DS1 (the old pop-up asking for a static password) is deprecated everywhere that matters and increasingly rejected outright by networks; it's a legacy pattern you should recognize in an old codebase, never implement fresh. 3DS2 (EMV 3-D Secure, current stable spec version 2.3.1.1) is built around <strong>risk-based authentication</strong>: the issuer receives a rich device/browsing/transaction data payload (frictionless flow data) and, for a large majority of low-risk transactions, authenticates silently in the background with zero customer-visible friction &mdash; no OTP, no redirect, nothing. Only transactions the issuer's risk engine flags go to a <strong>challenge flow</strong>, the visible step-up (an OTP text, a banking-app push approval, a biometric prompt) that most people picture when they hear "3D Secure." Designing for 3DS2 correctly means designing the whole flow to gracefully branch at that point, not assuming every transaction challenges.</p>
+
+<p>Concretely, in Stripe's model this surfaces as a PaymentIntent moving into a <code>requires_action</code> status: your client-side code (via Stripe.js/`PaymentElement`, or the mobile SDK equivalent) has to hand off to Stripe's own UI to render whatever the issuer demands &mdash; frictionless is invisible, a challenge shows a hosted iframe/redirect &mdash; and then resume confirmation once the customer completes it. Adyen's `/payments` + `PaymentDetails` two-call pattern is the same shape under different names: the first call can come back with an <code>action</code> object describing exactly what UI to render for the challenge, and the second call submits the result. In both models, the critical engineering point is the same: your backend does not implement the challenge UI itself, ever &mdash; that's exactly the part PCI DSS and card-network rules require to be handled entirely within the PSP/issuer's own controlled context, precisely so your servers never see or need to see the OTP or biometric result directly.</p>
+
+<p><strong>SCA exemptions</strong> are the practical lever for reducing friction without giving up liability shift entirely, and a lead engineer is expected to know they exist and roughly what they trade off, even without being an SCA compliance specialist: low-value transactions (below a small per-transaction threshold), transaction-risk-analysis exemptions (issuer or acquirer self-certifies low fraud rates and requests an exemption), recurring/subscription "merchant-initiated transactions" after an initial customer-present authentication, and trusted-beneficiary allowlisting the customer sets up with their bank. Exemptions are <em>requested</em>, not guaranteed &mdash; the issuer can still force a challenge regardless of what exemption flag you send, so your integration has to handle the challenge path even when you're actively trying to avoid it.</p>
+
+<p><strong>What changed recently:</strong> EMVCo's 3-D Secure spec sits at 2.3.1.1 as the current published, implemented version; EMVCo has a 2.4.0 version in its specification pipeline (public comment period activity through 2026) aimed at further data-element and messaging refinements, not yet the deployed baseline &mdash; treat 2.4.0 as "coming, track it" rather than "implement this instead of 2.3.1.1 today." On the PSP side, Stripe's current-generation API versions (the &ldquo;Clover&rdquo;/&ldquo;Dahlia&rdquo; lineage) carry full 2.3.1.1 support end to end, and both major PSPs have continued tightening their default frictionless-vs-challenge risk scoring, meaning the practical challenge rate for a well-configured integration keeps trending down year over year even as the underlying spec version hasn't jumped.</p>
+
+<div class="tablewrap"><table>
+<tr><th>Flow</th><th>Customer sees</th><th>Liability outcome (successful auth)</th></tr>
+<tr><td>Frictionless (risk-based, no challenge)</td><td>Nothing &mdash; instant</td><td>Liability shifts to issuer, same as a challenge</td></tr>
+<tr><td>Challenge</td><td>OTP / bank app approval / biometric prompt</td><td>Liability shifts to issuer</td></tr>
+<tr><td>Exemption applied, issuer accepts</td><td>Nothing &mdash; no 3DS round-trip at all</td><td>Liability generally stays with merchant (no auth occurred)</td></tr>
+<tr><td>3DS1 (legacy)</td><td>Static-password popup</td><td>Weaker/inconsistent shift; deprecated path</td></tr>
+</table></div>
+
+<pre><code class="language-csharp">// Stripe: creating a PaymentIntent that may require a 3DS challenge, then
+// handling the requires_action status after confirmation.
+var intent = await intentService.CreateAsync(new PaymentIntentCreateOptions
+{
+    Amount = 4999,
+    Currency = "eur",
+    PaymentMethod = paymentMethodId,
+    Confirm = true,
+    // Let Stripe decide frictionless vs challenge; don't try to force it off.
+}, new RequestOptions { IdempotencyKey = idempotencyKey });
+
+if (intent.Status == "requires_action")
+{
+    // Hand the client_secret to the front end; Stripe.js renders whatever
+    // the issuer demands and calls stripe.handleNextAction() / confirmPayment().
+    return Results.Ok(new { requiresAction = true, clientSecret = intent.ClientSecret });
+}
+// else: succeeded (frictionless or exemption applied) - proceed to fulfillment.
+</code></pre>
+
+<div class="callout"><span class="label">Interview trap</span>
+<p>&ldquo;We added 3DS, so we're PSD2-compliant and liability is no longer our problem&rdquo; conflates two different things. Liability only shifts for transactions that actually <em>authenticate</em> &mdash; if you request an exemption and the issuer grants it, no authentication happened, and liability for a subsequent fraud dispute typically stays with you. Interviewers probe whether you understand that exemptions are a deliberate friction-vs-liability trade a business chooses transaction-by-transaction, not a free compliance shortcut.</p></div>
+
+<div class="tryit"><span class="label">Try it</span>
+<ol>
+<li>Using Stripe's documented 3DS test card numbers, trigger a transaction that forces a challenge flow in test mode, and one that resolves frictionlessly. Observe the different PaymentIntent status transitions in each.</li>
+<li>Break it on purpose: try to complete the challenge-flow test payment while ignoring/dismissing the challenge UI, and observe what status the PaymentIntent ends up in.</li>
+</ol>
+<details><summary>Expected outcome</summary><div class="a"><p>The frictionless test card goes straight from <code>requires_confirmation</code> to <code>succeeded</code> with no <code>requires_action</code> stop. The challenge test card pauses at <code>requires_action</code> until the (test) OTP is submitted, then moves to <code>succeeded</code>. Dismissing the challenge without completing it leaves the PaymentIntent in <code>requires_payment_method</code> (the attempt failed authentication) &mdash; not stuck in limbo, and not silently succeeded &mdash; which is the behavior your abandoned-checkout handling needs to account for.</p></div></details>
+</div>
+
+<details class="qa"><summary>Why does risk-based/frictionless 3DS2 authentication still count as "strong customer authentication" if the customer does nothing visible?</summary><div class="a"><p>The strength comes from the issuer's real-time risk assessment substituting for an explicit two-factor challenge, which regulators accepted specifically to avoid degrading conversion for the (very large) fraction of transactions that are obviously legitimate from device, behavioral, and transaction-context signals. It's a regulatory-sanctioned trade: friction is reserved for transactions where the risk signal genuinely warrants it, rather than applied uniformly.</p></div></details>
+
+<details class="qa"><summary>A PaymentIntent is stuck in requires_action for three days because the customer never returned to complete the challenge. What do you do?</summary><div class="a"><p>Nothing forces a resolution on its own — the PaymentIntent simply stays in that state until the customer resumes and completes (or definitively abandons) the flow, subject to the PaymentIntent's own expiry window. Operationally, treat it like an abandoned cart: don't reserve inventory or promise fulfillment against it, surface a "resume payment" path if the customer returns, and let it lapse if they don't rather than building special-case cleanup logic around it.</p></div></details>
+
+<details class="qa"><summary>How would you decide whether to request an SCA exemption for a given transaction, as an architectural/product decision rather than a technical one?</summary><div class="a"><p>It's a fraud-rate-vs-conversion trade the business has to own, informed by data: low exemption use maximizes liability protection but adds friction (and challenge abandonment) to more transactions; aggressive exemption use improves conversion but accepts more fraud liability landing on the merchant. Transaction-risk-analysis exemptions in particular require the requesting party (acquirer/PSP) to maintain a low enough fraud rate to keep qualifying, so it's not a one-time settings toggle — it needs ongoing monitoring.</p></div></details>
+
+<details class="qa"><summary>Explain why your backend never directly handles the 3DS challenge UI, in terms of what problem that restriction actually solves.</summary><div class="a"><p>It keeps the OTP/biometric/challenge result inside a context the issuer and PSP fully control end-to-end, so your servers never see (and therefore never have to protect) that authentication material — which both shrinks your compliance surface (unit 6) and closes off an entire class of attack where a compromised merchant server could intercept or replay authentication data. The PSP's SDK/hosted iframe is the trust boundary by design, not an implementation convenience.</p></div></details>
+
+<details class="qa"><summary>What's the difference in how Stripe and Adyen structurally represent "the issuer wants a challenge" in their APIs?</summary><div class="a"><p>Stripe surfaces it as a PaymentIntent status transition to <code>requires_action</code>, with the client secret driving the front-end SDK to render the right UI. Adyen surfaces it as an <code>action</code> object returned directly in the <code>/payments</code> response, which your front end passes to the Web/Native Components library to render, then submits the result via <code>PaymentDetails</code>. Different object shapes, same underlying idea: the response tells the client "render this specific thing, then call back."</p></div></details>
+
+<details class="qa"><summary>Why is 3DS1 considered deprecated rather than just "older but still fine"?</summary><div class="a"><p>Beyond the weaker security model (a static password is phishable and often poorly remembered, undermining the whole point), card networks have been actively sunsetting 3DS1 message support, and issuers increasingly don't process 3DS1 authentication requests at all, meaning an integration still built on it will see authentication attempts silently degrade or fail rather than merely underperform. It's not a stylistic legacy pattern, it's on a real deprecation timeline.</p></div></details>
+
+<details class="qa"><summary>How do you test 3DS flows without waiting for real issuer behavior, and what's the limit of that testing?</summary><div class="a"><p>Both major PSPs provide dedicated test card numbers that deterministically trigger frictionless-success, challenge-required, and challenge-failure paths in test/sandbox mode, which is sufficient for verifying your integration handles every status transition correctly. What it can't validate is your actual real-world frictionless rate, since that depends on live issuer risk scoring you don't control and can't simulate — that only shows up in production analytics after launch.</p></div></details>
+
+<details class="qa"><summary>A mobile app team wants to build their own native challenge UI instead of using the PSP SDK's rendering, for better brand consistency. What do you tell them?</summary><div class="a"><p>It's generally not permitted by the card network / EMV 3DS specification for exactly the trust-boundary reason above — the challenge has to be rendered within the flow the issuer's ACS (Access Control Server) expects, and the SDK exists specifically to implement that spec correctly (including things like a required "in-app" 3DS SDK integration mode with its own certification). Brand consistency has to be achieved through the SDK's supported customization hooks, not a full rebuild, or the integration risks failing certification or issuer-side rejection.</p></div></details>
+
+<details class="qa"><summary>Where does 3DS fit for a merchant-initiated recurring subscription charge — does every renewal go through a challenge?</summary><div class="a"><p>No — the standard pattern is to run full customer-present authentication (potentially including a 3DS challenge) once, at the initial subscription setup, then use the merchant-initiated-transaction exemption for subsequent automatic renewals, since the customer isn't present to complete a challenge anyway. The initial authentication is what establishes the mandate/consent that justifies the exemption on every renewal after it.</p></div></details>
+
+<details class="qa"><summary>What operational metric would tell you your 3DS integration is misconfigured, versus just seeing normal issuer-driven friction?</summary><div class="a"><p>An abnormally high challenge rate relative to industry/PSP benchmarks for your transaction profile is the first signal — it often means you're not sending enough of the optional-but-recommended risk data (billing address, browser/device fingerprint fields, prior-transaction history) that lets the issuer's risk engine confidently go frictionless. A high challenge-abandonment rate specifically (challenge shown, never completed) points more at UX friction than at the underlying auth decision.</p></div></details>
+
+<details class="qa"><summary>Is 3DS relevant outside the EU/PSD2 context, e.g. for a US-only merchant?</summary><div class="a"><p>Yes, though the regulatory mandate is EU/UK-specific — US card networks still support and encourage 3DS2 for its liability-shift benefit on card-not-present transactions, it's simply optional rather than legally required. A US merchant with meaningful card-not-present fraud exposure often adopts it voluntarily for the same liability-shift economics, just without a regulator forcing the decision.</p></div></details>
+</section>
+
+<section class="unit" id="u06">
+<h2>06&nbsp; PCI DSS scope</h2>
+
+<p>PCI DSS (Payment Card Industry Data Security Standard) exists because the card networks, not any government, wanted a shared floor for how anyone touching cardholder data protects it, enforced through the acquiring relationship rather than statute: fail to comply and your acquiring bank can fine you or terminate your ability to process cards at all. The single most important architectural idea in this unit, and the one that actually shows up in interviews, is that PCI scope is not about how big your company or codebase is &mdash; it's about which systems <strong>touch, process, transmit, or store</strong> the primary account number (PAN) or other sensitive card data, full stop. The entire practice of "PCI scope reduction" is the engineering discipline of architecting your systems so that as few of them as possible ever touch that data, because every system in scope inherits the full weight of the standard's ~300+ requirements, and every system kept out of scope doesn't.</p>
+
+<p>This is where the integration-model choice from unit&nbsp;01 pays off concretely. A fully-hosted checkout redirect or a properly-implemented client-side tokenization flow (Stripe Elements, Adyen Web Components/Drop-in) means raw card data flows from the customer's browser directly to the PSP &mdash; your servers never receive it, so your servers are dramatically reduced in scope. A direct-API integration where your backend receives raw PAN and forwards it to the PSP puts your backend, and everything that backend talks to, fully in scope. This single decision is why "just use the PSP's hosted fields" is the overwhelmingly dominant recommendation for any team without a very specific reason to handle raw card data themselves.</p>
+
+<p><strong>SAQ (Self-Assessment Questionnaire) types</strong> formalize how much scope you're claiming and, correspondingly, how much you have to prove: <strong>SAQ A</strong> is the lightest, for merchants who fully outsource all cardholder-data handling to a PCI-compliant third party via redirect or an iframe they don't control the content of (roughly 20-odd requirements); <strong>SAQ A-EP</strong> applies when your page directly controls the payment page/iframe container even though the card data itself still flows straight to the PSP (client-side tokenization, e.g. Stripe.js's Elements embedded in your own page) &mdash; more requirements than A because your page's own script-injection and man-in-the-browser risk is now in scope; <strong>SAQ D</strong> is the heaviest, for anyone actually storing, processing, or transmitting PAN themselves, and covers essentially the full requirement set. Landing in A versus A-EP versus D is a direct, mechanical consequence of the integration architecture, not a paperwork classification you can talk your way into after the fact.</p>
+
+<p><strong>What changed recently, and this is the single most citable fact in this whole document:</strong> PCI DSS 4.0.1 included a set of requirements that were published as "future-dated" &mdash; effective and auditable, but not mandatory until <strong>March 31, 2026</strong>. As of today (2026-09-08), that date has already passed, meaning every one of those future-dated requirements is now a hard mandatory control, not an upcoming one. The highest-profile of these for anyone running a payment page is <strong>Requirement 11.6.1</strong>: a change-and-tamper-detection mechanism for payment pages that must, at minimum, maintain an inventory of all scripts that execute in the customer's browser on the payment page and detect unauthorized modification of the page's script/HTTP header content &mdash; a direct regulatory response to e-skimming/Magecart-style attacks that inject malicious JavaScript into checkout pages. If you're advising a team today, "we'll get to 11.6.1 eventually" is no longer an accurate posture; it's already a compliance gap if unaddressed.</p>
+
+<p>Requirement 6.4.3 (also future-dated, now mandatory) is the closely related sibling: it requires all payment-page scripts to be authorized, with a documented business justification, and to have their integrity verified (e.g., via SRI hashes or an equivalent mechanism) &mdash; the two requirements together mean "know every script that runs on your checkout page, know why it's there, and detect if it changes," which is a materially higher bar than most teams' pre-4.0.1 checkout security posture. Practically, this pushes toward Content-Security-Policy reporting, subresource integrity, and third-party tag-management audits as standard checkout-page hygiene rather than optional hardening.</p>
+
+<div class="tablewrap"><table>
+<tr><th>SAQ type</th><th>When it applies</th><th>Relative burden</th></tr>
+<tr><td>A</td><td>Fully outsourced (redirect, or an iframe whose content you don't control) &mdash; you never touch card data or the page rendering it</td><td>Lightest (~20 requirements)</td></tr>
+<tr><td>A-EP</td><td>Your page hosts/controls a PSP-provided tokenization iframe (Elements/Components) &mdash; card data bypasses your servers, but your page's own script integrity matters</td><td>Moderate</td></tr>
+<tr><td>D</td><td>You store, process, or transmit raw PAN yourself</td><td>Heaviest (near-full requirement set)</td></tr>
+</table></div>
+
+<pre><code class="language-csharp">// Scope-reducing pattern: the server NEVER receives raw card data. It only ever
+// receives a PSP-generated token/PaymentMethod ID from the client-side SDK.
+app.MapPost("/checkout", async (CheckoutRequest req, PaymentIntentService intents) =&gt;
+{
+    // req.PaymentMethodId came from Stripe.js on the client (Elements/PaymentElement) -
+    // raw card number/CVC never transited this server or its logs.
+    var intent = await intents.CreateAsync(new PaymentIntentCreateOptions
+    {
+        Amount = req.AmountMinorUnits,
+        Currency = req.Currency,
+        PaymentMethod = req.PaymentMethodId,
+        Confirm = true
+    }, new RequestOptions { IdempotencyKey = req.IdempotencyKey });
+
+    return Results.Ok(new { status = intent.Status, clientSecret = intent.ClientSecret });
+});
+// If this handler, or anything upstream of it, ever logs the raw request body of a
+// direct card-collection form, that log store just entered PCI scope.
+</code></pre>
+
+<div class="callout"><span class="label">Interview trap</span>
+<p>&ldquo;We use Stripe, so we're PCI compliant&rdquo; is a category error candidates make constantly. The PSP being compliant says nothing about your own systems' scope &mdash; you can absolutely build a non-compliant integration on top of a fully-compliant PSP, most commonly by logging raw request bodies that happen to contain card data submitted through a form your server touches, or by building a "quick admin tool" that lets support staff type in a customer's card number to retry a charge. Compliance is a property of your architecture and operational practices, not something you inherit by vendor choice.</p></div>
+
+<div class="tryit"><span class="label">Try it</span>
+<ol>
+<li>Take an existing (or hypothetical) checkout page and classify it: does raw PAN ever touch a server you control, even transiently in memory or a log line? Map that answer to SAQ A, A-EP, or D.</li>
+<li>Audit the page for Requirement 11.6.1 in miniature: list every third-party script that executes on the page (payment SDK, analytics, tag managers, chat widgets, A/B testing tools) and, for each, write one sentence justifying why it needs to run there.</li>
+</ol>
+<details><summary>Expected outcome</summary><div class="a"><p>Most teams doing the first exercise honestly discover at least one code path (a legacy support tool, a debug log statement, a manual-entry fallback for phone orders) that quietly pulls them toward SAQ D even though their "main" checkout flow is properly tokenized end-to-end &mdash; scope is determined by the worst-case path, not the intended one. The script audit typically surfaces at least one script nobody currently owns a justification for, which is precisely the gap 6.4.3/11.6.1 are designed to force into the open.</p></div></details>
+</div>
+
+<details class="qa"><summary>Why does using an iframe for card collection reduce PCI scope compared to a plain HTML form on your own page, even though both visually look like "a card form on our checkout page" to the customer?</summary><div class="a"><p>The browser's same-origin model means your page's JavaScript has no access to the contents of a properly-configured cross-origin iframe — a malicious or compromised script running on your page literally cannot read the keystrokes typed into the PSP's iframe. A plain form on your own page has no such boundary: any script that runs on that page, including a supply-chain-compromised third-party script, can read the DOM your form lives in. That isolation is the entire mechanism by which SAQ A-EP's scope stays smaller than D's despite the card data still passing "through" your page visually.</p></div></details>
+
+<details class="qa"><summary>Requirement 11.6.1 asks for a script inventory and tamper detection. What would you actually build to satisfy it, concretely?</summary><div class="a"><p>A maintained manifest of every script permitted to execute on the payment page (ideally enforced via CSP so unlisted scripts are blocked, not just documented), paired with a monitoring mechanism that alerts on unexpected script changes — commonly implemented via CSP violation reporting, SRI hash mismatches, or a dedicated third-party page-integrity monitoring service that periodically snapshots and diffs the live page's script tags. The requirement is deliberately mechanism-agnostic; what it insists on is that unauthorized script changes get detected, not prevented by luck.</p></div></details>
+
+<details class="qa"><summary>A support team wants an internal tool where an agent can type a customer's card number to process a manual retry over the phone. What's the PCI implication, and what's the better pattern?</summary><div class="a"><p>That tool, the moment it exists, drags your servers into SAQ D scope, because raw PAN now transits a system you built and operate — regardless of how rarely it's used. The standard scope-preserving pattern is a PSP-hosted virtual terminal (both Stripe and Adyen offer this) that the agent uses directly, so the card data goes straight to the PSP's own compliant environment and never touches your infrastructure at all.</p></div></details>
+
+<details class="qa"><summary>Does storing a PSP token (not raw PAN) in your database put you in PCI scope?</summary><div class="a"><p>Generally no, for a properly-opaque PSP token that can only be redeemed by the specific merchant account that created it via the PSP's own API — the token itself isn't cardholder data, it's a reference to cardholder data the PSP holds. This is exactly why tokenization is the recommended pattern for "save this card for next time": you get the reusability without the storage liability. The nuance: verify the PSP's own documentation on what their specific token format guarantees, since not all "tokens" in the industry are created with the same security properties.</p></div></details>
+
+<details class="qa"><summary>How would you explain the difference between PCI DSS and GDPR/data-privacy regulation to a teammate who conflates them?</summary><div class="a"><p>PCI DSS is a card-network-enforced contractual security standard specifically about payment card data, enforced through your acquiring relationship; GDPR (and similar privacy laws) is government-enforced regulation about personal data broadly, with a completely different enforcement mechanism (regulatory fines) and a much wider scope of covered data (a customer's name and address are personal data under GDPR but aren't cardholder data under PCI DSS). A system can be perfectly PCI compliant and still badly non-compliant with privacy law, and vice versa — they're answering different questions.</p></div></details>
+
+<details class="qa"><summary>What's the risk of "we'll just ask our PSP for an Attestation of Compliance and consider ourselves covered"?</summary><div class="a"><p>The PSP's AoC covers the PSP's own environment, not yours — it says nothing about whether your integration architecture and operational practices keep your own systems out of scope or handle the scope they're in correctly. Relying on the PSP's AoC as your compliance answer is the same category error as "we use Stripe so we're compliant," just with a document attached to make it feel more official.</p></div></details>
+
+<details class="qa"><summary>You're advising a team migrating from a direct-API card-collection integration to client-side tokenization purely for scope reduction. What do you tell them to expect, beyond "less PCI paperwork"?</summary><div class="a"><p>Beyond the SAQ D→A-EP/A downgrade, expect a real engineering migration: the card form moves from your own markup to a PSP-controlled iframe/Component, which changes styling flexibility (you're customizing within the PSP's theming API, not writing arbitrary CSS), changes client-side validation and error-display flow, and removes any code path that read or logged raw card fields — which is worth auditing explicitly rather than assuming it's gone, per the earlier trap about logging.</p></div></details>
+
+<details class="qa"><summary>Why does PCI DSS scope reduction matter enough to be a lead-engineer-level topic rather than purely a compliance/legal concern?</summary><div class="a"><p>Because the architectural decisions that reduce scope (hosted checkout vs. Elements vs. direct API, from unit 1) are made by engineers, early, and are expensive to unwind later — a team that backs into SAQ D by accident because a "quick" feature routed raw card data through a backend often can't cheaply retrofit their way back to A-EP without a real redesign. Treating scope as an architectural constraint from day one, not a checkbox exercise after launch, is exactly the kind of judgment call a lead is expected to make proactively.</p></div></details>
+
+<details class="qa"><summary>How does 6.4.3's "documented business justification for every script" requirement interact with common third-party tooling like tag managers, which dynamically load arbitrary scripts?</summary><div class="a"><p>It creates real friction: a tag manager's whole value proposition is letting marketing add scripts without an engineering deploy, which is structurally at odds with "every script has a documented, reviewed justification." Teams satisfying 6.4.3 on a payment page typically either exclude the payment page from the tag manager's reach entirely, or lock the tag manager container itself down to a reviewed, versioned allowlist rather than letting it load dynamically on that specific page — the payment page ends up held to a stricter script-governance bar than the rest of the site.</p></div></details>
+
+<details class="qa"><summary>If a merchant has been future-dated-noncompliant with 11.6.1/6.4.3 since March 31, 2026 and it's now September, what's the practical exposure?</summary><div class="a"><p>Exposure runs through the same acquirer-enforcement path as any other PCI gap: at the next assessment (annual for most SAQ D/A-EP merchants, though timing varies), an assessor or the merchant's own honest self-assessment will flag the missing controls as a non-compliance finding, which the acquiring bank can act on — fines, increased transaction fees, or in a serious/persistent case processing restrictions. There's also the underlying risk the requirement exists to address: a checkout page without script-tamper detection has had six extra months of exposure to exactly the e-skimming attack class 11.6.1 targets.</p></div></details>
+</section>
+
+<section class="unit" id="u07">
+<h2>07&nbsp; Refunds &amp; chargebacks</h2>
+
+<p>Refunds and chargebacks are both "the customer gets their money back," and interviewers specifically probe whether you understand why treating them as the same event is wrong. A <strong>refund</strong> is voluntary and merchant-initiated: you decide to return the money, you call the PSP's refund API, the PSP reverses the transaction, and (aside from the PSP's own processing/refund fee policy) the story ends there. A <strong>chargeback</strong> (dispute) is adversarial and issuer-initiated: the cardholder (or, less often, the issuer proactively on fraud signals) contests the charge with their bank, the bank yanks the funds back from you immediately, pending resolution, and typically levies a separate dispute fee on top &mdash; regardless of whether you ultimately win. A merchant with a healthy refund rate and a healthy dispute rate are two completely different signals: high refunds might mean generous policy or product-fit issues; high disputes usually means fraud, unclear billing descriptors, or a support/communication failure that pushes customers to their bank instead of to you.</p>
+
+<p><strong>The chargeback lifecycle</strong>, and the part most engineers have never actually seen because it lives mostly in ops/support tooling: a dispute opens (funds debited from your PSP balance immediately, a `charge.dispute.created`-style webhook fires), you have a limited window (commonly a few weeks, network- and reason-code-dependent) to submit evidence if you want to contest it, the issuer/network reviews and decides, and funds either return to you (won) or stay reversed (lost) &mdash; with the dispute fee typically non-refundable either way. Reason codes matter: "fraudulent transaction," "product not received," "duplicate charge," and "subscription canceled" each call for different evidence (proof of delivery/tracking for the second, cancellation-flow logs for the fourth), and a generic "here's our terms of service" response performs poorly across the board.</p>
+
+<p><strong>Dispute-prevention programs</strong> are the modern, pre-chargeback layer worth knowing exists even if you never operate one directly: Visa's <strong>Verifi</strong> and Mastercard's <strong>Ethoca</strong> are alert networks that notify a merchant when a cardholder contacts their bank about a transaction, <em>before</em> a formal dispute is filed &mdash; giving the merchant a window to refund voluntarily (cheaper, no dispute fee, no ding to dispute-rate metrics that risk network monitoring programs) instead of letting it escalate into a full chargeback. Stripe and other PSPs surface these alerts through their own APIs/dashboards as an integration option, and a mature payments stack increasingly treats "did we get a Verifi/Ethoca alert" as an earlier, cheaper intervention point than "did we get a dispute."</p>
+
+<p><strong>What changed recently:</strong> PSPs have been investing heavily in automating the evidence-submission side of dispute defense &mdash; Stripe's <strong>Smart Disputes</strong> (built on Stripe's own AI tooling) automatically assembles and submits chargeback evidence for eligible disputes, pulling from data Stripe already has about the transaction and, where connected, from the merchant's own order/fulfillment data, meaningfully raising win rates on op-ex-losing "not worth a human's time" small disputes that merchants previously wrote off. This matters architecturally: if you want automated evidence submission to work well, your order/fulfillment/customer-communication data needs to be reachable in a shape the automation can actually consume (structured, timestamped, linkable by PaymentIntent/charge ID) &mdash; which is a real integration requirement, not just a dashboard feature you toggle on.</p>
+
+<p>The engineering-relevant nuance beyond the money: a chargeback almost always needs a corresponding update to your <em>internal</em> state, not just the PSP's balance &mdash; the order needs to reflect "disputed" (possibly distinct from "refunded," since you might still win it back), inventory/fulfillment decisions may need to pause pending outcome, and your ledger (unit&nbsp;08) needs an entry type that isn't a plain refund, because the money movement timing and the possible-reversal-of-the-reversal shape is genuinely different from a refund's clean, final, one-directional flow.</p>
+
+<div class="tablewrap"><table>
+<tr><th></th><th>Refund</th><th>Chargeback</th></tr>
+<tr><td>Initiated by</td><td>Merchant, voluntarily</td><td>Cardholder/issuer, adversarially</td></tr>
+<tr><td>Fee</td><td>None typically, beyond original processing fee</td><td>Separate dispute fee, usually non-refundable regardless of outcome</td></tr>
+<tr><td>Funds timing</td><td>Merchant returns funds on their own schedule</td><td>Funds debited immediately, before any resolution</td></tr>
+<tr><td>Reversible</td><td>No (final, one-directional)</td><td>Yes &mdash; merchant can contest and potentially win funds back</td></tr>
+<tr><td>Merchant risk metric impact</td><td>Refund rate (soft signal)</td><td>Dispute rate (hard signal, network monitoring programs kick in above thresholds)</td></tr>
+</table></div>
+
+<pre><code class="language-csharp">// Partial refund - needs its own idempotency key (unit 3) and should update
+// internal order state atomically with the PSP call succeeding, not before.
+public async Task&lt;Refund&gt; RefundPartialAsync(string chargeId, long amountMinorUnits, string orderId)
+{
+    var refund = await _refundService.CreateAsync(new RefundCreateOptions
+    {
+        Charge = chargeId,
+        Amount = amountMinorUnits,
+        Reason = RefundReasons.RequestedByCustomer
+    }, new RequestOptions { IdempotencyKey = $"refund-{orderId}-{amountMinorUnits}" });
+
+    // Only now, having confirmed the PSP actually processed it, update our own
+    // ledger and order state - never mark "refunded" optimistically beforehand.
+    await _ledger.RecordRefundAsync(orderId, refund.Id, amountMinorUnits);
+    return refund;
+}
+</code></pre>
+
+<div class="callout"><span class="label">Interview trap</span>
+<p>&ldquo;We refund the customer as soon as they open a dispute, to avoid the dispute fee&rdquo; sounds proactive but is usually backwards as a blanket policy: a chargeback debit already happened the moment the dispute opened, so refunding on top of that after the fact double-returns the money (once via the automatic chargeback debit, once via your voluntary refund) unless you're very careful about the sequencing and cancel/skip the refund if a dispute is already in flight. The dispute-fee-avoidance window is <em>before</em> a formal dispute is filed &mdash; that's exactly what Verifi/Ethoca alerts exist to catch &mdash; not after.</p></div>
+
+<div class="tryit"><span class="label">Try it</span>
+<ol>
+<li>In a test/sandbox PSP account, create a charge, then use the PSP's dispute-simulation tooling to trigger a test dispute against it. Observe the webhook events fired and the balance impact.</li>
+<li>Draft, in writing, what evidence you'd submit to contest a "product not received" dispute for a real order in your system, based only on data your system actually captures today. Note any gaps.</li>
+</ol>
+<details><summary>Expected outcome</summary><div class="a"><p>The simulated dispute fires a dispute-created event and debits the test balance immediately, mirroring production behavior exactly (minus real money). The evidence exercise usually surfaces a gap most teams don't expect: many systems capture "order shipped" but not a verifiable, timestamped delivery confirmation tied to a tracking number in a form that's easy to hand to a dispute-evidence workflow — which is precisely the kind of structured data Smart-Disputes-style automation, and a human evidence submission, both need.</p></div></details>
+</div>
+
+<details class="qa"><summary>Why does a high dispute rate matter more to a PSP/acquirer than a high refund rate, even if both represent "money going back to customers"?</summary><div class="a"><p>Card networks run monitoring programs (Visa's and Mastercard's each have their own) that trigger real consequences — increased fees, mandatory remediation, eventual account termination — once a merchant's dispute rate crosses defined thresholds, because a high dispute rate is a proxy for fraud risk or systemic customer-experience failure the network doesn't want propagating through the system. Refund rate has no equivalent network-level enforcement; it's purely a business-health signal you and your PSP care about, not one the networks police.</p></div></details>
+
+<details class="qa"><summary>A customer disputes a charge as "fraudulent" but you have strong evidence they made the purchase themselves (matching IP, device fingerprint, delivery to their verified address). Is it worth contesting?</summary><div class="a"><p>Generally yes if the evidence is genuinely strong and well-organized, since "fraudulent transaction" disputes with solid counter-evidence (matching AVS/CVV results at time of purchase, delivery confirmation to the cardholder's own address, prior purchase history) have real win rates — but weigh the dispute fee (already sunk either way) plus the time cost against the transaction value; for very small amounts many merchants have a documented threshold below which they don't contest even strong cases, purely on cost-efficiency grounds.</p></div></details>
+
+<details class="qa"><summary>How should your system distinguish "refunded" from "disputed, funds withheld pending resolution" in your order state model?</summary><div class="a"><p>They need to be genuinely distinct states, not two labels for the same underlying "money went back" bucket, because a dispute can resolve in the merchant's favor (funds return) while a refund never reverses itself — collapsing them means you can't correctly represent "we might get this money back" versus "this money is gone," which matters for both customer communication and financial reporting/ledger entries (unit 8).</p></div></details>
+
+<details class="qa"><summary>What's the engineering implication of Verifi/Ethoca-style pre-dispute alerts for your webhook handling architecture?</summary><div class="a"><p>They're a distinct event type from a formal dispute-created webhook and need their own handling path — typically triggering a fast, automated "proactively refund and notify the customer" flow rather than waiting for a full dispute to form, since the entire value of the alert is the earlier, cheaper intervention window. Treating an alert as equivalent to (or routing it through the same code path as) a real dispute event misses the point of having the alert at all.</p></div></details>
+
+<details class="qa"><summary>Why would a PSP's automated evidence-submission tooling need access to your order/fulfillment data specifically, rather than just PSP-side transaction data?</summary><div class="a"><p>The PSP already has everything it captured about the payment itself (card details, AVS/CVV match, IP, timestamp), but the evidence that actually wins "product not received" or "not as described" disputes is fulfillment-side: shipping confirmation, tracking data, delivery timestamps, product descriptions the customer saw — data that lives in your systems, not the PSP's, unless you've explicitly connected it. This is exactly why the brief's "what changed recently" fact (Smart Disputes) has a real integration prerequisite, not just a dashboard toggle.</p></div></details>
+
+<details class="qa"><summary>Should refund reason codes/categories be free text or a constrained enum in your system, and why does it matter for chargebacks?</summary><div class="a"><p>A constrained enum, because refund-reason data feeds two things that both want structure: your own analytics on why customers are asking for money back (a real product signal), and, when a dispute later lands on a transaction you already voluntarily refunded, being able to programmatically prove "we already resolved this, here's exactly when and why" rather than digging through free-text support notes under a dispute-response deadline.</p></div></details>
+
+<details class="qa"><summary>A partial refund is issued, then the full remaining balance is later disputed. Walk through what your ledger needs to represent correctly.</summary><div class="a"><p>Three distinct money movements against one original charge: the original capture (money in), the partial refund (money out, voluntary, final), and the dispute debit on the remaining balance (money out, adversarial, provisionally reversible). A naive single "amount refunded so far" counter can't represent this correctly — the ledger needs separate entry types for refund versus dispute-debit specifically because only one of them can later reverse itself if you win the contest.</p></div></details>
+
+<details class="qa"><summary>How do you handle a subscription-cancellation dispute ("subscription canceled" reason code) when your system shows the customer never actually canceled?</summary><div class="a"><p>This is a strong-evidence case if your cancellation flow logs are solid: submit the absence of a cancellation record, ideally alongside proof the customer used the service after the disputed charge date (login activity, feature usage) which directly undercuts "I canceled and was still charged." It's also a prompt to audit your cancellation UX — a surprising fraction of these disputes trace back to a cancellation flow that's genuinely confusing or has a bug, which is cheaper to fix than to keep winning disputes against.</p></div></details>
+
+<details class="qa"><summary>What would you flag in a design review where a team proposes auto-refunding any transaction older than 90 days to "avoid dispute risk"?</summary><div class="a"><p>That it conflates two unrelated things — transaction age isn't a proxy for dispute risk, and network dispute time limits vary by reason code and don't map cleanly to "90 days is safe." A blanket time-based auto-refund policy also creates its own problem: it trains fraudulent actors that a long-dormant legitimate-looking charge gets refunded automatically, and it needlessly gives back money on transactions nobody was ever going to dispute. Better to target actual risk signals (alerts, reason-code patterns, customer contact) than a fixed time window.</p></div></details>
+
+<details class="qa"><summary>Does issuing a refund yourself protect you from a subsequent chargeback on that same transaction?</summary><div class="a"><p>Not entirely — a cardholder can still, in some circumstances, dispute a transaction they were already refunded for (confusion, a refund posting slower to their statement than expected, or in rarer cases genuinely fraudulent double-dipping), which is exactly why the refund needs to be recorded with enough detail (timestamp, amount, method) to let you respond quickly with "this was already resolved" evidence rather than treating it as a fresh, unexplained dispute.</p></div></details>
+</section>
+
+<section class="unit" id="u08">
+<h2>08&nbsp; Ledgers &amp; double-entry accounting</h2>
+
+<p>The instinctive first design for "track how much money everyone has" is a `balance` column on an `accounts` table, incremented and decremented as money moves. It works in a demo and fails in production for a reason that's worth internalizing precisely: a mutable balance column has no memory of <em>why</em> it is what it is. When support asks "why does this customer's balance show $47.32," a plain balance gives you today's number and nothing else &mdash; you're forced to reconstruct history from scattered application logs, hoping they're complete and consistent, exactly when you most need certainty (a dispute, an audit, a reconciliation mismatch). Double-entry bookkeeping, a centuries-old accounting technique with nothing payments-specific about it, solves this by making every single money movement an immutable, dual-sided fact rather than a mutation: every entry simultaneously debits one account and credits another, for the same amount, and a balance is never stored &mdash; it's <em>derived</em> by summing entries, on demand or via a maintained (but always re-derivable) projection.</p>
+
+<p>The mental model that makes this click: think of every account &mdash; a customer's wallet balance, your platform's Stripe-held funds, a merchant's payable balance, a "revenue" account, a "PSP fees" account &mdash; as a bucket, and every transaction as moving water from one bucket to another, never creating or destroying water. A $50 charge that nets $48.20 after a $1.80 PSP fee isn't one number changing, it's (at minimum) three buckets moving in concert: customer's payment obligation decreases by $50, your platform's PSP-held-funds bucket increases by $48.20, and a fees-expense bucket increases by $1.80 &mdash; and because every entry is dual-sided, the sum of every debit across the whole ledger always equals the sum of every credit, which is a mechanically checkable invariant, not a hoped-for property. If that invariant ever breaks, you have a bug, immediately provably, rather than a slowly-drifting number nobody notices until it's a crisis.</p>
+
+<p>For a payments system specifically, the ledger needs to model more buckets than beginners expect, because a single "charge" event is actually several distinct economic events bundled together: the gross amount the customer paid, the PSP's processing fee (which is <em>your</em> expense, not the customer's), any platform/marketplace commission if you're a multi-sided platform splitting funds between yourself and a merchant, and eventually a payout when funds actually move from the PSP's held balance to your (or the merchant's) bank account &mdash; each of these is its own ledger entry pair, at its own point in time, and conflating them (e.g., treating "charge succeeded" and "money is in our bank account" as the same event) is exactly the mistake unit&nbsp;02 warned about, now showing up as a ledger-design consequence rather than just a status-tracking one.</p>
+
+<p><strong>Immutability is the other non-negotiable property.</strong> A ledger entry, once written, is never updated or deleted &mdash; a mistake or a reversal is corrected by writing a new, opposite entry, never by editing the old one. This is what makes a ledger auditable in the sense regulators and finance teams actually mean: a complete, tamper-evident history of every claim about where money went, in the order it was recorded. It also composes naturally with everything in the units before this one &mdash; a refund is a new entry reversing the original capture's economic effect, not a mutation of it; a dispute debit is a new entry, distinct in type from a refund entry per unit&nbsp;07's point about needing that distinction representable.</p>
+
+<p>Multi-currency and FX add a real wrinkle worth naming even briefly: if a customer pays in EUR but your platform's base reporting currency is USD, an entry pair needs to record both the original currency/amount <em>and</em> the converted amount at the FX rate applied at that moment &mdash; because the rate moves, and "what rate did we actually get charged/paid at" is itself a fact your ledger needs to preserve immutably, not recompute later from a rate table that's since moved on.</p>
+
+<div class="tablewrap"><table>
+<tr><th>Event</th><th>Debit</th><th>Credit</th></tr>
+<tr><td>Charge captured, $50, $1.80 fee</td><td>PSP-held funds $48.20; PSP fee expense $1.80</td><td>Customer payment obligation $50.00</td></tr>
+<tr><td>Payout of $48.20 to bank</td><td>Bank account $48.20</td><td>PSP-held funds $48.20</td></tr>
+<tr><td>Refund of $20 (pre-payout)</td><td>Customer payment obligation $20.00</td><td>PSP-held funds $20.00</td></tr>
+<tr><td>Dispute debit of $30 (post-payout)</td><td>Disputes-receivable (pending) $30.00</td><td>Bank account $30.00</td></tr>
+</table></div>
+
+<pre><code class="language-csharp">// A minimal double-entry model: every LedgerEntry is one leg; entries always
+// come in balanced sets (sum of debits == sum of credits) written atomically.
+public record LedgerEntry(
+    Guid Id, string Account, decimal Amount, EntrySide Side,
+    string Currency, Guid TransactionId, DateTimeOffset RecordedAt);
+
+public enum EntrySide { Debit, Credit }
+
+public async Task RecordChargeAsync(string chargeId, decimal gross, decimal fee, string currency)
+{
+    var txId = Guid.NewGuid();
+    var entries = new[]
+    {
+        new LedgerEntry(Guid.NewGuid(), "psp_held_funds", gross - fee, EntrySide.Debit, currency, txId, DateTimeOffset.UtcNow),
+        new LedgerEntry(Guid.NewGuid(), "psp_fee_expense", fee, EntrySide.Debit, currency, txId, DateTimeOffset.UtcNow),
+        new LedgerEntry(Guid.NewGuid(), "customer_obligation", gross, EntrySide.Credit, currency, txId, DateTimeOffset.UtcNow),
+    };
+    Debug.Assert(entries.Where(e =&gt; e.Side == EntrySide.Debit).Sum(e =&gt; e.Amount)
+              == entries.Where(e =&gt; e.Side == EntrySide.Credit).Sum(e =&gt; e.Amount));
+    await _ledgerStore.AppendAllOrNothingAsync(entries);      // never partially written
+}
+</code></pre>
+
+<div class="callout"><span class="label">Interview trap</span>
+<p>&ldquo;We'll just add an `is_reversed` flag and a `reversed_at` timestamp to the entry, so we can edit it instead of writing a new one&rdquo; is the most common way teams accidentally throw away double-entry's core guarantee. The moment an entry is mutable, even by adding a flag rather than changing the amount, you've broken the property that lets you trust the historical record without cross-checking it against something else &mdash; and in practice, "just this one flag" tends to grow more mutable fields over time. The correct fix for "this entry was wrong" is always a new, opposite entry; the original stays exactly as it was recorded.</p></div>
+
+<div class="tryit"><span class="label">Try it</span>
+<ol>
+<li>Model a $100 charge with a $3 PSP fee as a balanced set of ledger entries across at least three accounts (held funds, fee expense, customer obligation), and verify by hand that total debits equal total credits.</li>
+<li>Break it on purpose: write the entries with a deliberate one-cent mismatch (e.g., forget the fee leg) and write a small check function that would have caught it. Confirm it does.</li>
+</ol>
+<details><summary>Expected outcome</summary><div class="a"><p>The correctly-modeled transaction balances exactly: $97 + $3 (debits) = $100 (credit). Omitting the fee leg leaves debits at $97 against a $100 credit &mdash; a $3 imbalance a "sum all debits, sum all credits, assert equal" check catches immediately and mechanically, which is precisely the point: the invariant turns a subtle accounting bug into a loud, immediate assertion failure instead of a silent drift discovered weeks later during reconciliation.</p></div></details>
+</div>
+
+<details class="qa"><summary>Why is "derive the balance from entries" preferred over "maintain a running balance column, updated on each entry" if the running column would be faster to read?</summary><div class="a"><p>In practice, most production ledgers do maintain a cached/projected balance for read performance, but treat it strictly as a derived, rebuildable projection — never the source of truth — precisely so that if it ever drifts (a bug, a partial write, a migration issue) you can recompute it from the entry log and know the recomputed value is correct by construction. A pure running column with no underlying entry log has no such recovery path; if it's wrong, you have no independent record of what it should be.</p></div></details>
+
+<details class="qa"><summary>How does double-entry accounting help specifically with the reconciliation problem in unit 9, beyond general "good practice"?</summary><div class="a"><p>Reconciliation is fundamentally a comparison between two independent records of the same economic reality — your ledger and the PSP's settlement report — and that comparison is only meaningful if your side is a complete, immutable, entry-level record rather than a mutated summary number. A balance-column design can't tell you which individual transaction caused a mismatch; a double-entry ledger can, by comparing entry-for-entry against the PSP's own itemized report.</p></div></details>
+
+<details class="qa"><summary>A marketplace platform splits a $100 sale into an $85 merchant payout and a $15 platform commission. Model this as ledger entries.</summary><div class="a"><p>At minimum: the charge itself (debit PSP-held funds $100, credit customer obligation $100), then a split entry moving the held funds into two sub-accounts (debit PSP-held funds $100, credit merchant-payable $85 and platform-revenue $15), and finally, separately, the payout entry when the $85 actually leaves for the merchant's bank account. Collapsing the split and the payout into one event loses the ability to answer "how much do we currently owe this merchant but haven't paid yet," which is a question a marketplace gets asked constantly.</p></div></details>
+
+<details class="qa"><summary>What's the risk of recording an FX-converted amount without also recording the original currency, amount, and rate applied?</summary><div class="a"><p>You lose the ability to explain or audit the conversion after the fact — if a customer disputes the converted amount, or your reporting later needs to reconcile against the PSP's own FX-rate records, "we converted €50 to $54.32" is only verifiable if you kept both sides and the rate, since recomputing from a live rate table gives you today's rate, not the one actually applied at transaction time.</p></div></details>
+
+<details class="qa"><summary>Should refunds and disputes (unit 7) share the same ledger entry type, since both move money back?</summary><div class="a"><p>No — they need distinct entry types because they have different reversibility and different account implications: a refund entry is final and typically debits customer obligation / credits held funds directly; a dispute entry needs an intermediate "pending/receivable" account state precisely because it might later reverse (if the merchant wins the contest), which a plain refund entry structurally can't represent.</p></div></details>
+
+<details class="qa"><summary>How would you test that a ledger implementation actually enforces the double-entry invariant, rather than just hoping application code always writes balanced entries?</summary><div class="a"><p>Push the invariant down to the storage layer rather than trusting every call site: a database-level check constraint or trigger that rejects any committed transaction where debits and credits for a given transaction ID don't sum to zero net, or, in an append-only event-sourced design, a periodic background job that verifies the invariant across the full entry log and pages someone the moment it doesn't hold. Relying purely on "the application code always calls the right helper function" is exactly the kind of assumption that fails the first time someone writes a one-off migration script.</p></div></details>
+
+<details class="qa"><summary>Why might a lead engineer resist a request to "just show negative available balance instead of blocking the withdrawal" as a UX shortcut?</summary><div class="a"><p>Because it usually signals someone reaching for a mutable-state shortcut around a ledger question that has a real, entry-based answer: "available balance" should be a derived query (held funds minus pending payouts minus reserved-for-disputes amounts), and if that query says negative, the fix is figuring out which of those components is wrong or missing, not special-casing the display to tolerate an impossible number.</p></div></details>
+
+<details class="qa"><summary>What's the relationship between your internal ledger and the PSP's own internal ledger of your account?</summary><div class="a"><p>They're two independent double-entry systems tracking overlapping but not identical things — the PSP's ledger tracks money moving through their platform on your behalf (charges, fees, payouts, holds), while yours tracks the business meaning of that money (which customer, which order, which merchant's payable balance). You don't get to skip your own ledger just because the PSP maintains one; you need both, and unit 9's reconciliation is precisely the process of keeping them provably in agreement.</p></div></details>
+
+<details class="qa"><summary>A junior engineer proposes storing amounts as floating-point numbers to "keep things simple." What's your response, and how does it connect to ledger correctness?</summary><div class="a"><p>Floating-point arithmetic's rounding behavior is exactly the kind of thing that breaks the "sum of debits equals sum of credits" invariant in ways that are maddening to debug — a chain of additions and subtractions that should net to zero can land on a value like 0.00000000001 instead, which either fails a strict equality check that should have passed, or worse, silently accumulates over millions of transactions. Amounts belong in integer minor units (cents) or a fixed-point decimal type, never floating point, specifically because the ledger's core invariant depends on exact arithmetic.</p></div></details>
+
+<details class="qa"><summary>How far back should ledger entries be retained, and does that interact with any of the earlier units?</summary><div class="a"><p>Retention is generally driven by the longest of: regulatory/financial record-keeping requirements (often several years), the maximum dispute time limit for any card network you accept (unit 7, so a dispute can still be evidenced against the original entries), and your own audit needs. Because entries are immutable and small, retaining them indefinitely is usually cheap relative to the cost of ever needing one you deleted — the practical constraint is almost always storage/query-performance tiering (archive old entries to cold storage), not "when is it safe to actually destroy this data."</p></div></details>
+</section>
+
+<section class="unit" id="u09">
+<h2>09&nbsp; Reconciliation &amp; resiliency</h2>
+
+<p>Reconciliation is the process of proving, systematically rather than by spot-check, that your internal ledger (unit&nbsp;08) and the PSP's own record of what actually happened agree &mdash; and, critically, surfacing every case where they don't so a human can investigate before it compounds. The reason this is a distinct discipline rather than "the ledger is correct, so what's to check": your ledger records what your <em>application</em> believes happened, built from API responses and webhooks, both of which can be missed, delayed, duplicated, or (rarely but not never) simply wrong due to a bug on either side. The PSP's <strong>settlement report</strong> &mdash; a batch file (commonly CSV or a structured API feed) itemizing every transaction that actually settled into your bank account for a given period &mdash; is an independent source of truth generated from the PSP's own ledger, not derived from anything your application told it. Reconciliation is comparing the two, transaction by transaction, and treating every unexplained mismatch as a bug until proven otherwise.</p>
+
+<p>The concrete workflow: pull the PSP's settlement report for a period (daily is typical), match each line item against your internal ledger by a shared identifier (charge/PaymentIntent ID, ideally &mdash; not amount-and-date fuzzy matching, which produces false matches the moment two customers pay the same amount on the same day), and bucket the result into three piles: <strong>matched</strong> (both sides agree, nothing to do), <strong>in your ledger but missing from settlement</strong> (a webhook you processed didn't actually settle &mdash; classic async-payment-method risk from unit&nbsp;02, or a genuine PSP-side delay), and <strong>in settlement but missing from your ledger</strong> (a webhook you never received or never processed &mdash; this is the scarier bucket, because it usually means real money moved that your system has no record of, silently). The second and third buckets are where the actual engineering and ops work lives; a reconciliation process that only reports "N transactions matched" without surfacing and routing the mismatches for investigation isn't doing the job.</p>
+
+<p><strong>Fee verification</strong> is a reconciliation sub-problem worth calling out on its own: settlement reports itemize the exact fee taken per transaction, and comparing that against what your ledger's fee-expense entries assumed (unit&nbsp;08) catches PSP fee-schedule changes, misconfigured pricing tiers, or currency-conversion fee surprises that a pure "did the money arrive" check would miss entirely &mdash; this is real money leaking quietly if nobody checks it, and it's one of the more common concrete findings a first reconciliation pass turns up in a system that's never had one.</p>
+
+<p><strong>Multi-PSP resiliency</strong> is reconciliation's cousin at the architecture level, and matters more the larger the payment volume: relying on a single PSP means a PSP-side outage, a regional processing degradation, or even a sustained latency spike is a full checkout outage for you, with zero mitigation available on your end. The mature pattern is a <strong>routing/orchestration layer</strong> (mentioned in unit&nbsp;01 as an integration model) that can direct traffic across multiple PSPs based on health, cost, or geography, and fail over automatically when one PSP degrades &mdash; at the cost of real complexity: every unit in this document (idempotency, webhooks, 3DS, PCI scope, disputes, ledger entries) now needs to work correctly <em>per PSP</em>, and your ledger needs a PSP identifier as a first-class dimension so reconciliation runs per-PSP-per-period rather than assuming one settlement report format and cadence.</p>
+
+<p><strong>What changed recently, tying back to unit&nbsp;04:</strong> Stripe's thin-events shift toward "fetch current state rather than trust the embedded snapshot" directly improves reconciliation accuracy for teams that adopt it &mdash; a reconciliation process built on always-fresh-fetched state is less likely to have processed and recorded a since-superseded status, closing one of the more common root causes behind "in your ledger but doesn't match settlement" mismatches that trace back to a stale snapshot processed after a later event should have superseded it.</p>
+
+<div class="tablewrap"><table>
+<tr><th>Bucket</th><th>Meaning</th><th>Typical root cause</th></tr>
+<tr><td>Matched</td><td>Ledger and settlement agree</td><td>System working correctly</td></tr>
+<tr><td>Ledger has it, settlement doesn't</td><td>You recorded it, PSP hasn't settled it (yet, or ever)</td><td>Async method delay/failure, or a not-yet-elapsed settlement lag</td></tr>
+<tr><td>Settlement has it, ledger doesn't</td><td>Real money moved, your system has no record</td><td>Missed/failed webhook, processing bug, disabled endpoint (unit 4)</td></tr>
+<tr><td>Fee mismatch</td><td>Both sides agree money moved, disagree on the fee taken</td><td>Pricing-tier change, FX fee, misconfigured expectation</td></tr>
+</table></div>
+
+<pre><code class="language-csharp">// Simplified daily reconciliation pass: match by charge ID, bucket the rest.
+public record ReconciliationResult(List&lt;string&gt; Matched, List&lt;string&gt; LedgerOnly,
+                                    List&lt;string&gt; SettlementOnly, List&lt;(string Id, decimal Diff)&gt; FeeMismatches);
+
+public ReconciliationResult Reconcile(IReadOnlyDictionary&lt;string, LedgerRow&gt; ledger,
+                                       IReadOnlyDictionary&lt;string, SettlementRow&gt; settlement)
+{
+    var matched = new List&lt;string&gt;();
+    var feeMismatches = new List&lt;(string, decimal)&gt;();
+
+    foreach (var (id, ledgerRow) in ledger)
+    {
+        if (!settlement.TryGetValue(id, out var settled)) continue;   // handled below
+        matched.Add(id);
+        var diff = Math.Abs(ledgerRow.ExpectedFee - settled.ActualFee);
+        if (diff &gt; 0.005m) feeMismatches.Add((id, diff));            // penny-tolerant compare
+    }
+
+    return new ReconciliationResult(
+        matched,
+        ledger.Keys.Except(settlement.Keys).ToList(),   // ledger-only: investigate delay
+        settlement.Keys.Except(ledger.Keys).ToList(),   // settlement-only: URGENT, missed money
+        feeMismatches);
+}
+</code></pre>
+
+<div class="callout"><span class="label">Interview trap</span>
+<p>&ldquo;We reconcile by comparing total daily volume between our ledger and the settlement report&rdquo; is a real anti-pattern that interviewers specifically listen for: aggregate-total reconciliation can have a missing $500 transaction perfectly offset by a duplicated $500 transaction elsewhere and report a clean match, because the totals happen to agree. Reconciliation has to be transaction-by-transaction, matched by a stable identifier, precisely to catch the cases where errors cancel out in aggregate but represent two genuinely separate, dangerous bugs.</p></div>
+
+<div class="tryit"><span class="label">Try it</span>
+<ol>
+<li>Take a small set of mock ledger entries and a mock settlement report (as two lists/CSVs) with a few deliberately introduced mismatches (one missing from each side, one fee discrepancy), and write the three-bucket matching logic to surface all of them.</li>
+<li>Break it on purpose: introduce a case where the totals happen to match despite a missing-plus-duplicated pair canceling out, and confirm your transaction-level matcher still catches it even though a naive total-comparison wouldn't.</li>
+</ol>
+<details><summary>Expected outcome</summary><div class="a"><p>The transaction-level matcher correctly places every deliberately-introduced discrepancy into its bucket, including the offsetting pair a total-based check would have missed entirely &mdash; concretely demonstrating why aggregate reconciliation is a false sense of safety rather than a lighter-weight equivalent to the real thing.</p></div></details>
+</div>
+
+<details class="qa"><summary>Why can't you reliably reconcile using amount-and-date fuzzy matching instead of a shared transaction identifier?</summary><div class="a"><p>Any two customers paying the same round amount on the same day produce ambiguous matches, and at real volume this isn't a rare edge case, it's a routine occurrence — the reconciliation process ends up guessing which settlement line corresponds to which ledger entry, silently mismatching some pairs while reporting a clean result. A shared, PSP-issued identifier (charge/PaymentIntent ID) removes the ambiguity entirely and is available specifically because you should already be storing it against every ledger entry from the moment it's created.</p></div></details>
+
+<details class="qa"><summary>You find a transaction in the settlement report with no corresponding ledger entry. What's your incident-response priority order?</summary><div class="a"><p>First, confirm it's real money (check the PSP dashboard directly, not just the report) rather than a report-generation glitch; second, check whether a webhook for it exists anywhere in your logs/dead-letter queue but failed to process, versus never arrived at all, which tells you whether the fix is "reprocess a stuck event" or "investigate why delivery failed entirely" (unit 4's monitoring gap); third, backfill the missing ledger entry once you understand why it's missing, not before, since backfilling blind risks recording it wrong the same way it was missed.</p></div></details>
+
+<details class="qa"><summary>How does reconciliation change for a multi-PSP setup versus a single-PSP one, beyond "there's more than one report to pull"?</summary><div class="a"><p>Each PSP has its own settlement report format, cadence, and fee structure, so the matching and fee-verification logic needs to be PSP-aware rather than assuming one shape — and because a transaction routed through PSP A never appears in PSP B's report at all, your ledger's PSP identifier becomes load-bearing for correctly scoping which report to check each entry against, not just a descriptive field.</p></div></details>
+
+<details class="qa"><summary>What's the argument for running reconciliation daily rather than, say, weekly or monthly?</summary><div class="a"><p>The cost of finding a discrepancy scales with how much has piled up on top of it and how stale the context is when you finally investigate — a missing-webhook root cause is far easier to diagnose and fix within a day of it happening (logs are fresh, the on-call engineer who touched that code remembers it) than a month later across potentially hundreds of accumulated instances of the same underlying bug. Daily reconciliation turns "one big scary investigation" into "routine, small, cheap checks."</p></div></details>
+
+<details class="qa"><summary>Design question: how would you decide which PSP to route a given transaction to in a multi-PSP orchestration layer?</summary><div class="a"><p>Typically a combination of real-time health signals (recent error rate/latency per PSP, to route around active degradation), cost (interchange-plus and PSP fee schedules differ, and blended cost matters at scale), and capability fit (does this PSP support the customer's payment method, currency, or region well) — with health/failover taking priority over pure cost optimization, since a cheaper PSP that's currently failing is a checkout outage, not a savings.</p></div></details>
+
+<details class="qa"><summary>Your fee-verification step finds that a PSP's actual fee consistently runs 0.1% higher than your ledger's assumed fee, across thousands of transactions. What do you do?</summary><div class="a"><p>Investigate the pricing schedule first — a consistent, systematic delta almost always means your fee-expense entries are computed from a stale or wrong pricing assumption (a rate that changed, a currency-conversion fee component you're not modeling) rather than PSP-side error, since PSPs don't quietly overcharge at scale without it being a contract term you missed. Fix the ledger's fee-calculation logic to match the actual schedule, then backfill/correct the historical fee-expense entries as new, explicit correcting entries (unit 8) — never by editing the old ones.</p></div></details>
+
+<details class="qa"><summary>How would you build alerting around reconciliation so that "settlement has it, ledger doesn't" mismatches get urgent attention while minor timing-lag mismatches don't create alert fatigue?</summary><div class="a"><p>Tier by bucket and age: a settlement-only mismatch should page immediately regardless of amount, since it represents unaccounted-for real money; a ledger-only mismatch is expected to briefly appear for genuinely async payment methods and should only alert once it's aged past the PSP's normal settlement window for that method, at which point it graduates from "expected lag" to "investigate." Treating every mismatch identically either buries the urgent ones in noise or trains the team to ignore the alert channel entirely.</p></div></details>
+
+<details class="qa"><summary>Why is a routing/orchestration layer described as adding real complexity rather than being a strictly-better default for every payments integration?</summary><div class="a"><p>Because every capability discussed in this document (idempotency key scoping, webhook signature verification, 3DS challenge handling, PCI-scope boundaries, dispute evidence formats, settlement report shapes) now needs to be correctly implemented and tested against each PSP behind the router, and the router itself becomes a new critical-path component with its own failure modes and its own need for observability. It's the right trade for volume/risk profiles where single-PSP outage exposure genuinely outweighs that added complexity, not a universal best practice — a small team on one PSP that reconciles well and has clean webhook handling may have no real need for it.</p></div></details>
+
+<details class="qa"><summary>What would make you trust an automated reconciliation pipeline enough to stop manually spot-checking it?</summary><div class="a"><p>A track record of the pipeline itself being tested against known-bad synthetic data (deliberately introduced mismatches, per this unit's try-it exercise) and caught them correctly, plus monitoring on the pipeline's own health (did it actually run today, did it process the expected row counts) so a silent pipeline failure doesn't masquerade as "everything matched." Manual spot-checking is a reasonable stopgap early on, but the actual goal is trusting the automation enough that spot-checking becomes redundant, not a permanent parallel process.</p></div></details>
+
+<details class="qa"><summary>A settlement report arrives in a currency different from the one your ledger recorded the original charge in. How does that affect matching?</summary><div class="a"><p>You still match by transaction identifier, never by amount, but the fee-verification and net-amount comparison now needs to account for the FX conversion applied between charge and settlement — which is exactly why unit 8's requirement to record the original currency, amount, and applied rate on the ledger entry matters here specifically: without it, you have no independently-computed expectation to compare the settled, converted amount against, and any discrepancy is unexplainable.</p></div></details>
+</section>
+
+<section class="unit" id="u10">
+<h2>10&nbsp; The big Q&amp;A</h2>
+
+<p class="qa-theme">Architecture &amp; ecosystem</p>
+
+<details class="qa"><summary>How would you decide, from scratch, whether a new product needs Stripe, Adyen, both, or an orchestration layer over several PSPs?</summary><div class="a"><p>Start from the actual requirements: geographic coverage and local payment method support (Adyen's strength in certain regions and alternative payment methods can outweigh Stripe's superior developer experience for a global, method-diverse product), expected volume and whether single-PSP outage risk is tolerable at that scale, and existing team expertise (a small team's velocity cost of learning a second PSP's object model is real and often underweighted). Most products should start single-PSP and earn their way into multi-PSP complexity through actual volume or coverage gaps, not adopt it speculatively.</p></div></details>
+
+<details class="qa"><summary>What's the actual difference between a payment processor, a payment gateway, an acquirer, and a PSP — terms often used loosely?</summary><div class="a"><p>A gateway is the technical pipe that transmits transaction data to the card networks; an acquirer is the bank that holds the merchant relationship with the card networks and receives settled funds; a processor handles the back-end transaction processing on the acquirer's behalf; a PSP (Stripe, Adyen) typically bundles all of these into one merchant-facing product, acting as gateway, and often as acquirer or working tightly with one, so you integrate with a single API instead of assembling the stack yourself. In casual usage people say "payment processor" to mean "PSP," which is imprecise but rarely causes real confusion in context.</p></div></details>
+
+<details class="qa"><summary>Why do PSPs push so hard toward unified integration primitives (PaymentIntent + PaymentElement, /payments + Components) rather than leaving per-method integration to the merchant?</summary><div class="a"><p>Every new payment method (a new BNPL provider, a new regional wallet) historically meant every integrated merchant doing custom integration work, which slowed adoption industry-wide and multiplied the PSP's own support burden across countless bespoke implementations. A unified primitive means the PSP can add support for a new method server-side and have it show up in every existing integration's Element/Component automatically, which is a much better leverage point for both sides.</p></div></details>
+
+<details class="qa"><summary>How would you introduce PSP migration risk (e.g., moving primary volume from Stripe to Adyen) to a skeptical leadership team?</summary><div class="a"><p>Frame it honestly as touching nearly every unit in this document simultaneously — idempotency key formats, webhook payload shapes and signature schemes, 3DS flow integration, PCI scope boundaries if the integration model changes, dispute evidence workflows, and ledger/reconciliation logic all need parallel implementations during a transition, typically run side-by-side with gradual traffic shifting rather than a hard cutover, specifically because a hard cutover has no rollback path if something in that large a surface area breaks post-migration.</p></div></details>
+
+<p class="qa-theme">Security</p>
+
+<details class="qa"><summary>Beyond webhook signature verification and PCI scope, what's an underrated security consideration in payment integrations?</summary><div class="a"><p>Secrets management for API keys and webhook signing secrets specifically — a leaked Stripe secret key is directly usable to create real charges or issue refunds against your account, unlike most leaked credentials which need further exploitation to cause damage. Rotation procedures, scoping keys to the minimum required permission (restricted API keys rather than one all-powerful key), and never logging keys even in error traces are all disproportionately high-value relative to how often they're actually enforced.</p></div></details>
+
+<details class="qa"><summary>How would you defend against card testing (attackers using your checkout to validate stolen card numbers in bulk) without adding friction to legitimate customers?</summary><div class="a"><p>Rate-limit and fingerprint at the attempt level rather than the account level (attackers don't have accounts), watch for the tell-tale pattern of many small-amount authorization attempts against sequential or similar card numbers from the same session/IP/device, and lean on the PSP's built-in fraud/risk tooling (Stripe Radar, Adyen RevenueProtect) which is specifically tuned for this pattern rather than building bespoke detection from scratch. CAPTCHA or step-up friction should be reserved for signals that actually correlate with this behavior, not applied to every checkout by default.</p></div></details>
+
+<details class="qa"><summary>What's the security argument for never letting your backend construct or store a full PAN, even encrypted at rest, "just in case"?</summary><div class="a"><p>Encrypted-at-rest PAN storage still means the decryption key, key-management infrastructure, and every code path that ever handles the decrypted value are all in full PCI DSS scope (SAQ D territory) and represent a standing target — a single key-management mistake or a compromised process with decrypt access defeats the encryption entirely. The tokenization pattern avoids this exposure altogether by never having the sensitive value on your infrastructure in any form, which is a strictly stronger security posture than "encrypted well."</p></div></details>
+
+<p class="qa-theme">Performance &amp; debugging</p>
+
+<details class="qa"><summary>A customer reports their payment "hung" for 45 seconds before succeeding. How would you investigate?</summary><div class="a"><p>Check whether the 45 seconds includes a 3DS challenge round-trip (unit 5) — that's often the actual explanation and not a bug at all, since a challenge involving an OTP the customer had to receive and type genuinely takes tens of seconds. If it's not that, check your own PSP API call latency and retry behavior (unit 3) for evidence of a slow or retried request, and check whether your webhook processing lag (unit 4) delayed the client-visible confirmation even after the PSP-side authorization was already fast.</p></div></details>
+
+<details class="qa"><summary>Your checkout success rate drops 3% overnight with no code deploy on your end. What's your triage order?</summary><div class="a"><p>Check the PSP's own status page/dashboard first for an ongoing incident, since PSP-side degradation is the most common "nothing changed on our end" cause; then check whether the drop is concentrated in a specific payment method, region, or card issuer (a specific issuer's authorization system having problems looks exactly like this from your side); then check your own webhook/API error rates and 3DS challenge rates for a shift, since an issuer tightening risk scoring can spike your challenge rate and, if your challenge-abandonment UX is weak, your effective success rate.</p></div></details>
+
+<details class="qa"><summary>How would you load-test a payment integration without accidentally processing real charges or exhausting a PSP's test-mode rate limits?</summary><div class="a"><p>Use the PSP's documented test-mode card numbers and endpoints, which process without touching real money, but still respect the PSP's own rate limits and typically coordinate with them in advance for anything resembling genuine load testing, since test-mode infrastructure is often less provisioned than production and an unannounced load test can look identical to an attack from their side. Never load-test against production endpoints with real cards "at a small scale" to save setup time — the blast radius of a mistake is real charges.</p></div></details>
+
+<p class="qa-theme">Tooling</p>
+
+<details class="qa"><summary>What's the value of the Stripe CLI / Adyen's equivalent local tooling beyond "convenient for demos"?</summary><div class="a"><p>Local webhook forwarding (<code>stripe listen --forward-to</code>) lets you develop and debug webhook handlers against real, properly-signed test events without deploying a publicly reachable endpoint first, which meaningfully shortens the feedback loop for exactly the part of the integration (unit 4) that's hardest to test otherwise. <code>stripe trigger</code>-style event simulation also makes it practical to exercise rare event types (a specific dispute reason code, a specific failure mode) on demand rather than waiting for one to occur naturally.</p></div></details>
+
+<details class="qa"><summary>How do you approach testing 3DS and webhook flows in CI, where you can't interactively complete a challenge?</summary><div class="a"><p>Use the PSP's deterministic test card numbers/payloads that resolve to known outcomes (frictionless success, challenge-then-success, challenge-then-failure) without any actual interactive step, combined with recorded or synthetically-constructed, correctly-signed webhook payloads for handler-level tests that don't need a live PSP round-trip at all. The interactive-challenge UI itself is the PSP's tested surface, not yours, so CI should verify your handling of each possible outcome rather than the challenge UI itself.</p></div></details>
+
+<details class="qa"><summary>What observability would you insist on before letting a payment integration go to production, beyond generic API monitoring?</summary><div class="a"><p>Per-PSP success/decline/error rate dashboards broken out by payment method and, where relevant, issuer/region; webhook delivery lag and error-rate monitoring (unit 4); and a reconciliation-pipeline health check (unit 9) confirming it actually ran and processed expected volume, not just that it didn't crash. Generic "is the API up" monitoring misses almost everything that actually goes wrong in payments, which tends to be domain-specific degradation, not outright downtime.</p></div></details>
+
+<p class="qa-theme">Legacy &amp; migration reality</p>
+
+<details class="qa"><summary>You inherit a codebase still using Stripe's legacy Charges API and per-method Elements instead of PaymentIntents/PaymentElement. Do you migrate it immediately?</summary><div class="a"><p>Not reflexively — the Charges API still works for simple, non-3DS, single-currency use cases, and a forced migration purely for modernity's sake is real risk and effort for no functional gain if the product genuinely never needs SCA/3DS support or multi-method flexibility. The migration becomes necessary, not optional, the moment you need SCA compliance for EU customers or want to add payment methods beyond cards easily — at which point the PaymentIntents model's design (built around exactly those needs) stops being a nice-to-have.</p></div></details>
+
+<details class="qa"><summary>What's the tell-tale sign in a codebase that a payment integration was built before idempotency keys were well understood by the team?</summary><div class="a"><p>Retry logic that generates a fresh key (or no key at all) per attempt, often wrapped in a generic HTTP retry middleware applied uniformly across all outbound calls without payment-specific awareness that side-effecting calls need different treatment than idempotent GETs — usually discovered only after a duplicate-charge incident, since the bug is invisible until a retry actually fires under real network conditions.</p></div></details>
+
+<details class="qa"><summary>How do you handle a legacy system where card data genuinely does flow through and get logged by your own servers, and you've been asked to fix it without a full rewrite?</summary><div class="a"><p>Prioritize stopping the logging/storage of raw PAN first — audit every log statement, error handler, and debug trace on the payment code path and strip or redact card fields, since that's both the fastest compliance-risk reduction and independent of the harder architectural fix. Then plan the migration to client-side tokenization as the real fix, treating the logging fix as a stopgap that reduces exposure while the larger change is scoped and executed, not as the final state.</p></div></details>
+
+<details class="qa"><summary>A legacy integration stores "last 4 digits and expiry" directly rather than via a PSP token, for display purposes. Is that a PCI problem?</summary><div class="a"><p>Truncated PAN (last 4 digits) is explicitly not considered sensitive cardholder data requiring the same protection as full PAN under PCI DSS, so storing it alone for display purposes is generally fine. The risk is scope creep: verify nothing nearby is also capturing full PAN "just in case," and that the expiry date isn't stored alongside enough other data to reconstruct something more sensitive than intended — the last-4-plus-expiry pattern itself is standard and low-risk when it's genuinely isolated to just those fields.</p></div></details>
+
+<p class="qa-theme">Judgment &amp; scenario questions</p>
+
+<details class="qa"><summary>How would you decide whether a payment-related incident warrants an all-hands incident response versus a quiet, next-business-day fix?</summary><div class="a"><p>Weigh active financial exposure (is money actively being lost or mis-recorded right now, e.g., a broken idempotency key causing live double-charges) against blast radius and reversibility (a webhook processing delay that will self-heal via retries once fixed is very different from silent data loss). Active, ongoing, hard-to-reverse financial impact warrants immediate escalation; a contained, already-stopped, cleanly-correctable issue can often wait, provided you've verified it's actually contained before deciding that.</p></div></details>
+
+<details class="qa"><summary>How would you code-review a pull request that adds a new refund endpoint, focusing on what a less experienced reviewer might miss?</summary><div class="a"><p>Beyond the obvious (does it call the right API), check: is there an idempotency key, and is it derived from stable, durable data rather than generated per-call; does it check for an existing pending dispute on the same charge before refunding, to avoid the double-return trap from unit 7; does the ledger update happen only after PSP confirmation, never optimistically; and is the refund amount validated against the original charge amount so a bug can't refund more than was ever charged.</p></div></details>
+
+<details class="qa"><summary>How would you introduce double-entry ledger accounting to a team currently running on a simple balance-column model, without a disruptive big-bang rewrite?</summary><div class="a"><p>Run the new ledger in parallel/shadow mode first — write entries to it alongside the existing balance-column updates without yet trusting it as source of truth, then compare derived balances against the legacy column over a real period to build confidence and surface any modeling gaps, before cutting reads over to the ledger and finally retiring the balance column. This mirrors the same gradual-migration instinct as the PSP-migration answer above: a financial-correctness change earns trust through parallel verification, not a leap of faith.</p></div></details>
+
+<details class="qa"><summary>A product manager asks why "just add a retry button for failed payments" isn't a one-line fix. How do you explain the actual scope?</summary><div class="a"><p>A naive retry button re-runs the same request, which without a properly-scoped idempotency key (unit 3) risks a duplicate charge on a request that actually succeeded but appeared to fail client-side (a timeout, a dropped connection) — so the "one line" is actually: ensure the original request's idempotency key is retrievable and reused, decide what UI state to show while retrying, and handle the case where the retry reveals the original already succeeded (show success, don't imply a new charge happened). Naming the specific risk in concrete terms usually lands better with a PM than an abstract "it's more complex than it looks."</p></div></details>
+
+<details class="qa"><summary>How would you approach a situation where finance reports the ledger and the bank statement disagree by a small, persistent amount every month, and nobody can explain why?</summary><div class="a"><p>Treat it as exactly the reconciliation problem from unit 9, applied retroactively: get itemized settlement reports for the affected periods and match transaction-by-transaction rather than accepting the aggregate discrepancy as unexplainable, since a persistent small gap almost always resolves to a specific, findable cause (a fee-schedule assumption that's slightly wrong, a category of transaction that's systematically mis-recorded) once you stop comparing totals and start comparing line items.</p></div></details>
+</section>
+
+<section class="unit" id="u11">
+<h2>11&nbsp; Night-before cheat sheet</h2>
+
+<ul class="cheat-list">
+<li>A PSP (Stripe, Adyen) bundles gateway, processing, and often acquiring into one API; card data should flow client-side straight to the PSP via tokenization (Elements/Components) so your servers stay out of PCI scope, landing you in SAQ A or A-EP instead of the much heavier SAQ D.</li>
+<li>Authorization and capture are separate steps — Stripe's PaymentIntent and Adyen's <code>/payments</code> both model a "hold the funds, decide to take them later" flow, and <code>succeeded</code>/authorised is never the same thing as money actually being in your bank account, especially for async methods like ACH and SEPA that can still fail or return days later.</li>
+<li>Idempotency keys must be generated once, when the logical operation is decided, and reused across every retry — regenerating a key inside a retry loop silently disables the entire protection and is the single most common real-world payments bug.</li>
+<li>Webhooks are at-least-once, unreliably ordered, and must be verified against the raw, unparsed request body (Stripe's <code>Stripe-Signature</code> HMAC) before any model binding touches it; dedupe your handler by event ID, never trust the event's embedded timestamp for ordering.</li>
+<li>Stripe's newer API versions support thin events (fetch current state) alongside the long-standing snapshot events (embedded state) — thin events can't go stale on a delayed retry, which directly improves reconciliation accuracy.</li>
+<li>3-D Secure 2 (EMV 3DS 2.3.1.1 current) authenticates most transactions frictionlessly and reserves visible OTP/biometric challenges for issuer-flagged risk; a successful authentication shifts fraud liability to the issuer, while an SCA exemption trades that liability shift for reduced friction and stays with the merchant if the issuer grants it.</li>
+<li>PCI DSS 4.0.1's future-dated requirements became mandatory on March 31, 2026 — already past as of today — meaning Requirement 11.6.1 (payment-page script inventory and tamper detection) and 6.4.3 (justified, integrity-verified scripts) are hard compliance gaps now, not upcoming ones, for anyone running a checkout page.</li>
+<li>Refunds are voluntary, final, and merchant-initiated; chargebacks are adversarial, immediately debit funds, and carry a non-refundable dispute fee regardless of outcome — Verifi/Ethoca pre-dispute alerts let you refund proactively before a formal dispute forms, which is strictly cheaper than contesting one later.</li>
+<li>Model money movement as immutable double-entry ledger entries, never a mutable balance column — every entry's debits must equal its credits, a mistake gets corrected with a new opposite entry, and amounts live in integer minor units or fixed-point decimals, never floating point.</li>
+<li>Reconcile transaction-by-transaction against the PSP's settlement report using a shared identifier, never by comparing aggregate totals — offsetting errors (one missing, one duplicated) can make totals match perfectly while hiding two real, dangerous bugs.</li>
+</ul>
+</section>
+
+
+</main>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.10.0/highlight.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.10.0/languages/csharp.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.10.0/languages/json.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.10.0/languages/http.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.10.0/languages/sql.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.10.0/languages/bash.min.js"></script>
+<script>
+try { if (window.hljs) { hljs.highlightAll(); } } catch (e) { /* decoration only; page reads fine without it */ }
+
+(function () {
+  var links = Array.prototype.slice.call(document.querySelectorAll('.units a'));
+  var sections = links.map(function (a) { return document.querySelector(a.getAttribute('href')); }).filter(Boolean);
+  if (!sections.length) return;
+  var current = null;
+  function setCurrent(id) {
+    if (id === current) return;
+    current = id;
+    links.forEach(function (a) {
+      a.toggleAttribute('aria-current', a.getAttribute('href') === '#' + id);
+      if (a.getAttribute('href') === '#' + id) a.setAttribute('aria-current', 'true'); else a.removeAttribute('aria-current');
+    });
+  }
+  var io = new IntersectionObserver(function (entries) {
+    var visible = entries.filter(function (e) { return e.isIntersecting; });
+    if (!visible.length) return;
+    visible.sort(function (a, b) { return a.boundingClientRect.top - b.boundingClientRect.top; });
+    setCurrent(visible[0].target.id);
+  }, { rootMargin: '-10% 0px -70% 0px', threshold: 0 });
+  sections.forEach(function (s) { io.observe(s); });
+  setCurrent(sections[0].id);
+
+  var side = document.querySelector('.side');
+  links.forEach(function (a) {
+    a.addEventListener('click', function () { side.classList.remove('open'); });
+  });
+}());
+</script>
+</body>
+</html>

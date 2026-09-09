@@ -1,0 +1,476 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Redis (for .NET developers) · cheatsheet · devbok</title>
+<link rel="preconnect" href="https://fonts.googleapis.com/">
+<link rel="preconnect" href="https://fonts.gstatic.com/" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Cascadia+Mono:wght@400;700&display=swap">
+<style>
+:root { color-scheme: light;
+  --bg: #ffffff; --fg: #111111; --muted: #6b6b6b; --line: #111111; --soft: #f4f4f4; --border: #cccccc;
+  --accent: #dc382d; --accent-soft: color-mix(in srgb, var(--accent) 12%, var(--bg));
+  --code: color-mix(in srgb, var(--accent) 70%, var(--fg));
+  --hl-kw: #a626a4; --hl-str: #50a14f; --hl-num: #986801; --hl-cmt: #6b6b6b; --hl-type: #0184bc; --hl-fn: #4078f2; --hl-attr: #986801; }
+@media (prefers-color-scheme: dark) { :root { color-scheme: dark;
+  --bg: #222222; --fg: #cccccc; --muted: #8f8f8f; --line: #111111; --soft: #2c2c2c; --border: #4a4a4a;
+  --accent: #e6726a; --accent-soft: color-mix(in srgb, var(--accent) 16%, var(--bg));
+  --hl-kw: #c678dd; --hl-str: #98c379; --hl-num: #d19a66; --hl-cmt: #8f8f8f; --hl-type: #56b6c2; --hl-fn: #61afef; --hl-attr: #e5c07b; } }
+
+* { box-sizing: border-box; }
+html { -webkit-text-size-adjust: 100%; }
+body { margin: 0; background: var(--bg); color: var(--fg);
+  font-family: system-ui, sans-serif; font-size: 16px; line-height: 1.6;
+  overflow-x: hidden; }
+
+h1, h2, h3 { font-family: system-ui, sans-serif; font-weight: 700; }
+h2 { font-size: 1.5em; line-height: 1.25; margin: 0 0 10px; scroll-margin-top: 16px; }
+h3 { font-size: 1.17em; margin: 18px 0 6px; }
+a { color: var(--accent); }
+:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+p { margin: 0 0 10px; }
+
+/* --- code, verbatim ------------------------------------------------ */
+code { background: var(--soft); border: 1px solid var(--border); border-radius: 3px; padding: 0 .3em; color: var(--code); overflow-wrap: anywhere; }
+pre { background: var(--soft); border: 1px solid var(--border); border-radius: 4px; padding: 12px 14px; overflow-x: auto; line-height: 1.5; margin: 14px 0; max-width: 100%; }
+pre code { background: none; border: 0; border-radius: 0; padding: 0; color: inherit; white-space: pre; overflow-wrap: normal; }
+.hljs { color: var(--fg); background: transparent; }
+.hljs-keyword, .hljs-built_in, .hljs-literal, .hljs-selector-tag { color: var(--hl-kw); }
+.hljs-string, .hljs-regexp, .hljs-selector-attr { color: var(--hl-str); }
+.hljs-number, .hljs-symbol { color: var(--hl-num); }
+.hljs-comment, .hljs-quote, .hljs-doctag { color: var(--hl-cmt); font-style: italic; }
+.hljs-title, .hljs-title.class_, .hljs-type, .hljs-name, .hljs-section, .hljs-selector-class, .hljs-selector-pseudo { color: var(--hl-type); }
+.hljs-title.function_ { color: var(--hl-fn); }
+.hljs-meta, .hljs-attr, .hljs-attribute, .hljs-tag, .hljs-property, .hljs-variable { color: var(--hl-attr); }
+.hljs-template-tag, .hljs-template-variable { color: var(--hl-attr); }
+.hljs-code, .hljs-formula { color: var(--hl-cmt); }
+.hljs-operator, .hljs-subst, .hljs-punctuation, .hljs-params { color: var(--fg); }
+.hljs-emphasis { font-style: italic; } .hljs-strong { font-weight: 700; }
+code, pre, .chip, .hero .meta, .side, .k, .v, table { font-family: "Cascadia Mono", Consolas, monospace; }
+code, pre, .chip, .hero .meta, .side { font-size: 12px; }
+
+/* --- sidebar, verbatim --------------------------------------------- */
+.side { position: fixed; top: 0; bottom: 0; left: 0; width: 260px; display: flex; flex-direction: column; background: var(--bg); border-right: 2px solid var(--line); font-family: "Cascadia Mono", Consolas, monospace; font-size: 12px; }
+.units { list-style: none; margin: 0; padding: 12px 0; overflow-y: auto; flex: 1; }
+.units a { display: grid; grid-template-columns: 2.5em 1fr; padding: 9px 20px 9px 17px; border-left: 3px solid transparent; color: var(--fg); text-decoration: none; line-height: 1.4; }
+.units .n { color: var(--muted); font-weight: 400; }
+.units a:hover { background: var(--soft); }
+.units a[aria-current="true"] { background: var(--accent-soft); border-left-color: var(--accent); font-weight: 700; }
+.side footer { padding: 12px 20px; border-top: 2px solid var(--line); color: var(--muted); line-height: 1.5; }
+
+/* --- layout --------------------------------------------------------- */
+main { margin-left: 260px; padding: 24px; max-width: 120ch; min-width: 0; }
+.hero { margin: 0 0 24px; padding: 0 0 24px; border-bottom: 2px solid var(--line); }
+.hero h1 { margin: 0 0 8px; font-size: 2em; line-height: 1.2; font-weight: 700; }
+.hero .meta { margin: 0 0 12px; font-family: "Cascadia Mono", Consolas, monospace; font-size: 12px; color: var(--muted); }
+.hero .summary { margin: 0 0 12px; }
+.hero .chips { display: flex; flex-wrap: wrap; gap: 6px; margin: 0; }
+.chip { display: inline-block; text-transform: uppercase; background: var(--soft); border: 1px solid var(--border); border-radius: 4px; padding: 2px 7px; color: var(--muted); }
+
+/* --- unit cards ----------------------------------------------------- */
+.unit { border: 1px solid var(--border); border-radius: 6px; padding: 16px 18px; margin: 0 0 20px; min-width: 0; }
+.unit h2 .n { color: var(--muted); font-family: "Cascadia Mono", Consolas, monospace; font-size: .7em; margin-right: .5em; }
+.lead { color: var(--muted); margin: 0 0 12px; }
+.rows { display: grid; grid-template-columns: minmax(0, 24ch) minmax(0, 1fr); gap: 0; border-top: 1px solid var(--border); margin: 10px 0 4px; }
+.rows > div { padding: 5px 8px; border-bottom: 1px solid var(--border); min-width: 0; overflow-wrap: anywhere; }
+.k { color: var(--muted); font-size: 12px; }
+.v { font-size: 12px; }
+.v code { border: 0; background: none; padding: 0; }
+.v em { color: var(--muted); font-style: normal; }
+.callout { background: var(--soft); border-left: 3px solid var(--accent); padding: 8px 12px; margin: 12px 0; }
+.callout p:last-child { margin: 0; }
+ul.tight { margin: 8px 0; padding-left: 1.2em; }
+ul.tight li { margin: 0 0 4px; }
+.tw { overflow-x: auto; margin: 12px 0; max-width: 100%; }
+table { border-collapse: collapse; width: 100%; font-size: 12px; }
+th, td { text-align: left; vertical-align: top; padding: 5px 8px; border-bottom: 1px solid var(--border); }
+th { color: var(--muted); font-weight: 400; white-space: nowrap; }
+tr.hot td { background: var(--accent-soft); }
+.docs { margin: 12px 0 0; font-size: 12px; font-family: "Cascadia Mono", Consolas, monospace; }
+.sidetoggle { display: none; }
+
+@media (max-width: 720px) {
+  .side { transform: translateX(-100%); transition: transform .15s ease; z-index: 20; width: 260px; }
+  .side.open { transform: none; }
+  main { margin-left: 0; padding: 56px 14px 24px; }
+  .sidetoggle { display: block; position: fixed; top: 8px; left: 8px; z-index: 30;
+    font-family: "Cascadia Mono", Consolas, monospace; font-size: 12px; padding: 6px 10px;
+    background: var(--soft); color: var(--fg); border: 1px solid var(--border); border-radius: 4px; cursor: pointer; }
+  .rows { grid-template-columns: minmax(0, 1fr); }
+  .rows > div.k { border-bottom: 0; padding-bottom: 0; }
+}
+
+@media print {
+  .side, .sidetoggle { display: none !important; }
+  main { margin: 0; padding: 0; max-width: none; }
+  body { background: #fff; color: #000; font-size: 8.5pt; line-height: 1.3; }
+  .unit { break-inside: avoid; page-break-inside: avoid; border: 1px solid #999; padding: 6px 8px; margin: 0 0 8px; border-radius: 0; }
+  h2 { font-size: 11pt; }
+  .hero { border-bottom: 1px solid #000; padding-bottom: 8px; margin-bottom: 10px; }
+  .hero h1 { font-size: 15pt; }
+  .chip { border: 1px solid #999; color: #000; }
+  pre { border: 1px solid #999; padding: 4px 6px; margin: 6px 0; white-space: pre-wrap; }
+  a { color: #000 !important; text-decoration: none; }
+  .docs { color: #000; }
+  .callout { border-left: 2px solid #000; background: transparent; }
+  tr.hot td { background: transparent; }
+  th, td { border-bottom: 1px solid #bbb; }
+  code, .hljs, .hljs span { color: #000 !important; background: transparent !important; }
+}
+</style>
+</head>
+<body>
+<!-- devbok
+slug: redis
+kind: cheatsheet
+version: 1
+topic: "Redis (mainly for .NET developers)"
+prompt: cheatsheet.md@7ff70aff
+generated: 2026-09-08
+-->
+<button class="sidetoggle" type="button" aria-expanded="false">≡ units</button>
+<nav class="side" aria-label="Units">
+  <ol class="units">
+    <li><a href="#u01"><span class="n">01</span><span class="t">Connect &amp; clients (.NET)</span></a></li>
+    <li><a href="#u02"><span class="n">02</span><span class="t">Core data types &amp; commands</span></a></li>
+    <li><a href="#u03"><span class="n">03</span><span class="t">Expiry, eviction &amp; memory</span></a></li>
+    <li><a href="#u04"><span class="n">04</span><span class="t">Transactions, scripting &amp; pipelining</span></a></li>
+    <li><a href="#u05"><span class="n">05</span><span class="t">Pub/Sub &amp; Streams</span></a></li>
+    <li><a href="#u06"><span class="n">06</span><span class="t">Persistence &amp; backup</span></a></li>
+    <li><a href="#u07"><span class="n">07</span><span class="t">Replication, Sentinel &amp; Cluster</span></a></li>
+    <li><a href="#u08"><span class="n">08</span><span class="t">Search, JSON, vector &amp; probabilistic</span></a></li>
+    <li><a href="#u09"><span class="n">09</span><span class="t">Security: ACL &amp; TLS</span></a></li>
+    <li><a href="#u10"><span class="n">10</span><span class="t">Gotchas &amp; pitfalls</span></a></li>
+    <li><a href="#u11"><span class="n">11</span><span class="t">Modern vs legacy</span></a></li>
+    <li><a href="#u12"><span class="n">12</span><span class="t">Version timeline</span></a></li>
+  </ol>
+  <footer>Redis (for .NET developers) · cheatsheet · version 1 · 2026-09-08</footer>
+</nav>
+<main>
+<header class="hero">
+  <h1>Redis (for .NET developers)</h1>
+  <p class="meta">cheatsheet · 8.10.1 · released 2026-08-17</p>
+  <p class="summary">Reflects Redis 8.10.1, released 2026-08-17 as a same-day security patch across every active branch (8.2 through 8.10). Redis has been tri-licensed under RSALv2, SSPLv1 and AGPLv3 since 8.0.0 (2025-05-02); Valkey, the Linux Foundation's BSD-licensed fork, is the drop-in alternative wherever that licence is a blocker. .NET examples assume StackExchange.Redis 3.1.31, which negotiates RESP3 by default and enforces <code>AllowAdmin</code> client-side.</p>
+  <p class="chips"><span class="chip">8.10.1 · 2026-08-17</span> <span class="chip">RSALv2 / SSPLv1 / AGPLv3</span> <span class="chip">8.0 tri-license GA 2025-05-02</span> <span class="chip">StackExchange.Redis 3.1.31</span> <span class="chip">RESP3 default (SE.Redis 3.x)</span> <span class="chip">Valkey · BSD fork</span></p>
+</header>
+
+<section class="unit" id="u01">
+  <h2><span class="n">01</span>Connect &amp; clients (.NET)</h2>
+  <p class="lead">One <code>ConnectionMultiplexer</code> per process, shared behind DI — the client, not Redis, is usually the bottleneck when someone reaches for a second one.</p>
+  <div class="rows">
+    <div class="k">Install</div><div class="v"><code>dotnet add package StackExchange.Redis</code> (3.1.31)</div>
+    <div class="k">DI (ASP.NET Core)</div><div class="v"><code>services.AddSingleton&lt;IConnectionMultiplexer&gt;(_ =&gt; ConnectionMultiplexer.Connect(cs));</code></div>
+    <div class="k">.NET Aspire</div><div class="v"><code>builder.AddRedisClient("cache");</code> <em>— Aspire.StackExchange.Redis 13.5.3, wires health checks + telemetry</em></div>
+    <div class="k">Two-tier app cache</div><div class="v"><code>services.AddHybridCache().AddStackExchangeRedisCache(o =&gt; o.Configuration = cs);</code> <em>— Microsoft.Extensions.Caching.Hybrid 10.9.0, in-proc L1 + Redis L2, stampede protection</em></div>
+    <div class="k">Get a database</div><div class="v"><code>IDatabase db = mux.GetDatabase();</code></div>
+    <div class="k">Protocol</div><div class="v">RESP3 negotiated by default since StackExchange.Redis <strong>3.0.0</strong> <em>— was RESP2-only in 2.x</em></div>
+    <div class="k">Admin guard</div><div class="v"><code>ConfigurationOptions.AllowAdmin = true</code> <em>— enforced client-side since 3.0.0: <code>FLUSHALL</code>/<code>FLUSHDB</code>/<code>CONFIG</code> now throw locally, not just server-side, without it</em></div>
+    <div class="k">I/O layer (3.0.0)</div><div class="v">direct-buffer reader replaced <code>Pipelines.Sockets.Unofficial</code> + the arena parser <em>— ~2.2× the LRANGE throughput in the release benchmark, same public API as 2.x</em></div>
+    <div class="k">Search/JSON/TS client</div><div class="v"><code>NRedisStack</code> 1.7.4 — <code>db.JSON()</code> · <code>db.FT()</code> · <code>db.TS()</code></div>
+    <div class="k">Connection string</div><div class="v"><code>host:port,password=...,ssl=true,abortConnect=false,connectTimeout=5000</code></div>
+    <div class="k">Transient failure</div><div class="v"><code>RedisConnectionException</code> / <code>RedisTimeoutException</code> <em>— retry with backoff (Polly), never a tight loop</em></div>
+    <div class="k">CLI ping</div><div class="v"><code>redis-cli -h host -p 6380 --tls -a pass PING</code></div>
+  </div>
+  <pre><code class="language-csharp">var mux = await ConnectionMultiplexer.ConnectAsync(
+    "cache.internal:6380,ssl=true,password=REDACTED,abortConnect=false");
+IDatabase db = mux.GetDatabase();
+await db.StringSetAsync("session:42", json, TimeSpan.FromMinutes(30));
+var val = await db.StringGetAsync("session:42");</code></pre>
+  <p class="docs"><a href="https://redis.io/docs/latest/develop/clients/dotnet/">docs: .NET client</a> · <a href="https://github.com/StackExchange/StackExchange.Redis/releases">StackExchange.Redis releases</a></p>
+</section>
+
+<section class="unit" id="u02">
+  <h2><span class="n">02</span>Core data types &amp; commands</h2>
+  <p class="lead">Pick the type by access pattern, not habit — a Hash with field-level TTLs often replaces a whole family of String keys.</p>
+  <h3>String</h3>
+  <div class="rows">
+    <div class="k">Set + TTL</div><div class="v"><code>SET k v EX 60</code></div>
+    <div class="k">Get</div><div class="v"><code>GET k</code></div>
+    <div class="k">CAS (modern)</div><div class="v"><code>SET k v IFEQ old</code> <em>— 8.4.0, server-side compare-and-set, no <code>WATCH</code>/Lua needed</em></div>
+    <div class="k">CAS (legacy)</div><div class="v"><code>WATCH k</code> / <code>MULTI</code> … <code>EXEC</code>, or an <code>EVAL</code> script</div>
+    <div class="k">Numeric</div><div class="v"><code>INCRBY k 5</code> · <code>INCRBYFLOAT k 1.5</code></div>
+    <div class="k">Multi-key</div><div class="v"><code>MGET k1 k2</code> · <code>MSET k1 v1 k2 v2</code></div>
+    <div class="k">Get-and-clear/expire</div><div class="v"><code>GETDEL k</code> · <code>GETEX k EX 60</code> <em>— 6.2.0</em></div>
+  </div>
+  <h3>Hash</h3>
+  <div class="rows">
+    <div class="k">Field get/set</div><div class="v"><code>HSET k f v</code> · <code>HGET k f</code></div>
+    <div class="k">Field TTL (modern)</div><div class="v"><code>HEXPIRE k 60 FIELDS 1 f</code> · <code>HTTL k FIELDS 1 f</code> · <code>HPERSIST k FIELDS 1 f</code> <em>— 7.4.0</em></div>
+    <div class="k">Field get+delete</div><div class="v"><code>HGETDEL k FIELDS 1 f</code> <em>— 8.0.0</em></div>
+    <div class="k">Field get+expire</div><div class="v"><code>HGETEX k EX 60 FIELDS 1 f</code> <em>— 8.0.0</em></div>
+    <div class="k">Field set+expire</div><div class="v"><code>HSETEX k 60 FIELDS 1 f v</code> <em>— 8.0.0</em></div>
+    <div class="k">Legacy TTL</div><div class="v">whole-key <code>EXPIRE k 60</code> only <em>— no field granularity before 7.4.0</em></div>
+  </div>
+  <h3>List</h3>
+  <div class="rows">
+    <div class="k">Push/pop</div><div class="v"><code>LPUSH k v</code> · <code>RPOP k</code></div>
+    <div class="k">Multi-key pop (modern)</div><div class="v"><code>LMPOP 2 k1 k2 LEFT COUNT 2</code> <em>— 7.0.0</em></div>
+    <div class="k">Blocking (legacy still seen)</div><div class="v"><code>BLPOP k1 k2 0</code> <em>— single key per pop, no <code>COUNT</code></em></div>
+  </div>
+  <h3>Set</h3>
+  <div class="rows">
+    <div class="k">Add/members</div><div class="v"><code>SADD k v</code> · <code>SMEMBERS k</code></div>
+    <div class="k">Intersection size only</div><div class="v"><code>SINTERCARD 2 k1 k2 LIMIT 10</code> <em>— 7.0.0, no need to materialise the set</em></div>
+    <div class="k">Union/diff size only</div><div class="v"><code>SUNIONCARD 2 k1 k2</code> · <code>SDIFFCARD 2 k1 k2</code> <em>— 8.10.0</em></div>
+  </div>
+  <h3>Sorted set</h3>
+  <div class="rows">
+    <div class="k">Add/range</div><div class="v"><code>ZADD k 1 m</code> · <code>ZRANGE k 0 -1</code></div>
+    <div class="k">Range by score (modern)</div><div class="v"><code>ZRANGE k 0 10 BYSCORE</code> <em>— 6.2.0</em></div>
+    <div class="k">Range by score (legacy)</div><div class="v"><code>ZRANGEBYSCORE k 0 10</code></div>
+  </div>
+  <h3>Streams</h3>
+  <div class="rows">
+    <div class="k">Append</div><div class="v"><code>XADD k * field val</code></div>
+    <div class="k">Consumer group read</div><div class="v"><code>XREADGROUP GROUP g c COUNT 10 STREAMS k &gt;</code></div>
+    <div class="k">Delete, keep refs (default)</div><div class="v"><code>XDELEX k IDS 1 id</code> <em>— 8.2.0, mirrors legacy <code>XDEL</code></em></div>
+    <div class="k">Delete, purge PEL refs</div><div class="v"><code>XDELEX k DELREF IDS 1 id</code> <em>— 8.2.0</em></div>
+    <div class="k">Ack then delete-if-acked</div><div class="v"><code>XACKDEL k g ACKED IDS 1 id</code> <em>— 8.2.0, only once every group has acked</em></div>
+    <div class="k">Legacy delete</div><div class="v"><code>XDEL k id</code> <em>— leaves dangling PEL references behind</em></div>
+  </div>
+  <h3>Bitmaps</h3>
+  <div class="rows">
+    <div class="k">Set-diff between bitmaps</div><div class="v"><code>BITOP DIFF dest k1 k2</code> <em>— 8.2.0, also <code>DIFF1</code>, <code>ANDOR</code>, <code>ONE</code></em></div>
+  </div>
+  <pre><code class="language-bash">127.0.0.1:6379&gt; SET order:42 '{"status":"paid"}' IFEQ '{"status":"pending"}'
+(nil)                                    # condition failed, value unchanged
+127.0.0.1:6379&gt; HEXPIRE user:42 3600 FIELDS 1 otp
+1) (integer) 1
+127.0.0.1:6379&gt; XACKDEL orders grp ACKED IDS 1 1738000000000-0
+1) (integer) 1                           # deleted only once every group had acked</code></pre>
+  <p class="docs"><a href="https://redis.io/docs/latest/commands/">docs: command reference</a></p>
+</section>
+
+<section class="unit" id="u03">
+  <h2><span class="n">03</span>Expiry, eviction &amp; memory</h2>
+  <div class="rows">
+    <div class="k">Guarded expire (modern)</div><div class="v"><code>EXPIRE k 60 NX</code> / <code>XX</code> / <code>GT</code> / <code>LT</code> <em>— 7.0.0</em></div>
+    <div class="k">Unconditional (legacy)</div><div class="v"><code>EXPIRE k 60</code> <em>— overwrites any existing TTL blindly</em></div>
+    <div class="k">Field TTL</div><div class="v"><code>HTTL k FIELDS 1 f</code> · <code>HPERSIST k FIELDS 1 f</code> <em>— 7.4.0</em></div>
+    <div class="k">Inspect TTL</div><div class="v"><code>TTL k</code> (seconds) · <code>PTTL k</code> (ms)</div>
+    <div class="k">Eviction policy (config)</div><div class="v"><code>maxmemory-policy noeviction</code> (default) | <code>allkeys-lru</code> | <code>volatile-lru</code> | <code>allkeys-lfu</code> | <code>volatile-lfu</code></div>
+    <div class="k">Cheap recency (new)</div><div class="v"><code>allkeys-lrm</code> | <code>volatile-lrm</code> <em>— 8.6.0, timestamp updates on writes only, not on every read</em></div>
+    <div class="k">Memory cap</div><div class="v"><code>maxmemory 2gb</code></div>
+    <div class="k">Inspect memory</div><div class="v"><code>MEMORY USAGE k</code> · <code>MEMORY DOCTOR</code> · <code>MEMORY STATS</code></div>
+    <div class="k">Active defrag</div><div class="v"><code>activedefrag yes</code> <em>— jemalloc-dependent</em></div>
+    <div class="k">Hot key detection (new)</div><div class="v"><code>HOTKEYS START</code> · <code>HOTKEYS GET</code> · <code>HOTKEYS STOP</code> <em>— 8.6.0</em></div>
+    <div class="k">Hot key detection (legacy)</div><div class="v"><code>redis-cli --hotkeys</code> <em>— blocking full-keyspace scan + sampling</em></div>
+  </div>
+  <div class="callout"><p><strong>Default is not a safety net.</strong> <code>maxmemory</code> with <code>noeviction</code> (the default policy) does not evict anything once the cap is hit — it starts rejecting writes with <code>OOM command not allowed</code>. Pick a policy deliberately for a cache; don't inherit the default meant for a primary store.</p></div>
+  <p class="docs"><a href="https://redis.io/docs/latest/develop/reference/eviction/">docs: eviction policies</a></p>
+</section>
+
+<section class="unit" id="u04">
+  <h2><span class="n">04</span>Transactions, scripting &amp; pipelining</h2>
+  <div class="rows">
+    <div class="k">Pipeline (no atomicity)</div><div class="v">batch commands, one round trip; SE.Redis: <code>IBatch</code> or <code>CommandFlags.FireAndForget</code></div>
+    <div class="k">Optimistic transaction</div><div class="v"><code>WATCH k</code> / <code>MULTI</code> … <code>EXEC</code> <em>— SE.Redis: <code>ITransaction</code></em></div>
+    <div class="k">Server-side function (modern)</div><div class="v"><code>FUNCTION LOAD "#!lua name=lib..."</code> <em>— 7.0.0, versioned, listed via <code>FUNCTION LIST</code></em></div>
+    <div class="k">Ad-hoc script (legacy)</div><div class="v"><code>EVAL "return redis.call('get', KEYS[1])" 1 k</code> <em>— no library, no version, cached by SHA (<code>EVALSHA</code>)</em></div>
+    <div class="k">Wait for AOF fsync</div><div class="v"><code>WAITAOF numlocal numreplicas timeout</code> <em>— 7.2.0</em></div>
+    <div class="k">Wait for replication</div><div class="v"><code>WAIT numreplicas timeout</code></div>
+    <div class="k">Lock (pattern)</div><div class="v"><code>SET lock:res token NX PX 30000</code>, unlock via a script that compares the token before <code>DEL</code></div>
+  </div>
+  <div class="callout"><p><strong>A single-instance lock is not a distributed lock.</strong> <code>SET NX PX</code> plus a compare-and-delete unlock is the classic pattern — Redis's own documentation calls it <em>discouraged</em> for correctness-critical mutual exclusion. Use Redlock (RedLock.net) across independent instances when a failover must not let two clients hold the "same" lock.</p></div>
+  <pre><code class="language-lua">#!lua name=orders
+redis.register_function('bump_stock', function(keys, args)
+  local n = tonumber(redis.call('HINCRBY', keys[1], 'stock', -tonumber(args[1])))
+  if n &lt; 0 then return redis.error_reply('oversell') end
+  return n
+end)
+-- FUNCTION LOAD "#!lua name=orders\n..."
+-- FCALL bump_stock 1 sku:42 3</code></pre>
+  <p class="docs"><a href="https://redis.io/docs/latest/develop/programmability/functions-intro/">docs: Functions</a> · <a href="https://redis.io/docs/latest/develop/use/patterns/distributed-locks/">distributed locks</a></p>
+</section>
+
+<section class="unit" id="u05">
+  <h2><span class="n">05</span>Pub/Sub &amp; Streams</h2>
+  <p class="lead">Pub/Sub is fire-and-forget with no backlog; a Stream is a durable, replayable log with per-consumer acknowledgement — pick by whether a missed message is acceptable.</p>
+  <div class="rows">
+    <div class="k">Fire-and-forget</div><div class="v"><code>PUBLISH ch msg</code> · <code>SUBSCRIBE ch</code></div>
+    <div class="k">Cluster-aware (modern)</div><div class="v"><code>SPUBLISH ch msg</code> · <code>SSUBSCRIBE ch</code> <em>— 7.0.0, shard-local delivery, scales with the cluster</em></div>
+    <div class="k">Cluster-unaware (legacy in Cluster)</div><div class="v"><code>PUBLISH</code> broadcasts to every node regardless of shard</div>
+    <div class="k">Durable log</div><div class="v"><code>XADD k * f v</code> + <code>XREADGROUP</code> consumer groups <em>— replay, per-consumer ack, backlog; Pub/Sub delivers to nobody if nobody is listening</em></div>
+    <div class="k">Consumer failover</div><div class="v"><code>XAUTOCLAIM k g consumer 0 0</code> <em>— claims idle PEL entries from a dead consumer</em></div>
+    <div class="k">Trim (cheap)</div><div class="v"><code>XADD k MAXLEN ~ 10000 * f v</code> <em>— approximate, near O(1)</em></div>
+    <div class="k">Trim (exact)</div><div class="v"><code>XTRIM k MAXLEN 10000</code> <em>— exact, more work</em></div>
+    <div class="k">Read a range</div><div class="v"><code>XRANGE k - +</code></div>
+    <div class="k">Pending entries</div><div class="v"><code>XPENDING k g</code></div>
+  </div>
+  <p class="docs"><a href="https://redis.io/docs/latest/develop/data-types/streams/">docs: Streams</a></p>
+</section>
+
+<section class="unit" id="u06">
+  <h2><span class="n">06</span>Persistence &amp; backup</h2>
+  <div class="rows">
+    <div class="k">Point-in-time snapshot</div><div class="v"><code>SAVE</code> (blocks) · <code>BGSAVE</code> (forks)</div>
+    <div class="k">Log every write</div><div class="v"><code>appendonly yes</code> · <code>appendfsync everysec</code> (default) | <code>always</code> | <code>no</code></div>
+    <div class="k">Multi-part AOF (default)</div><div class="v">base + incremental files + manifest <em>— since 7.0.0, replaces the single monolithic AOF file</em></div>
+    <div class="k">Online backup (new)</div><div class="v"><code>BACKUP</code> command family <em>— 8.10.0, see <code>BACKUP HELP</code>; a consistent snapshot without <code>SAVE</code>'s blocking fork-and-write</em></div>
+    <div class="k">Dataset checksum (new)</div><div class="v"><code>DIGEST</code> · <code>DIGEST-VALUE k</code> <em>— 8.4.0, compare datasets without a full RDB diff</em></div>
+    <div class="k">Verify before restoring</div><div class="v"><code>redis-check-rdb dump.rdb</code> · <code>redis-check-aof appendonly.aof.manifest</code></div>
+    <div class="k">Snapshot cadence (config)</div><div class="v"><code>save 900 1 300 10</code> <em>— set to <code>""</code> to disable RDB entirely on an AOF-only node</em></div>
+  </div>
+  <p class="docs"><a href="https://redis.io/docs/latest/operate/oss_and_stack/management/persistence/">docs: persistence</a></p>
+</section>
+
+<section class="unit" id="u07">
+  <h2><span class="n">07</span>Replication, Sentinel &amp; Cluster</h2>
+  <div class="rows">
+    <div class="k">Wire a replica (modern)</div><div class="v"><code>REPLICAOF host port</code></div>
+    <div class="k">Wire a replica (legacy alias)</div><div class="v"><code>SLAVEOF host port</code> <em>— deprecated since 5.0.0, still accepted</em></div>
+    <div class="k">Durability across replicas</div><div class="v"><code>WAIT numreplicas timeout</code></div>
+    <div class="k">HA without Cluster</div><div class="v">Sentinel — quorum-based failover: <code>sentinel monitor mymaster host port quorum</code></div>
+    <div class="k">Sharding</div><div class="v">Cluster mode, 16384 hash slots: <code>redis-cli --cluster create ...</code></div>
+    <div class="k">Per-slot cost (new)</div><div class="v"><code>CLUSTER SLOT-STATS</code> <em>— 8.2.0, key-count/CPU/network per slot; used to be a black box</em></div>
+    <div class="k">Topology</div><div class="v"><code>CLUSTER SHARDS</code> · <code>CLUSTER NODES</code></div>
+    <div class="k">Co-locate multi-key ops</div><div class="v">hash-tag keys <code>{tenant:42}:cart</code>, <code>{tenant:42}:orders</code> <em>— same slot, safe for <code>MULTI</code>/scripts</em></div>
+    <div class="k">.NET routing</div><div class="v">StackExchange.Redis follows <code>MOVED</code>/<code>ASK</code> transparently in cluster mode; avoid cross-slot multi-key commands (<code>CROSSSLOT</code> error)</div>
+  </div>
+  <p class="docs"><a href="https://redis.io/docs/latest/operate/oss_and_stack/management/scaling/">docs: Cluster</a></p>
+</section>
+
+<section class="unit" id="u08">
+  <h2><span class="n">08</span>Search, JSON, vector &amp; probabilistic</h2>
+  <p class="lead">Query Engine, JSON, Time Series, probabilistic structures and Vector Sets are all core commands since 8.0.0 — no separate module build or licence to add.</p>
+  <div class="rows">
+    <div class="k">Document store</div><div class="v"><code>JSON.SET k $ '{"a":1}'</code> · <code>JSON.GET k $.a</code> <em>— core since 8.0.0, was the standalone RedisJSON module before</em></div>
+    <div class="k">Secondary index</div><div class="v"><code>FT.CREATE idx ON JSON PREFIX 1 doc: SCHEMA $.a AS a NUMERIC $.vec AS vec VECTOR HNSW 6 TYPE FLOAT32 DIM 128 DISTANCE_METRIC COSINE</code></div>
+    <div class="k">Hybrid filter + vector</div><div class="v"><code>FT.SEARCH idx "@a:[1 10] =&gt;[KNN 5 @vec $B]" PARAMS 2 B ... DIALECT 2</code> <em>— filter and ANN in one query</em></div>
+    <div class="k">Pure similarity (new)</div><div class="v"><code>VADD k VALUES 3 0.1 0.2 0.3 elem</code> · <code>VSIM k VALUES 3 ... WITHSCORES</code> <em>— 8.0.0, HNSW-graph-backed, no index to build</em></div>
+    <div class="k">Remove an element</div><div class="v"><code>VREM k elem</code></div>
+    <div class="k">Time series</div><div class="v"><code>TS.ADD k * 42</code> · <code>TS.RANGE k - +</code> <em>— core since 8.0.0</em></div>
+    <div class="k">Approx cardinality</div><div class="v"><code>PFADD k v</code> · <code>PFCOUNT k</code> (HyperLogLog)</div>
+    <div class="k">Approx top-N (new)</div><div class="v"><code>TOPK.ADD k v</code> · <code>TOPK.LIST k</code> <em>— core since 8.0.0</em></div>
+    <div class="k">Approx membership</div><div class="v"><code>BF.ADD k v</code> / <code>BF.EXISTS k v</code> (Bloom, no delete) vs <code>CF.ADD</code>/<code>CF.EXISTS</code> (Cuckoo, supports delete)</div>
+    <div class="k">Approx distinct-count</div><div class="v"><code>CMS.INCRBY k v 1</code> · <code>CMS.QUERY k v</code> (Count-Min Sketch) <em>— see unit 09 before trusting an untouched RDB</em></div>
+  </div>
+  <p class="docs"><a href="https://redis.io/docs/latest/develop/interact/search-and-query/">docs: Query Engine</a> · <a href="https://redis.io/docs/latest/develop/data-types/vector-sets/">Vector Sets</a></p>
+</section>
+
+<section class="unit" id="u09">
+  <h2><span class="n">09</span>Security: ACL &amp; TLS</h2>
+  <div class="rows">
+    <div class="k">Least privilege</div><div class="v"><code>ACL SETUSER svc on &gt;pass ~cache:* +get +set -@admin</code></div>
+    <div class="k">Inspect</div><div class="v"><code>ACL WHOAMI</code> · <code>ACL LIST</code> · <code>ACL LOG</code></div>
+    <div class="k">TLS in .NET</div><div class="v"><code>ssl=true</code> in the connection string; a <code>CertificateValidation</code> callback for pinning</div>
+    <div class="k">Disable dangerous cmds (modern)</div><div class="v">ACL <code>-@dangerous</code> per user/role</div>
+    <div class="k">Disable dangerous cmds (legacy)</div><div class="v"><code>rename-command FLUSHALL ""</code> in <code>redis.conf</code> <em>— breaks cluster/Sentinel introspection that expects the real name</em></div>
+  </div>
+  <div class="callout"><p><strong>CVE-2026-62356 — fixed in 8.10.1 (2026-08-17).</strong> A NUL-byte-truncated Common Name in a TLS client certificate could let a client authenticate as a different, more-privileged ACL user. The same release also fixed a heap out-of-bounds write loading a CMSketch from RDB, a TopK out-of-bounds cleanup bug, and three Vector Sets memory-safety bugs (RDB validation, a <code>VREM</code>/<code>VSIM</code> use-after-free race, and a negative <code>hnsw_search()</code> return read as a huge unsigned count) — patched the same day across every active branch: 8.2.9, 8.4.6, 8.6.6, 8.8.2, 8.10.1. Pin at least the matching patch on your branch before trusting cert-based ACL mapping or loading untrusted dumps that touch CMSketch/TopK/Vector Set keys.</p></div>
+  <p class="docs"><a href="https://redis.io/docs/latest/operate/oss_and_stack/management/security/acl/">docs: ACL</a></p>
+</section>
+
+<section class="unit" id="u10">
+  <h2><span class="n">10</span>Gotchas &amp; pitfalls</h2>
+  <ul class="tight">
+    <li><code>KEYS *</code> on production blocks the single event loop — use <code>SCAN</code> (cursor-based), never <code>KEYS</code>, outside a laptop.</li>
+    <li><code>FLUSHALL</code>/<code>FLUSHDB</code> without <code>AllowAdmin = true</code> throws client-side in StackExchange.Redis 3.x before it ever reaches the server.</li>
+    <li>A cross-slot multi-key command in Cluster mode throws <code>CROSSSLOT</code> unless every key shares a <code>{tag}</code>.</li>
+    <li>A big Hash/Set/ZSet (the "big key" problem) blocks replication, defrag and RDB save — watch <code>MEMORY USAGE</code>, split hot keys.</li>
+    <li>An <code>EXPIRE</code> race from read-then-write TTL logic — use the <code>NX</code>/<code>XX</code>/<code>GT</code>/<code>LT</code> guards (7.0.0) instead.</li>
+    <li>Lua/Functions must stay deterministic across replicas — use <code>redis.call('TIME')</code>, never wall-clock or ambient randomness.</li>
+    <li><code>SET NX</code> as a "distributed lock" is not safe across a failover — Redis's own docs recommend Redlock, not a single instance.</li>
+    <li>Pipelining batches round trips; it does not make commands atomic — use <code>MULTI</code>/<code>EXEC</code> or a Function when atomicity matters.</li>
+    <li>SE.Redis 2.x → 3.x keeps the same public API, but RESP3 is now the default and <code>AllowAdmin</code> is now enforced locally — re-test admin-flagged commands and anything that assumed RESP2 wire behaviour.</li>
+    <li><code>maxmemory</code> with the default <code>noeviction</code> policy does not evict — it starts rejecting writes with <code>OOM command not allowed</code> once the cap is hit.</li>
+    <li>A dangling PEL reference from legacy <code>XDEL</code> can make consumer-group accounting look wrong until <code>XACKDEL DELREF</code> or <code>XAUTOCLAIM</code> cleans it up.</li>
+    <li>Loading an untrusted RDB/dump on a version older than 8.10.1 risks the CMSketch/TopK/Vector Set memory-safety bugs fixed that release — treat old dumps as untrusted input until you've patched.</li>
+  </ul>
+  <p class="docs"><a href="https://redis.io/docs/latest/develop/reference/scan/">docs: SCAN and cursors</a></p>
+</section>
+
+<section class="unit" id="u11">
+  <h2><span class="n">11</span>Modern vs legacy</h2>
+  <div class="tw">
+  <table>
+    <thead><tr><th>Task</th><th>Modern</th><th>Legacy still seen</th><th>Since</th></tr></thead>
+    <tbody>
+      <tr><td>Blocking pop</td><td><code>LMPOP</code>/<code>ZMPOP</code> (multi-key)</td><td><code>BLPOP</code>/<code>BRPOP</code> (single key, blocking)</td><td>7.0.0</td></tr>
+      <tr><td>Range by score</td><td><code>ZRANGE k a b BYSCORE</code></td><td><code>ZRANGEBYSCORE</code></td><td>6.2.0</td></tr>
+      <tr><td>Conditional expire</td><td><code>EXPIRE k t NX/XX/GT/LT</code></td><td>read TTL, then write unconditionally</td><td>7.0.0</td></tr>
+      <tr><td>Server-side scripting</td><td>Functions (<code>FUNCTION LOAD</code>, versioned libraries)</td><td>ad-hoc <code>EVAL</code>/<code>EVALSHA</code></td><td>7.0.0</td></tr>
+      <tr><td>Stream deletion</td><td><code>XDELEX</code>/<code>XACKDEL</code> with <code>KEEPREF</code>/<code>DELREF</code>/<code>ACKED</code></td><td><code>XDEL</code> (leaves dangling PEL refs)</td><td>8.2.0</td></tr>
+      <tr><td>Replica wiring</td><td><code>REPLICAOF</code></td><td><code>SLAVEOF</code> (deprecated alias)</td><td>5.0.0</td></tr>
+      <tr><td>Compare-and-set string</td><td><code>SET k v IFEQ old</code></td><td><code>WATCH</code>+<code>MULTI</code> or a Lua script</td><td>8.4.0</td></tr>
+      <tr><td>Cluster shard pub/sub</td><td><code>SPUBLISH</code>/<code>SSUBSCRIBE</code></td><td><code>PUBLISH</code> (broadcasts every node)</td><td>7.0.0</td></tr>
+      <tr><td>Cardinality-only set ops</td><td><code>SINTERCARD</code> / <code>SUNIONCARD</code> / <code>SDIFFCARD</code></td><td><code>SINTER</code>/<code>SUNION</code>/<code>SDIFF</code> then count client-side</td><td>7.0.0 / 8.10.0</td></tr>
+      <tr><td>Hash field TTL</td><td><code>HEXPIRE</code>/<code>HTTL</code>/<code>HPERSIST</code></td><td>whole-key <code>EXPIRE</code> only</td><td>7.4.0</td></tr>
+      <tr class="hot"><td>Cheap recency eviction</td><td><code>allkeys-lrm</code>/<code>volatile-lrm</code></td><td><code>allkeys-lru</code>/<code>volatile-lru</code></td><td>8.6.0</td></tr>
+      <tr class="hot"><td>.NET client I/O</td><td>StackExchange.Redis 3.x (RESP3, direct-IO parser)</td><td>StackExchange.Redis 2.x (RESP2, <code>Pipelines.Sockets.Unofficial</code>)</td><td>3.0.0</td></tr>
+      <tr class="hot"><td>Licence</td><td>RSALv2 / SSPLv1 / AGPLv3 (pick one) — or Valkey, BSD</td><td>BSD-3-Clause</td><td>7.4.0</td></tr>
+    </tbody>
+  </table>
+  </div>
+  <p class="docs"><a href="https://redis.io/docs/latest/operate/rs/release-notes/">docs: release notes index</a></p>
+</section>
+
+<section class="unit" id="u12">
+  <h2><span class="n">12</span>Version timeline</h2>
+  <div class="tw">
+  <table>
+    <thead><tr><th>Version</th><th>Date</th><th>What changed</th></tr></thead>
+    <tbody>
+      <tr class="hot"><td><code>8.10.1</code></td><td>2026-08-17</td><td><strong>current, security patch</strong> — same day across every active branch (8.2.9/8.4.6/8.6.6/8.8.2/8.10.1): CVE-2026-62356 (CMSketch RDB OOB write), a TopK OOB cleanup bug, a TLS client-cert CN NUL-byte auth bypass, three Vector Sets memory-safety bugs, a blocked-client-list use-after-free</td></tr>
+      <tr class="hot"><td><code>8.10.0</code></td><td>2026-07-29</td><td><em>Newly stable:</em> <code>BACKUP</code> command family (online backup); <code>SUNIONCARD</code>/<code>SDIFFCARD</code> cardinality-only set ops</td></tr>
+      <tr><td><code>8.8.0</code></td><td>2026-05-25</td><td>Stabilization/perf release on the 8.x line</td></tr>
+      <tr><td><code>8.6.0</code></td><td>2026-02-10</td><td><em>Newly stable:</em> <code>HOTKEYS</code> detection (<code>START</code>/<code>GET</code>/<code>STOP</code>/<code>RESET</code>); <code>allkeys-lrm</code>/<code>volatile-lrm</code> eviction policies</td></tr>
+      <tr><td><code>8.4.0</code></td><td>2025-11-18</td><td><em>Newly stable:</em> <code>DIGEST</code>/<code>DIGEST-VALUE</code> dataset checksums; <code>SET ... IFEQ/IFNE/IFDEQ/IFDNE</code> server-side CAS</td></tr>
+      <tr><td><code>8.2.0</code></td><td>2025-08-04</td><td><em>Newly stable:</em> <code>XDELEX</code>/<code>XACKDEL</code> (<code>KEEPREF</code>/<code>DELREF</code>/<code>ACKED</code>); <code>CLUSTER SLOT-STATS</code>; <code>BITOP DIFF</code>/<code>DIFF1</code>/<code>ANDOR</code>/<code>ONE</code></td></tr>
+      <tr class="hot"><td><code>8.0.0</code></td><td>2025-05-02</td><td><em>Newly default:</em> Query Engine (search + vector), JSON, Time Series, probabilistic structures and Vector Sets merged into core, previously separate modules. Tri-license RSALv2/SSPLv1/AGPLv3 GA</td></tr>
+      <tr class="hot"><td><code>7.4.0</code></td><td>2024-07-29</td><td><em>Newly default:</em> multi-part AOF; hash field TTL (<code>HEXPIRE</code>/<code>HTTL</code>/<code>HPERSIST</code>). Licence changed from BSD-3 to RSAL/SSPL (source-available) — triggered the Valkey (Linux Foundation) BSD-licensed fork</td></tr>
+      <tr><td><code>7.2.0</code></td><td>2023-08-15</td><td>Last major line released while still fully BSD-3; still widely deployed</td></tr>
+      <tr><td><code>7.0.0</code></td><td>2022-04-27</td><td><em>Newly stable:</em> Functions (<code>FUNCTION LOAD</code>); <code>LMPOP</code>/<code>ZMPOP</code>/<code>SINTERCARD</code>; <code>EXPIRE NX/XX/GT/LT</code>; shard pub/sub (<code>SPUBLISH</code>/<code>SSUBSCRIBE</code>)</td></tr>
+      <tr><td><code>6.2.0</code></td><td>2021-02-22</td><td><em>Newly stable:</em> <code>ZRANGE ... BYSCORE/BYLEX</code>, <code>COPY</code>, <code>GETDEL</code>/<code>GETEX</code></td></tr>
+      <tr><td>—</td><td>—</td><td><em>Newly deprecated, across the timeline:</em> <code>SLAVEOF</code> (alias for <code>REPLICAOF</code>, since 5.0.0); single-file AOF (superseded by multi-part AOF, 7.0.0); standalone RedisJSON/RediSearch/RedisTimeSeries/RedisBloom modules (folded into core, 8.0.0)</td></tr>
+    </tbody>
+  </table>
+  </div>
+  <p class="docs"><a href="https://github.com/redis/redis/releases">docs: release notes</a> · <a href="https://redis.io/docs/latest/operate/rs/release-notes/">Redis 8.x notes</a></p>
+</section>
+</main>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.11.1/highlight.min.js"></script>
+<script>
+(function () {
+  try { if (window.hljs) window.hljs.highlightAll(); } catch (e) { /* colour is decoration */ }
+
+  var links = Array.prototype.slice.call(document.querySelectorAll('.units a'));
+  var byId = {};
+  links.forEach(function (a) { byId[a.getAttribute('href').slice(1)] = a; });
+  var units = Array.prototype.slice.call(document.querySelectorAll('section.unit'));
+
+  function mark(id) {
+    links.forEach(function (a) {
+      if (a === byId[id]) a.setAttribute('aria-current', 'true');
+      else a.removeAttribute('aria-current');
+    });
+  }
+  if (units.length) mark(units[0].id);
+
+  if ('IntersectionObserver' in window) {
+    var visible = {};
+    var io = new IntersectionObserver(function (entries) {
+      entries.forEach(function (en) { visible[en.target.id] = en.isIntersecting; });
+      for (var i = 0; i < units.length; i++) {
+        if (visible[units[i].id]) { mark(units[i].id); return; }
+      }
+    }, { rootMargin: '-10% 0px -70% 0px', threshold: 0 });
+    units.forEach(function (u) { io.observe(u); });
+  }
+
+  var side = document.querySelector('.side');
+  var btn = document.querySelector('.sidetoggle');
+  if (btn && side) {
+    btn.addEventListener('click', function () {
+      var open = side.classList.toggle('open');
+      btn.setAttribute('aria-expanded', open ? 'true' : 'false');
+    });
+    side.addEventListener('click', function (e) {
+      if (e.target.closest('a')) { side.classList.remove('open'); btn.setAttribute('aria-expanded', 'false'); }
+    });
+  }
+}());
+</script>
+</body>
+</html>

@@ -1,0 +1,644 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>IaC (Terraform & Bicep) · cheatsheet · devbok</title>
+<link rel="preconnect" href="https://fonts.googleapis.com/">
+<link rel="preconnect" href="https://fonts.gstatic.com/" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Cascadia+Mono:wght@400;700&amp;display=swap">
+<style>
+:root { color-scheme: light;
+  --bg: #ffffff; --fg: #111111; --muted: #6b6b6b; --line: #111111; --soft: #f4f4f4; --border: #cccccc;
+  --accent: #7b42bc; --accent-soft: color-mix(in srgb, var(--accent) 12%, var(--bg)); }
+@media (prefers-color-scheme: dark) { :root { color-scheme: dark;
+  --bg: #222222; --fg: #cccccc; --muted: #8f8f8f; --line: #111111; --soft: #2c2c2c; --border: #4a4a4a;
+  --accent: #a67fd2; --accent-soft: color-mix(in srgb, var(--accent) 16%, var(--bg)); } }
+
+*, *::before, *::after { box-sizing: border-box; }
+html { -webkit-text-size-adjust: 100%; }
+body { margin: 0; background: var(--bg); color: var(--fg);
+  font-family: system-ui, sans-serif; font-size: 16px; line-height: 1.6; overflow-wrap: break-word; }
+h1, h2, h3 { font-family: system-ui, sans-serif; font-weight: 700; }
+h2 { font-size: 1.5em; }
+h3 { font-size: 1.17em; }
+a { color: var(--accent); }
+a:focus-visible, button:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+img { max-width: 100%; }
+
+code, kbd, pre, .mono, .chip, .since, .docs, .hero .meta, .side, dl.rows dd, table.grid { font-family: "Cascadia Mono", Consolas, monospace; font-size: 12px; }
+code { background: var(--soft); border: 1px solid var(--border); border-radius: 3px; padding: 0 .3em; overflow-wrap: anywhere; }
+pre { background: var(--soft); border: 1px solid var(--border); border-radius: 4px;
+  margin: 14px 0 0; padding: 12px 14px; overflow-x: auto; max-width: 100%; line-height: 1.5; }
+pre code { background: none; border: 0; padding: 0; white-space: pre; }
+
+.hero { margin: 0 0 24px; padding: 0 0 24px; border-bottom: 2px solid var(--line); }
+.hero h1 { margin: 0 0 8px; font-size: 2em; line-height: 1.2; font-weight: 700; }
+.hero .meta { margin: 0 0 12px; font-family: "Cascadia Mono", Consolas, monospace; font-size: 12px; color: var(--muted); }
+.hero .summary { margin: 0 0 12px; }
+.hero .chips { display: flex; flex-wrap: wrap; gap: 6px; margin: 0; }
+
+.side { position: fixed; top: 0; bottom: 0; left: 0; width: 260px; display: flex; flex-direction: column; background: var(--bg); border-right: 2px solid var(--line); font-family: "Cascadia Mono", Consolas, monospace; font-size: 12px; }
+.units { list-style: none; margin: 0; padding: 12px 0; overflow-y: auto; flex: 1; }
+.units a { display: grid; grid-template-columns: 2.5em 1fr; padding: 9px 20px 9px 17px; border-left: 3px solid transparent; color: var(--fg); text-decoration: none; line-height: 1.4; }
+.units .n { color: var(--muted); font-weight: 400; }
+.units a:hover { background: var(--soft); }
+.units a[aria-current="true"] { background: var(--accent-soft); border-left-color: var(--accent); font-weight: 700; }
+.side footer { padding: 12px 20px; border-top: 2px solid var(--line); color: var(--muted); line-height: 1.5; }
+
+.content { margin-left: 260px; padding: 24px; max-width: 120ch; min-width: 0; }
+.unit { border-top: 2px solid var(--line); margin: 0 0 26px; padding: 14px 0 0; min-width: 0; }
+.unit > header { display: flex; flex-wrap: wrap; align-items: baseline; gap: 4px 14px; margin: 0 0 4px; min-width: 0; }
+.unit h2 { margin: 0; line-height: 1.25; }
+.unit h2 .n { font-family: "Cascadia Mono", Consolas, monospace; font-size: 12px; color: var(--muted); margin-right: 10px; }
+.unit h3 { margin: 16px 0 0; }
+.unit > p { margin: 8px 0 0; }
+.docs { color: var(--muted); }
+.docs a { color: var(--accent); text-decoration: none; }
+.docs a:hover { text-decoration: underline; }
+
+dl.rows { display: grid; grid-template-columns: minmax(0, 30ch) minmax(0, 1fr);
+  margin: 12px 0 0; border-top: 1px solid var(--border); min-width: 0; }
+dl.rows dt { grid-column: 1; margin: 0; padding: 6px 14px 6px 0; border-bottom: 1px solid var(--border);
+  min-width: 0; line-height: 1.35; }
+dl.rows dd { grid-column: 2; margin: 0; padding: 7px 0 6px; border-bottom: 1px solid var(--border);
+  min-width: 0; line-height: 1.5; overflow-wrap: anywhere; }
+dl.rows dd code { background: none; border: 0; padding: 0; }
+.cmt { color: var(--muted); }
+
+.chip { display: inline-block; text-transform: uppercase; letter-spacing: .03em;
+  background: var(--soft); border: 1px solid var(--border); border-radius: 4px; padding: 2px 7px; }
+.since { display: inline-block; border: 1px solid var(--accent); border-radius: 4px;
+  padding: 0 5px; color: var(--accent); white-space: nowrap; }
+.note { background: var(--soft); border-left: 3px solid var(--accent); padding: 8px 12px; margin: 12px 0 0; }
+.note p { margin: 0; }
+
+.tw { overflow-x: auto; margin: 12px 0 0; min-width: 0; }
+table.grid { border-collapse: collapse; width: 100%; }
+table.grid th { text-align: left; font-weight: 400; color: var(--muted);
+  border-bottom: 1px solid var(--border); padding: 6px 14px 6px 0; vertical-align: bottom; }
+table.grid td { border-bottom: 1px solid var(--border); padding: 6px 14px 6px 0; vertical-align: top; }
+table.grid td code { background: none; border: 0; padding: 0; }
+table.grid tr.hi td { background: var(--accent-soft); }
+
+ul.tight { margin: 12px 0 0; padding-left: 1.1em; }
+ul.tight li { margin: 0 0 3px; }
+ul.tight code { overflow-wrap: anywhere; }
+
+.navtoggle { display: none; position: fixed; top: 10px; left: 10px; z-index: 30;
+  font-family: "Cascadia Mono", Consolas, monospace; font-size: 12px; color: var(--fg);
+  background: var(--bg); border: 1px solid var(--line); border-radius: 4px; padding: 6px 10px; cursor: pointer; }
+@media (max-width: 720px) {
+  .navtoggle { display: block; }
+  .side { width: min(260px, 84%); transform: translateX(-102%); transition: transform .15s ease; z-index: 25; }
+  body.nav-open .side { transform: none; }
+  .content { margin-left: 0; padding: 52px 16px 24px; }
+  dl.rows { grid-template-columns: minmax(0, 1fr); }
+  dl.rows dt { padding: 6px 0 0; border-bottom: 0; font-weight: 600; }
+  dl.rows dd { padding: 2px 0 7px; }
+}
+
+@media print {
+  :root { color-scheme: light;
+    --bg: #ffffff; --fg: #000000; --muted: #444444; --line: #000000; --soft: #ffffff; --border: #999999;
+    --accent: #000000; --accent-soft: #ffffff; }
+  .side, .navtoggle { display: none !important; }
+  body { font-size: 8.5pt; line-height: 1.3; background: #fff; color: #000; }
+  .content { margin: 0; padding: 0; max-width: 100%; }
+  code, kbd, pre, .chip, .since, .docs, .hero .meta, dl.rows dd, table.grid { font-size: 7pt; }
+  .hero { padding-bottom: 8pt; margin-bottom: 10pt; border-bottom: 1pt solid #000; }
+  .hero h1 { font-size: 16pt; }
+  .unit { break-inside: avoid; page-break-inside: avoid; margin: 0 0 8pt; padding-top: 6pt; border-top: 1pt solid #000; }
+  .unit h2 { font-size: 10.5pt; }
+  pre { background: #fff; border: 1pt solid #999; padding: 4pt 6pt; }
+  .note { background: #fff; border-left: 2pt solid #000; }
+  code { border: 0; padding: 0; }
+  a, a:visited { color: #000; text-decoration: none; }
+  a[href]::after { content: ""; }
+  @page { size: A4; margin: 10mm; }
+}
+</style>
+<style>
+/* devbok: the shared code palette (prompts/shared/page.md, "Code"). */
+:root {
+  --code: color-mix(in srgb, var(--accent) 70%, var(--fg));
+  --hl-kw: #a626a4; --hl-str: #50a14f; --hl-num: #986801; --hl-cmt: #6b6b6b; --hl-type: #0184bc; --hl-fn: #4078f2; --hl-attr: #986801;
+}
+@media (prefers-color-scheme: dark) {
+  :root { --hl-kw: #c678dd; --hl-str: #98c379; --hl-num: #d19a66; --hl-cmt: #8f8f8f; --hl-type: #56b6c2; --hl-fn: #61afef; --hl-attr: #e5c07b; }
+}
+code { background: var(--soft); border: 1px solid var(--border); border-radius: 3px; padding: 0 .3em; color: var(--code); overflow-wrap: anywhere; }
+pre code, pre code.hljs { background: none; border: 0; border-radius: 0; padding: 0; color: inherit; white-space: pre; overflow-wrap: normal; }
+.hljs { color: var(--fg); background: transparent; }
+.hljs-keyword, .hljs-built_in, .hljs-literal, .hljs-selector-tag { color: var(--hl-kw); }
+.hljs-string, .hljs-regexp, .hljs-selector-attr { color: var(--hl-str); }
+.hljs-number, .hljs-symbol { color: var(--hl-num); }
+.hljs-comment, .hljs-quote, .hljs-doctag { color: var(--hl-cmt); font-style: italic; }
+.hljs-title, .hljs-title.class_, .hljs-type, .hljs-name, .hljs-section, .hljs-selector-class, .hljs-selector-pseudo { color: var(--hl-type); }
+.hljs-title.function_ { color: var(--hl-fn); }
+.hljs-meta, .hljs-attr, .hljs-attribute, .hljs-tag, .hljs-property, .hljs-variable { color: var(--hl-attr); }
+.hljs-template-tag, .hljs-template-variable { color: var(--hl-attr); }
+.hljs-code, .hljs-formula { color: var(--hl-cmt); }
+.hljs-operator, .hljs-subst, .hljs-punctuation, .hljs-params { color: var(--fg); }
+.hljs-emphasis { font-style: italic; }
+.hljs-strong { font-weight: 700; }
+@media print { code, .hljs, .hljs span { color: #000 !important; background: transparent !important; } }
+</style>
+</head>
+<body>
+<!-- devbok
+slug: iac
+kind: cheatsheet
+version: 1
+topic: "IaC, Terraform, Bicep"
+prompt: cheatsheet.md@7ff70aff
+generated: 2026-09-08
+-->
+<button class="navtoggle" type="button" aria-expanded="false" aria-controls="side">units</button>
+<nav class="side" id="side" aria-label="Units">
+  <ol class="units">
+    <li><a href="#u01"><span class="n">01</span><span class="t">IaC workflow &amp; mental model</span></a></li>
+    <li><a href="#u02"><span class="n">02</span><span class="t">Terraform language essentials</span></a></li>
+    <li><a href="#u03"><span class="n">03</span><span class="t">State, backends &amp; locking</span></a></li>
+    <li><a href="#u04"><span class="n">04</span><span class="t">Terraform CLI &amp; testing</span></a></li>
+    <li><a href="#u05"><span class="n">05</span><span class="t">Modules &amp; registry</span></a></li>
+    <li><a href="#u06"><span class="n">06</span><span class="t">Bicep language essentials</span></a></li>
+    <li><a href="#u07"><span class="n">07</span><span class="t">Bicep params, modules &amp; registry</span></a></li>
+    <li><a href="#u08"><span class="n">08</span><span class="t">Bicep CLI, deployment &amp; extensibility</span></a></li>
+    <li><a href="#u09"><span class="n">09</span><span class="t">Gotchas, one line each</span></a></li>
+    <li><a href="#u10"><span class="n">10</span><span class="t">Modern vs legacy</span></a></li>
+    <li><a href="#u11"><span class="n">11</span><span class="t">Version timeline</span></a></li>
+  </ol>
+  <footer>IaC (Terraform &amp; Bicep) · cheatsheet · version 1 · 2026-09-08</footer>
+</nav>
+<main class="content">
+<header class="hero">
+  <h1>IaC (Terraform &amp; Bicep)</h1>
+  <p class="meta">cheatsheet · Terraform 1.16.1 · Bicep 0.47.16 · released 2026-09-08</p>
+  <p class="summary">The HCL and Bicep syntax, CLI commands, state/backend and deployment mechanics, module patterns, and a modern-vs-legacy table and timeline for both languages, side by side. &ldquo;Terraform&rdquo; is read as HashiCorp/IBM Terraform (BSL-1.1&ndash;licensed since 1.5.6) with OpenTofu &mdash; its MPL-2.0 fork &mdash; noted only where the two now diverge, and &ldquo;Bicep&rdquo; as Microsoft&rsquo;s ARM-native DSL and its az/bicep CLIs; Pulumi, CloudFormation, Ansible and Crossplane are out of scope. Verified 2026-09-08 against Terraform <strong>1.16.1</strong> (2026-09-02), OpenTofu <strong>1.12.6</strong> (2026-08-19) and Bicep <strong>0.47.16</strong> (2026-09-08).</p>
+  <p class="chips"><span class="chip">Terraform 1.16.1</span> <span class="chip">OpenTofu 1.12.6</span> <span class="chip">Bicep 0.47.16</span> <span class="chip">HCL2</span> <span class="chip">ARM JSON compile target</span> <span class="chip">BSL 1.1 since 1.5.6</span> <span class="chip">verified 2026-09-08</span></p>
+</header>
+
+<section class="unit" id="u01">
+  <header>
+    <h2><span class="n">01</span>IaC workflow &amp; mental model</h2>
+    <span class="docs"><a href="https://developer.hashicorp.com/terraform/intro">docs: Terraform intro</a></span>
+  </header>
+  <p>Both tools compile a <strong>declarative</strong> description into calls against a cloud control plane (ARM for Bicep; whatever the provider wraps for Terraform), then reconcile <em>desired</em> vs <em>observed</em> state. The loop is always: write &rarr; preview the diff &rarr; apply &rarr; the diff should now be empty.</p>
+  <pre><code class="language-plaintext">write config  -->  plan (diff desired vs. real)  -->  human/CI reviews diff  -->  apply  -->  diff is empty
+                         ^                                                                      |
+                         '---------------------------- next change --------------------------- '</code></pre>
+  <dl class="rows">
+    <dt>Desired vs. actual state</dt>
+    <dd>Terraform keeps its own record of the actual state (the state file); Bicep/ARM keeps none by default &mdash; each deployment is compared live against the resources under its scope, unless you opt into a <strong>deployment stack</strong>, which then tracks ownership the way Terraform state does.</dd>
+    <dt>Idempotency</dt>
+    <dd>re-running <code>apply</code>/<code>deployment create</code> with no config changes must be a no-op. If it isn&rsquo;t, either the provider has a bug (a property that reads back different from how it&rsquo;s written) or something is being managed outside the tool &mdash; the #1 cause of &ldquo;drift&rdquo; tickets.</dd>
+    <dt>Drift</dt>
+    <dd>the real resource diverges from the last-applied config (a console click, an autoscaler, a policy remediation). Terraform: <code>terraform plan -refresh-only</code>. Bicep: re-run <code>what-if</code>, or let a deployment stack&rsquo;s <code>denySettings</code> block the out-of-band change in the first place.</dd>
+    <dt>Blast radius</dt>
+    <dd>scope every apply as narrowly as the tool allows: Terraform <code>-target</code> (an escape hatch, not a workflow &mdash; it can leave a plan that doesn&rsquo;t match reality) or separate root modules/workspaces per environment; Bicep resource-group- or subscription-scoped deployments plus <code>what-if</code> before anything wider.</dd>
+    <dt>Change preview</dt>
+    <dd><code>terraform plan</code> / <code>az deployment group what-if</code> &mdash; read every line before approving in CI; a &ldquo;replace&rdquo; on something stateful (a database, a storage account) is the one diff that deserves a stop-and-think.</dd>
+  </dl>
+  <div class="note"><p>Lead framing: pick Terraform when you need one tool across clouds, a mature module ecosystem, and explicit state you control; pick Bicep when you&rsquo;re Azure-only and want same-day support for new ARM resource types with no state file to manage or lose. Plenty of shops run both &mdash; Bicep for platform/landing-zone plumbing, Terraform for the multi-cloud application layer &mdash; and the interview-safe answer is state management and drift handling, not syntax preference.</p></div>
+</section>
+
+<section class="unit" id="u02">
+  <header>
+    <h2><span class="n">02</span>Terraform language essentials</h2>
+    <span class="docs"><a href="https://developer.hashicorp.com/terraform/language">docs: Terraform language</a></span>
+  </header>
+  <p>HCL2 (stable since Terraform <strong>0.12</strong>, 2019). Six top-level block types cover almost everything you write.</p>
+  <pre><code class="language-hcl">terraform {
+  required_version = "&gt;= 1.9"
+  required_providers {
+    aws = { source = "hashicorp/aws", version = "~&gt; 5.0" }
+  }
+}
+
+variable "env" {
+  type        = string
+  description = "Deployment environment"
+  validation {
+    condition     = contains(["dev", "test", "prod"], var.env)
+    error_message = "env must be dev, test or prod."
+  }
+}
+
+locals {
+  name_prefix = "orders-${var.env}"
+  common_tags = { owner = "platform", env = var.env }
+}
+
+resource "aws_s3_bucket" "orders" {
+  bucket = "${local.name_prefix}-${data.aws_caller_identity.current.account_id}"
+  tags   = local.common_tags
+
+  lifecycle {
+    prevent_destroy = true
+    ignore_changes  = [tags["last_synced"]]
+  }
+}
+
+data "aws_caller_identity" "current" {}
+
+output "bucket_arn" {
+  value     = aws_s3_bucket.orders.arn
+  sensitive = false
+}</code></pre>
+  <dl class="rows">
+    <dt>Meta-arguments</dt>
+    <dd><code>count</code> (index-keyed list), <code>for_each</code> (map/set-keyed, the modern default &mdash; safer under reordering), <code>depends_on</code> (only for dependencies the graph can&rsquo;t see, e.g. IAM eventual consistency), <code>provider</code> (pick an aliased provider instance).</dd>
+    <dt><code>lifecycle</code> block</dt>
+    <dd><code>create_before_destroy</code>, <code>prevent_destroy</code>, <code>ignore_changes</code>, and (since <strong>1.16</strong>, 2026-08) <code>destroy = false</code> to keep a resource on <code>terraform destroy</code> instead of only on removal from config.</dd>
+    <dt>Custom conditions</dt>
+    <dd><code>precondition</code> / <code>postcondition</code> blocks <span class="since">1.2, 2022</span> inside <code>resource</code>, <code>data</code>, <code>output</code> or <code>check</code> blocks assert invariants at plan/apply time with a custom error message &mdash; the language-native replacement for a comment saying &ldquo;don&rsquo;t change this without also&hellip;&rdquo;.</dd>
+    <dt><code>check</code> blocks</dt>
+    <dd><span class="since">1.5, 2023</span> post-apply health assertions (e.g. an HTTP data source returning 200) that report a warning, never fail the apply &mdash; monitoring-as-code, not a gate.</dd>
+    <dt>Dynamic blocks</dt>
+    <dd><code>dynamic "ingress" { for_each = var.rules  content { ... } }</code> generates repeated nested blocks from a collection &mdash; the only way to loop over a nested block (top-level resources use <code>for_each</code> directly).</dd>
+    <dt>Deprecation markers</dt>
+    <dd><code>deprecated = "use var.x instead"</code> on <code>variable</code>/<code>output</code> blocks <span class="since">1.15, 2026-04</span> emits a warning wherever the deprecated symbol is referenced.</dd>
+    <dt>Type conversion</dt>
+    <dd><code>convert(value, type)</code> <span class="since">1.15</span> for explicit, precise inline conversions instead of relying on implicit coercion.</dd>
+    <dt>Functions used daily</dt>
+    <dd><code>try()</code>, <code>coalesce()</code>, <code>merge()</code>, <code>jsonencode()</code>/<code>jsondecode()</code>, <code>templatefile()</code>, <code>for</code> expressions (<code>[for x in list : x.id]</code>), splat (<code>aws_instance.this[*].id</code>), <code>optional()</code> inside object type constraints for module variable defaults.</dd>
+  </dl>
+  <div class="note"><p>Legacy still seen: <code>count</code> for anything keyed by name (renumbers everything on reorder &mdash; use <code>for_each</code>); a bare <code>null_resource</code> with <code>triggers</code> for &ldquo;run this when X changes&rdquo; &mdash; the modern replacement is the <code>terraform_data</code> resource <span class="since">1.4, 2023</span>, and its <code>store</code> block <span class="since">1.16, 2026-08</span> can now hold ephemeral/sensitive values across plan and apply.</p></div>
+</section>
+<section class="unit" id="u03">
+  <header>
+    <h2><span class="n">03</span>State, backends &amp; locking</h2>
+    <span class="docs"><a href="https://developer.hashicorp.com/terraform/language/state">docs: Terraform state</a></span>
+  </header>
+  <p>The state file (<code>terraform.tfstate</code>, JSON) is the single most important artifact in a Terraform setup: it maps config to real resource IDs, stores output values, and may contain secrets in plain text.</p>
+  <pre><code class="language-hcl">terraform {
+  backend "s3" {
+    bucket       = "acme-tfstate-prod"
+    key          = "orders/terraform.tfstate"
+    region       = "eu-west-1"
+    use_lockfile = true          # native S3 locking, GA in 1.11 (2025-02)
+    encrypt      = true
+  }
+}</code></pre>
+  <dl class="rows">
+    <dt>Remote backends</dt>
+    <dd>HCP Terraform/Terraform Enterprise (state + locking + runs + policy as a service), <code>s3</code>, <code>azurerm</code>, <code>gcs</code>, <code>pg</code>. Local state (the default) is fine solo, never for a team &mdash; no locking, no shared source of truth.</dd>
+    <dt>Locking, modern</dt>
+    <dd>S3 backend <code>use_lockfile = true</code> <span class="since">GA 1.11, 2025-02</span> uses S3&rsquo;s own conditional writes &mdash; no DynamoDB table to provision or pay for. <code>azurerm</code> locks natively via blob leases; both need no extra setup.</dd>
+    <dt>Locking, legacy still seen</dt>
+    <dd>S3 + a separate DynamoDB table (<code>dynamodb_table</code>) for locking. Still works &mdash; both mechanisms can run side by side during migration &mdash; but the DynamoDB arguments are deprecated; new setups should use <code>use_lockfile</code> only.</dd>
+    <dt>Workspaces</dt>
+    <dd><code>terraform workspace new prod</code> &mdash; one state file per workspace, same config. Fine for small variance (dev/test/prod of one small stack); for real environment separation prefer separate root modules/backends &mdash; workspaces make it easy to forget which one you&rsquo;re in and apply to the wrong environment.</dd>
+    <dt>Moving resources without destroying</dt>
+    <dd><code>moved { from = aws_instance.old, to = aws_instance.new }</code> <span class="since">1.1, 2021</span> records a rename/refactor in config so Terraform updates state instead of destroy+recreate. <code>removed { from = aws_instance.old, lifecycle { destroy = false } }</code> <span class="since">1.7, 2024</span> drops a resource from state without touching the real infrastructure &mdash; the modern replacement for <code>terraform state rm</code>.</dd>
+    <dt>Importing existing infra</dt>
+    <dd><code>import { to = aws_instance.web, id = "i-0123" }</code> config block <span class="since">1.5, 2023</span>, or by resource identity instead of ID <span class="since">1.12, 2025-05</span>; works inside modules since <span class="since">1.16, 2026-08</span>. Legacy: the imperative <code>terraform import</code> CLI command &mdash; still works, but writes no reviewable plan.</dd>
+    <dt>Ephemeral &amp; write-only values</dt>
+    <dd>ephemeral resources/values <span class="since">1.10, 2024-11</span> and write-only resource attributes <span class="since">1.11, 2025-02</span> let a short-lived secret (a freshly minted DB password, a vault lease) flow through config <strong>without ever being written to state or the plan file</strong> &mdash; the answer to &ldquo;why is this secret sitting in plaintext in my state&rdquo;.</dd>
+    <dt>Inspecting &amp; fixing state</dt>
+    <dd><code>terraform state list</code>, <code>state show &lt;addr&gt;</code> (<code>-json</code> since <strong>1.16</strong>), <code>state mv</code>, <code>state pull &gt; backup.tfstate</code> before anything destructive. <code>terraform force-unlock &lt;lock-id&gt;</code> when a run died mid-apply and left the lock held &mdash; confirm no other apply is actually running first.</dd>
+  </dl>
+  <div class="note"><p>State always contains sensitive values in full, <code>sensitive = true</code> only redacts CLI/UI output. Encrypt the backend at rest, restrict who can <code>state pull</code>, and never commit a <code>.tfstate</code> file to git &mdash; it&rsquo;s the classic finding in a security review.</p></div>
+</section>
+
+<section class="unit" id="u04">
+  <header>
+    <h2><span class="n">04</span>Terraform CLI &amp; testing</h2>
+    <span class="docs"><a href="https://developer.hashicorp.com/terraform/cli/commands">docs: Terraform CLI commands</a></span>
+  </header>
+  <pre><code class="language-bash">terraform init -upgrade                       # download providers/modules, refresh the lock file
+terraform validate                            # config is syntactically + internally consistent, no API calls
+terraform fmt -recursive                      # canonical formatting, run in CI as a gate
+terraform plan -out=tfplan                    # compute a diff, save it so apply can't drift from what was reviewed
+terraform apply tfplan                        # apply exactly the reviewed plan (never re-plan implicitly in CI)
+terraform apply -target=aws_s3_bucket.orders  # narrow blast radius; escape hatch, not a workflow
+terraform destroy -target=aws_instance.scratch
+terraform plan -refresh-only                  # see drift without proposing changes
+terraform graph -type=plan -format=mermaid | ...   # 1.16: Mermaid output, paste straight into a doc
+terraform console                             # REPL for evaluating expressions against real state
+terraform providers lock -platform=linux_amd64 -platform=darwin_arm64   # cross-platform lock file for CI</code></pre>
+  <dl class="rows">
+    <dt>The lock file</dt>
+    <dd><code>.terraform.lock.hcl</code> <span class="since">mandatory since 0.14, 2020</span> pins exact provider versions/hashes &mdash; commit it, like a package-lock file. <code>-upgrade</code> is the only thing that should change it outside of adding a new provider.</dd>
+    <dt>Plan then apply the saved plan</dt>
+    <dd>the modern, CI-safe pattern is always <code>plan -out=file</code> then <code>apply file</code>: what gets reviewed is exactly what gets applied. Running bare <code>terraform apply</code> (which plans and applies in one step, prompting for confirmation) is fine interactively, legacy practice for pipelines.</dd>
+    <dt><code>terraform test</code></dt>
+    <dd>native test framework <span class="since">stable 1.6, 2023-10</span>: <code>*.tftest.hcl</code> files with <code>run</code> blocks, assertions, and <code>mock_provider</code>/<code>override_resource</code> to test without touching real infrastructure. Superseded the community <strong>Terratest</strong> (Go) pattern for anything that doesn&rsquo;t need real infra in the loop.</dd>
+    <dt>Provider-defined functions</dt>
+    <dd><span class="since">1.8, 2024-04</span> &mdash; providers can ship functions (e.g. <code>provider::aws::arn_parse()</code>), not just resources/data sources; check a provider&rsquo;s docs before writing an equivalent by hand with <code>regex()</code>.</dd>
+    <dt>Actions</dt>
+    <dd>top-level <code>action</code> blocks <span class="since">1.14, 2025-11</span> let a provider define imperative side effects (<code>aws_lambda_invoke</code>, a cache purge) triggered by a resource&rsquo;s lifecycle or by <code>terraform apply -invoke=&lt;action&gt;</code>; 1.16 added <code>before_destroy</code>/<code>after_destroy</code> events and <code>on_failure = halt|taint|continue</code>. The modern, typed replacement for a <code>local-exec</code> provisioner hack.</dd>
+    <dt>Provisioners</dt>
+    <dd><code>local-exec</code>/<code>remote-exec</code> are explicitly a <strong>last resort</strong> in the docs &mdash; Terraform can&rsquo;t know what they did, so it can&rsquo;t plan or track it. Prefer cloud-init/user-data, provider-native config, or actions.</dd>
+    <dt>Machine-readable output</dt>
+    <dd><code>-json</code> on <code>plan</code>, <code>state show</code> and <code>workspace list</code> (all current through 1.16) &mdash; parse this, not the human-formatted text, when scripting CI checks (e.g. failing on any planned <code>delete</code> of a tagged-critical resource).</dd>
+  </dl>
+  <div class="note"><p>OpenTofu (see unit 11) is CLI- and state-compatible: the same <code>*.tf</code> config and the same <code>terraform.tfstate</code> shape works with either <code>terraform</code> or <code>tofu</code> as the binary &mdash; the fork is a licensing and governance story, not a syntax one.</p></div>
+</section>
+<section class="unit" id="u05">
+  <header>
+    <h2><span class="n">05</span>Modules &amp; registry</h2>
+    <span class="docs"><a href="https://developer.hashicorp.com/terraform/language/modules">docs: Terraform modules</a></span>
+  </header>
+  <pre><code class="language-hcl">module "network" {
+  source  = "terraform-aws-modules/vpc/aws"
+  version = "~&gt; 5.0"                 # always pin; unpinned = a silent breaking change some Tuesday
+
+  name            = "vpc-${var.env}"
+  cidr            = "10.20.0.0/16"
+  azs             = ["eu-west-1a", "eu-west-1b", "eu-west-1c"]
+  private_subnets = ["10.20.1.0/24", "10.20.2.0/24", "10.20.3.0/24"]
+}
+
+module "buckets" {
+  source   = "./modules/bucket"
+  for_each = toset(["raw", "curated"])     # for_each on a module, GA since 0.13 (2020)
+
+  name = "${each.key}-${var.env}"
+}
+
+output "vpc_id" { value = module.network.vpc_id }</code></pre>
+  <dl class="rows">
+    <dt>Module source addresses</dt>
+    <dd>registry (<code>namespace/name/provider</code>), Git (<code>git::https://...</code>, <code>?ref=v1.2.0</code>), local (<code>./modules/x</code>), an HTTP archive, an S3/GCS bucket. Variables/locals are usable inside <code>source</code>/<code>version</code> <span class="since">1.15, 2026-04</span>, so a module path can vary by environment without duplicating the block.</dd>
+    <dt>Pin versions, always</dt>
+    <dd>a bare Git source with no <code>ref</code>, or a registry module with no <code>version</code> constraint, tracks <code>HEAD</code>/latest &mdash; a maintainer&rsquo;s breaking change becomes your incident. Constrain with <code>~&gt;</code> (pessimistic, allows patch/minor per its precision) the same way you pin providers.</dd>
+    <dt>Structure convention</dt>
+    <dd><code>main.tf</code>, <code>variables.tf</code>, <code>outputs.tf</code>, <code>versions.tf</code> per module; a root module composing child modules, never deeply nested (two or three levels is the practical ceiling before the graph gets hard to reason about).</dd>
+    <dt>Registry</dt>
+    <dd>public: registry.terraform.io. Verified/partner badges signal maintenance; a module with no recent commits and no pinned provider ceiling is a risk to adopt as-is &mdash; fork or vendor it instead of trusting it long-term.</dd>
+    <dt>Testing a module</dt>
+    <dd><code>*.tftest.hcl</code> (unit 04) is now the default; put fixture <code>.tf</code> and test files under <code>tests/</code> in the module repo so CI can run <code>terraform test</code> with no extra wiring.</dd>
+    <dt>Composing, not inheriting</dt>
+    <dd>Terraform modules have no inheritance &mdash; only composition (module calls module) and variable passing. If you want &ldquo;override a few defaults from a shared base&rdquo;, that&rsquo;s a variables-with-defaults design, not a language feature.</dd>
+  </dl>
+</section>
+<section class="unit" id="u06">
+  <header>
+    <h2><span class="n">06</span>Bicep language essentials</h2>
+    <span class="docs"><a href="https://learn.microsoft.com/en-us/azure/azure-resource-manager/bicep/">docs: Bicep language</a></span>
+  </header>
+  <p>Bicep compiles 1:1 to ARM JSON &mdash; a domain-specific language over ARM, not a general IaC runtime. There is no Bicep state file: every deployment diffs live against the target scope (or, with a deployment stack, against what that stack owns).</p>
+  <pre><code class="language-bicep">targetScope = 'resourceGroup'
+
+@description('Deployment environment')
+@allowed(['dev', 'test', 'prod'])
+param env string
+param location string = resourceGroup().location
+
+@secure()
+param sqlAdminPassword string
+
+type skuName = 'B1' | 'P1v4' | 'P2v4'          // user-defined type, stable since 0.21 (2023-09)
+
+var namePrefix = 'orders-${env}'
+var plans = {
+  dev:  'B1'
+  prod: 'P1v4'
+}
+
+resource plan 'Microsoft.Web/serverfarms@2024-11-01' = {
+  name: 'plan-${namePrefix}'
+  location: location
+  sku: { name: plans[env] }
+  properties: { reserved: true }               // reserved: true == Linux
+}
+
+resource sites 'Microsoft.Web/sites@2024-11-01' = [for i in range(0, 2): {
+  name: '${namePrefix}-${i}'
+  location: location
+  identity: { type: 'SystemAssigned' }
+  properties: { serverFarmId: plan.id }
+}]
+
+output principalIds array = [for s in sites: s.identity.principalId]</code></pre>
+  <dl class="rows">
+    <dt>Scopes</dt>
+    <dd><code>targetScope</code>: <code>resourceGroup</code> (default), <code>subscription</code>, <code>managementGroup</code>, <code>tenant</code>. A module can deploy to a different scope than its caller with an explicit <code>scope:</code> property.</dd>
+    <dt>Decorators</dt>
+    <dd><code>@description</code>, <code>@allowed</code>, <code>@secure()</code>, <code>@minLength</code>/<code>@maxLength</code>, <code>@minValue</code>/<code>@maxValue</code>, <code>@discriminator</code> for tagged unions, <code>@retryOn([...], count)</code> to retry a flaky resource operation, <code>@batchSize</code> to control loop parallelism.</dd>
+    <dt>Loops</dt>
+    <dd><code>[for item in list: {...}]</code> on a resource, module, property or output; <code>[for (item, index) in list: {...}]</code> when the index is needed; <code>[for item in list: item if cond]</code> filters. This is the only looping construct &mdash; there is no <code>while</code>.</dd>
+    <dt>Conditions</dt>
+    <dd><code>resource x '...' = if (cond) { ... }</code> &mdash; deploys nothing (not an empty resource) when false. Combine with a loop: <code>[for i in range(...): if (cond) {...}]</code>.</dd>
+    <dt>User-defined types &amp; functions</dt>
+    <dd>types (<code>type env = 'dev' | 'prod'</code>, object shapes, discriminated unions) stable <span class="since">0.21, 2023-09</span>; user-defined functions (<code>func double(x int) int => x * 2</code>) landed alongside &mdash; both are how you stop repeating a shape or a computation across files.</dd>
+    <dt>Null-safety</dt>
+    <dd><code>.?property</code> safe dereference and <code>??</code> coalesce are the modern way to read a possibly-absent nested property (e.g. from <code>existingResource().?sku.name ?? 'Standard'</code>, useful when re-deploying without clobbering a value set outside Bicep) &mdash; string-building your way around a null used to be the only option.</dd>
+    <dt>Functions used daily</dt>
+    <dd><code>resourceGroup()</code>, <code>subscription()</code>, <code>uniqueString()</code>, <code>guid()</code>, <code>reference()</code>/<code>existingResource()</code>, <code>listKeys()</code> (control-plane secrets &mdash; avoid where a managed identity can do the same job instead).</dd>
+  </dl>
+  <div class="note"><p>Legacy still seen: hand-written ARM JSON templates and nested/linked templates for composition. Bicep is the only language Microsoft actively develops ARM authoring in; treat raw JSON in a repo as either <code>bicep decompile</code> bait or something a tool generated (e.g. a marketplace offer) that you shouldn&rsquo;t hand-edit.</p></div>
+</section>
+<section class="unit" id="u07">
+  <header>
+    <h2><span class="n">07</span>Bicep params, modules &amp; registry</h2>
+    <span class="docs"><a href="https://learn.microsoft.com/en-us/azure/azure-resource-manager/bicep/parameter-files">docs: Bicep parameter files</a></span>
+  </header>
+  <pre><code class="language-bicep">// main.bicepparam — typed, not JSON
+using 'main.bicep'
+
+param env = 'prod'
+param sqlAdminPassword = getSecret('sub-id', 'rg-kv', 'kv-orders', 'sql-admin')
+
+extends 'base.bicepparam'          // config-inheritance for param files, since 0.46 (2026-07)</code></pre>
+  <pre><code class="language-bicep">module kv 'br/public:avm/res/key-vault/vault:0.11.0' = {
+  name: 'kv-deploy'
+  params: {
+    name: 'kv-${env}-${uniqueString(resourceGroup().id)}'
+    location: location
+    enableRbacAuthorization: true
+  }
+}
+
+module network 'modules/network.bicep' = {
+  name: 'network-deploy'
+  scope: subscription()            // module can target a different scope than its caller
+  params: { addressPrefix: '10.20.0.0/16' }
+}</code></pre>
+  <dl class="rows">
+    <dt><code>.bicepparam</code> vs. JSON params</dt>
+    <dd><code>.bicepparam</code> (typed, IntelliSense, <code>getSecret()</code> pulls a value from Key Vault at deploy time without it ever landing in the file) is the modern format; ARM parameter JSON files are the legacy format still generated by older pipelines and templates.</dd>
+    <dt>Azure Verified Modules (AVM)</dt>
+    <dd>Microsoft-curated, tested modules in the public Bicep registry: <code>br/public:avm/res/&lt;service&gt;/&lt;resource&gt;:&lt;version&gt;</code> for a single resource, <code>avm/ptn/*</code> for multi-resource patterns. Prefer these over hand-rolled modules for anything common (Key Vault, storage, networking) &mdash; they track breaking ARM changes for you.</dd>
+    <dt>Private registries</dt>
+    <dd><code>az bicep publish --file m.bicep --target br:myacr.azurecr.io/bicep/m:1.0.0</code> publishes to an ACR-backed registry; reference with <code>br:myacr.azurecr.io/bicep/m:1.0.0</code> or an alias configured in <code>bicepconfig.json</code>.</dd>
+    <dt>Local modules</dt>
+    <dd>a relative path (<code>modules/network.bicep</code>) with no registry involved &mdash; the common case inside one repo; the compiler inlines it into a nested ARM deployment.</dd>
+    <dt>Config inheritance</dt>
+    <dd><code>bicepconfig.json</code> <code>extends</code> <span class="since">0.46, 2026-07</span> lets a team config inherit an org-wide base and override only what differs (e.g. tighten one linter rule while keeping the rest); <code>.bicepparam</code> files gained the same <code>extends</code> to layer a base parameter file, with inherited params now optional to override.</dd>
+    <dt>Documenting a module</dt>
+    <dd><strong>[Experimental]</strong> <code>bicep docs generate</code> <span class="since">0.47.16, 2026-09-08</span> renders a module&rsquo;s params/outputs to Markdown from a Scriban template &mdash; run it in CI so a module&rsquo;s README can&rsquo;t drift from its actual parameters.</dd>
+  </dl>
+</section>
+<section class="unit" id="u08">
+  <header>
+    <h2><span class="n">08</span>Bicep CLI, deployment &amp; extensibility</h2>
+    <span class="docs"><a href="https://learn.microsoft.com/en-us/azure/azure-resource-manager/bicep/deploy-cli">docs: deploy Bicep files</a></span>
+  </header>
+  <pre><code class="language-bash">bicep build main.bicep                        # -> main.json, mostly for inspection/CI artifacts
+bicep lint main.bicep                          # rules from bicepconfig.json
+bicep format main.bicep --outdir .
+bicep decompile legacy.json                    # one-way door: JSON -> Bicep, always review the output
+
+az deployment group what-if -g rg -f main.bicep -p main.bicepparam       # the command you run before every apply
+az deployment group create  -g rg -f main.bicep -p main.bicepparam -n rel-$(date +%s)
+az deployment group create  -g rg -f main.bicep --mode Complete          # deletes anything in the RG not in the template
+
+# deployment stacks: the modern owner-and-cleanup story
+az stack group create -g rg -n app-stack -f main.bicep \
+  --action-on-unmanage deleteResources --deny-settings-mode denyDelete
+az stack group show   -g rg -n app-stack
+az stack group delete -g rg -n app-stack --action-on-unmanage deleteAll</code></pre>
+  <dl class="rows">
+    <dt>Incremental vs. Complete</dt>
+    <dd>default mode is <strong>Incremental</strong> &mdash; a resource removed from the template is left alone, same trap as Terraform without a <code>moved</code>/<code>removed</code> block. <code>--mode Complete</code> deletes anything in scope not declared in the template; either way, <code>what-if</code> first.</dd>
+    <dt>Deployment stacks</dt>
+    <dd><span class="since">GA Nov 2024</span> &mdash; the stack owns the resources it deploys, can delete ones that leave the template on the next apply, and its <code>denySettings</code> can block out-of-band changes/deletes on managed resources. This is the direct answer to &ldquo;Bicep has no state file, so who cleans up?&rdquo; and the modern replacement for the retired Azure Blueprints service.</dd>
+    <dt>Extensibility (<code>extension</code>)</dt>
+    <dd>the <code>provider</code> keyword was renamed to <code>extension</code> <span class="since">breaking change, 0.29, 2024-07</span> as Bicep grew non-ARM targets: <code>extension microsoftGraph</code> lets a template manage Entra ID apps/groups (Microsoft Graph extension, public preview since 0.28, 2024-06) alongside ARM resources in the same file. Any <code>provider</code> keyword in a `.bicep` file or `bicepconfig.json` is now dead syntax.</dd>
+    <dt>Local deploy</dt>
+    <dd><strong>[Experimental]</strong> <code>bicep local-deploy</code>/local extension host lets an extension run resource operations locally instead of through ARM &mdash; the mechanism behind non-ARM extensions; still experimental, opt in via <code>bicepconfig.json</code> <code>experimentalFeaturesEnabled</code>.</dd>
+    <dt>Linting</dt>
+    <dd>rules live in <code>bicepconfig.json</code> under <code>analyzers.core.rules</code>; useful ones to turn on: <code>no-hardcoded-env-urls</code>, <code>no-unused-params</code>, <code>no-unused-types</code> <span class="since">0.46</span>, <code>secure-params-in-parameters-file</code> (catches a secret literal checked into a <code>.bicepparam</code>), and the newer description-enforcement rules <span class="since">0.47</span> (off by default &mdash; opt in for a shared-module repo).</dd>
+    <dt>Snapshot &amp; diffing</dt>
+    <dd><code>bicep snapshot</code> gives a normalised, diffable view of what a file will produce &mdash; useful in a PR to see the actual ARM-shape delta instead of the Bicep source delta.</dd>
+    <dt>azd (app-centric wrapper)</dt>
+    <dd><code>azd init</code>/<code>azd up</code>/<code>azd provision --preview</code> wrap Bicep (or Terraform) with an app manifest (<code>azure.yaml</code>) and CI wiring (OIDC federated pipeline creds, no secrets). Reach for it on greenfield app+infra repos; plain <code>az deployment</code>/<code>az stack</code> for platform and landing-zone code you want full control over.</dd>
+  </dl>
+</section>
+<section class="unit" id="u09">
+  <header>
+    <h2><span class="n">09</span>Gotchas, one line each</h2>
+    <span class="docs"><a href="https://developer.hashicorp.com/terraform/language/state/lock">docs: Terraform state locking</a></span>
+  </header>
+  <ul class="tight">
+    <li><strong>State contains secrets in plaintext</strong>, always &mdash; <code>sensitive = true</code> only hides CLI/UI output, it does not encrypt the state file.</li>
+    <li><strong><code>count</code> on a heterogeneous list</strong> renumbers everything on reorder/insert; a &ldquo;no-op&rdquo; plan turns into a destroy-and-recreate cascade. Use <code>for_each</code>.</li>
+    <li><strong><code>terraform_data</code>/<code>null_resource</code> triggers that never change</strong> silently stop re-running the paired provisioner &mdash; check the <code>triggers</code> map actually reflects what should invalidate it.</li>
+    <li><strong>Stale lock after a killed apply</strong> leaves every teammate blocked; verify nothing is actually running before <code>force-unlock</code>.</li>
+    <li><strong>Unpinned module/provider versions</strong> mean &ldquo;works on my machine&rdquo; today, a break-fix tomorrow when <code>init -upgrade</code> pulls a new major.</li>
+    <li><strong><code>-target</code> becomes a habit</strong> and the full-config plan silently diverges from what&rsquo;s actually been applied &mdash; it&rsquo;s an escape hatch, not a workflow.</li>
+    <li><strong>Provisioners can&rsquo;t be planned</strong>: Terraform has no idea what a <code>local-exec</code> script did, so it can&rsquo;t detect drift it caused.</li>
+    <li><strong>Refresh changes state without a plan review</strong> if run bare (<code>terraform refresh</code> is deprecated) &mdash; use <code>plan -refresh-only</code> and actually read it before <code>apply</code>.</li>
+    <li><strong>Bicep Incremental mode never deletes</strong> a resource removed from the template &mdash; it just orphans it, invisibly, unless you&rsquo;re on a deployment stack or explicit <code>Complete</code> mode.</li>
+    <li><strong>API version pinning bites both tools</strong>: a property genuinely does not exist on an older ARM API version, no matter how correctly you spell it in Bicep or in <code>azapi</code>/<code>azurerm</code>.</li>
+    <li><strong><code>what-if</code> summaries can lie</strong> on complex nested changes &mdash; rerun with <code>--result-format FullResourcePayload</code> when the one-line summary looks too good to be true.</li>
+    <li><strong>Role/permission propagation lag</strong> (Azure RBAC, IAM) makes &ldquo;grant then use in the same apply&rdquo; flaky in both tools; retry, add an explicit wait, or split the run.</li>
+    <li><strong>Secrets in a <code>.bicepparam</code> literal</strong> are as bad as in JSON &mdash; use <code>getSecret()</code> or a Key Vault reference, and turn on <code>secure-params-in-parameters-file</code>.</li>
+    <li><strong><code>bicep decompile</code> is a starting point, not a finish line</strong> &mdash; it produces valid but often unidiomatic Bicep; always review and refactor before trusting it.</li>
+    <li><strong>Deployment history growth</strong>: Azure keeps a per-resource-group deployment history; very high-frequency pipelines can hit the retention ceiling &mdash; deployment stacks and newer tooling auto-prune, hand-rolled loops may not.</li>
+    <li><strong>Terraform and OpenTofu diverge quietly over time</strong> &mdash; a provider or module that only tests against one may use a construct (an OpenTofu-only function, a Terraform-only <code>action</code>) the other can&rsquo;t parse.</li>
+  </ul>
+</section>
+<section class="unit" id="u10">
+  <header>
+    <h2><span class="n">10</span>Modern vs. legacy</h2>
+    <span class="docs"><a href="https://developer.hashicorp.com/terraform/language/upgrade-guides">docs: Terraform upgrade guides</a></span>
+  </header>
+  <div class="tw">
+    <table class="grid">
+      <thead>
+        <tr><th>Task</th><th>Modern</th><th>Legacy still seen</th><th>Since</th></tr>
+      </thead>
+      <tbody>
+        <tr><td>Repeat a resource</td><td><code>for_each</code> (map/set-keyed)</td><td><code>count</code> (index-keyed, reorders break)</td><td class="since">0.12, 2019</td></tr>
+        <tr><td>Remote state locking</td><td>S3 native locking (<code>use_lockfile = true</code>)</td><td>DynamoDB table + <code>dynamodb_table</code> arg</td><td class="since">1.11, 2025-02</td></tr>
+        <tr><td>Rename/split a resource without recreating</td><td><code>moved</code> block in config</td><td><code>terraform state mv</code> CLI</td><td class="since">1.1, 2021-12</td></tr>
+        <tr><td>Drop a resource from state, keep the infra</td><td><code>removed</code> block in config</td><td><code>terraform state rm</code> CLI</td><td class="since">1.7, 2024-01</td></tr>
+        <tr><td>Bring existing infra under management</td><td><code>import</code> block (plannable, by-identity, usable in modules)</td><td><code>terraform import</code> CLI (one resource at a time, no plan)</td><td class="since">1.5&ndash;1.16, 2023&ndash;2026</td></tr>
+        <tr><td>Trigger a side effect / arbitrary action</td><td><code>action</code> block (<code>on_failure</code>, triggered by lifecycle events)</td><td><code>local-exec</code>/<code>remote-exec</code> provisioners</td><td class="since">1.14, 2025-11</td></tr>
+        <tr><td>A "no-op" resource for side effects/triggers</td><td><code>terraform_data</code> (+ <code>store</code> block for local-only state)</td><td><code>null_resource</code></td><td class="since">1.4 / 1.16, 2023-03 / 2026-08</td></tr>
+        <tr><td>Handle secrets that shouldn&rsquo;t persist in state</td><td>ephemeral resources/values, write-only attributes</td><td>plaintext value sitting in state forever</td><td class="since">1.10 / 1.11, 2024-11 / 2025-02</td></tr>
+        <tr><td>Module testing</td><td><code>terraform test</code> / <code>*.tftest.hcl</code></td><td>Terratest, hand-rolled bash+<code>plan</code> diffing</td><td class="since">1.6, 2023-10</td></tr>
+        <tr><td>Re-check state after external changes</td><td><code>plan -refresh-only</code> (reviewed before apply)</td><td>bare <code>terraform refresh</code> (deprecated)</td><td class="since">0.15, 2021</td></tr>
+        <tr><td>Bicep parameter files</td><td><code>.bicepparam</code> (typed, <code>getSecret()</code>, <code>extends</code>)</td><td>ARM parameters JSON</td><td class="since">0.18 / 0.46, 2023-03 / 2026-07</td></tr>
+        <tr><td>Reusable Azure infra building blocks</td><td>Azure Verified Modules (<code>br/public:avm/...</code>)</td><td>hand-rolled Bicep modules per repo</td><td class="since">2023&ndash;ongoing</td></tr>
+        <tr><td>Own &amp; clean up a Bicep deployment</td><td>deployment stacks (<code>az stack group</code>)</td><td>Azure Blueprints (retired) / bare <code>az deployment</code></td><td class="since">GA Nov 2024</td></tr>
+        <tr><td>Non-ARM resources in a Bicep file</td><td><code>extension</code> keyword (e.g. Microsoft Graph)</td><td><code>provider</code> keyword (renamed, breaking)</td><td class="since">0.29, 2024-07</td></tr>
+        <tr><td>Repeated shapes/logic in Bicep</td><td>user-defined types &amp; functions</td><td>copy-pasted object literals per file</td><td class="since">0.21, 2023-09</td></tr>
+        <tr><td>Safe optional-property access in Bicep</td><td><code>.?prop</code> / <code>??</code></td><td>nested <code>if</code>/string-building workarounds</td><td class="since">0.23, 2023-11</td></tr>
+      </tbody>
+    </table>
+  </div>
+</section>
+<section class="unit" id="u11">
+  <header>
+    <h2><span class="n">11</span>Version timeline</h2>
+    <span class="docs"><a href="https://github.com/hashicorp/terraform/releases">docs: Terraform releases</a></span>
+  </header>
+  <p>Latest first. Terraform is HashiCorp/IBM (BSL-1.1 since 1.5.6); OpenTofu is the Linux Foundation's MPL-2.0 fork from that same 1.5.6 base, CLI/state-compatible.</p>
+  <ul class="tight">
+    <li><strong>2026-09-08</strong> &mdash; Bicep <strong>0.47.16</strong>: experimental <code>bicep docs generate</code>; <code>.bicepparam</code> <code>extends</code> merge-semantics fixes.</li>
+    <li><strong>2026-09-02</strong> &mdash; Terraform <strong>1.16.1</strong>: bug-fix release on 1.16.</li>
+    <li><strong>2026-08-26</strong> &mdash; Terraform <strong>1.16.0</strong>: <code>terraform_data</code> <code>store</code> block, <code>import</code> usable inside modules, <code>action</code> <code>on_failure</code> halt/taint/continue, <code>graph -format=mermaid</code>, <code>lifecycle { destroy = false }</code>, <code>contains()</code> accepts null.</li>
+    <li><strong>2026-08-19</strong> &mdash; OpenTofu <strong>1.12.6</strong> (current stable; 1.13.0-beta1 in progress).</li>
+    <li><strong>2026-07</strong> &mdash; Bicep <strong>0.46.1</strong>: <code>bicepconfig.json</code>/<code>.bicepparam</code> <code>extends</code> config inheritance, <code>no-unused-types</code> linter rule, experimental runtime values in tags/sku.</li>
+    <li><strong>2026-04-29</strong> &mdash; Terraform <strong>1.15.0</strong>: Windows ARM64 builds, <code>deprecated</code> attribute for variables/outputs, <code>convert()</code> function, backend-block validation, variables/locals usable in module <code>source</code>/<code>version</code>.</li>
+    <li><strong>2025-11-19</strong> &mdash; Terraform <strong>1.14.0</strong>: new top-level <code>action</code> block type (initial).</li>
+    <li><strong>2025-08-20</strong> &mdash; Terraform <strong>1.13.0</strong>: <code>terraform stacks</code> CLI command.</li>
+    <li><strong>2025-05-14</strong> &mdash; Terraform <strong>1.12.0</strong>: import by resource identity (not just ID string).</li>
+    <li><strong>2025-02-27</strong> &mdash; Terraform <strong>1.11.0</strong>: S3-native state locking GA (<code>use_lockfile</code>, DynamoDB locking deprecated), write-only attributes.</li>
+    <li><strong>2024-11-27</strong> &mdash; Terraform <strong>1.10.0</strong>: ephemeral resources/values, initial S3 locking support.</li>
+    <li><strong>2024-07-18</strong> &mdash; Bicep <strong>0.29.45</strong>: <code>provider</code> keyword renamed to <code>extension</code> (breaking).</li>
+    <li><strong>2024-06-04</strong> &mdash; Bicep <strong>0.28.1</strong>: Microsoft Graph extension, public preview.</li>
+    <li><strong>2024-04</strong> &mdash; Terraform <strong>1.8.0</strong>: provider-defined functions.</li>
+    <li><strong>2024-01</strong> &mdash; Terraform <strong>1.7.0</strong>: <code>removed</code> block.</li>
+    <li><strong>2023-10</strong> &mdash; Terraform <strong>1.6.0</strong>: <code>terraform test</code> / <code>*.tftest.hcl</code> stable.</li>
+    <li><strong>2023-09-08</strong> &mdash; Bicep <strong>0.21.1</strong>: user-defined types stable.</li>
+    <li><strong>2023-06</strong> &mdash; Terraform <strong>1.5.0</strong>: <code>import</code> and <code>check</code> blocks; 1.5.6 is the last MPL-2.0 release and the OpenTofu fork point &mdash; every later Terraform release is BSL-1.1.</li>
+    <li><strong>2022-09</strong> to <strong>2023-03</strong> &mdash; Terraform <strong>1.3</strong>/<strong>1.4</strong>: optional object-attribute defaults, <code>terraform_data</code> groundwork.</li>
+    <li><strong>2022-05</strong> &mdash; Terraform <strong>1.2.0</strong>: custom <code>precondition</code>/<code>postcondition</code>.</li>
+    <li><strong>2021-12</strong> &mdash; Terraform <strong>1.1.0</strong>: <code>moved</code> block.</li>
+    <li><strong>2021-06-08</strong> &mdash; Terraform <strong>1.0.0</strong>: first stable release, config-language compatibility promise begins.</li>
+  </ul>
+  <div class="note"><p>This unit is the part most likely to go stale: re-check <code>terraform -version</code>, <code>bicep --version</code> and the two projects' release pages before trusting a "since" tag here more than a year old.</p></div>
+</section>
+</main>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.11.1/highlight.min.js"></script>
+<script>
+(function () {
+  if (window.hljs) { try { hljs.highlightAll(); } catch (e) { /* highlighting is decoration */ } }
+
+  var toggle = document.querySelector('.navtoggle');
+  var side = document.getElementById('side');
+  if (toggle) {
+    toggle.addEventListener('click', function () {
+      var open = document.body.classList.toggle('nav-open');
+      toggle.setAttribute('aria-expanded', open ? 'true' : 'false');
+    });
+  }
+  if (side) {
+    side.addEventListener('click', function (e) {
+      if (e.target.closest('a')) {
+        document.body.classList.remove('nav-open');
+        if (toggle) toggle.setAttribute('aria-expanded', 'false');
+      }
+    });
+  }
+
+  var links = Array.prototype.slice.call(document.querySelectorAll('.units a'));
+  var units = links.map(function (a) { return document.getElementById(a.getAttribute('href').slice(1)); });
+  var ticking = false;
+  function spy() {
+    ticking = false;
+    var best = 0;
+    for (var i = 0; i < units.length; i++) {
+      if (units[i] && units[i].getBoundingClientRect().top <= 140) best = i;
+    }
+    for (var j = 0; j < links.length; j++) {
+      if (j === best) links[j].setAttribute('aria-current', 'true');
+      else links[j].removeAttribute('aria-current');
+    }
+  }
+  function onScroll() {
+    if (!ticking) { ticking = true; window.requestAnimationFrame(spy); }
+  }
+  window.addEventListener('scroll', onScroll, { passive: true });
+  window.addEventListener('resize', onScroll, { passive: true });
+  spy();
+})();
+</script>
+</body>
+</html>

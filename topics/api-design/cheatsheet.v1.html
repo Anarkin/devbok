@@ -1,0 +1,559 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>API design (REST, gRPC, GraphQL) · cheatsheet · devbok</title>
+<link rel="preconnect" href="https://fonts.googleapis.com/">
+<link rel="preconnect" href="https://fonts.gstatic.com/" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Cascadia+Mono:wght@400;700&amp;display=swap">
+<style>
+:root { color-scheme: light;
+  --bg: #ffffff; --fg: #111111; --muted: #6b6b6b; --line: #111111; --soft: #f4f4f4; --border: #cccccc;
+  --accent: #6ba539; --accent-soft: color-mix(in srgb, var(--accent) 12%, var(--bg)); }
+@media (prefers-color-scheme: dark) { :root { color-scheme: dark;
+  --bg: #222222; --fg: #cccccc; --muted: #8f8f8f; --line: #111111; --soft: #2c2c2c; --border: #4a4a4a;
+  --accent: #a5d27e; --accent-soft: color-mix(in srgb, var(--accent) 16%, var(--bg)); } }
+
+*, *::before, *::after { box-sizing: border-box; }
+html { -webkit-text-size-adjust: 100%; }
+body { margin: 0; background: var(--bg); color: var(--fg);
+  font-family: system-ui, sans-serif; font-size: 16px; line-height: 1.6; overflow-wrap: break-word; }
+h1, h2, h3 { font-family: system-ui, sans-serif; font-weight: 700; }
+h2 { font-size: 1.5em; }
+h3 { font-size: 1.17em; }
+a { color: var(--accent); }
+a:focus-visible, button:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+img { max-width: 100%; }
+
+code, kbd, pre, .mono, .chip, .since, .docs, .hero .meta, .side, dl.rows dd, table.grid { font-family: "Cascadia Mono", Consolas, monospace; font-size: 12px; }
+code { background: var(--soft); border: 1px solid var(--border); border-radius: 3px; padding: 0 .3em; overflow-wrap: anywhere; }
+pre { background: var(--soft); border: 1px solid var(--border); border-radius: 4px;
+  margin: 14px 0; padding: 12px 14px; overflow-x: auto; max-width: 100%; line-height: 1.5; }
+pre code { background: none; border: 0; border-radius: 0; padding: 0; white-space: pre; overflow-wrap: normal; }
+
+.hero { margin: 0 0 24px; padding: 0 0 24px; border-bottom: 2px solid var(--line); }
+.hero h1 { margin: 0 0 8px; font-size: 2em; line-height: 1.2; font-weight: 700; }
+.hero .meta { margin: 0 0 12px; font-family: "Cascadia Mono", Consolas, monospace; font-size: 12px; color: var(--muted); }
+.hero .summary { margin: 0 0 12px; }
+.hero .chips { display: flex; flex-wrap: wrap; gap: 6px; margin: 0; }
+
+.side { position: fixed; top: 0; bottom: 0; left: 0; width: 260px; display: flex; flex-direction: column; background: var(--bg); border-right: 2px solid var(--line); font-family: "Cascadia Mono", Consolas, monospace; font-size: 12px; }
+.units { list-style: none; margin: 0; padding: 12px 0; overflow-y: auto; flex: 1; }
+.units a { display: grid; grid-template-columns: 2.5em 1fr; padding: 9px 20px 9px 17px; border-left: 3px solid transparent; color: var(--fg); text-decoration: none; line-height: 1.4; }
+.units .n { color: var(--muted); font-weight: 400; }
+.units a:hover { background: var(--soft); }
+.units a[aria-current="true"] { background: var(--accent-soft); border-left-color: var(--accent); font-weight: 700; }
+.side footer { padding: 12px 20px; border-top: 2px solid var(--line); color: var(--muted); line-height: 1.5; }
+
+.content { margin-left: 260px; padding: 24px; max-width: 120ch; min-width: 0; }
+.unit { border-top: 2px solid var(--line); margin: 0 0 26px; padding: 14px 0 0; min-width: 0; }
+.unit > header { display: flex; flex-wrap: wrap; align-items: baseline; gap: 4px 14px; margin: 0 0 4px; min-width: 0; }
+.unit h2 { margin: 0; line-height: 1.25; }
+.unit h2 .n { font-family: "Cascadia Mono", Consolas, monospace; font-size: 12px; color: var(--muted); margin-right: 10px; }
+.docs { color: var(--muted); }
+.docs a { color: var(--accent); text-decoration: none; }
+.docs a:hover { text-decoration: underline; }
+
+dl.rows { display: grid; grid-template-columns: minmax(0, 34ch) minmax(0, 1fr);
+  margin: 12px 0 0; border-top: 1px solid var(--border); min-width: 0; }
+dl.rows dt { grid-column: 1; margin: 0; padding: 6px 14px 6px 0; border-bottom: 1px solid var(--border);
+  min-width: 0; line-height: 1.35; }
+dl.rows dd { grid-column: 2; margin: 0; padding: 7px 0 6px; border-bottom: 1px solid var(--border);
+  min-width: 0; line-height: 1.5; overflow-wrap: anywhere; }
+dl.rows dd code { background: none; border: 0; padding: 0; }
+.cmt { color: var(--muted); }
+
+.chip { display: inline-block; text-transform: uppercase; letter-spacing: .03em;
+  background: var(--soft); border: 1px solid var(--border); border-radius: 4px; padding: 2px 7px; }
+.since { display: inline-block; border: 1px solid var(--accent); border-radius: 4px;
+  padding: 0 5px; color: var(--accent); white-space: nowrap; }
+.note { background: var(--soft); border-left: 3px solid var(--accent); padding: 8px 12px; margin: 12px 0 0; }
+.note p { margin: 0; }
+
+.tw { overflow-x: auto; margin: 12px 0 0; min-width: 0; }
+table.grid { border-collapse: collapse; width: 100%; }
+table.grid th { text-align: left; font-weight: 400; color: var(--muted);
+  border-bottom: 1px solid var(--border); padding: 6px 14px 6px 0; vertical-align: bottom; }
+table.grid td { border-bottom: 1px solid var(--border); padding: 6px 14px 6px 0; vertical-align: top; }
+table.grid td code { background: none; border: 0; padding: 0; }
+table.grid tr.hi td { background: var(--accent-soft); }
+
+ul.tight { margin: 12px 0 0; padding-left: 1.1em; }
+ul.tight li { margin: 0 0 3px; }
+
+.navtoggle { display: none; position: fixed; top: 10px; left: 10px; z-index: 30;
+  font-family: "Cascadia Mono", Consolas, monospace; font-size: 12px; color: var(--fg);
+  background: var(--bg); border: 1px solid var(--line); border-radius: 4px; padding: 6px 10px; cursor: pointer; }
+@media (max-width: 720px) {
+  .navtoggle { display: block; }
+  .side { width: min(260px, 84%); transform: translateX(-102%); transition: transform .15s ease; z-index: 25; }
+  body.nav-open .side { transform: none; }
+  .content { margin-left: 0; padding: 52px 16px 24px; }
+  dl.rows { grid-template-columns: minmax(0, 1fr); }
+  dl.rows dt { padding: 6px 0 0; border-bottom: 0; font-weight: 600; }
+  dl.rows dd { padding: 2px 0 7px; }
+}
+
+@media print {
+  :root { color-scheme: light;
+    --bg: #ffffff; --fg: #000000; --muted: #444444; --line: #000000; --soft: #ffffff; --border: #999999;
+    --accent: #000000; --accent-soft: #ffffff; }
+  .side, .navtoggle { display: none !important; }
+  body { font-size: 9pt; line-height: 1.3; background: #fff; color: #000; }
+  .content { margin: 0; padding: 0; max-width: 100%; }
+  code, kbd, pre, .chip, .since, .docs, .hero .meta, dl.rows dd, table.grid { font-size: 7.5pt; }
+  .hero { padding-bottom: 8pt; margin-bottom: 10pt; border-bottom: 1pt solid #000; }
+  .hero h1 { font-size: 16pt; }
+  .unit { break-inside: avoid; page-break-inside: avoid; margin: 0 0 8pt; padding-top: 6pt; border-top: 1pt solid #000; }
+  .unit h2 { font-size: 11pt; }
+  pre { background: #fff; border: 1pt solid #999; padding: 4pt 6pt; }
+  .note { background: #fff; border-left: 2pt solid #000; }
+  a, a:visited { color: #000; text-decoration: none; }
+  a[href]::after { content: ""; }
+  @page { size: A4; margin: 11mm; }
+}
+</style>
+<style>
+/* devbok: the shared code palette (prompts/shared/page.md, "Code"). */
+:root {
+  --code: color-mix(in srgb, var(--accent) 70%, var(--fg));
+  --hl-kw: #a626a4; --hl-str: #50a14f; --hl-num: #986801; --hl-cmt: #6b6b6b; --hl-type: #0184bc; --hl-fn: #4078f2; --hl-attr: #986801;
+}
+@media (prefers-color-scheme: dark) {
+  :root { --hl-kw: #c678dd; --hl-str: #98c379; --hl-num: #d19a66; --hl-cmt: #8f8f8f; --hl-type: #56b6c2; --hl-fn: #61afef; --hl-attr: #e5c07b; }
+}
+code { color: var(--code); }
+pre code { color: inherit; }
+.hljs { color: var(--fg); background: transparent; }
+.hljs-keyword, .hljs-built_in, .hljs-literal, .hljs-selector-tag { color: var(--hl-kw); }
+.hljs-string, .hljs-regexp, .hljs-selector-attr { color: var(--hl-str); }
+.hljs-number, .hljs-symbol { color: var(--hl-num); }
+.hljs-comment, .hljs-quote, .hljs-doctag { color: var(--hl-cmt); font-style: italic; }
+.hljs-title, .hljs-title.class_, .hljs-type, .hljs-name, .hljs-section, .hljs-selector-class, .hljs-selector-pseudo { color: var(--hl-type); }
+.hljs-title.function_ { color: var(--hl-fn); }
+.hljs-meta, .hljs-attr, .hljs-attribute, .hljs-tag, .hljs-property, .hljs-variable { color: var(--hl-attr); }
+.hljs-template-tag, .hljs-template-variable { color: var(--hl-attr); }
+.hljs-code, .hljs-formula { color: var(--hl-cmt); }
+.hljs-operator, .hljs-subst, .hljs-punctuation, .hljs-params { color: var(--fg); }
+.hljs-emphasis { font-style: italic; }
+.hljs-strong { font-weight: 700; }
+@media print { code, .hljs, .hljs span { color: #000 !important; background: transparent !important; } }
+</style>
+</head>
+<body>
+<!-- devbok
+slug: api-design
+kind: cheatsheet
+version: 1
+topic: "API design (e.g., REST resource modelling and Richardson maturity, versioning strategies, pagination and filtering, idempotency, error contracts and problem details, OpenAPI, HATEOAS, REST vs gRPC vs GraphQL trade-offs, rate limiting and deprecation; mainly for .NET developers — assume ASP.NET Core framework mechanics are mostly covered separately)"
+prompt: cheatsheet.md@7ff70aff
+generated: 2026-09-08
+-->
+<button class="navtoggle" type="button" aria-expanded="false" aria-controls="side">units</button>
+<nav class="side" id="side" aria-label="Units">
+  <ol class="units">
+    <li><a href="#u01"><span class="n">01</span><span class="t">Resource modeling &amp; maturity</span></a></li>
+    <li><a href="#u02"><span class="n">02</span><span class="t">HTTP semantics &amp; status codes</span></a></li>
+    <li><a href="#u03"><span class="n">03</span><span class="t">Versioning strategies</span></a></li>
+    <li><a href="#u04"><span class="n">04</span><span class="t">Pagination, filtering &amp; sorting</span></a></li>
+    <li><a href="#u05"><span class="n">05</span><span class="t">Idempotency &amp; retries</span></a></li>
+    <li><a href="#u06"><span class="n">06</span><span class="t">Error contracts &amp; Problem Details</span></a></li>
+    <li><a href="#u07"><span class="n">07</span><span class="t">OpenAPI &amp; contract tooling</span></a></li>
+    <li><a href="#u08"><span class="n">08</span><span class="t">HATEOAS &amp; hypermedia</span></a></li>
+    <li><a href="#u09"><span class="n">09</span><span class="t">Rate limiting &amp; deprecation</span></a></li>
+    <li><a href="#u10"><span class="n">10</span><span class="t">REST vs gRPC vs GraphQL</span></a></li>
+    <li><a href="#u11"><span class="n">11</span><span class="t">Modern vs legacy</span></a></li>
+    <li><a href="#u12"><span class="n">12</span><span class="t">Version timeline</span></a></li>
+  </ol>
+  <footer>API design (REST, gRPC, GraphQL) · cheatsheet · version 1 · 2026-09-08</footer>
+</nav>
+<main class="content">
+<header class="hero">
+  <h1>API design (REST, gRPC, GraphQL)</h1>
+  <p class="meta">cheatsheet · OpenAPI 3.2.0 · released 2025-09-19</p>
+  <p class="summary">This card treats API design as a cross-cutting discipline rather than one product, so it anchors the version line on OpenAPI 3.2.0 (2025-09-19) — the contract format most of the rest hangs off — while naming the current RFCs, the GraphQL spec edition and the Protobuf generation alongside it; ASP.NET Core wiring (routing, filters, minimal API syntax) is assumed covered elsewhere, so this stays at the design and wire-contract level above it. It covers REST resource modeling and the Richardson Maturity Model, versioning, pagination/filtering, idempotency, Problem Details error contracts, OpenAPI, HATEOAS, rate limiting and deprecation, and REST vs gRPC vs GraphQL trade-offs. The most recent citable move: RFC 10008 standardized the HTTP <code>QUERY</code> method in June 2026 — a safe, idempotent, body-bearing sibling to <code>GET</code> that OpenAPI 3.2.0 already had an operation key waiting for, a full release ahead of the RFC.</p>
+  <p class="chips"><span class="chip">OpenAPI 3.2.0 · 2025-09-19</span> <span class="chip">RFC 9457 Problem Details</span> <span class="chip">RFC 10008 QUERY · 2026-06</span> <span class="chip">GraphQL Sept2025 Edition</span> <span class="chip">Protobuf Editions 2024</span> <span class="chip">verified 2026-09-08</span></p>
+</header>
+
+<section class="unit" id="u01">
+  <header>
+    <h2><span class="n">01</span>Resource modeling &amp; maturity</h2>
+    <span class="docs"><a href="https://martinfowler.com/articles/richardsonMaturityModel.html">docs: Fowler — Richardson Maturity Model</a></span>
+  </header>
+  <dl class="rows">
+    <dt>Richardson Maturity Model</dt>
+    <dd>L0 POX/RPC — one URI, one verb · L1 resources, still one verb · L2 HTTP verbs + status codes used correctly · L3 hypermedia controls (HATEOAS) <span class="cmt">— most production "REST" APIs stop at L2, by design, not by accident</span></dd>
+    <dt>Resource naming</dt>
+    <dd>plural nouns for collections — <code>/orders</code>, <code>/orders/{id}</code> <span class="cmt">— never a verb in the path</span></dd>
+    <dt>Nesting depth</dt>
+    <dd>keep to ≤2 levels — <code>/orders/{id}/items</code>, not <code>/customers/{id}/orders/{id}/items/{id}/notes</code> <span class="cmt">— flatten with a filter or a top-level resource instead</span></dd>
+    <dt>Actions beyond CRUD (Google AIP-136)</dt>
+    <dd>colon-suffixed custom method — <code>POST /orders/{id}:cancel</code> <span class="cmt">— reads as an action on the resource, not a bare verb route</span></dd>
+    <dt>Collection vs singleton</dt>
+    <dd><code>/users/{id}/profile</code> (singleton, no id of its own) vs <code>/users/{id}/addresses</code> (collection)</dd>
+    <dt>State transition as its own resource</dt>
+    <dd><code>POST /orders/{id}/cancellations</code>, not <code>PATCH { "status": "cancelled" }</code> <span class="cmt">— when the transition needs its own audit trail or side effects, model it, don't just flip a field</span></dd>
+    <dt>House style references</dt>
+    <dd>Google AIP (aip.dev) and the Microsoft REST API Guidelines are the two most-cited resource-design rulebooks — worth adopting one rather than inventing a third</dd>
+    <dt>Client-chosen id, idempotent create</dt>
+    <dd><code>PUT /orders/{clientGeneratedId}</code> is safely retryable by construction <span class="cmt">— vs <code>POST /orders</code>, which mints the id server-side and isn't idempotent on its own; see unit 05</span></dd>
+  </dl>
+</section>
+
+<section class="unit" id="u02">
+  <header>
+    <h2><span class="n">02</span>HTTP semantics &amp; status codes</h2>
+    <span class="docs"><a href="https://www.rfc-editor.org/rfc/rfc9110.html">docs: RFC 9110 — HTTP Semantics</a></span>
+  </header>
+  <div class="tw">
+  <table class="grid">
+    <thead><tr><th>Method</th><th>Safe</th><th>Idempotent</th><th>Typical body</th></tr></thead>
+    <tbody>
+      <tr><td><code>GET</code> / <code>HEAD</code> / <code>OPTIONS</code></td><td>yes</td><td>yes</td><td>none</td></tr>
+      <tr class="hi"><td><code>QUERY</code> (RFC 10008)</td><td>yes</td><td>yes</td><td>request body — the query itself</td></tr>
+      <tr><td><code>PUT</code></td><td>no</td><td>yes</td><td>full representation</td></tr>
+      <tr><td><code>DELETE</code></td><td>no</td><td>yes</td><td>none (usually)</td></tr>
+      <tr><td><code>PATCH</code></td><td>no</td><td>spec allows, most impls don't guarantee</td><td>partial/patch document</td></tr>
+      <tr><td><code>POST</code></td><td>no</td><td>no</td><td>anything</td></tr>
+    </tbody>
+  </table>
+  </div>
+  <dl class="rows">
+    <dt>200 / 201 / 202 / 204</dt>
+    <dd>200 OK (body) · 201 Created (+ <code>Location</code>) · 202 Accepted (async — poll or webhook) · 204 No Content (success, no body)</dd>
+    <dt>400 vs 422</dt>
+    <dd>400 malformed request (bad JSON, wrong type) · 422 Unprocessable Content — well-formed, semantically invalid <span class="cmt">— RFC 9110 renamed the reason phrase from RFC 4918's "Unprocessable Entity"</span></dd>
+    <dt>401 vs 403</dt>
+    <dd>401 no/invalid credentials · 403 authenticated but not authorized <span class="cmt">— don't let a hostile client distinguish "forbidden" from "doesn't exist" on a resource whose existence is itself sensitive</span></dd>
+    <dt>404 vs 410</dt>
+    <dd>404 not found (or hidden) · 410 Gone — permanently removed, tells the client to stop retrying</dd>
+    <dt>405 / 406 / 415</dt>
+    <dd>405 wrong verb for this resource (send <code>Allow</code>) · 406 can't satisfy <code>Accept</code> · 415 can't satisfy <code>Content-Type</code></dd>
+    <dt>409 vs 412</dt>
+    <dd>409 Conflict — a business-rule clash · 412 Precondition Failed — <code>If-Match</code>/<code>If-None-Match</code> mismatch, optimistic concurrency</dd>
+    <dt>Optimistic concurrency</dt>
+    <dd><code>ETag: "abc123"</code> on a GET; send <code>If-Match: "abc123"</code> on the write; 412 on mismatch <span class="cmt">— cheaper than a version column, no schema change needed</span></dd>
+    <dt>5xx triage</dt>
+    <dd>500 unhandled/unknown · 502 upstream returned garbage · 503 deliberately unavailable (shedding load) · 504 upstream too slow <span class="cmt">— 503 is the one worth automating a <code>Retry-After</code> on</span></dd>
+  </dl>
+</section>
+
+<section class="unit" id="u03">
+  <header>
+    <h2><span class="n">03</span>Versioning strategies</h2>
+    <span class="docs"><a href="https://github.com/dotnet/aspnet-api-versioning">docs: Asp.Versioning (dotnet/aspnet-api-versioning)</a></span>
+  </header>
+  <dl class="rows">
+    <dt>URI path</dt>
+    <dd><code>/v1/orders</code> <span class="cmt">— simplest to explain, cache-friendly, forces a URL change on every client; most common in the wild</span></dd>
+    <dt>Custom header</dt>
+    <dd><code>Api-Version: 2.0</code> / <code>X-Api-Version: 2</code> <span class="cmt">— keeps URLs stable, invisible unless you know to add it</span></dd>
+    <dt>Media-type negotiation</dt>
+    <dd><code>Accept: application/vnd.myapi.v2+json</code> <span class="cmt">— "most RESTful" to purists, least discoverable in practice</span></dd>
+    <dt>Query string</dt>
+    <dd><code>?api-version=2.0</code> <span class="cmt">— easy to forget on a client, easy to leak into logs/analytics as a stray dimension</span></dd>
+    <dt>Dated versions (Stripe-style)</dt>
+    <dd>pin an explicit dated version per account/request, e.g. <code>Stripe-Version: 2025-10-29.clover</code> <span class="cmt">— every account has an implicit default that can drift; pin it, don't rely on it</span></dd>
+    <dt>No versioning, evolve instead</dt>
+    <dd>add-only fields, additive enum members, deprecate before removing <span class="cmt">— GraphQL's default philosophy, see unit 10</span></dd>
+    <dt>.NET tooling</dt>
+    <dd><code>Asp.Versioning.Http</code> / <code>.Mvc</code> / <code>.OData</code> / <code>.OpenApi</code> — URL segment, query string, header and media-type strategies out of the box <span class="cmt">— successor to the now-archived <code>Microsoft.AspNetCore.Mvc.Versioning</code></span></dd>
+    <dt>Breaking vs non-breaking</dt>
+    <dd>adding an optional field or enum member is non-breaking under an additive contract; renaming, removing or narrowing a type is always breaking <span class="cmt">— vendors disagree on the boundary in practice; read the vendor's own definition before assuming</span></dd>
+  </dl>
+</section>
+
+<section class="unit" id="u04">
+  <header>
+    <h2><span class="n">04</span>Pagination, filtering &amp; sorting</h2>
+    <span class="docs"><a href="https://jsonapi.org/format/#fetching-pagination">docs: JSON:API — pagination, filtering, sorting</a></span>
+  </header>
+  <dl class="rows">
+    <dt>Offset/page pagination</dt>
+    <dd><code>?page=3&amp;pageSize=50</code> <span class="cmt">— simple, but drifts under concurrent inserts/deletes and gets slower with a large <code>OFFSET</code></span></dd>
+    <dt>Cursor pagination (modern default)</dt>
+    <dd><code>?after={opaqueCursor}&amp;limit=50</code> <span class="cmt">— stable under mutation; encode the sort key in the cursor, not just a row id</span></dd>
+    <dt>Link header (RFC 8288)</dt>
+    <dd><code>Link: &lt;.../orders?after=abc&gt;; rel="next", &lt;...&gt;; rel="prev"</code> <span class="cmt">— lets a client page forward without knowing your cursor's shape</span></dd>
+    <dt>JSON:API pagination</dt>
+    <dd><code>page[cursor]=abc</code> or <code>page[number]=3&amp;page[size]=50</code>, with <code>links.next</code>/<code>links.prev</code> in the body instead of headers</dd>
+    <dt>Filtering</dt>
+    <dd><code>?filter[status]=paid&amp;filter[createdAt][gte]=2026-01-01</code> <span class="cmt">— bracket-per-field beats one query-language param wherever a caching layer needs to reason about it</span></dd>
+    <dt>Sparse fieldsets</dt>
+    <dd><code>?fields[orders]=id,total,status</code> <span class="cmt">— shrinks the payload; GraphQL gets this for free by design</span></dd>
+    <dt>Sorting</dt>
+    <dd><code>?sort=-createdAt,status</code> <span class="cmt">— leading <code>-</code> for descending is the de facto convention, standardized by JSON:API</span></dd>
+    <dt>Total count is expensive</dt>
+    <dd>a <code>X-Total-Count</code> alongside cursor pagination often means a second <code>COUNT(*)</code> <span class="cmt">— make it opt-in, not the default</span></dd>
+  </dl>
+</section>
+
+<section class="unit" id="u05">
+  <header>
+    <h2><span class="n">05</span>Idempotency &amp; retries</h2>
+    <span class="docs"><a href="https://datatracker.ietf.org/doc/draft-ietf-httpapi-idempotency-key-header/">docs: IETF draft — The Idempotency-Key HTTP Header Field</a></span>
+  </header>
+  <dl class="rows">
+    <dt>Naturally idempotent</dt>
+    <dd><code>GET</code>, <code>PUT</code>, <code>DELETE</code>, <code>HEAD</code>, and now <code>QUERY</code> (RFC 10008) <span class="cmt">— repeating the exact request is safe by definition</span></dd>
+    <dt>Not naturally idempotent</dt>
+    <dd><code>POST</code>, and <code>PATCH</code> in practice — the spec permits an idempotent PATCH, most servers don't guarantee one</dd>
+    <dt>Idempotency-Key header</dt>
+    <dd>client-generated key on a <code>POST</code>; server caches the first response and replays it for a repeat with the same key <span class="cmt">— still only an IETF draft (httpapi WG, lapsed Oct 2025), but Stripe/Adyen/PayPal/GitHub already ship it as a de facto standard</span></dd>
+    <dt>Same key, different body</dt>
+    <dd>MUST be rejected (409/422), never silently accepted <span class="cmt">— a key is a promise about one exact request, not "retry this operation with new params"</span></dd>
+    <dt>Key scope &amp; TTL</dt>
+    <dd>unique per credential/account, cached hours to ~2 weeks depending on the API <span class="cmt">— derive it from your own request id (<code>order:{id}:attempt:{n}</code>), don't mint a fresh GUID per HTTP-level retry</span></dd>
+    <dt>What it doesn't cover</dt>
+    <dd>dedupes the write at the API boundary, not your own downstream side effects — a webhook or queue consumer still needs its own dedupe key</dd>
+    <dt>Retry policy</dt>
+    <dd>exponential backoff + jitter on 5xx/timeouts and 429 (respect <code>Retry-After</code>); never blind-retry a 4xx except 409/429</dd>
+    <dt>Client-side double submit</dt>
+    <dd>disable the submit control on click; reuse the same idempotency key if the user fires the request twice anyway</dd>
+  </dl>
+</section>
+
+<section class="unit" id="u06">
+  <header>
+    <h2><span class="n">06</span>Error contracts &amp; Problem Details</h2>
+    <span class="docs"><a href="https://www.rfc-editor.org/rfc/rfc9457">docs: RFC 9457 — Problem Details for HTTP APIs</a></span>
+  </header>
+  <dl class="rows">
+    <dt>Shape (RFC 9457)</dt>
+    <dd><code>type</code>, <code>title</code>, <code>status</code>, <code>detail</code>, <code>instance</code> + extension members — media type <code>application/problem+json</code></dd>
+    <dt><code>type</code></dt>
+    <dd>a URI identifying the problem kind, ideally dereferenceable to docs — <code>about:blank</code> is the explicit fallback when you don't have one yet</dd>
+    <dt>RFC 9457 vs RFC 7807</dt>
+    <dd>same wire shape; 9457 (2023) adds a type-URI registry and explicit guidance for returning multiple problems in one response <span class="cmt">— obsoletes 7807, safe to cite the new number without changing anything on the wire</span></dd>
+    <dt>Validation errors extension member</dt>
+    <dd>a per-field <code>errors</code> array/object is not in the base RFC — pick one shape per API and document it as an extension member</dd>
+    <dt>ASP.NET Core</dt>
+    <dd><code>builder.Services.AddProblemDetails()</code> <span class="since">.NET 8+</span> wires the Problem Details shape into the default error responses and the <code>IExceptionHandler</code> pipeline <span class="cmt">— MVC and minimal APIs both speak RFC 9457 out of the box once it's registered</span></dd>
+    <dt>Don't leak internals</dt>
+    <dd><code>detail</code> is for humans, never a stack trace or raw SQL error text in production — put diagnostics behind <code>instance</code> + a correlation id, log the rest server-side</dd>
+    <dt>One error shape across protocols</dt>
+    <dd>a REST 422, a gRPC status and a GraphQL error should map to the same conceptual fields (code, message, correlation id) even though the wire shape differs per protocol</dd>
+  </dl>
+  <pre><code class="language-json">{
+  "type": "https://api.example.com/problems/insufficient-balance",
+  "title": "Insufficient balance",
+  "status": 422,
+  "detail": "Account 7f3c has balance 30.00, charge requires 50.00",
+  "instance": "/accounts/7f3c/charges/9f1a",
+  "balance": 30.00
+}</code></pre>
+</section>
+
+<section class="unit" id="u07">
+  <header>
+    <h2><span class="n">07</span>OpenAPI &amp; contract tooling</h2>
+    <span class="docs"><a href="https://spec.openapis.org/oas/v3.2.0">docs: OpenAPI Specification v3.2.0</a></span>
+  </header>
+  <dl class="rows">
+    <dt>Current spec</dt>
+    <dd>OpenAPI 3.2.0 <span class="since">2025-09-19</span> — first minor bump since 3.1.0 (2021); 3.1.2/3.0.4 patch releases shipped the same day</dd>
+    <dt>New in 3.2 — <code>query</code> operations</dt>
+    <dd>a <code>query</code> key alongside <code>get</code>/<code>post</code>/<code>put</code>/<code>delete</code>/… for the RFC 10008 <code>QUERY</code> method <span class="cmt">— OpenAPI supported the method a full release before it had an RFC number</span></dd>
+    <dt>New in 3.2 — streaming</dt>
+    <dd>sequential media types (<code>text/event-stream</code>, <code>application/jsonl</code>, …) described via <code>itemSchema</code>, for SSE and other streamed responses</dd>
+    <dt>New in 3.2 — nested tags</dt>
+    <dd><code>summary</code> / <code>parent</code> / <code>kind</code> fields on a tag <span class="cmt">— replaces the flat, undifferentiated tag list from 3.0/3.1</span></dd>
+    <dt>New in 3.2 — <code>$self</code></dt>
+    <dd>a document-root field giving the base URI used to resolve relative <code>$ref</code>s <span class="cmt">— was implicit/ambiguous before</span></dd>
+    <dt>3.1 vs 3.0</dt>
+    <dd>3.1 <span class="since">2021</span> aligned schemas with JSON Schema 2020-12 and added webhooks and <code>$ref</code> siblings <span class="cmt">— the bigger of the two migrations if you're still on 3.0.x</span></dd>
+    <dt>.NET generation</dt>
+    <dd><code>Microsoft.AspNetCore.OpenApi</code> ships in the framework <span class="since">.NET 9+</span> — <code>builder.Services.AddOpenApi()</code> / <code>app.MapOpenApi()</code> <span class="cmt">— no bundled UI; add <code>Scalar.AspNetCore</code> or Swashbuckle's Swagger UI package for an interactive page, dev-only</span></dd>
+    <dt>.NET 10 addition</dt>
+    <dd><code>IOpenApiDocumentProvider</code> — inject the generated document outside an HTTP request, for codegen or contract tests <span class="cmt">— previously only reachable by hitting the live endpoint</span></dd>
+    <dt>Contract linting in CI</dt>
+    <dd><code>spectral lint openapi.json</code> with <code>extends: ["spectral:oas"]</code> <span class="cmt">— fail the build on a missing <code>operationId</code> or description, not just the review</span></dd>
+  </dl>
+</section>
+
+<section class="unit" id="u08">
+  <header>
+    <h2><span class="n">08</span>HATEOAS &amp; hypermedia</h2>
+    <span class="docs"><a href="https://www.rfc-editor.org/rfc/rfc8288.html">docs: RFC 8288 — Web Linking</a></span>
+  </header>
+  <dl class="rows">
+    <dt>Link header (RFC 8288)</dt>
+    <dd><code>Link: &lt;https://api.example.com/orders/42/items&gt;; rel="items"</code> <span class="cmt">— generic, transport-level hypermedia, works on any media type</span></dd>
+    <dt>HAL</dt>
+    <dd><code>application/hal+json</code> — an <code>_links</code> object per resource (<code>{"self": {"href": "…"}, "next": {…}}</code>) plus <code>_embedded</code> for inlined related resources</dd>
+    <dt>JSON:API links</dt>
+    <dd><code>links.self</code> / <code>links.related</code> inside a relationship, plus top-level <code>links.next</code>/<code>prev</code> for pagination — see unit 04</dd>
+    <dt>Richardson level 3, the actual point</dt>
+    <dd>a response tells the client which transitions are currently legal — a "cancel" link appears only on an order that can still be cancelled <span class="cmt">— that's the payoff, not the link syntax itself</span></dd>
+    <dt>What it buys you</dt>
+    <dd>the server can change a URL or add a workflow step without every client hard-coding the old path — genuinely useful for long-lived, third-party-consumed APIs</dd>
+    <dt>What it usually doesn't buy you</dt>
+    <dd>most internal/BFF APIs ship one client per API, deployed together — the decoupling HATEOAS sells has no buyer there, so most teams stop at level 2 on purpose</dd>
+    <dt>HAL-FORMS / OpenAPI Links Object</dt>
+    <dd>attempts at describing available actions, not just resources, machine-readably <span class="cmt">— niche, low adoption outside a few hypermedia-committed shops</span></dd>
+    <dt>Pick one hypermedia format</dt>
+    <dd><code>Accept: application/hal+json</code> vs <code>application/vnd.api+json</code> <span class="cmt">— don't let the choice drift per endpoint within one API</span></dd>
+  </dl>
+</section>
+
+<section class="unit" id="u09">
+  <header>
+    <h2><span class="n">09</span>Rate limiting &amp; deprecation</h2>
+    <span class="docs"><a href="https://datatracker.ietf.org/doc/draft-ietf-httpapi-ratelimit-headers/">docs: IETF draft — RateLimit header fields</a></span>
+  </header>
+  <dl class="rows">
+    <dt>429 Too Many Requests</dt>
+    <dd>pair with <code>Retry-After: 30</code> (seconds or an HTTP-date) <span class="cmt">— 429 comes from RFC 6585; <code>Retry-After</code> itself is specified generally in RFC 9110</span></dd>
+    <dt><code>RateLimit</code> / <code>RateLimit-Policy</code> (IETF draft)</dt>
+    <dd>Structured-Field response headers describing quota, window and partition key <span class="cmt">— still a draft (v11, 2026-05-23), not yet an RFC; field names can still move</span></dd>
+    <dt>Legacy, still everywhere</dt>
+    <dd><code>X-RateLimit-Limit</code> / <code>-Remaining</code> / <code>-Reset</code> <span class="cmt">— non-standard, no registry, one vendor's convention copied by the next; keep it alongside the standard headers for older clients</span></dd>
+    <dt>Sunset header</dt>
+    <dd><code>Sunset: Sat, 01 Aug 2026 00:00:00 GMT</code> <span class="since">RFC 8594, 2019</span> — a hard date the resource stops responding</dd>
+    <dt>Deprecation header</dt>
+    <dd><code>Deprecation: @1735689599</code> (a Structured-Field date) <span class="since">RFC 9745, 2025-03</span> — signals "deprecated as of this date", independent of when it actually goes away</dd>
+    <dt>Ordering rule</dt>
+    <dd>a response's <code>Sunset</code> date MUST NOT be earlier than its <code>Deprecation</code> date <span class="cmt">— enforced by RFC 9745 itself, easy to violate by accident when the two are set from different config</span></dd>
+    <dt>Point at the migration path</dt>
+    <dd><code>Link: &lt;https://docs.example.com/migrate&gt;; rel="deprecation"</code> alongside the <code>Deprecation</code> header</dd>
+    <dt>Deprecation policy shape</dt>
+    <dd>announce (header + docs) → warn (a visible signal in responses/logs) → sunset (<code>Sunset</code> header, still 200s) → retire (410 Gone) <span class="cmt">— skipping a stage is what breaks integrators, not the timeline's length</span></dd>
+  </dl>
+</section>
+
+<section class="unit" id="u10">
+  <header>
+    <h2><span class="n">10</span>REST vs gRPC vs GraphQL</h2>
+    <span class="docs"><a href="https://grpc.io/docs/what-is-grpc/introduction/">docs: grpc.io — Introduction to gRPC</a></span>
+  </header>
+  <div class="tw">
+  <table class="grid">
+    <thead><tr><th>Dimension</th><th>REST + OpenAPI</th><th>gRPC</th><th>GraphQL</th></tr></thead>
+    <tbody>
+      <tr><td>Wire format</td><td>JSON/XML over HTTP/1.1+</td><td>binary Protobuf over HTTP/2 (+HTTP/3 via Connect)</td><td>JSON, typically <code>POST /graphql</code></td></tr>
+      <tr><td>Contract</td><td>OpenAPI document, often written after the code</td><td><code>.proto</code> schema, contract-first, codegen'd stubs</td><td>SDL schema, contract-first, one endpoint</td></tr>
+      <tr><td>Browser support</td><td>native <code>fetch</code></td><td>needs gRPC-Web or Connect</td><td>native <code>fetch</code></td></tr>
+      <tr><td>Streaming</td><td>SSE / WebSocket, bolted on</td><td>native unary/client/server/bidi streaming</td><td>subscriptions, own transport, usually WS</td></tr>
+      <tr><td>Over/under-fetching</td><td>fixed shape per endpoint (mitigated by <code>?fields=</code>)</td><td>fixed shape per RPC</td><td>client picks the exact fields, by design</td></tr>
+      <tr><td>HTTP caching</td><td>works out of the box (ETag, Cache-Control)</td><td>none — roll your own</td><td>mostly none out of the box; client-side normalized caches (Apollo/Relay) do the work</td></tr>
+      <tr class="hi"><td>.NET tooling</td><td>minimal/MVC + <code>Microsoft.AspNetCore.OpenApi</code></td><td><code>Grpc.AspNetCore</code> + <code>Grpc.Tools</code> codegen</td><td>HotChocolate is the mainstream .NET server</td></tr>
+    </tbody>
+  </table>
+  </div>
+  <dl class="rows">
+    <dt>Protobuf Editions</dt>
+    <dd><code>edition = "2024";</code> replaces <code>syntax = "proto3";</code> at the top of a <code>.proto</code> file <span class="cmt">— 2023 was the baseline (merged proto2+proto3 into one model), 2024 the latest, roughly yearly cadence going forward</span></dd>
+    <dt>gRPC status codes ≠ HTTP status codes</dt>
+    <dd><code>OK</code>/<code>NOT_FOUND</code>/<code>ALREADY_EXISTS</code>/<code>FAILED_PRECONDITION</code>/<code>RESOURCE_EXHAUSTED</code>/<code>UNAVAILABLE</code>/… carried in trailers, distinct from the transport's HTTP 200</dd>
+    <dt>Connect protocol</dt>
+    <dd>one Protobuf schema, servers/clients that speak gRPC, gRPC-Web and a JSON-friendly Connect protocol over HTTP/1.1, HTTP/2 and HTTP/3 <span class="cmt">— increasingly replaces a hand-rolled grpc-web + Envoy proxy for browser clients</span></dd>
+    <dt>GraphQL, September 2025 edition</dt>
+    <dd><code>@oneOf</code> input objects ("input unions"), schema coordinates as a standard cross-tool identifier, broader <code>@deprecated</code> coverage (arguments, input fields) <span class="cmt">— the first spec update since October 2021</span></dd>
+    <dt>N+1 is the GraphQL tax</dt>
+    <dd>a naive resolver re-queries per parent row — DataLoader-style batching/caching per request is not optional at any real scale</dd>
+    <dt>Picking one</dt>
+    <dd>public/partner surface, caching, simple CRUD → REST + OpenAPI · internal service-to-service, low-latency, polyglot → gRPC · one UI aggregating many backends with varying field needs → GraphQL, usually behind a BFF rather than as every service's own API</dd>
+  </dl>
+</section>
+
+<section class="unit" id="u11">
+  <header>
+    <h2><span class="n">11</span>Modern vs legacy</h2>
+    <span class="docs"><a href="https://www.rfc-editor.org/rfc/rfc9457">docs: RFC 9457 — Problem Details for HTTP APIs</a></span>
+  </header>
+  <div class="tw">
+  <table class="grid">
+    <thead><tr><th>Task</th><th>Modern</th><th>Legacy still seen</th><th>Since</th></tr></thead>
+    <tbody>
+      <tr class="hi"><td>Error body shape</td><td>RFC 9457 Problem Details (<code>application/problem+json</code>)</td><td>ad-hoc <code>{"error": "message"}</code>, per-endpoint shape</td><td>RFC 7807 2016, refreshed 9457 2023</td></tr>
+      <tr class="hi"><td>Body-bearing safe read</td><td><code>QUERY</code> method (RFC 10008)</td><td><code>GET</code> with a body (undefined by spec), or a read via <code>POST</code></td><td>2026-06</td></tr>
+      <tr><td>Rate-limit headers</td><td><code>RateLimit</code> / <code>RateLimit-Policy</code> (Structured Fields)</td><td><code>X-RateLimit-Limit</code>/<code>-Remaining</code>/<code>-Reset</code></td><td>draft since ~2022, still not an RFC</td></tr>
+      <tr><td>Deprecation signal</td><td><code>Deprecation</code> (RFC 9745) + <code>Sunset</code> (RFC 8594)</td><td>a changelog entry and an email, no machine-readable signal</td><td>RFC 9745, 2025-03</td></tr>
+      <tr><td>API contract format</td><td>OpenAPI 3.1/3.2 (JSON Schema-aligned, <code>$self</code>, streaming)</td><td>OpenAPI/Swagger 2.0 or plain 3.0 (own schema dialect)</td><td>3.1 in 2021, 3.2 in 2025-09</td></tr>
+      <tr><td>Pagination</td><td>opaque cursor (<code>page[cursor]</code> / <code>after=</code>)</td><td>page/offset numbers</td><td>cursor mainstream ~2018+, standardized in JSON:API 1.1 (2022)</td></tr>
+      <tr><td>Idempotent writes</td><td>client-supplied <code>Idempotency-Key</code> on <code>POST</code></td><td>manual "check if it already happened" before retry</td><td>Stripe pioneered ~2015, still only an IETF draft</td></tr>
+      <tr><td>Protobuf schema declaration</td><td><code>edition = "2024";</code></td><td><code>syntax = "proto3";</code> / <code>"proto2";</code></td><td>Editions baseline 2023</td></tr>
+      <tr><td>Browser-facing gRPC</td><td>Connect protocol (native HTTP/1.1–3)</td><td>gRPC-Web + an Envoy/nginx translating proxy</td><td>Connect OSS ~2022+</td></tr>
+      <tr><td>.NET API versioning</td><td><code>Asp.Versioning.*</code> (community-maintained)</td><td><code>Microsoft.AspNetCore.Mvc.Versioning</code> (archived 2022)</td><td>Asp.Versioning fork, 2022+</td></tr>
+      <tr><td>.NET OpenAPI generation</td><td><code>Microsoft.AspNetCore.OpenApi</code> (built in)</td><td>Swashbuckle as the only option</td><td>built in since .NET 9 (2024)</td></tr>
+    </tbody>
+  </table>
+  </div>
+</section>
+
+<section class="unit" id="u12">
+  <header>
+    <h2><span class="n">12</span>Version timeline</h2>
+    <span class="docs"><a href="https://datatracker.ietf.org/wg/httpapi/documents/">docs: IETF HTTPAPI working group — documents</a></span>
+  </header>
+  <div class="tw">
+  <table class="grid">
+    <thead><tr><th>Version</th><th>Date</th><th>What changed</th></tr></thead>
+    <tbody>
+      <tr class="hi"><td>RFC 10008 — HTTP <code>QUERY</code> method</td><td>2026-06</td><td><em>newly standardized:</em> safe, idempotent, cacheable, body-bearing method; OpenAPI 3.2 already had the operation key waiting for it</td></tr>
+      <tr><td>RateLimit header fields, draft v11</td><td>2026-05-23</td><td><em>still draft:</em> <code>RateLimit</code>/<code>RateLimit-Policy</code> Structured-Field headers, not yet an RFC</td></tr>
+      <tr class="hi"><td>OpenAPI 3.2.0 / 3.1.2</td><td>2025-09-19</td><td><em>newly stable:</em> <code>query</code> operations, SSE/sequential media types via <code>itemSchema</code>, nested multi-purpose tags, <code>$self</code> document identity</td></tr>
+      <tr><td>GraphQL Spec, September 2025 Edition</td><td>2025-09-04</td><td>first edition since 2021: <code>@oneOf</code> input objects, schema coordinates, broader <code>@deprecated</code> coverage</td></tr>
+      <tr><td>Idempotency-Key header, draft v07</td><td>expired 2025-10-15</td><td><em>newly lapsed:</em> draft expired without becoming an RFC — still the de facto shape every major PSP/API implements</td></tr>
+      <tr class="hi"><td>RFC 9745 — Deprecation header</td><td>2025-03</td><td><em>newly standardized:</em> machine-readable deprecation signal, complementing Sunset (RFC 8594)</td></tr>
+      <tr><td>OpenAPI 3.1.1 / 3.0.4</td><td>2024-10-24</td><td>editorial-only patch releases, no schema changes</td></tr>
+      <tr><td>Protobuf Edition 2024</td><td>2024</td><td>latest edition; yearly cadence confirmed</td></tr>
+      <tr><td>RFC 9457 — Problem Details</td><td>2023-07</td><td>obsoletes RFC 7807: adds a type-URI registry, clarifies multi-problem responses</td></tr>
+      <tr><td>Protobuf Editions baseline</td><td>2023</td><td>replaces <code>syntax = "proto2"/"proto3";</code> with <code>edition = "2023";</code>, merging both models</td></tr>
+      <tr><td>JSON:API v1.1</td><td>2022-09-30</td><td>current stable release of the JSON:API format</td></tr>
+      <tr><td>OpenAPI 3.1.0</td><td>2021-02-16</td><td>JSON Schema 2020-12 alignment, webhooks, <code>$ref</code> siblings</td></tr>
+      <tr><td>RFC 8594 — Sunset header</td><td>2019-05</td><td>original machine-readable "this will stop working on X" signal</td></tr>
+      <tr><td>RFC 7807 — Problem Details (original)</td><td>2016-03</td><td>original Problem Details format, obsoleted by RFC 9457 in 2023</td></tr>
+    </tbody>
+  </table>
+  </div>
+  <div class="note"><p><strong>Also worth knowing:</strong> federated/composite GraphQL schemas (Apollo Federation, the GraphQL Composite Schemas working group) and gRPC reflection/health-checking are active areas with no single ratified spec yet — treat vendor docs as the source of truth until one lands. Facts above were checked against primary sources (IETF Datatracker, the OpenAPI and GraphQL spec repositories) on 2026-09-08; re-verify anything dated after that.</p></div>
+</section>
+</main>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.11.1/highlight.min.js"></script>
+<script>
+(function () {
+  if (window.hljs) { try { hljs.highlightAll(); } catch (e) { /* highlighting is decoration */ } }
+
+  var toggle = document.querySelector('.navtoggle');
+  var side = document.getElementById('side');
+  if (toggle) {
+    toggle.addEventListener('click', function () {
+      var open = document.body.classList.toggle('nav-open');
+      toggle.setAttribute('aria-expanded', open ? 'true' : 'false');
+    });
+  }
+  if (side) {
+    side.addEventListener('click', function (e) {
+      if (e.target.closest('a')) {
+        document.body.classList.remove('nav-open');
+        if (toggle) toggle.setAttribute('aria-expanded', 'false');
+      }
+    });
+  }
+
+  var links = Array.prototype.slice.call(document.querySelectorAll('.units a'));
+  var units = links.map(function (a) { return document.getElementById(a.getAttribute('href').slice(1)); });
+  var ticking = false;
+  function spy() {
+    ticking = false;
+    var best = 0;
+    for (var i = 0; i < units.length; i++) {
+      if (units[i] && units[i].getBoundingClientRect().top <= 140) best = i;
+    }
+    for (var j = 0; j < links.length; j++) {
+      if (j === best) links[j].setAttribute('aria-current', 'true');
+      else links[j].removeAttribute('aria-current');
+    }
+  }
+  function onScroll() {
+    if (!ticking) { ticking = true; window.requestAnimationFrame(spy); }
+  }
+  window.addEventListener('scroll', onScroll, { passive: true });
+  window.addEventListener('resize', onScroll, { passive: true });
+  spy();
+})();
+</script>
+</body>
+</html>

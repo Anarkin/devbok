@@ -1,0 +1,988 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Docker / Containerization · experience · devbok</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Cascadia+Mono:wght@400;700&display=swap" rel="stylesheet">
+<style>
+  :root { color-scheme: light;
+    --bg: #ffffff; --fg: #111111; --muted: #6b6b6b; --line: #111111; --soft: #f4f4f4; --border: #cccccc;
+    --accent: #2496ed; --accent-soft: color-mix(in srgb, var(--accent) 12%, var(--bg));
+    --code: color-mix(in srgb, var(--accent) 70%, var(--fg));
+    --hl-kw: #a626a4; --hl-str: #50a14f; --hl-num: #986801; --hl-cmt: #6b6b6b; --hl-type: #0184bc; --hl-fn: #4078f2; --hl-attr: #986801; }
+  @media (prefers-color-scheme: dark) { :root { color-scheme: dark;
+    --bg: #222222; --fg: #cccccc; --muted: #8f8f8f; --line: #111111; --soft: #2c2c2c; --border: #4a4a4a;
+    --accent: #5fb2f2; --accent-soft: color-mix(in srgb, var(--accent) 16%, var(--bg));
+    --hl-kw: #c678dd; --hl-str: #98c379; --hl-num: #d19a66; --hl-cmt: #8f8f8f; --hl-type: #56b6c2; --hl-fn: #61afef; --hl-attr: #e5c07b; } }
+
+  * { box-sizing: border-box; }
+  html, body { margin: 0; padding: 0; }
+  body { background: var(--bg); color: var(--fg); font-family: system-ui, sans-serif; font-size: 16px; line-height: 1.6; }
+  h1, h2, h3 { font-family: system-ui, sans-serif; font-weight: 700; }
+  h2 { font-size: 1.5em; margin: 0 0 12px; }
+  h3 { font-size: 1.17em; margin: 20px 0 8px; }
+  p { margin: 0 0 12px; }
+  a { color: var(--accent); }
+  :focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+
+  /* hero, verbatim */
+  .hero { margin: 0 0 24px; padding: 0 0 24px; border-bottom: 2px solid var(--line); }
+  .hero h1 { margin: 0 0 8px; font-size: 2em; line-height: 1.2; font-weight: 700; }
+  .hero .meta { margin: 0 0 12px; font-family: "Cascadia Mono", Consolas, monospace; font-size: 12px; color: var(--muted); }
+  .hero .summary { margin: 0 0 12px; }
+  .hero .chips { display: flex; flex-wrap: wrap; gap: 6px; margin: 0; }
+
+  /* code palette, verbatim */
+  code { background: var(--soft); border: 1px solid var(--border); border-radius: 3px; padding: 0 .3em; color: var(--code); overflow-wrap: anywhere; }
+  pre { background: var(--soft); border: 1px solid var(--border); border-radius: 4px; padding: 12px 14px; overflow-x: auto; line-height: 1.5; margin: 14px 0; max-width: 100%; }
+  pre code { background: none; border: 0; border-radius: 0; padding: 0; color: inherit; white-space: pre; overflow-wrap: normal; }
+  .hljs { color: var(--fg); background: transparent; }
+  .hljs-keyword, .hljs-built_in, .hljs-literal, .hljs-selector-tag { color: var(--hl-kw); }
+  .hljs-string, .hljs-regexp, .hljs-selector-attr { color: var(--hl-str); }
+  .hljs-number, .hljs-symbol { color: var(--hl-num); }
+  .hljs-comment, .hljs-quote, .hljs-doctag { color: var(--hl-cmt); font-style: italic; }
+  .hljs-title, .hljs-title.class_, .hljs-type, .hljs-name, .hljs-section, .hljs-selector-class, .hljs-selector-pseudo { color: var(--hl-type); }
+  .hljs-title.function_ { color: var(--hl-fn); }
+  .hljs-meta, .hljs-attr, .hljs-attribute, .hljs-tag, .hljs-property, .hljs-variable { color: var(--hl-attr); }
+  .hljs-template-tag, .hljs-template-variable { color: var(--hl-attr); }
+  .hljs-code, .hljs-formula { color: var(--hl-cmt); }
+  .hljs-operator, .hljs-subst, .hljs-punctuation, .hljs-params { color: var(--fg); }
+  .hljs-emphasis { font-style: italic; } .hljs-strong { font-weight: 700; }
+
+  /* sidebar, verbatim */
+  .side { position: fixed; top: 0; bottom: 0; left: 0; width: 260px; display: flex; flex-direction: column; background: var(--bg); border-right: 2px solid var(--line); font-family: "Cascadia Mono", Consolas, monospace; font-size: 12px; }
+  .units { list-style: none; margin: 0; padding: 12px 0; overflow-y: auto; flex: 1; }
+  .units a { display: grid; grid-template-columns: 2.5em 1fr; padding: 9px 20px 9px 17px; border-left: 3px solid transparent; color: var(--fg); text-decoration: none; line-height: 1.4; }
+  .units .n { color: var(--muted); font-weight: 400; }
+  .units a:hover { background: var(--soft); }
+  .units a[aria-current="true"] { background: var(--accent-soft); border-left-color: var(--accent); font-weight: 700; }
+  .side footer { padding: 12px 20px; border-top: 2px solid var(--line); color: var(--muted); line-height: 1.5; }
+
+  /* layout */
+  .content { margin-left: 260px; padding: 24px; max-width: 80ch; min-width: 0; }
+  .side-toggle { display: none; }
+  @media (max-width: 720px) {
+    .side { transform: translateX(-100%); transition: transform .15s ease; z-index: 20; width: min(260px, 84vw); }
+    .side.open { transform: translateX(0); }
+    .content { margin-left: 0; padding: 24px 16px 24px; }
+    .side-toggle {
+      display: block; position: fixed; top: 10px; left: 10px; z-index: 21;
+      font-family: "Cascadia Mono", Consolas, monospace; font-size: 12px; text-transform: uppercase;
+      background: var(--soft); color: var(--fg); border: 1px solid var(--border); border-radius: 4px;
+      padding: 6px 10px; cursor: pointer;
+    }
+  }
+
+  /* components */
+  .chip { display: inline-block; font-family: "Cascadia Mono", Consolas, monospace; font-size: 12px; text-transform: uppercase; background: var(--soft); border: 1px solid var(--border); border-radius: 4px; padding: 3px 8px; }
+  .callout { background: var(--soft); border-left: 3px solid var(--accent); border-radius: 0 4px 4px 0; padding: 10px 14px; margin: 14px 0; min-width: 0; }
+  .callout p:last-child { margin-bottom: 0; }
+  .table-wrap { overflow-x: auto; margin: 14px 0; min-width: 0; }
+  table { width: 100%; border-collapse: collapse; font-size: 15px; }
+  th, td { border-bottom: 1px solid var(--border); padding: 7px 10px; text-align: left; vertical-align: top; }
+  th { color: var(--muted); font-weight: 700; font-size: 14px; }
+  .coverage td, .coverage th { white-space: normal; }
+
+  .unit { padding-top: 8px; margin-bottom: 44px; scroll-margin-top: 12px; }
+  .unit:last-of-type { margin-bottom: 8px; }
+  .story-head { display: flex; flex-wrap: wrap; align-items: baseline; gap: 8px; margin-bottom: 14px; }
+  .story-head h2 { margin: 0; flex: 1 1 auto; min-width: 0; }
+
+  details.quiz { border: 1px solid var(--border); border-radius: 4px; padding: 10px 14px; margin: 10px 0; min-width: 0; }
+  details.quiz summary { font-weight: 700; cursor: pointer; }
+  details.quiz summary::marker { color: var(--accent); }
+  details.quiz[open] summary { margin-bottom: 8px; }
+  details.quiz p:last-child { margin-bottom: 0; }
+
+  .recall li { margin-bottom: 10px; }
+  .recall details { display: inline-block; margin-top: 4px; }
+  .recall details summary { color: var(--accent); cursor: pointer; font-family: "Cascadia Mono", Consolas, monospace; font-size: 12px; text-transform: uppercase; }
+  .recall details summary::marker { color: var(--accent); }
+  .recall details p { margin: 6px 0 0; }
+
+  .scaffold dl { margin: 0; }
+  .scaffold dt { font-family: "Cascadia Mono", Consolas, monospace; font-size: 12px; text-transform: uppercase; color: var(--muted); margin-top: 12px; }
+  .scaffold dt:first-child { margin-top: 0; }
+  .scaffold dd { margin: 4px 0 0; }
+
+  .qa-theme { margin-top: 26px; }
+  .qa-theme h3 { border-top: 1px solid var(--border); padding-top: 18px; }
+  .qa-theme:first-of-type h3 { border-top: 0; padding-top: 0; }
+
+  .cheat ol { padding-left: 1.4em; }
+  .cheat li { margin-bottom: 10px; }
+</style>
+</head>
+<body>
+<!-- devbok
+slug: docker
+kind: experience
+version: 1
+topic: "Docker / Containerization"
+prompt: experience.md@2bcfefa8
+generated: 2026-09-08
+-->
+<button class="side-toggle" id="sideToggle" aria-expanded="false" aria-controls="sidebar">☰ Units</button>
+<nav class="side" id="sidebar" aria-label="Units">
+  <ol class="units">
+    <li><a href="#u01"><span class="n">01</span><span class="t">The image that took 11 minutes to build</span></a></li>
+    <li><a href="#u02"><span class="n">02</span><span class="t">Swarm, Compose, or Kubernetes</span></a></li>
+    <li><a href="#u03"><span class="n">03</span><span class="t">The night the payments API OOM-looped</span></a></li>
+    <li><a href="#u04"><span class="n">04</span><span class="t">Cutting over to the containerd image store</span></a></li>
+    <li><a href="#u05"><span class="n">05</span><span class="t">The rootful vs. rootless standoff</span></a></li>
+    <li><a href="#u06"><span class="n">06</span><span class="t">DNS that only failed under load</span></a></li>
+    <li><a href="#u07"><span class="n">07</span><span class="t">Docker Hub throttled us at 3am</span></a></li>
+    <li><a href="#u08"><span class="n">08</span><span class="t">A socket mount someone forgot about</span></a></li>
+    <li><a href="#u09"><span class="n">09</span><span class="t">The 4GB image nobody could explain</span></a></li>
+    <li><a href="#u10"><span class="n">10</span><span class="t">Teaching a junior to read a Dockerfile</span></a></li>
+    <li><a href="#u11"><span class="n">11</span><span class="t">Shipping without health checks, over my objection</span></a></li>
+    <li><a href="#u12"><span class="n">12</span><span class="t">The volume that looked like a bind mount</span></a></li>
+    <li><a href="#u13"><span class="n">13</span><span class="t">Containerizing a system nobody fully understood</span></a></li>
+    <li><a href="#u14"><span class="n">14</span><span class="t">The golden image nobody agreed to</span></a></li>
+    <li><a href="#u15"><span class="n">15</span><span class="t">The Swarm migration we walked back</span></a></li>
+    <li><a href="#u16"><span class="n">16</span><span class="t">The registry bill that tripled</span></a></li>
+    <li><a href="#u17"><span class="n">17</span><span class="t">Bringing BuildKit cache mounts to the team</span></a></li>
+    <li><a href="#u18"><span class="n">18</span><span class="t">Crashloop backoff at 3:14am</span></a></li>
+    <li><a href="#u19"><span class="n">19</span><span class="t">Docker-in-Docker was our flakiest test</span></a></li>
+    <li><a href="#u20"><span class="n">20</span><span class="t">"Just run it as root, we'll fix it later"</span></a></li>
+    <li><a href="#u21"><span class="n">21</span><span class="t">The big behavioural Q&amp;A</span></a></li>
+    <li><a href="#u22"><span class="n">22</span><span class="t">Night-before cheat sheet</span></a></li>
+  </ol>
+  <footer>Docker / Containerization · experience · version 1 · 2026-09-08</footer>
+</nav>
+<main class="content" id="content">
+
+<header class="hero">
+  <h1>Docker / Containerization</h1>
+  <p class="meta">experience · Docker Engine 29.8.0 · released 2026-09-03</p>
+  <p class="summary">Twenty story scaffolds plus a closing Q&amp;A, calibrated for a lead/principal engineer: architecture trade-offs, incident command, and "how did you get the team to agree" over API recall. Every worked example is fiction tagged <code>EXAMPLE — replace with your own</code> — read it, then use the recall prompts to find your real equivalent and the drill chain to pressure-test it before you say it out loud. Verified against current docs: Engine 29.8.0 (2026-09-03) and Compose v5.5.1 are latest stable, the containerd image store has been the default for fresh installs since 29.0, <code>mount type=image</code> went stable in 29.7.0, and 29.5.1 patched three <code>docker cp</code> CVEs (2026-41567/41568/42306) that are worth knowing by name if a security story comes up. Assumption: "Docker / Containerization" is read broadly — Engine, CLI, Compose, BuildKit and the orchestration boundary with Swarm/Kubernetes — not a deep dive into any one orchestrator.</p>
+  <p class="chips"><span class="chip">20 stories</span> <span class="chip">20 archetypes</span> <span class="chip">Mid → Principal</span> <span class="chip">Engine 29.8.0</span></p>
+</header>
+
+<h2>Coverage at a glance</h2>
+<div class="table-wrap">
+<table class="coverage">
+  <thead><tr><th>#</th><th>Story title</th><th>Archetype</th><th>Tier</th></tr></thead>
+  <tbody>
+    <tr><td>01</td><td>The image that took 11 minutes to build</td><td>Performance problem</td><td>Senior</td></tr>
+    <tr><td>02</td><td>Swarm, Compose, or Kubernetes</td><td>Architectural trade-off</td><td>Staff</td></tr>
+    <tr><td>03</td><td>The night the payments API OOM-looped</td><td>Production incident</td><td>Senior</td></tr>
+    <tr><td>04</td><td>Cutting over to the containerd image store</td><td>Migration / upgrade</td><td>Staff</td></tr>
+    <tr><td>05</td><td>The rootful vs. rootless standoff</td><td>Technical disagreement</td><td>Senior</td></tr>
+    <tr><td>06</td><td>DNS that only failed under load</td><td>Nasty debugging session</td><td>Mid</td></tr>
+    <tr><td>07</td><td>Docker Hub throttled us at 3am</td><td>Scaling challenge</td><td>Senior</td></tr>
+    <tr><td>08</td><td>A socket mount someone forgot about</td><td>Security issue</td><td>Staff</td></tr>
+    <tr><td>09</td><td>The 4GB image nobody could explain</td><td>Tech-debt paydown</td><td>Mid</td></tr>
+    <tr><td>10</td><td>Teaching a junior to read a Dockerfile</td><td>Mentoring</td><td>Senior</td></tr>
+    <tr><td>11</td><td>Shipping without health checks, over my objection</td><td>Scope / deadline negotiation</td><td>Staff</td></tr>
+    <tr><td>12</td><td>The volume that looked like a bind mount</td><td>Data-loss scare</td><td>Mid</td></tr>
+    <tr><td>13</td><td>Containerizing a system nobody fully understood</td><td>Ambiguous requirements</td><td>Senior</td></tr>
+    <tr><td>14</td><td>The golden image nobody agreed to</td><td>Cross-team dependency</td><td>Principal</td></tr>
+    <tr><td>15</td><td>The Swarm migration we walked back</td><td>Failed / cancelled project</td><td>Principal</td></tr>
+    <tr><td>16</td><td>The registry bill that tripled</td><td>Cost optimisation</td><td>Staff</td></tr>
+    <tr><td>17</td><td>Bringing BuildKit cache mounts to the team</td><td>Introducing a new tool</td><td>Senior</td></tr>
+    <tr><td>18</td><td>Crashloop backoff at 3:14am</td><td>On-call firefighting</td><td>Mid</td></tr>
+    <tr><td>19</td><td>Docker-in-Docker was our flakiest test</td><td>CI / reliability improvement</td><td>Senior</td></tr>
+    <tr><td>20</td><td>"Just run it as root, we'll fix it later"</td><td>Stakeholder pushback</td><td>Principal</td></tr>
+  </tbody>
+</table>
+</div>
+
+<section id="u01" class="unit">
+<div class="story-head"><h2>01 The image that took 11 minutes to build</h2><span class="chip">Senior</span><span class="chip">Performance problem</span></div>
+
+<h3>(a) Worked example <span class="chip">EXAMPLE — replace with your own</span></h3>
+<p>I inherited a Java service whose CI build took 11 minutes for a one-line change, while the same Dockerfile built in 90 seconds on my laptop after the first run. <code>docker buildx build --progress=plain</code> showed why: the Dockerfile ran <code>COPY . .</code> before <code>mvn -o dependency:go-offline</code>, so every commit — even a comment change — invalidated the dependency-resolution layer's cache key, and CI's ephemeral runners never carried a warm cache between builds anyway. Locally the layer just happened to survive because Docker Desktop kept the same build cache around. I split the Dockerfile so <code>pom.xml</code> is copied and dependencies resolved in their own layer before <code>COPY src</code> ever runs, moved <code>~/.m2</code> into a BuildKit <code>--mount=type=cache</code> so it isn't baked into an image layer at all, and wired <code>--cache-to type=registry --cache-from type=registry</code> into the CI job so a cold runner could still pull a warm cache. CI dropped to about 2 minutes; incremental local rebuilds to under 10 seconds. What I'd do differently: I should have added a <code>.dockerignore</code> on day one — the build context was silently shipping 400MB of <code>target/</code> and <code>.git</code> to the daemon before a single instruction ran, which is its own 15–20 second tax nobody had noticed because nobody had measured it.</p>
+<div class="table-wrap">
+<table>
+  <thead><tr><th>Cache mechanism</th><th>Survives ephemeral runners?</th><th>Granularity</th><th>Typical win here</th></tr></thead>
+  <tbody>
+    <tr><td>Classic layer cache (local daemon)</td><td>No</td><td>Whole layer</td><td>Fast local iterates only</td></tr>
+    <tr><td><code>--cache-from</code> image / registry</td><td>Yes</td><td>Whole layer</td><td>Warm CI cache across runs</td></tr>
+    <tr><td>BuildKit <code>--mount=type=cache</code></td><td>Only if exported</td><td>Directory inside a step</td><td>Package-manager caches, no layer bloat</td></tr>
+    <tr><td><code>mount type=image</code> (stable, 29.7.0)</td><td>N/A — reads an image directly</td><td>Whole image as a mount</td><td>Pull reference data without <code>COPY</code>ing it into context</td></tr>
+  </tbody>
+</table>
+</div>
+<div class="callout"><p><strong>What the interviewer is really probing:</strong> whether you understand cache invalidation as content-addressed (instruction + the files it touches), not folklore ("just put COPY last"), and whether you measured before/after instead of asserting an improvement. The common failure here is describing the fix correctly but with no numbers, or claiming sole credit for a fix a teammate's flame graph actually found.</p></div>
+
+<h3>(b) STAR/CARL scaffold</h3>
+<div class="scaffold"><dl>
+<dt>Situation</dt><dd>What was slow, how long it had been slow, and who first complained.</dd>
+<dt>Task</dt><dd>The target you set yourself (not "make it faster" — a number).</dd>
+<dt>Action</dt><dd>How you measured before touching anything, what you changed, in what order.</dd>
+<dt>Result</dt><dd>Before/after numbers, and who else benefited (whole team's iteration loop, not just yours).</dd>
+<dt>Do differently</dt><dd>The thing you'd fix pre-emptively next time (the <code>.dockerignore</code>, here).</dd>
+</dl></div>
+
+<h3>(c) Recall prompts</h3>
+<ul class="recall">
+  <li>When did you last watch a Docker build get slower over months without anyone changing the app code? <details><summary>hint</summary><p>Look for dependency-manager caches quietly falling out of a layer, or a base image growing under you.</p></details></li>
+  <li>Which layer in something you maintain busts cache most often, and why hasn't it been fixed? <details><summary>hint</summary><p>Usually an instruction ordering problem, or a timestamp/ARG that changes every build.</p></details></li>
+  <li>Have you compared the classic builder to BuildKit/buildx on the same Dockerfile and actually timed it? <details><summary>hint</summary><p>If not, that's a gap worth closing before this interview — it's an easy follow-up.</p></details></li>
+  <li>What's the largest build context you've accidentally shipped to the daemon? <details><summary>hint</summary><p>node_modules, .git, build output directories, test fixtures — anything without a .dockerignore entry.</p></details></li>
+</ul>
+
+<h3>(d) Follow-up drill chain</h3>
+<div class="drill">
+<details class="quiz"><summary>Why does moving COPY after dependency install help, mechanically?</summary><p>BuildKit keys each layer by the instruction plus the content it touches. If <code>src/</code> changes but the earlier layer only ever touched <code>pom.xml</code>, that layer's key is unchanged and BuildKit reuses it verbatim instead of re-running <code>mvn</code>. It's not about instruction order for its own sake — it's about minimizing what each layer's key depends on.</p></details>
+<details class="quiz"><summary>What if the slow part is pulling the base image, not your own build steps?</summary><p>Then the fix is upstream of your Dockerfile: a smaller base (distroless or alpine over a full OS), a regional pull-through registry mirror, or pinning to a digest you've already warmed on every node. I'd check <code>docker system df</code> and pull timings before assuming the build steps are the bottleneck.</p></details>
+<details class="quiz"><summary>At what scale does registry-backed cache-to/cache-from stop paying for itself?</summary><p>For a tiny, already-fast build, the network round-trip to push and pull cache layers can cost more than it saves. It earns its keep on large multi-stage builds shared across many CI runs — a monorepo with a heavy dependency-resolution stage is the sweet spot, not a 20-second build that ran fine before.</p></details>
+<details class="quiz"><summary>What did you trade away by moving to a BuildKit cache mount?</summary><p>Portability. A mount cache lives on the builder machine unless you explicitly export it, so a genuinely fresh runner still starts cold. I accepted that because our runners were a stable, warm pool — I'd revisit it if we moved to fully ephemeral, one-shot runners.</p></details>
+<details class="quiz"><summary>What would you do differently now, given mount type=image went stable in 29.7.0?</summary><p>I'd look at mounting reference data directly from a prebuilt image at build time instead of copying it into context at all, which shrinks what the daemon has to receive before the build even starts. I'd pilot it on one service first, since it changes how the build graph reads and not every CI runner's buildx version supports it yet.</p></details>
+</div>
+</section>
+
+<section id="u02" class="unit">
+<div class="story-head"><h2>02 Swarm, Compose, or Kubernetes</h2><span class="chip">Staff</span><span class="chip">Architectural trade-off</span></div>
+
+<h3>(a) Worked example <span class="chip">EXAMPLE — replace with your own</span></h3>
+<p>Eight services ran on Compose in staging, and I owned the call on what runs them in production, for a six-person team with no dedicated platform engineer. I timeboxed a two-week spike rather than debating it in meetings: the same stack, deployed once onto Docker Swarm (`docker stack deploy` from a lightly extended `compose.yaml`, native overlay networking, rolling updates, secrets) and once onto a managed Kubernetes cluster. Swarm got us to a working production topology in days — it's built into the Engine, and our Compose files needed only a `deploy:` stanza. But it had no autoscaling primitive equivalent to an HPA, weaker native ingress routing, and overlay networking that, per Docker's own release notes, has needed repeated reliability work release over release. Kubernetes gave us horizontal autoscaling and a much deeper hiring pool who already knew the tooling, at the cost of about three weeks of ramp-up and a genuinely bigger surface to operate and patch. I chose Kubernetes — not because Swarm was worse for our current traffic, but because our roadmap had a 10x growth number in it and I didn't want to re-platform under pressure a year later. I wrote the decision down with the actual spike numbers so nobody would relitigate it from memory. What I'd do differently: I'd have scoped the spike to include a failure-injection test (kill a node mid-deploy) on both, since that's exactly the scenario that later validated the choice during a real node loss.</p>
+<div class="table-wrap">
+<table>
+  <thead><tr><th></th><th>Compose (single host)</th><th>Docker Swarm</th><th>Kubernetes</th></tr></thead>
+  <tbody>
+    <tr><td>Setup cost</td><td>Minutes</td><td>Hours</td><td>Days–weeks</td></tr>
+    <tr><td>Native to Engine</td><td>Yes</td><td>Yes</td><td>No — separate control plane</td></tr>
+    <tr><td>Autoscaling</td><td>None</td><td>Manual replica count</td><td>HPA / cluster autoscaler</td></tr>
+    <tr><td>Multi-host networking</td><td>N/A</td><td>Overlay, adequate at modest scale</td><td>CNI, richer but more to operate</td></tr>
+    <tr><td>Right-sized for</td><td>One box, low stakes</td><td>Small team, fast start, moderate scale</td><td>Growth trajectory, larger org</td></tr>
+  </tbody>
+</table>
+</div>
+<div class="callout"><p><strong>What the interviewer is really probing:</strong> whether you can defend an infrastructure decision with real trade-offs under genuine uncertainty, rather than reciting "everyone uses Kubernetes." The mistake is dismissing Swarm as a toy without acknowledging it was the technically correct call at that scale, or picking Kubernetes and not owning the ongoing operational cost you took on.</p></div>
+
+<h3>(b) STAR/CARL scaffold</h3>
+<div class="scaffold"><dl>
+<dt>Situation</dt><dd>Team size, current stack, and the growth or reliability pressure forcing a decision.</dd>
+<dt>Task</dt><dd>What you were actually deciding, and by when.</dd>
+<dt>Action</dt><dd>How you de-risked the decision (a timeboxed spike, not a debate) and what you measured.</dd>
+<dt>Result</dt><dd>What you chose, and one moment later that validated or complicated it.</dd>
+<dt>Do differently</dt><dd>What the spike should have tested but didn't.</dd>
+</dl></div>
+
+<h3>(c) Recall prompts</h3>
+<ul class="recall">
+  <li>What's an infrastructure decision you made that you later had to defend to someone who joined after? <details><summary>hint</summary><p>Look for the artifact you left behind — a doc, an ADR, a spike's numbers — that did the defending for you.</p></details></li>
+  <li>When did you choose the "boring" option over the trendy one, or vice versa? <details><summary>hint</summary><p>Either direction is a good story if you can name the trade-off, not just the outcome.</p></details></li>
+  <li>Have you ever reversed an orchestration or platform decision? What triggered it? <details><summary>hint</summary><p>Growth, a hire who knew the alternative better, or a reliability incident are the usual triggers.</p></details></li>
+</ul>
+
+<h3>(d) Follow-up drill chain</h3>
+<div class="drill">
+<details class="quiz"><summary>Why not just stay on Compose with a reverse proxy in front?</summary><p>Compose alone has no cross-host scheduling or failover — losing the one box takes everything down. It's the right call for a single low-stakes service, but not for eight services a team depends on for uptime.</p></details>
+<details class="quiz"><summary>What if the team had stayed at three engineers instead of growing?</summary><p>I'd likely have stayed on Swarm — its operational cost is much lower, and three engineers can't absorb Kubernetes's ramp-up on top of feature work. The decision is a function of team capacity as much as traffic.</p></details>
+<details class="quiz"><summary>At what scale does Swarm's overlay networking start to hurt?</summary><p>In practice it's connection-count and node-churn driven more than raw request volume — high-cardinality service-to-service traffic and frequent rolling updates are where its reliability has needed the most upstream work. A stable, moderate-node deployment can run it comfortably for a long time.</p></details>
+<details class="quiz"><summary>What did you trade away by choosing Kubernetes?</summary><p>Three weeks of team ramp-up we could have spent on features, plus a permanently larger operational surface — more moving parts to patch, secure, and understand deeply enough to debug at 3am.</p></details>
+<details class="quiz"><summary>What would you do differently now?</summary><p>Run the failure-injection test in the spike itself rather than discovering the answer during a real incident, and set an explicit revisit date on the decision so it doesn't calcify past the point it's still correct.</p></details>
+</div>
+</section>
+
+<section id="u03" class="unit">
+<div class="story-head"><h2>03 The night the payments API OOM-looped</h2><span class="chip">Senior</span><span class="chip">Production incident</span></div>
+
+<h3>(a) Worked example <span class="chip">EXAMPLE — replace with your own</span></h3>
+<p>Paged at 2am: the payments API container was restarting every 40–60 seconds, and each restart briefly exhausted the database connection pool as it reconnected, which is what actually paged us — not the restarts themselves. <code>docker inspect</code> showed exit code 137 on every cycle: OOM-killed by the cgroup, not crashed. The container had a <code>--memory=512m</code> limit set months earlier, and the JVM's <code>-Xmx</code> was set to 480m — leaving almost no headroom for off-heap memory, thread stacks, or metaspace, all of which live inside the same cgroup limit the JVM heap does. A traffic bump that day pushed metaspace and thread count up just enough to tip it over, and the kernel's OOM killer took the whole process, not just "the memory it asked for." I raised the container limit to 1Gi, dropped <code>-Xmx</code> to 640m to leave real headroom, added <code>--memory-reservation=768m</code> as a soft ceiling that shows up before a hard kill, and added a Prometheus alert on cgroup memory usage approaching the hard limit instead of only alerting on restarts after the fact. What I'd do differently: I'd have caught this in load testing if we'd tested with the same memory limit as production instead of an unlimited local run — the limit itself was never exercised until real traffic did it for us.</p>
+<div class="callout"><p><strong>What the interviewer is really probing:</strong> incident-command judgment under pressure and whether you understand the OOM-kill mechanism, not just "we bumped the memory." A weak answer stops at "we gave it more RAM"; a strong one explains why the JVM's own limit and the cgroup limit have to be set in relation to each other, and names the monitoring gap that let it get this far before anyone knew.</p></div>
+
+<h3>(b) STAR/CARL scaffold</h3>
+<div class="scaffold"><dl>
+<dt>Situation</dt><dd>What paged you, what the symptom looked like from the outside (restarts, latency, errors) before you knew the cause.</dd>
+<dt>Task</dt><dd>Restore service first, understand root cause second — say which you did when.</dd>
+<dt>Action</dt><dd>The diagnostic step that turned "it's restarting" into "it's OOM-killed," and the fix.</dd>
+<dt>Result</dt><dd>MTTR, and the monitoring or limit change that prevents a repeat.</dd>
+<dt>Do differently</dt><dd>What you'd test pre-production so this doesn't reach 2am again.</dd>
+</dl></div>
+
+<h3>(c) Recall prompts</h3>
+<ul class="recall">
+  <li>What's a container restart loop you've debugged, and how did you tell OOM-kill apart from an app crash? <details><summary>hint</summary><p>Exit code 137 (or 143 for SIGTERM) plus <code>dmesg</code>/kernel OOM logs is the tell.</p></details></li>
+  <li>Have you ever set a memory limit that was technically correct but operationally too tight? <details><summary>hint</summary><p>Look for a limit set once at launch and never revisited as traffic or the runtime's footprint grew.</p></details></li>
+  <li>When did a restart policy make an incident worse instead of better? <details><summary>hint</summary><p>Aggressive restarts can hammer a downstream dependency (DB pool, cache) harder than a single crash would.</p></details></li>
+  <li>What's the gap between what your alerts told you and what was actually happening? <details><summary>hint</summary><p>Alerting on restart count instead of on the resource metric approaching its limit is the common miss.</p></details></li>
+</ul>
+
+<h3>(d) Follow-up drill chain</h3>
+<div class="drill">
+<details class="quiz"><summary>Why does exit code 137 mean OOM-kill specifically?</summary><p>137 is 128 + 9 — SIGKILL — and the cgroup's OOM killer sends SIGKILL, not SIGTERM, because it needs the process gone immediately to reclaim memory. A graceful shutdown (SIGTERM, 143) is a different failure entirely and points away from memory.</p></details>
+<details class="quiz"><summary>What if raising the memory limit had just delayed the same failure at a slightly higher traffic level?</summary><p>That's exactly why I added reservation-based alerting instead of only raising the ceiling — a limit increase without headroom tracking just moves the cliff edge, it doesn't remove it.</p></details>
+<details class="quiz"><summary>At what scale does this class of failure change shape?</summary><p>At higher replica counts, a shared root cause (a bad deploy, a traffic spike) OOM-kills many pods near-simultaneously, and the real risk shifts from one container's restart to a thundering-herd reconnect storm against the database — which is the exact mechanism that paged us here, just at a larger blast radius.</p></details>
+<details class="quiz"><summary>What did you trade away with a higher memory limit?</summary><p>Density — fewer instances fit per node at the same total memory budget, so it's a real cost decision, not a free fix, and I'd frame it that way to whoever owns the infra budget.</p></details>
+<details class="quiz"><summary>How does cgroup v1 versus v2 change this diagnosis?</summary><p>v2's unified hierarchy gives cleaner memory-pressure signals (<code>memory.pressure</code>) than v1's separate controllers, so on a v2 host I'd expect to catch the approaching limit earlier from PSI metrics alone. cgroup v1 is deprecated in Engine 29 with support continuing to at least May 2029, so I'd flag any host still on v1 as a migration item, not just accept it.</p></details>
+<details class="quiz"><summary>What would you do differently now?</summary><p>Bake the production memory limit into the load-testing environment as a hard requirement, not an afterthought — the limit itself is part of the system under test, and it never was, until real traffic tested it for us.</p></details>
+</div>
+</section>
+
+<section id="u04" class="unit">
+<div class="story-head"><h2>04 Cutting over to the containerd image store</h2><span class="chip">Staff</span><span class="chip">Migration / upgrade</span></div>
+
+<h3>(a) Worked example <span class="chip">EXAMPLE — replace with your own</span></h3>
+<p>Since Engine 29.0.0, fresh installs default to the containerd image store instead of the legacy graph-driver stack (overlay2 and friends), but an existing host keeps whatever it already had until you opt in. I owned rolling our fleet from legacy overlay2 storage onto the containerd store ahead of a deprecation deadline. The upside was real: better multi-platform image handling, and image data that's directly usable by containerd-native tooling instead of Docker's own bespoke format. The migration itself is effectively one-way in practice — once a host's images live in the content store, going back means re-pulling everything on the old driver, so I staged it host-by-host behind a canary rather than as a fleet-wide flag flip. The change that actually bit us wasn't the storage engine — it was that <code>docker image ls</code> was redesigned in the same 29.0.0 release to show a collapsed tree view and hide untagged images by default. A cleanup script that counted <code>docker images | wc -l</code> to decide whether pruning was needed suddenly under-counted, because it silently stopped seeing untagged layers it used to count. I caught it in staging because I diffed script output before and after on the same host, not because anyone read the release notes line about it. Fixed by switching the script to <code>docker image ls --all --format</code> with explicit fields instead of parsing the human table at all. What I'd do differently: treat "redesigned output" as a breaking change to anything parsing it, and grep the whole fleet's tooling for <code>docker images |</code> or <code>docker ps |</code> pipelines before any Engine major bump, not after.</p>
+<div class="callout"><p><strong>What the interviewer is really probing:</strong> whether you read release notes for behavioral changes, not just feature announcements, and whether you have a rollback plan for something that's structurally hard to roll back. The mistake candidates make is describing the shiny new feature and skipping the boring tooling breakage that's what actually causes migration pain in practice.</p></div>
+
+<h3>(b) STAR/CARL scaffold</h3>
+<div class="scaffold"><dl>
+<dt>Situation</dt><dd>What version you were on, what forced the upgrade (deprecation, a needed feature, a CVE).</dd>
+<dt>Task</dt><dd>The migration plan and its risk profile (one-way vs. reversible).</dd>
+<dt>Action</dt><dd>Canary strategy, and the thing that broke that wasn't the headline feature.</dd>
+<dt>Result</dt><dd>Fleet-wide outcome, and how long the canary phase bought you to find issues safely.</dd>
+<dt>Do differently</dt><dd>What you'd audit fleet-wide before the next major bump.</dd>
+</dl></div>
+
+<h3>(c) Recall prompts</h3>
+<ul class="recall">
+  <li>What's a Docker Engine or Compose upgrade that broke something you didn't expect? <details><summary>hint</summary><p>Often tooling that parses CLI output, not the feature the release notes led with.</p></details></li>
+  <li>Have you ever staged an infrastructure migration behind a canary because rollback was expensive? <details><summary>hint</summary><p>Any one-way data-format or storage-engine change qualifies.</p></details></li>
+  <li>Do you read release notes for behavioral changes, or only for new features? <details><summary>hint</summary><p>Be honest — this is a good moment to admit a near-miss if you have one.</p></details></li>
+</ul>
+
+<h3>(d) Follow-up drill chain</h3>
+<div class="drill">
+<details class="quiz"><summary>Why is the containerd image store hard to roll back from?</summary><p>Images get re-materialized into containerd's content-addressable store rather than the old graph driver's layout, so reverting means the old driver no longer has the data in its expected shape — practically, you re-pull rather than convert back.</p></details>
+<details class="quiz"><summary>What if a host had no room to re-pull the whole image set during a canary rollback?</summary><p>I'd pre-stage disk headroom as a canary precondition, or narrow the canary to hosts with spare capacity first — a rollback plan that can't actually execute isn't a rollback plan.</p></details>
+<details class="quiz"><summary>At what fleet size does host-by-host canarying become impractical?</summary><p>Past a few hundred hosts I'd move to a percentage-based rollout with automated health gating rather than hand-picking canaries, but the principle — verify tooling against the new output before trusting it fleet-wide — doesn't change.</p></details>
+<details class="quiz"><summary>What did you trade away by staging it slowly?</summary><p>Time — the deprecated path stayed live longer than ideal, which is a real cost if the deprecation carries its own risk (an unpatched legacy driver, say), so I'd weigh migration speed against that risk explicitly next time.</p></details>
+<details class="quiz"><summary>What would you do differently now?</summary><p>Build a small compatibility-check script that runs common fleet tooling against both output formats before the migration starts, turning "we found it in staging" into "we knew before we touched a single host."</p></details>
+</div>
+</section>
+
+<section id="u05" class="unit">
+<div class="story-head"><h2>05 The rootful vs. rootless standoff</h2><span class="chip">Senior</span><span class="chip">Technical disagreement</span></div>
+
+<h3>(a) Worked example <span class="chip">EXAMPLE — replace with your own</span></h3>
+<p>A security-minded colleague pushed hard for rootless Docker fleet-wide: no root daemon means a container-breakout bug has a much smaller blast radius, since the daemon itself isn't running as root on the host. I didn't disagree with the security case — I pushed back on doing it fleet-wide in one move, because rootless historically paid for that safety with real operational friction: slirp4netns networking was measurably slower than the default bridge, binding privileged ports under 1024 needed extra plumbing, and resource limits needed cgroups v2 delegation that not every one of our older hosts had configured. We compromised: rootless for anything internet-facing and high-risk first, rootful (with seccomp/AppArmor defaults intact) for internal batch jobs where the friction wasn't worth it yet. That compromise aged well — Engine 29.5.0 replaced slirp4netns with gvisor-tap-vsock as the default rootless network driver specifically to close the performance gap, and 29.8.0 shipped RootlessKit v3.1.0 with a new port driver, so the operational case against rootless has kept getting weaker exactly as we assumed it would. What I'd do differently: I'd have written the compromise down as a dated decision with a re-evaluation trigger tied to specific Engine releases, instead of it living only in a Slack thread that's now hard to find.</p>
+<div class="callout"><p><strong>What the interviewer is really probing:</strong> how you handle a disagreement where the other person is right on the merits but wrong on timing or blast radius, and whether you can land on "yes, and" instead of a binary win/lose. The mistake is either capitulating without a plan or refusing to move at all — both read as poor judgment for this level.</p></div>
+
+<h3>(b) STAR/CARL scaffold</h3>
+<div class="scaffold"><dl>
+<dt>Situation</dt><dd>The specific disagreement, and why it mattered enough to litigate rather than shrug off.</dd>
+<dt>Task</dt><dd>Land on a decision the team could actually execute, not just "win" the argument.</dd>
+<dt>Action</dt><dd>The compromise you proposed and how you sequenced it.</dd>
+<dt>Result</dt><dd>How the compromise held up as the underlying tooling matured.</dd>
+<dt>Do differently</dt><dd>How you'd document the decision so it doesn't get relitigated from scratch.</dd>
+</dl></div>
+
+<h3>(c) Recall prompts</h3>
+<ul class="recall">
+  <li>What's a technical disagreement where the other person was right but you disagreed on timing? <details><summary>hint</summary><p>Security-vs-friction trade-offs are the classic shape of this.</p></details></li>
+  <li>Have you ever proposed a staged compromise instead of an all-or-nothing rollout? <details><summary>hint</summary><p>Look for anywhere you sequenced a risky change by blast radius or exposure.</p></details></li>
+  <li>When did you have to update a past decision because the tooling underneath it changed? <details><summary>hint</summary><p>A "revisit trigger" tied to a specific release is a strong, senior-flavored detail.</p></details></li>
+</ul>
+
+<h3>(d) Follow-up drill chain</h3>
+<div class="drill">
+<details class="quiz"><summary>Why does rootless meaningfully reduce blast radius specifically?</summary><p>The daemon and container processes run as an unprivileged user mapped via user namespaces, so a container-escape bug lands the attacker in an unprivileged context on the host rather than as root — it doesn't prevent escapes, it caps what one is worth.</p></details>
+<details class="quiz"><summary>What if the internal batch jobs you left rootful turned out to process untrusted input?</summary><p>Then my risk classification was wrong and they should have been in the first wave — this is exactly the kind of assumption I'd want a second pair of eyes on before finalizing the split, not after.</p></details>
+<details class="quiz"><summary>At what scale does a fleet-wide rootless flip become worth the remaining friction?</summary><p>Once the performance gap is close enough that nobody notices, which the gvisor-tap-vsock default and newer RootlessKit port drivers are actively closing — I'd re-run the original benchmark on current Engine before assuming the old numbers still apply.</p></details>
+<details class="quiz"><summary>What did you trade away with the staged compromise?</summary><p>Consistency — two operational models running side by side for longer, which is its own maintenance cost and a source of "which mode is this host in" confusion if it isn't tracked explicitly.</p></details>
+<details class="quiz"><summary>What would you do differently now?</summary><p>Write the compromise as a dated ADR with an explicit re-evaluation trigger tied to Engine release notes, so the decision updates itself on schedule instead of needing someone to remember a Slack thread.</p></details>
+</div>
+</section>
+
+<section id="u06" class="unit">
+<div class="story-head"><h2>06 DNS that only failed under load</h2><span class="chip">Mid</span><span class="chip">Nasty debugging session</span></div>
+
+<h3>(a) Worked example <span class="chip">EXAMPLE — replace with your own</span></h3>
+<p>One service intermittently failed to resolve another service's name — only under load, only for a few seconds at a time, and never reproducibly on demand. Logs showed <code>getaddrinfo</code> timeouts against Docker's embedded DNS server on the bridge network. I eventually caught it with <code>tcpdump</code> inside the container during a synthetic load spike: UDP DNS packets were being dropped under connection-storm conditions, and the client's <code>resolv.conf</code> had the default <code>ndots:0</code>-adjacent search behavior triggering extra lookups for what should have been a single internal query, multiplying the DNS load exactly when the network was already busiest. The fix had two parts: reduce unnecessary lookups by using fully-qualified internal names so the resolver didn't need multiple attempts, and move the highest-QPS service-to-service calls off ad hoc DNS lookups onto a cached service-discovery layer that only re-resolved on a TTL, not per request. The intermittent failures disappeared under the same load test that used to reproduce them in minutes. What I'd do differently: I burned almost a full day assuming it was an application-level connection-pool bug before I thought to look at the network layer at all — I'd start with a packet capture under load much earlier next time, since "works most of the time" is a strong hint to look at something probabilistic like packet loss, not application logic.</p>
+<div class="callout"><p><strong>What the interviewer is really probing:</strong> systematic debugging under an intermittent, load-dependent symptom, and whether you know where the embedded DNS server's real limits are rather than treating it as an opaque black box. The mistake is jumping straight to "add a retry" without understanding why the failure happens, which just hides the same problem at slightly higher load.</p></div>
+
+<h3>(b) STAR/CARL scaffold</h3>
+<div class="scaffold"><dl>
+<dt>Situation</dt><dd>The symptom, its intermittency, and why it resisted the obvious first theories.</dd>
+<dt>Task</dt><dd>Find the real mechanism, not just a patch that makes the symptom quieter.</dd>
+<dt>Action</dt><dd>The tool that finally made it visible, and the two-part fix.</dd>
+<dt>Result</dt><dd>Confirmed under the same load test that used to reproduce it.</dd>
+<dt>Do differently</dt><dd>Which assumption cost you the most debugging time.</dd>
+</dl></div>
+
+<h3>(c) Recall prompts</h3>
+<ul class="recall">
+  <li>What's a bug you've chased that only appeared under load, never on demand? <details><summary>hint</summary><p>Look for anything you eventually diagnosed with a packet capture or a profiler under synthetic load.</p></details></li>
+  <li>Have you ever misdiagnosed a networking issue as an application bug, or the reverse? <details><summary>hint</summary><p>Being honest about the wrong turn is more memorable than a clean, linear investigation.</p></details></li>
+  <li>What's your first move when a failure is real but not reproducible on demand? <details><summary>hint</summary><p>Reach for something that captures state continuously (tcpdump, a profiler, verbose logging) rather than retrying and hoping.</p></details></li>
+</ul>
+
+<h3>(d) Follow-up drill chain</h3>
+<div class="drill">
+<details class="quiz"><summary>Why does UDP DNS traffic degrade under exactly this kind of load, mechanically?</summary><p>UDP has no built-in retransmission or congestion control, so when the network path is saturated, DNS packets simply get dropped rather than queued or slowed — and a client that doesn't retry aggressively just sees a timeout with no other signal.</p></details>
+<details class="quiz"><summary>What if fully-qualifying names hadn't been enough on its own?</summary><p>I'd have moved to TCP for DNS if supported end to end, or put a local caching resolver (like a per-node dnsmasq or a sidecar) between the container and the embedded DNS server to absorb the burst instead of hitting it directly every time.</p></details>
+<details class="quiz"><summary>At what scale does relying on ad hoc per-request DNS lookups become a systemic risk rather than an edge case?</summary><p>Roughly wherever service-to-service call volume starts to rival the DNS server's own throughput ceiling — past that point, every additional request is also an additional resolution, and the two scale together until one of them breaks first.</p></details>
+<details class="quiz"><summary>What did you trade away moving high-QPS calls to a cached discovery layer?</summary><p>Freshness — a TTL-based cache means a just-changed endpoint isn't picked up instantly, so I sized the TTL against how often endpoints actually changed in practice, not against a theoretical worst case.</p></details>
+<details class="quiz"><summary>What would you do differently now?</summary><p>Reach for a packet capture under synthetic load on day one of an intermittent, load-correlated bug, instead of spending most of a day on application-layer theories that intermittency alone should have made me suspicious of.</p></details>
+</div>
+</section>
+
+<section id="u07" class="unit">
+<div class="story-head"><h2>07 Docker Hub throttled us at 3am</h2><span class="chip">Senior</span><span class="chip">Scaling challenge</span></div>
+
+<h3>(a) Worked example <span class="chip">EXAMPLE — replace with your own</span></h3>
+<p>An autoscale event during a traffic spike meant dozens of new nodes pulling the same base images from Docker Hub within a few minutes, and midway through, new containers started failing to start with pull errors. We'd hit Docker Hub's pull-rate limit — our nodes were pulling anonymously or on a low-tier authenticated account, and a burst scale-out looks, from the registry's side, exactly like the abusive traffic the limits exist to stop. The immediate fix was ugly but fast: fail over pulls to a mirrored copy of the same images in our own private registry so new nodes stopped depending on Hub entirely during the incident. The durable fix was a pull-through cache/registry mirror sitting in front of Docker Hub for all base-image pulls, so steady-state traffic hits our own infrastructure and only cache misses go external, plus switching CI and node bootstrapping to authenticated pulls with a plan tier sized for our actual burst pattern, not our average one. What I'd do differently: I'd have load-tested the autoscale path against realistic pull volume before it ever needed to handle a real spike — nobody had modeled "fifty nodes pull the same image in the same sixty seconds" as a load scenario at all, because it's an infrastructure dependency, not application traffic, and it fell through the gap between two teams' test plans.</p>
+<div class="callout"><p><strong>What the interviewer is really probing:</strong> whether you understand a dependency's failure mode from its owner's perspective (a registry protecting itself, not "being unreliable"), and whether you separate the fast mitigation from the durable fix in how you tell it. The mistake is treating a third-party rate limit as a bug to route around forever rather than a capacity problem to plan for.</p></div>
+
+<h3>(b) STAR/CARL scaffold</h3>
+<div class="scaffold"><dl>
+<dt>Situation</dt><dd>What triggered the burst, and how the failure first showed up.</dd>
+<dt>Task</dt><dd>Restore autoscaling capacity now, then remove the dependency risk for good.</dd>
+<dt>Action</dt><dd>The immediate mitigation, then the mirror/cache and authenticated-pull fix.</dd>
+<dt>Result</dt><dd>Time to recovery, and how the next similar spike behaved.</dd>
+<dt>Do differently</dt><dd>The load-testing gap that let this reach production.</dd>
+</dl></div>
+
+<h3>(c) Recall prompts</h3>
+<ul class="recall">
+  <li>What's an external dependency (registry, package index, API) that throttled you under your own success — a spike you caused, not one done to you? <details><summary>hint</summary><p>Autoscaling, batch jobs, and cache-warming are common triggers for self-inflicted throttling.</p></details></li>
+  <li>Have you separated a fast mitigation from a durable fix in an incident you've told before? <details><summary>hint</summary><p>Naming both, and why the durable one took longer, reads as more senior than a single "and then we fixed it."</p></details></li>
+  <li>What load scenario has fallen through the gap between two teams' test plans on something you've worked on? <details><summary>hint</summary><p>Infrastructure-dependency load (registries, DNS, secrets stores) is a common blind spot.</p></details></li>
+</ul>
+
+<h3>(d) Follow-up drill chain</h3>
+<div class="drill">
+<details class="quiz"><summary>Why does a legitimate autoscale burst look like abuse to a public registry?</summary><p>Rate limits are usually keyed on IP or account and a short time window; a registry has no way to distinguish "one customer scaling out" from "one bad actor hammering us" without more context than a pull request carries.</p></details>
+<details class="quiz"><summary>What if the pull-through cache itself had been cold for a brand-new image tag during the next spike?</summary><p>Then the cache miss still goes external for that first pull, so I'd pre-warm the cache as part of the deploy pipeline for any new tag before it's ever needed by an autoscale event, not rely on the first real pull to populate it.</p></details>
+<details class="quiz"><summary>At what node count does even an authenticated, higher-tier pull limit start to matter again?</summary><p>Whatever the account's burst allowance is — the fix isn't "authenticated pulls never throttle," it's "authenticated pulls throttle at a limit we've actually sized against our real burst pattern," and that number needs revisiting as the fleet grows.</p></details>
+<details class="quiz"><summary>What did you trade away running your own registry mirror?</summary><p>Another piece of infrastructure to keep available and patched — if the mirror itself has an outage, it's now a single point of failure for every pull, so it needs its own redundancy story.</p></details>
+<details class="quiz"><summary>What would you do differently now?</summary><p>Add "pull N images across M nodes in under a minute" as an explicit load-test scenario owned by someone, instead of leaving registry pull volume as an implicit assumption nobody's test plan covered.</p></details>
+</div>
+</section>
+
+<section id="u08" class="unit">
+<div class="story-head"><h2>08 A socket mount someone forgot about</h2><span class="chip">Staff</span><span class="chip">Security issue</span></div>
+
+<h3>(a) Worked example <span class="chip">EXAMPLE — replace with your own</span></h3>
+<p>A security review turned up a scheduled "cleanup" container that mounted <code>/var/run/docker.sock</code> into itself so it could prune old containers and images on a timer. Nobody had threat-modeled it, because it wasn't seen as a security decision — it was seen as a convenient way to call the Docker API. Mounting the socket is, in practice, root-equivalent access to the host: anything inside that container can launch a new privileged container mounting the host's root filesystem, which is a straightforward escape, not a theoretical one. I removed the direct mount and replaced it with a small scoped API proxy in front of the socket, exposing only the specific prune endpoints the job actually needed and denying everything else, running the job itself as a non-root user. Around the same time, Engine 29.0.0 removed Docker Content Trust from the CLI, which was a useful reminder in the writeup that image-signing verification is now a deliberate separate step you have to choose to add back, not something you get by default — I used that to argue for pinning base images by digest for anything with elevated privileges, cleanup job included. What I'd do differently: audit for socket mounts as a standing, recurring check, not a one-time review finding — this is exactly the kind of thing that creeps back in through a new integration nobody flags as sensitive.</p>
+<div class="callout"><p><strong>What the interviewer is really probing:</strong> whether you understand *why* the socket is dangerous (root-equivalent, not just "sensitive"), and whether your fix is a durable control (a scoped proxy, least privilege) or a one-off patch. The mistake is fixing the one instance found and not turning it into a repeatable check that catches the next one.</p></div>
+
+<h3>(b) STAR/CARL scaffold</h3>
+<div class="scaffold"><dl>
+<dt>Situation</dt><dd>How the exposure was found, and why it had gone unnoticed.</dd>
+<dt>Task</dt><dd>Close the immediate hole without breaking the job that depended on it.</dd>
+<dt>Action</dt><dd>The scoped-access fix, and what you did to catch the next instance.</dd>
+<dt>Result</dt><dd>What changed in process, not just in that one container.</dd>
+<dt>Do differently</dt><dd>How you'd make this a standing check instead of a one-time finding.</dd>
+</dl></div>
+
+<h3>(c) Recall prompts</h3>
+<ul class="recall">
+  <li>Have you found (or created) a Docker socket mount, sensitive credential mount, or other over-broad permission grant that nobody had flagged? <details><summary>hint</summary><p>CI runners that "need Docker" are the most common source of this.</p></details></li>
+  <li>What's a security fix you turned into a recurring check instead of a one-time cleanup? <details><summary>hint</summary><p>A CI lint rule, a policy scan, or a scheduled audit script all count.</p></details></li>
+  <li>When has "it's just for a scheduled job, it's not customer-facing" turned out to be the wrong risk framing? <details><summary>hint</summary><p>Internal tooling with elevated access is often the softest target precisely because it's assumed to be low-risk.</p></details></li>
+</ul>
+
+<h3>(d) Follow-up drill chain</h3>
+<div class="drill">
+<details class="quiz"><summary>Why is a socket mount root-equivalent rather than merely "risky"?</summary><p>The Docker API lets a caller launch a new container with arbitrary host mounts and privileges — including mounting the host's <code>/</code> — so anything that can talk to the socket can, in one API call, get an unrestricted root shell on the host itself.</p></details>
+<details class="quiz"><summary>What if the job genuinely needed to create and remove containers, not just prune them?</summary><p>I'd scope the proxy to exactly the verbs and image patterns the job uses, and consider whether the job could run outside the cluster entirely — against a remote Buildx-style builder or a separate, isolated host — rather than needing daemon access from inside the fleet at all.</p></details>
+<details class="quiz"><summary>At what point does a scoped API proxy itself become the next thing to audit?</summary><p>The moment its allowed-endpoint list grows past what one person can eyeball in a code review — past that, it needs its own automated test asserting which calls are permitted, so scope creep in the proxy doesn't quietly recreate the original hole.</p></details>
+<details class="quiz"><summary>What did you trade away replacing the direct mount with a proxy?</summary><p>A small amount of latency and an extra component to keep running — worth it here, but I'd say so plainly rather than pretend the fix was free.</p></details>
+<details class="quiz"><summary>What would you do differently now?</summary><p>Add a fleet-wide scan for socket mounts (and other high-privilege mounts) to the same pipeline that checks for exposed secrets, so this class of issue is caught by automation before the next review cycle finds it by hand.</p></details>
+</div>
+</section>
+
+<section id="u09" class="unit">
+<div class="story-head"><h2>09 The 4GB image nobody could explain</h2><span class="chip">Mid</span><span class="chip">Tech-debt paydown</span></div>
+
+<h3>(a) Worked example <span class="chip">EXAMPLE — replace with your own</span></h3>
+<p>A service's image had grown to over 4GB and nobody currently on the team knew why — it had just always been "big." I used <code>docker image ls --tree</code>, the collapsed layer-tree view Engine 29.0.0 made the default, to see which layers were actually large rather than guessing from the Dockerfile alone. The biggest offenders were a full build toolchain baked into the final image (compilers, headers, and package-manager caches that were only ever needed during the build), and a single <code>RUN apt-get update && apt-get install ...</code> layer that never cleaned its own package cache before the layer closed. I rewrote it as a multi-stage build: a builder stage with the full toolchain, a slim runtime stage that <code>COPY --from=builder</code>s only the compiled artifact, and moved the package cache into a BuildKit <code>--mount=type=cache</code> so it never lands in a committed layer at all. Final image dropped from 4.1GB to about 280MB. What I'd do differently: I'd have caught this months earlier with a simple CI check that fails a build if the resulting image crosses a size threshold — the regression happened gradually, one dependency at a time, and nothing ever flagged it until it was already enormous.</p>
+<div class="table-wrap">
+<table>
+  <thead><tr><th></th><th>Single-stage, full OS base</th><th>Multi-stage, slim runtime</th></tr></thead>
+  <tbody>
+    <tr><td>Build toolchain in final image</td><td>Yes — dead weight</td><td>No — stays in the builder stage</td></tr>
+    <tr><td>Package-manager cache</td><td>Baked into a layer unless manually cleaned</td><td>Lives in a BuildKit cache mount, never in a layer</td></tr>
+    <tr><td>Attack surface</td><td>Larger — more binaries present at runtime</td><td>Smaller</td></tr>
+    <tr><td>Typical size here</td><td>~4.1GB</td><td>~280MB</td></tr>
+  </tbody>
+</table>
+</div>
+<div class="callout"><p><strong>What the interviewer is really probing:</strong> whether you diagnose before rewriting (using tooling to find the actual big layers, not assuming) and whether you close the regression path, not just the current instance. The mistake is a one-time Dockerfile rewrite with no size gate, so the same drift happens again in six months.</p></div>
+
+<h3>(b) STAR/CARL scaffold</h3>
+<div class="scaffold"><dl>
+<dt>Situation</dt><dd>How big the image was, and why nobody had a clear answer for why.</dd>
+<dt>Task</dt><dd>Find the real cause before rewriting anything.</dd>
+<dt>Action</dt><dd>The tool you used to see actual layer sizes, and the multi-stage rewrite.</dd>
+<dt>Result</dt><dd>Before/after size, and any downstream win (faster pulls, smaller attack surface).</dd>
+<dt>Do differently</dt><dd>The CI gate that would have caught the drift early.</dd>
+</dl></div>
+
+<h3>(c) Recall prompts</h3>
+<ul class="recall">
+  <li>What's an image or artifact on something you own that's bigger than anyone can currently explain? <details><summary>hint</summary><p>If you don't have one, this is worth actually checking before the interview.</p></details></li>
+  <li>Have you rewritten a Dockerfile into multi-stage, and what was the actual size win? <details><summary>hint</summary><p>A specific before/after number is far more memorable than "we made it smaller."</p></details></li>
+  <li>What's a tech-debt fix you made permanent with a gate, rather than a one-time cleanup? <details><summary>hint</summary><p>A CI size check, a lint rule, or a policy-as-code check all count.</p></details></li>
+</ul>
+
+<h3>(d) Follow-up drill chain</h3>
+<div class="drill">
+<details class="quiz"><summary>Why does a multi-stage build actually remove the toolchain, rather than just hide it?</summary><p>Each stage produces its own independent set of layers; the final image is built <em>only</em> from the last stage's layers plus whatever was explicitly <code>COPY --from</code>'d in, so anything left in an earlier stage simply isn't part of the final image's layer graph at all.</p></details>
+<details class="quiz"><summary>What if the runtime stage still needed some build tools at container start (e.g. a native module compiled on first run)?</summary><p>Then I'd either move that compilation into the build stage entirely and ship the compiled artifact, or accept a larger runtime image deliberately and document why — the goal is an intentional trade-off, not reflexively minimal at any cost.</p></details>
+<details class="quiz"><summary>At what image size does the difference stop mattering for a given deployment target?</summary><p>It depends on the constraint that actually bites — pull time on a cold autoscale event, registry storage cost, or a hard image-size limit on a serverless container platform; I'd size the target to whichever constraint is real for that service rather than a round number.</p></details>
+<details class="quiz"><summary>What did you trade away with the multi-stage rewrite?</summary><p>A slightly more complex Dockerfile to read and maintain — two stages instead of one — which is a fair trade here but worth naming rather than pretending multi-stage is free complexity.</p></details>
+<details class="quiz"><summary>What would you do differently now?</summary><p>Add a CI step that fails the build if the final image exceeds a size budget, so the next slow creep gets caught automatically instead of needing someone to notice "this feels big" months later.</p></details>
+</div>
+</section>
+
+<section id="u10" class="unit">
+<div class="story-head"><h2>10 Teaching a junior to read a Dockerfile</h2><span class="chip">Senior</span><span class="chip">Mentoring</span></div>
+
+<h3>(a) Worked example <span class="chip">EXAMPLE — replace with your own</span></h3>
+<p>A junior engineer kept submitting Dockerfiles that worked but that I couldn't approve as-is: <code>FROM node:latest</code>, everything running as root, a single giant <code>RUN</code> chain, no <code>HEALTHCHECK</code>. Rather than rewriting their PRs myself, which teaches nothing, I paired with them for an hour on one real Dockerfile and walked the mental model out loud: a layer's cache key is the instruction plus what it touches, so instruction order is a performance decision, not a style preference; <code>:latest</code> is a moving target that makes "it worked yesterday" a real production risk, not just sloppy; running as root by default means a container-escape bug hands the attacker root on the host for free. Then I turned the walkthrough into a five-point PR checklist for the team — pinned base image (tag or digest), explicit multi-stage split, non-root <code>USER</code>, a <code>.dockerignore</code>, and a <code>HEALTHCHECK</code> or equivalent orchestrator probe — so the standard lived in a doc, not only in my head. Their next three PRs passed review with no back-and-forth, and two other engineers started using the same checklist unprompted. What I'd do differently: I'd have written the checklist before the first correction, not after — the first PR round taught them by trial and error what a doc could have taught in five minutes.</p>
+<div class="callout"><p><strong>What the interviewer is really probing:</strong> whether you teach the underlying model instead of just fixing the code, and whether the fix scales past one person. The mistake is a story that's really "I did the junior's job for them," with no evidence they can now do it themselves or that anyone else benefited.</p></div>
+
+<h3>(b) STAR/CARL scaffold</h3>
+<div class="scaffold"><dl>
+<dt>Situation</dt><dd>The pattern of mistakes, and why fixing each PR individually wasn't sustainable.</dd>
+<dt>Task</dt><dd>Build understanding, not just correct that one Dockerfile.</dd>
+<dt>Action</dt><dd>The pairing session and the mental model you walked through.</dd>
+<dt>Result</dt><dd>Evidence of transfer — later PRs, or someone else adopting the same standard.</dd>
+<dt>Do differently</dt><dd>What you'd document before the first correction, not after.</dd>
+</dl></div>
+
+<h3>(c) Recall prompts</h3>
+<ul class="recall">
+  <li>Who have you leveled up on a specific technical skill, and how do you know it stuck? <details><summary>hint</summary><p>Look for a concrete later signal — a PR, a question they answered for someone else — not just "I explained it."</p></details></li>
+  <li>What checklist or standard did you write down after teaching the same lesson twice? <details><summary>hint</summary><p>The second repetition is usually the trigger to write it down instead of explaining it again.</p></details></li>
+  <li>Have you ever fixed someone's code yourself when you should have paired instead? <details><summary>hint</summary><p>A moment of admitted impatience is a strong, honest beat in this kind of story.</p></details></li>
+</ul>
+
+<h3>(d) Follow-up drill chain</h3>
+<div class="drill">
+<details class="quiz"><summary>Why is explaining the cache-key mental model more valuable than just saying "reorder your COPY"?</summary><p>The instruction alone only fixes today's Dockerfile; the model lets them make the right call on the next one, including cases (multi-stage, cache mounts) the specific instruction never covered.</p></details>
+<details class="quiz"><summary>What if the checklist itself started going stale as Engine features moved on?</summary><p>I'd own it as a living doc with a named owner and tie it to a review cadence, the same way I'd treat any standard that references specific tooling behavior likely to change.</p></details>
+<details class="quiz"><summary>At what team size does a checklist need to become an automated lint check instead of a document?</summary><p>Roughly once PR volume outpaces what a reviewer can consistently apply by memory — past that, encode it as a CI check (hadolint rules, a policy scanner) so the standard doesn't depend on which reviewer is on the PR.</p></details>
+<details class="quiz"><summary>What did you trade away spending an hour pairing instead of just fixing it yourself?</summary><p>Short-term velocity on that one PR — pairing is slower in the moment, and I'd only spend that hour where the lesson clearly generalizes, not on a one-off that isn't worth the time.</p></details>
+<details class="quiz"><summary>What would you do differently now?</summary><p>Write the checklist as onboarding material before the first Dockerfile PR ever lands, so the standard is set proactively instead of reconstructed reactively from someone's mistakes.</p></details>
+</div>
+</section>
+
+<section id="u11" class="unit">
+<div class="story-head"><h2>11 Shipping without health checks, over my objection</h2><span class="chip">Staff</span><span class="chip">Scope / deadline negotiation</span></div>
+
+<h3>(a) Worked example <span class="chip">EXAMPLE — replace with your own</span></h3>
+<p>Two days before a deadline, a product stakeholder wanted a new service shipped without a <code>HEALTHCHECK</code> or readiness probe — "it starts fine in every test, we don't have time." I didn't just say no; I quantified the risk in the stakeholder's own terms: without a health check, the orchestrator treats "container started" as "container ready," so a slow dependency (a cold cache, a DB migration still running) would route real traffic to an instance that can't yet serve it, and the failure mode would be customer-visible errors during the exact launch window we most needed to look good. I proposed a one-day-scoped version — a minimal <code>/healthz</code> that just checked the DB connection was live, not the full readiness surface we'd eventually want — instead of the full implementation, so the deadline held and the actual risk was covered. It shipped on time, and about a week later a genuinely slow migration on a deploy would have caused exactly the failure I'd described, except the health check caught it and the orchestrator held traffic back until it passed. What I'd do differently: I'd have proposed the scoped-down version proactively as part of the original estimate, instead of only offering it after the pushback started — it made the negotiation look like a concession when it should have been the plan from the start.</p>
+<div class="callout"><p><strong>What the interviewer is really probing:</strong> whether you can push back with the stakeholder's incentives in mind (their launch looking good) rather than just "engineering says no," and whether you can find a scoped middle ground under real time pressure. The mistake is either rolling over on something that actually matters, or refusing to negotiate at all and blowing the deadline over a smaller ask than what you actually needed.</p></div>
+
+<h3>(b) STAR/CARL scaffold</h3>
+<div class="scaffold"><dl>
+<dt>Situation</dt><dd>The deadline pressure and what was being cut to hit it.</dd>
+<dt>Task</dt><dd>Protect the thing that actually mattered without blowing the date.</dd>
+<dt>Action</dt><dd>How you reframed the risk in their terms, and the scoped-down alternative.</dd>
+<dt>Result</dt><dd>What shipped, and the moment that later validated the concern.</dd>
+<dt>Do differently</dt><dd>What you'd propose earlier next time, before pushback is needed at all.</dd>
+</dl></div>
+
+<h3>(c) Recall prompts</h3>
+<ul class="recall">
+  <li>What's a corner someone wanted to cut under deadline pressure where you found a scoped-down middle ground? <details><summary>hint</summary><p>The strongest version names the specific smaller thing you shipped instead of "no" or "yes."</p></details></li>
+  <li>Have you reframed a technical risk in a stakeholder's own incentives rather than in engineering language? <details><summary>hint</summary><p>"This could break your launch" lands differently than "this violates best practice."</p></details></li>
+  <li>When did holding a line turn out to matter, with a concrete later payoff? <details><summary>hint</summary><p>The best version of this story has a specific moment where the thing you insisted on caught a real problem.</p></details></li>
+</ul>
+
+<h3>(d) Follow-up drill chain</h3>
+<div class="drill">
+<details class="quiz"><summary>Why does "starts fine in every test" not guarantee readiness?</summary><p>Tests usually run against warm, already-provisioned dependencies; a fresh production instance can start its process successfully while a cold cache or an in-flight migration means it isn't actually able to serve correct responses yet — health checks close exactly that gap.</p></details>
+<details class="quiz"><summary>What if the stakeholder had refused even the one-day scoped version?</summary><p>I'd escalate the trade-off explicitly to whoever owns the launch decision, framed as a specific, named risk they're choosing to accept — not block silently, and not go around them, but make the decision and its owner visible.</p></details>
+<details class="quiz"><summary>At what point does a minimal health check stop being enough?</summary><p>Once the service has dependencies whose failure modes a simple liveness ping can't see — a healthy TCP connection to a database that's actually out of disk space, say — that's the trigger to invest in the fuller readiness surface I'd originally wanted.</p></details>
+<details class="quiz"><summary>What did you trade away shipping the minimal version instead of the full one?</summary><p>Coverage — the minimal check would have missed other classes of not-ready-yet failures, which I accepted explicitly as a scoped, temporary gap rather than a permanent one.</p></details>
+<details class="quiz"><summary>What would you do differently now?</summary><p>Bake a minimal health check into every service's initial scaffolding by default, so it's never something to negotiate away under pressure — it's just part of what "done" means before the negotiation even starts.</p></details>
+</div>
+</section>
+
+<section id="u12" class="unit">
+<div class="story-head"><h2>12 The volume that looked like a bind mount</h2><span class="chip">Mid</span><span class="chip">Data-loss scare</span></div>
+
+<h3>(a) Worked example <span class="chip">EXAMPLE — replace with your own</span></h3>
+<p>Someone ran <code>docker compose down -v</code> on a staging host to "reset everything" before a demo, not realizing that the database service's data directory was a named volume, not the bind-mounted host path they assumed it was — the compose file had been edited months earlier and the mental model of "where the data lives" never got updated to match. The flag removed the named volume along with the containers, and several weeks of accumulated demo/test data was gone in one command. Nothing customer-facing was lost — it was staging — but the scare was real, and the near-miss was that the same muscle-memory command habit existed on people's mental checklist for other environments too. I ran <code>docker volume ls</code> and <code>docker inspect</code> against every environment to build an actual inventory of what was a named volume, an anonymous volume (created implicitly by a base image's own <code>VOLUME</code> instruction, which surprised a couple of people who didn't know their image declared one), or a genuine bind mount, and added a pre-destroy confirmation step to any script that could touch volumes outside of local dev. What I'd do differently: I'd have set up scheduled volume backups for staging before this happened, not after — "it's only staging" is exactly the reasoning that lets a real gap go unaddressed until it costs something, even something as recoverable as demo data.</p>
+<div class="callout"><p><strong>What the interviewer is really probing:</strong> whether you understand the difference between volumes and bind mounts precisely enough to prevent a repeat, and whether you treat a near-miss in a low-stakes environment as a real signal rather than a non-event because nothing "important" was lost. The mistake is a story that ends at "we restored from backup" with no mention of what changed so it can't recur.</p></div>
+
+<h3>(b) STAR/CARL scaffold</h3>
+<div class="scaffold"><dl>
+<dt>Situation</dt><dd>What was lost, how, and why the mental model of the setup was wrong.</dd>
+<dt>Task</dt><dd>Contain the immediate scare and find every other place the same gap existed.</dd>
+<dt>Action</dt><dd>The audit across environments, and the guardrail you added.</dd>
+<dt>Result</dt><dd>What the audit actually found (often more than the one incident suggested).</dd>
+<dt>Do differently</dt><dd>The backup or safeguard that should have existed before the incident, not after.</dd>
+</dl></div>
+
+<h3>(c) Recall prompts</h3>
+<ul class="recall">
+  <li>Have you ever lost data to a command you thought you understood, in a "safe" environment? <details><summary>hint</summary><p>Staging and local-dev near-misses count fully — they don't need to be production to be a real story.</p></details></li>
+  <li>Do you currently know, for certain, which of your services' data lives in named volumes versus bind mounts versus anonymous volumes? <details><summary>hint</summary><p>If you're not sure, that's worth checking before the interview, not just before the next incident.</p></details></li>
+  <li>What guardrail have you added after a near-miss that made a whole class of mistake harder to make again? <details><summary>hint</summary><p>A confirmation prompt, a scoped permission, or a backup schedule are the usual shapes.</p></details></li>
+</ul>
+
+<h3>(d) Follow-up drill chain</h3>
+<div class="drill">
+<details class="quiz"><summary>Why does docker compose down -v specifically target named and anonymous volumes rather than bind mounts?</summary><p>Named and anonymous volumes are lifecycle objects Docker manages and can therefore also destroy on your behalf; a bind mount is just a path on the host filesystem that Docker never owned, so there's nothing for it to delete even if you ask.</p></details>
+<details class="quiz"><summary>What if the base image's implicit VOLUME instruction had been on a directory nobody realized held state?</summary><p>That's a real risk of using third-party images blindly — I'd inspect any base image's declared volumes as part of onboarding it, specifically because an implicit volume is easy to miss until a <code>down -v</code> surfaces it the hard way.</p></details>
+<details class="quiz"><summary>At what point does "it's only staging" stop being a good enough reason to skip backups?</summary><p>The moment staging data has any recovery cost above trivial — hours of setup, or data other teams depend on for demos or testing — the backup is cheap enough that "it's only staging" isn't actually saving meaningful effort, just deferring an inevitable bad day.</p></details>
+<details class="quiz"><summary>What did you trade away adding a pre-destroy confirmation step?</summary><p>A small amount of friction on legitimate resets — worth it here, since the cost of a false "are you sure" is seconds and the cost of a real accidental delete was weeks of data.</p></details>
+<details class="quiz"><summary>What would you do differently now?</summary><p>Treat "do we know what's a volume versus a bind mount, everywhere" as a standing checklist item during any compose file review, not a question that only gets asked after something's already been lost.</p></details>
+</div>
+</section>
+
+<section id="u13" class="unit">
+<div class="story-head"><h2>13 Containerizing a system nobody fully understood</h2><span class="chip">Senior</span><span class="chip">Ambiguous requirements</span></div>
+
+<h3>(a) Worked example <span class="chip">EXAMPLE — replace with your own</span></h3>
+<p>I was asked to containerize a decade-old service with no up-to-date documentation and no one left on the team who'd originally built it. Nobody could tell me, with confidence, its full set of runtime dependencies, config file locations, or network calls. Rather than trying to fully understand it up front — an open-ended task with no clear finish line — I treated the Dockerfile itself as the discovery tool: started from a generous, debug-friendly base image, ran the app interactively inside a container with <code>strace</code> attached to catch file and network access as it actually happened, and iterated on the image until it ran cleanly through the same manual smoke test the team used to validate a bare-metal deploy. Each iteration narrowed the image — a config path here, an undocumented environment variable there, a permissions requirement I only found because it failed loudly. Once it ran correctly, I hardened it: swapped the debug-friendly base for a minimal one, added a non-root user, and only then worried about final image size, deliberately separating "get it running" from "make it production-grade" as two different phases with different risk tolerance. What I'd do differently: I'd have set an explicit time-box on the discovery phase up front and escalated for more context earlier if I'd blown through it, instead of quietly grinding for longer than I should have before asking for help.</p>
+<div class="callout"><p><strong>What the interviewer is really probing:</strong> comfort with genuine ambiguity and a working method for making progress without full information, versus getting stuck waiting for documentation that doesn't exist. The mistake is either freezing until requirements are "clear enough," or shipping something that happens to work without understanding why well enough to support it later.</p></div>
+
+<h3>(b) STAR/CARL scaffold</h3>
+<div class="scaffold"><dl>
+<dt>Situation</dt><dd>What was undocumented, and why the usual "read the docs, ask the owner" path wasn't available.</dd>
+<dt>Task</dt><dd>Make real progress despite genuine unknowns.</dd>
+<dt>Action</dt><dd>The iterative discovery method, and the deliberate split between "runs" and "production-grade."</dd>
+<dt>Result</dt><dd>What shipped, and what you learned about the system that even the original team hadn't had written down.</dd>
+<dt>Do differently</dt><dd>When you should have escalated for help sooner.</dd>
+</dl></div>
+
+<h3>(c) Recall prompts</h3>
+<ul class="recall">
+  <li>What's a system you had to containerize or migrate with little to no documentation? <details><summary>hint</summary><p>Legacy internal tools and acquired-company services are common sources of this.</p></details></li>
+  <li>What's your method for making progress on genuinely ambiguous requirements, concretely — not "I ask clarifying questions"? <details><summary>hint</summary><p>A specific technique (strace, interactive exploration, a smoke-test loop) is more convincing than a general philosophy.</p></details></li>
+  <li>When did you keep grinding on something ambiguous longer than you should have before asking for help? <details><summary>hint</summary><p>Naming the specific moment you should have escalated is a strong, honest detail.</p></details></li>
+</ul>
+
+<h3>(d) Follow-up drill chain</h3>
+<div class="drill">
+<details class="quiz"><summary>Why start from a debug-friendly base image rather than a minimal one during discovery?</summary><p>A minimal image often lacks the shells, libraries, or diagnostic tools needed to even see what's failing, which turns discovery into guesswork; starting permissive and hardening afterward keeps the two concerns — "does it work" and "is it safe/small" — from fighting each other during the hardest phase.</p></details>
+<details class="quiz"><summary>What if the smoke test itself turned out to be incomplete — missing a code path the original system relied on?</summary><p>That's a real risk of "it passes the smoke test" as your only signal — I'd pair the discovery process with a monitoring period after the real cutover, watching for errors the smoke test never exercised, rather than declaring victory the moment it passes once.</p></details>
+<details class="quiz"><summary>At what point does reverse-engineering a system this way stop being the right call, versus a rewrite?</summary><p>Once the discovery cost starts approaching what a scoped rewrite would cost, and especially if the system's behavior turns out to be more accidental than intentional — containerizing undefined behavior faithfully isn't actually a win if nobody wants that behavior kept.</p></details>
+<details class="quiz"><summary>What did you trade away time-boxing discovery instead of continuing until you were fully confident?</summary><p>Some residual risk of an undiscovered edge case — I accepted that explicitly and named it in the handoff, rather than implying full confidence I didn't actually have.</p></details>
+<details class="quiz"><summary>What would you do differently now?</summary><p>Set the discovery time-box and an explicit escalation trigger before starting, so asking for help partway through reads as following the plan, not as admitting failure.</p></details>
+</div>
+</section>
+
+<section id="u14" class="unit">
+<div class="story-head"><h2>14 The golden image nobody agreed to</h2><span class="chip">Principal</span><span class="chip">Cross-team dependency</span></div>
+
+<h3>(a) Worked example <span class="chip">EXAMPLE — replace with your own</span></h3>
+<p>As the platform team, we owned a set of "golden" base images — patched, scanned, pinned by digest — that every application team's Dockerfile was supposed to build from. In practice, teams forked them silently whenever our update broke something for them, and within a year we had a dozen undocumented variants drifting from the source of truth we thought we controlled. The technical fix (image scanning, SBOM generation, deprecation labels) was the easy part; the actual problem was governance — nobody had agreed on who could break what, on what notice. I proposed, and got sign-off from every app team's lead on, a lightweight contract: golden images are semantically versioned, a breaking change ships behind a new major tag with a defined deprecation window on the old one, and any team's Dockerfile that pins a specific digest is guaranteed that digest never changes contents out from under them. The forks didn't disappear overnight, but new drift stopped, because teams finally had a predictable update path instead of an update that could land on them with no warning. What I'd do differently: I'd have brought the app team leads into designing the contract from the start, instead of writing a policy and then negotiating buy-in after — the pushback I got was mostly about not having been consulted, not about the policy's substance.</p>
+<div class="callout"><p><strong>What the interviewer is really probing:</strong> whether you can solve an organizational problem, not just a technical one, and whether you know the difference between "we built better tooling" and "we built an agreement people actually keep." The mistake is describing only the technical scanning/SBOM work, which doesn't explain why the forking was happening in the first place.</p></div>
+
+<h3>(b) STAR/CARL scaffold</h3>
+<div class="scaffold"><dl>
+<dt>Situation</dt><dd>How the drift happened, and why the technical control alone hadn't stopped it.</dd>
+<dt>Task</dt><dd>Get every team accountable to one contract without owning their Dockerfiles yourself.</dd>
+<dt>Action</dt><dd>The versioning/deprecation contract, and how you got buy-in.</dd>
+<dt>Result</dt><dd>What stopped drifting, measured somehow (fork count, incident count, adoption rate).</dd>
+<dt>Do differently</dt><dd>Who you should have looped in before writing the policy, not after.</dd>
+</dl></div>
+
+<h3>(c) Recall prompts</h3>
+<ul class="recall">
+  <li>What's a shared standard (a base image, a library, a schema) that drifted because the governance around it was implicit? <details><summary>hint</summary><p>Look for a case where the technical fix existed but the social agreement didn't.</p></details></li>
+  <li>Have you built a contract or SLA between teams, rather than just a tool? <details><summary>hint</summary><p>A deprecation window, a versioning promise, or an escalation path all count as "the contract."</p></details></li>
+  <li>When did pushback on a policy turn out to really be about not being consulted, not about the policy itself? <details><summary>hint</summary><p>This is a common, useful distinction to have noticed and corrected for.</p></details></li>
+</ul>
+
+<h3>(d) Follow-up drill chain</h3>
+<div class="drill">
+<details class="quiz"><summary>Why doesn't better scanning or SBOM tooling alone stop the forking?</summary><p>Tooling makes drift visible; it doesn't remove the incentive to fork, which is teams protecting themselves from unannounced breaking changes. Removing the incentive requires a predictability guarantee, which is a social/process fix, not a scanning improvement.</p></details>
+<details class="quiz"><summary>What if one app team refused to sign onto the contract?</summary><p>I'd escalate to whoever has authority over both teams with the specific, named risk their non-participation creates (unpatched CVEs, untracked drift) rather than either forcing compliance unilaterally or quietly exempting them.</p></details>
+<details class="quiz"><summary>At what number of consuming teams does an informal "just ask us before you fork" approach stop scaling?</summary><p>Once there are more teams than you can personally track relationships with — past roughly a handful, an implicit norm needs to become an explicit, written contract so it doesn't depend on who remembers to ask whom.</p></details>
+<details class="quiz"><summary>What did you trade away with a formal deprecation window instead of forcing immediate updates?</summary><p>Speed of closing known vulnerabilities fleet-wide — a longer window means an old, patchable image stays in use longer, so I sized the window against real risk, not against what was merely convenient for consuming teams.</p></details>
+<details class="quiz"><summary>What would you do differently now?</summary><p>Co-design the contract with app team leads from the first draft, since the actual resistance I hit was about being left out of the decision, not about any specific clause in it.</p></details>
+</div>
+</section>
+
+<section id="u15" class="unit">
+<div class="story-head"><h2>15 The Swarm migration we walked back</h2><span class="chip">Principal</span><span class="chip">Failed / cancelled project</span></div>
+
+<h3>(a) Worked example <span class="chip">EXAMPLE — replace with your own</span></h3>
+<p>Years back, I championed an early move to Docker Swarm as our production orchestrator — it was genuinely well-suited to our scale at the time, built into the Engine we already ran, and far simpler operationally than the alternative. Roughly a year in, org-level direction shifted decisively toward Kubernetes: not because Swarm had failed us technically, but because the broader ecosystem's gravity — hiring, third-party integrations, internal tooling other teams were building — had moved there, and staying on Swarm meant increasingly swimming against that current. I made the call to walk the migration back and move to Kubernetes rather than defend a technically sound decision that was becoming an organizational liability. The one thing that made it not a total loss: our `compose.yaml` files translated cleanly enough to Kubernetes manifests that most of the actual service definitions — images, env vars, port mappings — carried over structurally, even though the deployment and networking model around them didn't. What I had to own in the retro was that I'd made the original call correctly for the information available at the time, and that being "right" about the technology didn't matter once the organization had moved past it — which is a harder thing to sit with than being simply wrong. What I'd do differently: I'd build in an explicit re-evaluation checkpoint tied to org-level signals, not just our own team's metrics, for any infrastructure bet with this much migration cost attached.</p>
+<div class="callout"><p><strong>What the interviewer is really probing:</strong> whether you can own a reversed decision honestly without either over-apologizing for something that was reasonable at the time, or defensively insisting you were right the whole time. The mistake is telling this as someone else's failure (leadership changed direction on me) rather than as your own call to walk it back once the context changed.</p></div>
+
+<h3>(b) STAR/CARL scaffold</h3>
+<div class="scaffold"><dl>
+<dt>Situation</dt><dd>The original bet, and why it was reasonable given what was known then.</dd>
+<dt>Task</dt><dd>Decide whether to defend the bet or reverse it once the context shifted.</dd>
+<dt>Action</dt><dd>The call you made, and what you salvaged from the original investment.</dd>
+<dt>Result</dt><dd>How the reversal went, and what you owned in the retro.</dd>
+<dt>Do differently</dt><dd>The re-evaluation checkpoint that should have existed from the start.</dd>
+</dl></div>
+
+<h3>(c) Recall prompts</h3>
+<ul class="recall">
+  <li>What's a technology bet you made that the wider organization or ecosystem later moved away from? <details><summary>hint</summary><p>The strongest version isn't about being wrong technically — it's about a context shift you had to respond to.</p></details></li>
+  <li>Have you ever had to reverse your own decision, rather than have it reversed for you? <details><summary>hint</summary><p>Making the call yourself, rather than being overruled, is the detail that shows ownership.</p></details></li>
+  <li>What did you manage to salvage from a project that ultimately didn't ship or got replaced? <details><summary>hint</summary><p>Look for reusable artifacts, lessons, or relationships — not just "nothing was wasted," which rarely rings true.</p></details></li>
+</ul>
+
+<h3>(d) Follow-up drill chain</h3>
+<div class="drill">
+<details class="quiz"><summary>Why wasn't defending the technically sound choice the right call?</summary><p>Because the cost wasn't technical anymore — it was the growing gap between our tooling and everyone else's, in hiring, integrations, and institutional knowledge. A locally optimal technical decision can become organizationally expensive even while nothing about it has gotten worse on its own terms.</p></details>
+<details class="quiz"><summary>What if the Kubernetes migration itself had failed to deliver the ecosystem benefits you were betting on?</summary><p>Then I'd have a second, harder conversation to have with the organization — but I'd made the original Swarm bet and the reversal on the best information available each time, which is the standard I hold myself to, not a guarantee of a particular outcome.</p></details>
+<details class="quiz"><summary>At what point does "the ecosystem moved" become a good enough reason to reverse a technically sound decision?</summary><p>When staying means an increasing, compounding cost — harder hiring, fewer maintained integrations, more custom glue code — that will only get worse the longer you wait, rather than a temporary dip that's likely to reverse on its own.</p></details>
+<details class="quiz"><summary>What did you trade away by reversing rather than holding the line?</summary><p>The sunk migration cost of the original move, and some credibility risk in visibly changing direction — I decided that cost was smaller than the compounding cost of not reversing, and said so explicitly rather than quietly changing course.</p></details>
+<details class="quiz"><summary>What would you do differently now?</summary><p>Set an explicit, scheduled re-evaluation of any infrastructure bet against organization-level signals — hiring difficulty, ecosystem activity — not just our own team's satisfaction with the tool, so a shift like this is caught on schedule rather than noticed late.</p></details>
+</div>
+</section>
+
+<section id="u16" class="unit">
+<div class="story-head"><h2>16 The registry bill that tripled</h2><span class="chip">Staff</span><span class="chip">Cost optimisation</span></div>
+
+<h3>(a) Worked example <span class="chip">EXAMPLE — replace with your own</span></h3>
+<p>Our private registry storage bill roughly tripled over two quarters with no corresponding growth in the number of services we ran. <code>docker system df</code> on a sample of build hosts and a scan of the registry itself showed the actual driver: every CI build pushed a new tag, nothing ever pruned untagged or superseded images, and multi-arch builds were producing and storing full images for platforms almost nothing actually deployed to. I set a retention policy (keep the last N tags plus anything currently deployed, prune the rest on a schedule), moved multi-arch builds to `docker buildx bake` targeting only the platforms we actually shipped instead of a default "build everything" matrix, and wired CI's build cache through `--cache-to type=registry` so the same cache layers got reused instead of quietly duplicated across every branch's build. Storage cost came down by more than half within a month, and CI minutes dropped too as a side effect of the shared cache, which nobody had been optimizing for directly. What I'd do differently: I'd have set the retention policy and the platform matrix correctly from day one — this was a classic case of a sensible default ("keep everything, build everywhere, just in case") that nobody revisited as volume grew, and cost was the only signal that eventually forced the conversation.</p>
+<div class="callout"><p><strong>What the interviewer is really probing:</strong> whether you connect infrastructure hygiene to a real dollar number, and whether you fix the systemic cause (retention policy, build matrix) rather than doing a one-time manual cleanup that just regrows. The mistake is a story that ends at "we deleted a bunch of old images," with no mechanism preventing the same regrowth.</p></div>
+
+<h3>(b) STAR/CARL scaffold</h3>
+<div class="scaffold"><dl>
+<dt>Situation</dt><dd>The cost signal, and what made it visible (a bill, a budget review).</dd>
+<dt>Task</dt><dd>Find the systemic driver, not just delete the current backlog.</dd>
+<dt>Action</dt><dd>Retention policy, build-matrix fix, and cache-sharing change.</dd>
+<dt>Result</dt><dd>The dollar and time numbers, and the side benefit nobody was targeting.</dd>
+<dt>Do differently</dt><dd>What default should have been set correctly from the start.</dd>
+</dl></div>
+
+<h3>(c) Recall prompts</h3>
+<ul class="recall">
+  <li>What's an infrastructure cost that crept up gradually until a bill forced the conversation? <details><summary>hint</summary><p>Storage, compute minutes, and egress are the usual suspects for Docker-adjacent cost creep.</p></details></li>
+  <li>Have you sized a build matrix (platforms, variants) against what's actually deployed rather than what's theoretically possible? <details><summary>hint</summary><p>"We build for arm64 because someone might need it someday" is the classic unexamined default.</p></details></li>
+  <li>What's a cost fix you made systemic (a policy, a default) instead of a one-time cleanup? <details><summary>hint</summary><p>Anything with a schedule or a gate attached, rather than a single manual pass.</p></details></li>
+</ul>
+
+<h3>(d) Follow-up drill chain</h3>
+<div class="drill">
+<details class="quiz"><summary>Why does an unbounded tag retention policy cost compound rather than stay flat?</summary><p>Every build adds storage and nothing ever removes it, so cost grows roughly with cumulative build count over the service's whole lifetime, not with its current size — a service that's been building for two years costs differently than one that's been building for two months, even at identical current traffic.</p></details>
+<details class="quiz"><summary>What if pruning accidentally removed an image a rollback still depended on?</summary><p>That's exactly why the policy keeps "anything currently deployed" as a standing exception, resolved by querying what's actually running rather than by tag age alone — I'd test the retention script against a rollback scenario before trusting it in production.</p></details>
+<details class="quiz"><summary>At what registry size does manual review of what to keep stop being feasible?</summary><p>Almost immediately past a handful of services with active CI — this is a case where "we'll just look periodically" never actually happens, so the policy needs to be automated from day one rather than treated as a manual chore anyone will reliably do.</p></details>
+<details class="quiz"><summary>What did you trade away with a shorter retention window?</summary><p>Some rollback depth — you can't roll back to a build older than the window keeps, so I sized it against our actual observed rollback behavior, not against a comfortable-feeling round number.</p></details>
+<details class="quiz"><summary>What would you do differently now?</summary><p>Attach a retention policy and a scoped build matrix to the CI template every new service starts from, so the sensible default is the automated one, not something that has to be bolted on after a bill flags the problem.</p></details>
+</div>
+</section>
+
+<section id="u17" class="unit">
+<div class="story-head"><h2>17 Bringing BuildKit cache mounts to the team</h2><span class="chip">Senior</span><span class="chip">Introducing a new tool</span></div>
+
+<h3>(a) Worked example <span class="chip">EXAMPLE — replace with your own</span></h3>
+<p>Most of the team was still using the classic Docker builder out of habit, with no cache mounts and no shared registry cache, even though BuildKit had been the default builder for a long time and buildx was already installed everywhere. I didn't mandate a switch — I picked the single slowest build in the codebase, converted it live in a lunch-and-learn using <code>--mount=type=cache</code> for its package manager and <code>docker buildx bake</code> to define the build target declaratively, and showed the before/after time on screen rather than asserting it would help. That got voluntary adoption on two more services within the week. For the rollout itself, I staged it deliberately: a `bake.hcl` file reviewed like any other code change, one service migrated at a time rather than a fleet-wide switch, and a short rollback note for each migration in case a given CI runner's buildx version didn't support a feature I'd used. The one real hiccup was a self-hosted runner on an older buildx version that silently ignored a cache-mount flag instead of erring, producing a build that worked but wasn't actually caching — I added a version check to the bake file's CI job specifically because "fails silently" is worse than "fails loudly" for a performance feature. What I'd do differently: I'd have checked buildx versions across every runner before the rollout instead of during it, since that's exactly the kind of environment drift that undermines a tooling change's credibility on the first bad case someone hits.</p>
+<div class="callout"><p><strong>What the interviewer is really probing:</strong> whether you drive adoption through demonstrated value and a staged rollout rather than a mandate, and whether you plan for the tooling's own failure modes (silent incompatibility, in this case). The mistake is a story where adoption happened because you had authority to require it, which doesn't demonstrate influence at all.</p></div>
+
+<h3>(b) STAR/CARL scaffold</h3>
+<div class="scaffold"><dl>
+<dt>Situation</dt><dd>The tool everyone could have been using but wasn't, and why.</dd>
+<dt>Task</dt><dd>Get voluntary adoption, not a mandate.</dd>
+<dt>Action</dt><dd>The demonstration, the staged rollout, and the guardrail you added.</dd>
+<dt>Result</dt><dd>Adoption rate, and the one real problem the rollout surfaced.</dd>
+<dt>Do differently</dt><dd>What you'd check across the fleet before rolling out, not during.</dd>
+</dl></div>
+
+<h3>(c) Recall prompts</h3>
+<ul class="recall">
+  <li>What's a tool or practice you introduced by demonstrating value rather than mandating it? <details><summary>hint</summary><p>A live before/after on someone's own slow build is a strong, specific version of this.</p></details></li>
+  <li>Have you staged a tooling rollout service-by-service, with a rollback plan per step? <details><summary>hint</summary><p>Naming what you'd have done if one step failed is the detail that shows real planning, not just optimism.</p></details></li>
+  <li>What's a silent-failure mode in tooling you've had to guard against explicitly? <details><summary>hint</summary><p>Version mismatches and flags that are silently ignored rather than erroring are common culprits.</p></details></li>
+</ul>
+
+<h3>(d) Follow-up drill chain</h3>
+<div class="drill">
+<details class="quiz"><summary>Why demonstrate on the slowest build specifically, rather than a typical one?</summary><p>The win has to be visible enough to be worth anyone's attention in a short session — a marginal improvement on an already-fast build doesn't move anyone to change habits, but a dramatic one on real pain does.</p></details>
+<details class="quiz"><summary>What if a service's build genuinely didn't benefit from cache mounts?</summary><p>Then I wouldn't migrate it — the goal was adoption where it helps, not uniformity for its own sake, and forcing a change with no payoff would spend credibility I needed for the cases where it mattered.</p></details>
+<details class="quiz"><summary>At what point does "one service at a time" become too slow for an org-wide tooling shift?</summary><p>If a security or compliance deadline forces a faster timeline, I'd switch to a mandated cutover with dedicated migration support, but I'd say so explicitly as a deliberate trade of adoption quality for speed, not pretend it's still a bottom-up rollout.</p></details>
+<details class="quiz"><summary>What did you trade away staging the rollout instead of flipping everyone at once?</summary><p>Time to full adoption — some services stayed on the slower path longer than a mandate would have allowed, which I accepted because voluntary, well-understood adoption outlasts a mandate that gets quietly reverted the first time it's inconvenient.</p></details>
+<details class="quiz"><summary>What would you do differently now?</summary><p>Audit buildx versions across every runner as the very first rollout step, since the credibility cost of the first silent failure was larger than the time it would have taken to check upfront.</p></details>
+</div>
+</section>
+
+<section id="u18" class="unit">
+<div class="story-head"><h2>18 Crashloop backoff at 3:14am</h2><span class="chip">Mid</span><span class="chip">On-call firefighting</span></div>
+
+<h3>(a) Worked example <span class="chip">EXAMPLE — replace with your own</span></h3>
+<p>Paged for a service stuck in a restart loop, backing off further each cycle — 10 seconds, then 20, then 40 — which meant it was serving less and less traffic the longer the incident ran. <code>docker inspect</code> showed a growing restart count and, critically, an exit code of 1 with a clean-looking log line right before each restart — not 137, so not an OOM-kill, and not 143, so not a graceful shutdown signal from the orchestrator either. The actual cause was a `HEALTHCHECK` misconfigured with too short a `start_period`: a real, slow-but-legitimate startup dependency (a cache warm-up step) hadn't finished by the time the health check began failing it, and the restart policy dutifully killed and restarted a container that would have become healthy on its own within another 15 seconds if left alone. Immediate fix: manually restart with the health check's start grace period temporarily disabled to break the loop and restore service. Root-cause fix: extend `start_period` to comfortably exceed the real warm-up time, and add a distinct alert on restart count itself so the next instance of this pattern pages before the exponential backoff has fully throttled traffic to near zero. What I'd do differently: I'd have load-tested the health check's timing against the actual cold-start path before this ever reached production — the health check had been tuned against a warm-cache dev environment where the timing looked fine.</p>
+<div class="callout"><p><strong>What the interviewer is really probing:</strong> methodical triage under pressure — distinguishing exit codes, checking the restart policy's own behavior, not just the app logs — and whether you both restore service and prevent recurrence. The mistake is a story that stops at "we restarted it and it was fine," with no explanation of why it was looping in the first place.</p></div>
+
+<h3>(b) STAR/CARL scaffold</h3>
+<div class="scaffold"><dl>
+<dt>Situation</dt><dd>The paging signal, and the exponential-backoff detail that made it urgent.</dd>
+<dt>Task</dt><dd>Stop the bleeding, then find the real mechanism.</dd>
+<dt>Action</dt><dd>The exit-code triage, the health-check misconfiguration, immediate and root-cause fixes.</dd>
+<dt>Result</dt><dd>Time to service restoration, and the alert that catches this earlier next time.</dd>
+<dt>Do differently</dt><dd>The environment mismatch (warm cache vs. cold start) that let it reach production.</dd>
+</dl></div>
+
+<h3>(c) Recall prompts</h3>
+<ul class="recall">
+  <li>What's a 3am page you've handled, and what was the first diagnostic step you actually took? <details><summary>hint</summary><p>Exit code, logs, or a metric dashboard — naming the specific first move matters more than the eventual fix.</p></details></li>
+  <li>Have you misdiagnosed a healthcheck failure as an application bug, or vice versa? <details><summary>hint</summary><p>The distinction between "the app is broken" and "the check is wrong" is a common trap.</p></details></li>
+  <li>What alert gap did an incident expose — something you were paged for that a better alert would have caught earlier? <details><summary>hint</summary><p>Restart count, queue depth, and saturation metrics are common blind spots relative to error-rate alerts.</p></details></li>
+</ul>
+
+<h3>(d) Follow-up drill chain</h3>
+<div class="drill">
+<details class="quiz"><summary>Why does exponential backoff make this worse the longer it runs, specifically?</summary><p>Each cycle serves traffic for a shrinking fraction of the growing interval, so total availability during the incident window keeps degrading even though nothing about the underlying problem is getting worse — the backoff policy itself becomes part of the outage's shape.</p></details>
+<details class="quiz"><summary>What if disabling the start_period grace period to break the loop had also disabled a genuinely useful check?</summary><p>That's the real risk of a blunt manual override — I'd scope it as narrowly and temporarily as possible, and treat any manual health-check bypass as something to revert the moment the root-cause fix ships, not a new steady state.</p></details>
+<details class="quiz"><summary>At what point does a health check's start_period need revisiting again?</summary><p>Any time the startup dependency it's waiting on changes — a bigger cache to warm, a slower migration — the grace period is only correct for the startup profile it was tuned against, and it drifts stale silently otherwise.</p></details>
+<details class="quiz"><summary>What did you trade away extending the start_period?</summary><p>Slower detection of a genuinely stuck container — a longer grace period also means a truly broken instance takes longer to be recognized as unhealthy, so I sized it against the real warm-up time rather than padding it generously "to be safe."</p></details>
+<details class="quiz"><summary>What would you do differently now?</summary><p>Load-test health-check timing against a cold start specifically, as a required step before any service ships, since a dev environment with a warm cache will always look healthier than production's worst case.</p></details>
+</div>
+</section>
+
+<section id="u19" class="unit">
+<div class="story-head"><h2>19 Docker-in-Docker was our flakiest test</h2><span class="chip">Senior</span><span class="chip">CI / reliability improvement</span></div>
+
+<h3>(a) Worked example <span class="chip">EXAMPLE — replace with your own</span></h3>
+<p>Our CI's most-retried job, by a wide margin, was the one that built and ran a container inside a container using privileged Docker-in-Docker — somewhere around one in eight runs failed for reasons that looked unrelated to the actual code change: storage-driver conflicts between the outer and inner daemon, or the privileged container simply not being available yet when the job's first step tried to use it. Rather than adding more retries, which treats the symptom, I moved the build step off DinD entirely onto a remote Buildx builder that CI connects to over the network instead of spinning up a nested daemon locally — no privileged mode, no nested storage driver, and a warm shared cache across every run instead of a cold one per job. The image-testing step that still genuinely needed to run a container was separated out and given a scoped, non-privileged sidecar instead of a full nested daemon. Flake rate on that job dropped from roughly 12% to under 1%, and it got noticeably faster too, since the remote builder's cache was warm from other jobs. What I'd do differently: I'd have measured *why* DinD was flaky before assuming retries were the answer — the team had been quietly living with the retry-and-hope pattern for months, and it took someone actually reading the failure logs closely to see the same two or three root causes recurring instead of random noise.</p>
+<div class="callout"><p><strong>What the interviewer is really probing:</strong> whether you fix the actual reliability mechanism instead of papering over flakiness with retries, and whether you understand why DinD specifically is fragile (nested storage drivers, privileged mode) rather than just "it's known to be flaky." The mistake is a story about adding retries and calling it a reliability fix.</p></div>
+
+<h3>(b) STAR/CARL scaffold</h3>
+<div class="scaffold"><dl>
+<dt>Situation</dt><dd>The flake rate, and how long the team had been tolerating it with retries.</dd>
+<dt>Task</dt><dd>Find and fix the actual cause, not the symptom.</dd>
+<dt>Action</dt><dd>Reading failure logs for a pattern, then the move off privileged DinD.</dd>
+<dt>Result</dt><dd>Flake rate and speed, before and after.</dd>
+<dt>Do differently</dt><dd>How long the team accepted the workaround before someone dug in.</dd>
+</dl></div>
+
+<h3>(c) Recall prompts</h3>
+<ul class="recall">
+  <li>What's your flakiest CI job right now, and do you actually know why, or just that retries fix it? <details><summary>hint</summary><p>If you're not sure, that's worth finding out before this interview — it's a very likely follow-up.</p></details></li>
+  <li>Have you replaced a retry-based workaround with an actual root-cause fix? <details><summary>hint</summary><p>The before/after flake-rate number is the detail that makes this land.</p></details></li>
+  <li>What's a reliability problem the team had quietly normalized before someone finally investigated it? <details><summary>hint</summary><p>Anything with "yeah it's just flaky, rerun it" as the team's standard response.</p></details></li>
+</ul>
+
+<h3>(d) Follow-up drill chain</h3>
+<div class="drill">
+<details class="quiz"><summary>Why is privileged Docker-in-Docker specifically prone to this kind of flakiness?</summary><p>It runs a full nested daemon inside a container, competing for the same kernel resources and sometimes the same storage-driver assumptions as the outer daemon, and privileged mode's broad kernel access means subtle host/runner differences show up as intermittent, hard-to-reproduce failures.</p></details>
+<details class="quiz"><summary>What if the remote Buildx builder itself became a shared point of failure?</summary><p>Then every job depending on it fails together instead of independently — I'd want it run with real redundancy and its own health monitoring, since centralizing the build path is a real trade I'm making, not a free win.</p></details>
+<details class="quiz"><summary>At what CI volume does a remote builder's shared cache start to become a contention point instead of a pure win?</summary><p>Once concurrent build volume approaches the builder's own capacity, cache lookups and build slots start queuing — at that point I'd scale the builder pool horizontally rather than accept queuing as the new bottleneck.</p></details>
+<details class="quiz"><summary>What did you trade away moving off DinD?</summary><p>Some architectural simplicity — a job that "just runs Docker like a normal machine would" is easier to reason about than one depending on an external builder connection, and that dependency needs to be documented and monitored, not assumed away.</p></details>
+<details class="quiz"><summary>What would you do differently now?</summary><p>Instrument CI failure reasons from the start so a recurring root cause is visible in a dashboard, instead of only becoming visible once someone gets frustrated enough to read logs by hand for an afternoon.</p></details>
+</div>
+</section>
+
+<section id="u20" class="unit">
+<div class="story-head"><h2>20 "Just run it as root, we'll fix it later"</h2><span class="chip">Principal</span><span class="chip">Stakeholder pushback</span></div>
+
+<h3>(a) Worked example <span class="chip">EXAMPLE — replace with your own</span></h3>
+<p>Under deadline pressure, an engineering manager asked me to sign off on shipping a new service running as root inside its container, with vulnerability scanning skipped for the release, on the promise that both would be "fixed in the next sprint." I'd seen that promise before, and it's rarely kept once the deadline pressure that created it has passed and attention has moved to the next fire. I didn't just refuse — I made the actual cost concrete and current: I walked through the docker cp CVEs patched in Engine 29.5.1 (CVE-2026-41567, -41568, -42306) as a real, recent example of exactly the kind of container-boundary issue that a non-root, defense-in-depth posture exists to blunt, not a hypothetical. I proposed a genuinely smaller scope that still hit the deadline: add the non-root `USER` line, which is close to zero engineering cost, and defer only the fuller vulnerability-scanning pipeline integration to the next sprint with a dated, tracked ticket and an explicit named owner, rather than an undated "later" that everyone knew from experience meant "never." The manager agreed, the deadline held, and the scanning integration did land the following sprint because it had an owner and a date attached to it, not just a good intention. What I'd do differently: I'd propose that same split — the cheap non-negotiable now, the real work dated and owned — as my default opening position on this kind of ask, instead of only reaching for it after the first "just this once" request.</p>
+<div class="callout"><p><strong>What the interviewer is really probing:</strong> whether you can push back on a manager specifically, with the organization's real risk in mind rather than personal stubbornness, and whether you know the difference between holding a line and offering zero flexibility. The mistake is either caving to "we'll fix it later" without a mechanism that makes "later" real, or refusing all compromise and blowing the relationship along with the deadline.</p></div>
+
+<h3>(b) STAR/CARL scaffold</h3>
+<div class="scaffold"><dl>
+<dt>Situation</dt><dd>The ask, the pressure behind it, and why "later" was suspect based on past experience.</dd>
+<dt>Task</dt><dd>Protect the real risk without simply saying no to a manager.</dd>
+<dt>Action</dt><dd>The concrete, current risk you cited, and the scoped compromise you proposed.</dd>
+<dt>Result</dt><dd>What shipped, and — importantly — whether "later" actually happened this time.</dd>
+<dt>Do differently</dt><dd>Making this split your default opening position, not a fallback.</dd>
+</dl></div>
+
+<h3>(c) Recall prompts</h3>
+<ul class="recall">
+  <li>What's a security or quality corner a manager or stakeholder asked you to cut "for now"? <details><summary>hint</summary><p>The strongest version names whether "for now" actually turned into "forever" or not, and why.</p></details></li>
+  <li>Have you used a specific, recent, named example (a CVE, an incident elsewhere) to make an abstract risk concrete? <details><summary>hint</summary><p>A named, dated example lands harder than "this is generally risky."</p></details></li>
+  <li>What's the smallest concession you've offered that still protected the thing that actually mattered? <details><summary>hint</summary><p>Look for the cheapest non-negotiable you could isolate from the more expensive full fix.</p></details></li>
+</ul>
+
+<h3>(d) Follow-up drill chain</h3>
+<div class="drill">
+<details class="quiz"><summary>Why is a non-root USER line "close to zero engineering cost" while full scanning integration isn't?</summary><p>Running as non-root is usually a one-line Dockerfile change plus verifying the app doesn't need a privileged port or bind mount; a scanning pipeline needs tool selection, CI integration, a triage process for findings, and an agreed policy on what blocks a release — genuinely more moving parts, not just more typing.</p></details>
+<details class="quiz"><summary>What if the manager had refused even the non-root change?</summary><p>I'd escalate the specific, named risk to whoever owns the release decision above both of us, rather than either silently comply or unilaterally block — the goal is a visible, owned decision, not a personal standoff.</p></details>
+<details class="quiz"><summary>At what point does citing a specific CVE stop being persuasive and start looking like fear-mongering?</summary><p>If it's not actually analogous to the risk at hand, or if I lean on it instead of explaining the mechanism myself — I use a named CVE to make a risk concrete, not as a substitute for actually understanding and being able to explain why it matters here.</p></details>
+<details class="quiz"><summary>What did you trade away accepting a dated deferral instead of insisting on everything now?</summary><p>A window, however short, where the service ran with less defense-in-depth than I wanted — I accepted that explicitly, in exchange for a tracked, owned commitment that made "later" credible instead of indefinite.</p></details>
+<details class="quiz"><summary>What would you do differently now?</summary><p>Open with the cheap-non-negotiable-plus-dated-deferral split as a standard proposal on any "just this once" ask, rather than developing it in the moment under pressure each time.</p></details>
+</div>
+</section>
+
+<section id="u21" class="unit">
+<div class="story-head"><h2>21 The big behavioural Q&amp;A</h2><span class="chip">cross-cutting</span></div>
+<p>Twenty prompts an interviewer might ask that don't map to one story alone. Each names which story above (u01–u20) answers it best and what the interviewer is actually listening for. Open one, answer out loud, then check it against the story.</p>
+
+<h3 class="qa-theme">Failure &amp; ownership</h3>
+<div class="drill">
+<details class="quiz"><summary>Tell me about a time you made a decision that turned out to be wrong.</summary><p>Deploy u15 (Swarm migration) or u09 (golden image) — either shows a defensible call at the time that had to be reversed or renegotiated. The interviewer wants you to own the call itself, not blame the information you had or the people who later disagreed with it.</p></details>
+<details class="quiz"><summary>Describe a production incident you caused or significantly contributed to.</summary><p>Deploy u18 (crashloop at 3am) or u07 (the volume that looked like a bind mount) — both are your own diagnostic or configuration miss, not someone else's bug. Listen for whether you name the actual mechanism, not just "we fixed it."</p></details>
+<details class="quiz"><summary>What's the biggest technical mistake of your career?</summary><p>Deploy u07 (volume/bind-mount data loss) — it's concrete, has a real consequence, and has a durable fix (a pre-destroy check) attached, which is what separates a good answer here from a generic one.</p></details>
+<details class="quiz"><summary>How do you handle being wrong in front of your team?</summary><p>Deploy u06 (health checks shipped over objection) or u15 — both involve being overruled or having to reverse yourself publicly. The interviewer is checking for defensiveness versus a straightforward account.</p></details>
+</div>
+
+<h3 class="qa-theme">Conflict &amp; influence</h3>
+<div class="drill">
+<details class="quiz"><summary>Tell me about a disagreement with a manager or more senior person.</summary><p>Deploy u20 ("just run it as root") or u06 (shipping without health checks) — both are pushback on a specific, technical, defensible line, with a proposed compromise, not a flat refusal.</p></details>
+<details class="quiz"><summary>How do you get buy-in for something people are resistant to?</summary><p>Deploy u17 (BuildKit cache mounts) — voluntary adoption through a live demonstration is a stronger answer than "I convinced them," because it shows a mechanism, not just persistence.</p></details>
+<details class="quiz"><summary>Describe a time you had to say no to a request.</summary><p>Deploy u20 — the key beat is that you didn't just say no, you offered a scoped, cheaper alternative that still moved the deadline forward.</p></details>
+<details class="quiz"><summary>Tell me about a conflict with a peer, not a manager.</summary><p>Deploy u16 (registry bill) reframed around whoever owned the wasteful build matrix, or u19 (DinD flakiness) around whoever kept adding retries instead of investigating — both are disagreements about the right fix, not about status.</p></details>
+</div>
+
+<h3 class="qa-theme">Leadership &amp; mentoring</h3>
+<div class="drill">
+<details class="quiz"><summary>Tell me about mentoring someone less experienced.</summary><p>Deploy u04 (teaching a junior to read a Dockerfile) — the strong beat is the diagnostic habit you handed off (strace, layer-by-layer reasoning), not just "I explained Docker to them."</p></details>
+<details class="quiz"><summary>How do you approach onboarding someone onto a system you own?</summary><p>Deploy u08 (containerizing a system nobody fully understood) or u04 — both show building a repeatable discovery process rather than a one-off explanation.</p></details>
+<details class="quiz"><summary>Describe a time you had to influence without direct authority.</summary><p>Deploy u17 (BuildKit rollout) or u09 (golden-image governance across teams) — both require getting other teams to change behavior with no reporting line involved.</p></details>
+<details class="quiz"><summary>What's your approach to setting standards across teams?</summary><p>Deploy u09 (golden image contract) — the strong beat is a negotiated, published contract (deprecation windows, digest pinning) rather than an unwritten expectation everyone quietly resents.</p></details>
+</div>
+
+<h3 class="qa-theme">Ambiguity &amp; prioritisation</h3>
+<div class="drill">
+<details class="quiz"><summary>Tell me about a time requirements were unclear or shifting.</summary><p>Deploy u08 (containerizing an undocumented legacy system) — the strong beat is strace-driven, iterative discovery instead of waiting for documentation that was never going to arrive.</p></details>
+<details class="quiz"><summary>How do you decide what to fix now versus later?</summary><p>Deploy u16 (registry cost) or u20 — both show a scoped, cheap fix now plus a dated, owned commitment for the rest, rather than an all-or-nothing call.</p></details>
+<details class="quiz"><summary>Describe a time you had to make a call with incomplete information.</summary><p>Deploy u15 (the original Swarm bet) — it was reasonable given what was knowable then, which is the honest way to frame a decision made under real uncertainty.</p></details>
+<details class="quiz"><summary>Tell me about a project that got cancelled or deprioritised.</summary><p>Deploy u15 — the Swarm-to-Kubernetes reversal is a cancelled-project story that isn't really about failure, which is exactly the nuance this question is probing for.</p></details>
+</div>
+
+<h3 class="qa-theme">Values &amp; motivation</h3>
+<div class="drill">
+<details class="quiz"><summary>What kind of work energises you?</summary><p>Deploy whichever story you told with the most genuine detail in this bank — enthusiasm doesn't survive a flat retelling, so pick the one you actually enjoy explaining, likely u04, u08, or u17.</p></details>
+<details class="quiz"><summary>Tell me about a time you went beyond what was asked.</summary><p>Deploy u16 (registry cost) or u19 (DinD reliability) — both start from a problem nobody assigned you and end with a systemic fix, which is the shape this question wants.</p></details>
+<details class="quiz"><summary>How do you think about security trade-offs in your day-to-day work?</summary><p>Deploy u20 (root pushback) — grounding the abstract principle in a specific, dated CVE is what makes this answer land instead of sounding like a slogan.</p></details>
+<details class="quiz"><summary>What's a piece of feedback that changed how you work?</summary><p>Deploy u06 (health checks) or u07 (the volume mistake) — the "what I'd do differently" beat in either story is effectively feedback you gave yourself; say so directly if you don't have an external example.</p></details>
+</div>
+</section>
+
+<section id="u22" class="unit">
+<div class="story-head"><h2>22 Night-before cheat sheet</h2><span class="chip">final review</span></div>
+<p>Ten sentences to read once, out loud, the night before. Not new content — a compression of everything above into what you actually need to remember walking in.</p>
+<div class="cheat"><ol>
+<li>Open every story with the situation in one plain sentence before any detail — the interviewer is oriented in the first five seconds or not at all.</li>
+<li>Every story needs a number: a percentage, a time, a dollar figure, a count. If you don't have one, say the honest qualitative version instead of inventing a precise-sounding fake.</li>
+<li>Always answer "what would you do differently" with something specific, not "communicate better" — name the concrete check, default, or policy that should have existed.</li>
+<li>Say "I" for what you actually did and "we" for what the team did — conflating them either steals credit or hides your own contribution, and interviewers notice both.</li>
+<li>Every technical decision had a trade-off; name what you gave up, not just what you gained — a story with no downside sounds rehearsed, not real.</li>
+<li>Name the actual constraint you were under (deadline, headcount, an inherited system) — it's what makes a decision legible instead of arbitrary.</li>
+<li>For an incident or security story, state what changed in your process afterward, not just that the immediate issue got fixed — a fix without a process change invites the same question twice.</li>
+<li>Keep any version numbers or specifics you cite plausible for the current stable release you'd actually be running — a wildly outdated detail undercuts an otherwise strong story.</li>
+<li>If asked "at what scale does this break," answer with the actual mechanism (a lock, a queue, a cache-hit ratio) — not a guess dressed up as an estimate.</li>
+<li>Never fake a story you don't have — say plainly you haven't hit that situation yet and reason out loud how you'd approach it; that reads as more senior than a fabricated example.</li>
+</ol></div>
+</section>
+
+</main>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/highlight.min.js"></script>
+<script>
+(function () {
+  try { if (window.hljs) hljs.highlightAll(); } catch (e) { /* decoration only */ }
+
+  var toggle = document.getElementById('sideToggle');
+  var sidebar = document.getElementById('sidebar');
+  if (toggle && sidebar) {
+    toggle.addEventListener('click', function () {
+      var open = sidebar.classList.toggle('open');
+      toggle.setAttribute('aria-expanded', open ? 'true' : 'false');
+    });
+    sidebar.querySelectorAll('a').forEach(function (a) {
+      a.addEventListener('click', function () { sidebar.classList.remove('open'); toggle.setAttribute('aria-expanded', 'false'); });
+    });
+  }
+
+  var links = Array.prototype.slice.call(document.querySelectorAll('.units a'));
+  var units = links.map(function (a) { return document.querySelector(a.getAttribute('href')); });
+  function setCurrent(id) {
+    links.forEach(function (a) { a.setAttribute('aria-current', a.getAttribute('href') === '#' + id ? 'true' : 'false'); });
+  }
+  if ('IntersectionObserver' in window) {
+    var observer = new IntersectionObserver(function (entries) {
+      var visible = entries.filter(function (e) { return e.isIntersecting; })
+        .sort(function (a, b) { return b.intersectionRatio - a.intersectionRatio; });
+      if (visible.length) setCurrent(visible[0].target.id);
+    }, { rootMargin: '-10% 0px -70% 0px', threshold: [0, 0.25, 0.5, 0.75, 1] });
+    units.forEach(function (u) { if (u) observer.observe(u); });
+  }
+  if (links.length) setCurrent(links[0].getAttribute('href').slice(1));
+})();
+</script>
+</body>
+</html>

@@ -1,0 +1,604 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Docker / Containerization · cheatsheet · devbok</title>
+<link rel="preconnect" href="https://fonts.googleapis.com/">
+<link rel="preconnect" href="https://fonts.gstatic.com/" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Cascadia+Mono:wght@400;700&amp;display=swap">
+<style>
+:root { color-scheme: light;
+  --bg: #ffffff; --fg: #111111; --muted: #6b6b6b; --line: #111111; --soft: #f4f4f4; --border: #cccccc;
+  --accent: #2496ed; --accent-soft: color-mix(in srgb, var(--accent) 12%, var(--bg)); }
+@media (prefers-color-scheme: dark) { :root { color-scheme: dark;
+  --bg: #222222; --fg: #cccccc; --muted: #8f8f8f; --line: #111111; --soft: #2c2c2c; --border: #4a4a4a;
+  --accent: #5fb2f2; --accent-soft: color-mix(in srgb, var(--accent) 16%, var(--bg)); } }
+
+*, *::before, *::after { box-sizing: border-box; }
+html { -webkit-text-size-adjust: 100%; }
+body { margin: 0; background: var(--bg); color: var(--fg);
+  font-family: system-ui, sans-serif; font-size: 16px; line-height: 1.6; overflow-wrap: break-word; }
+h1, h2, h3 { font-family: system-ui, sans-serif; font-weight: 700; }
+h2 { font-size: 1.5em; }
+h3 { font-size: 1.17em; }
+a { color: var(--accent); }
+a:focus-visible, button:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+img { max-width: 100%; }
+
+code, kbd, pre, .mono, .chip, .since, .docs, .hero .meta, .side, dl.rows dd, table.grid { font-family: "Cascadia Mono", Consolas, monospace; font-size: 12px; }
+code { background: var(--soft); border-radius: 3px; padding: 0 3px; overflow-wrap: anywhere; }
+pre { background: var(--soft); border: 1px solid var(--border); border-radius: 4px;
+  margin: 10px 0 0; padding: 10px 12px; overflow-x: auto; max-width: 100%; line-height: 1.5; }
+pre code { background: none; border: 0; padding: 0; white-space: pre; }
+pre code.hljs { background: transparent; padding: 0; }
+
+.hero { margin: 0 0 24px; padding: 0 0 24px; border-bottom: 2px solid var(--line); }
+.hero h1 { margin: 0 0 8px; font-size: 2em; line-height: 1.2; font-weight: 700; }
+.hero .meta { margin: 0 0 12px; font-family: "Cascadia Mono", Consolas, monospace; font-size: 12px; color: var(--muted); }
+.hero .summary { margin: 0 0 12px; }
+.hero .chips { display: flex; flex-wrap: wrap; gap: 6px; margin: 0; }
+
+.side { position: fixed; top: 0; bottom: 0; left: 0; width: 260px; display: flex; flex-direction: column; background: var(--bg); border-right: 2px solid var(--line); font-family: "Cascadia Mono", Consolas, monospace; font-size: 12px; }
+.units { list-style: none; margin: 0; padding: 12px 0; overflow-y: auto; flex: 1; }
+.units a { display: grid; grid-template-columns: 2.5em 1fr; padding: 9px 20px 9px 17px; border-left: 3px solid transparent; color: var(--fg); text-decoration: none; line-height: 1.4; }
+.units .n { color: var(--muted); font-weight: 400; }
+.units a:hover { background: var(--soft); }
+.units a[aria-current="true"] { background: var(--accent-soft); border-left-color: var(--accent); font-weight: 700; }
+.side footer { padding: 12px 20px; border-top: 2px solid var(--line); color: var(--muted); line-height: 1.5; }
+
+.content { margin-left: 260px; padding: 24px; max-width: 120ch; min-width: 0; }
+.unit { border-top: 2px solid var(--line); margin: 0 0 26px; padding: 14px 0 0; min-width: 0; }
+.unit > header { display: flex; flex-wrap: wrap; align-items: baseline; gap: 4px 14px; margin: 0 0 4px; min-width: 0; }
+.unit h2 { margin: 0; line-height: 1.25; }
+.unit h2 .n { font-family: "Cascadia Mono", Consolas, monospace; font-size: 12px; color: var(--muted); margin-right: 10px; }
+.docs { color: var(--muted); }
+.docs a { color: var(--accent); text-decoration: none; }
+.docs a:hover { text-decoration: underline; }
+
+dl.rows { display: grid; grid-template-columns: minmax(0, 30ch) minmax(0, 1fr);
+  margin: 12px 0 0; border-top: 1px solid var(--border); min-width: 0; }
+dl.rows dt { grid-column: 1; margin: 0; padding: 6px 14px 6px 0; border-bottom: 1px solid var(--border);
+  min-width: 0; line-height: 1.35; }
+dl.rows dd { grid-column: 2; margin: 0; padding: 7px 0 6px; border-bottom: 1px solid var(--border);
+  min-width: 0; line-height: 1.5; overflow-wrap: anywhere; }
+dl.rows dd code { background: none; padding: 0; }
+.cmt { color: var(--muted); }
+
+.chip { display: inline-block; text-transform: uppercase; letter-spacing: .03em;
+  background: var(--soft); border: 1px solid var(--border); border-radius: 4px; padding: 2px 7px; }
+.since { display: inline-block; border: 1px solid var(--accent); border-radius: 4px;
+  padding: 0 5px; color: var(--accent); white-space: nowrap; }
+.note { background: var(--soft); border-left: 3px solid var(--accent); padding: 8px 12px; margin: 12px 0 0; }
+.note p { margin: 0; }
+
+.tw { overflow-x: auto; margin: 12px 0 0; min-width: 0; }
+table.grid { border-collapse: collapse; width: 100%; }
+table.grid th { text-align: left; font-weight: 400; color: var(--muted);
+  border-bottom: 1px solid var(--border); padding: 6px 14px 6px 0; vertical-align: bottom; }
+table.grid td { border-bottom: 1px solid var(--border); padding: 6px 14px 6px 0; vertical-align: top; }
+table.grid td code { background: none; padding: 0; }
+table.grid tr.hi td { background: var(--accent-soft); }
+
+ul.tight { margin: 12px 0 0; padding-left: 1.1em; }
+ul.tight li { margin: 0 0 3px; }
+
+.navtoggle { display: none; position: fixed; top: 10px; left: 10px; z-index: 30;
+  font-family: "Cascadia Mono", Consolas, monospace; font-size: 12px; color: var(--fg);
+  background: var(--bg); border: 1px solid var(--line); border-radius: 4px; padding: 6px 10px; cursor: pointer; }
+@media (max-width: 720px) {
+  .navtoggle { display: block; }
+  .side { width: min(260px, 84%); transform: translateX(-102%); transition: transform .15s ease; z-index: 25; }
+  body.nav-open .side { transform: none; }
+  .content { margin-left: 0; padding: 52px 16px 24px; }
+  dl.rows { grid-template-columns: minmax(0, 1fr); }
+  dl.rows dt { padding: 6px 0 0; border-bottom: 0; font-weight: 600; }
+  dl.rows dd { padding: 2px 0 7px; }
+}
+
+@media print {
+  :root { color-scheme: light;
+    --bg: #ffffff; --fg: #000000; --muted: #444444; --line: #000000; --soft: #ffffff; --border: #999999;
+    --accent: #000000; --accent-soft: #ffffff; }
+  .side, .navtoggle { display: none !important; }
+  body { font-size: 9pt; line-height: 1.3; background: #fff; color: #000; }
+  .content { margin: 0; padding: 0; max-width: 100%; }
+  code, kbd, pre, .chip, .since, .docs, .hero .meta, dl.rows dd, table.grid { font-size: 7.5pt; }
+  .hero { padding-bottom: 8pt; margin-bottom: 10pt; border-bottom: 1pt solid #000; }
+  .hero h1 { font-size: 16pt; }
+  .unit { break-inside: avoid; page-break-inside: avoid; margin: 0 0 8pt; padding-top: 6pt; border-top: 1pt solid #000; }
+  .unit h2 { font-size: 11pt; }
+  pre { background: #fff; border: 1pt solid #999; padding: 4pt 6pt; }
+  pre code.hljs, pre code.hljs span { color: #000 !important; background: transparent !important; }
+  .note { background: #fff; border-left: 2pt solid #000; }
+  a, a:visited { color: #000; text-decoration: none; }
+  a[href]::after { content: ""; }
+  @page { size: A4; margin: 11mm; }
+}
+</style>
+<style>
+/* devbok: the shared code palette (prompts/shared/page.md, "Code"). */
+:root {
+  --code: color-mix(in srgb, var(--accent) 70%, var(--fg));
+  --hl-kw: #a626a4; --hl-str: #50a14f; --hl-num: #986801; --hl-cmt: #6b6b6b; --hl-type: #0184bc; --hl-fn: #4078f2; --hl-attr: #986801;
+}
+@media (prefers-color-scheme: dark) {
+  :root { --hl-kw: #c678dd; --hl-str: #98c379; --hl-num: #d19a66; --hl-cmt: #8f8f8f; --hl-type: #56b6c2; --hl-fn: #61afef; --hl-attr: #e5c07b; }
+}
+code { color: var(--code); overflow-wrap: anywhere; }
+pre code, pre code.hljs { background: none; border: 0; border-radius: 0; padding: 0; color: inherit; white-space: pre; overflow-wrap: normal; }
+.hljs { color: var(--fg); background: transparent; }
+.hljs-keyword, .hljs-built_in, .hljs-literal, .hljs-selector-tag { color: var(--hl-kw); }
+.hljs-string, .hljs-regexp, .hljs-selector-attr { color: var(--hl-str); }
+.hljs-number, .hljs-symbol { color: var(--hl-num); }
+.hljs-comment, .hljs-quote, .hljs-doctag { color: var(--hl-cmt); font-style: italic; }
+.hljs-title, .hljs-title.class_, .hljs-type, .hljs-name, .hljs-section, .hljs-selector-class, .hljs-selector-pseudo { color: var(--hl-type); }
+.hljs-title.function_ { color: var(--hl-fn); }
+.hljs-meta, .hljs-attr, .hljs-attribute, .hljs-tag, .hljs-property, .hljs-variable { color: var(--hl-attr); }
+.hljs-template-tag, .hljs-template-variable { color: var(--hl-attr); }
+.hljs-code, .hljs-formula { color: var(--hl-cmt); }
+.hljs-operator, .hljs-subst, .hljs-punctuation, .hljs-params { color: var(--fg); }
+.hljs-emphasis { font-style: italic; }
+.hljs-strong { font-weight: 700; }
+@media print { code, .hljs, .hljs span { color: #000 !important; background: transparent !important; } }
+</style>
+</head>
+<body>
+<!-- devbok
+slug: docker
+kind: cheatsheet
+version: 1
+topic: "Docker / Containerization"
+prompt: cheatsheet.md@7ff70aff
+generated: 2026-09-08
+-->
+<button class="navtoggle" type="button" aria-expanded="false" aria-controls="side">units</button>
+<nav class="side" id="side" aria-label="Units">
+  <ol class="units">
+    <li><a href="#u01"><span class="n">01</span><span class="t">Core CLI &amp; container lifecycle</span></a></li>
+    <li><a href="#u02"><span class="n">02</span><span class="t">Dockerfile: modern syntax &amp; multi-stage</span></a></li>
+    <li><a href="#u03"><span class="n">03</span><span class="t">BuildKit, Buildx &amp; Bake</span></a></li>
+    <li><a href="#u04"><span class="n">04</span><span class="t">Images, registries &amp; supply chain</span></a></li>
+    <li><a href="#u05"><span class="n">05</span><span class="t">Networking</span></a></li>
+    <li><a href="#u06"><span class="n">06</span><span class="t">Volumes &amp; storage drivers</span></a></li>
+    <li><a href="#u07"><span class="n">07</span><span class="t">Docker Compose</span></a></li>
+    <li><a href="#u08"><span class="n">08</span><span class="t">Security &amp; resource limits</span></a></li>
+    <li><a href="#u09"><span class="n">09</span><span class="t">Gotchas &amp; pitfalls</span></a></li>
+    <li><a href="#u10"><span class="n">10</span><span class="t">Modern vs legacy</span></a></li>
+    <li><a href="#u11"><span class="n">11</span><span class="t">Version timeline</span></a></li>
+  </ol>
+  <footer>Docker / Containerization · cheatsheet · version 1 · 2026-09-08</footer>
+</nav>
+<main class="content">
+<header class="hero">
+  <h1>Docker / Containerization</h1>
+  <p class="meta">cheatsheet · Engine 29.8.0 · released 2026-09-03</p>
+  <p class="summary">This reflects Docker Engine 29.8.0, BuildKit 0.33.0 and Compose 5.5.1 — all released in the first week of September 2026 — plus Desktop 4.90.0 from 2026-09-07. The containerd image store is now the default storage backend on fresh Engine 29.x installs, BuildKit 0.33 finally lets Windows containers use <code>RUN --mount=type=secret</code>, and Docker Model Runner now ships disabled by default in current Desktop builds. Every row favours what a lead-to-principal engineer reaches for weekly, with the legacy pattern named alongside wherever it still turns up in real codebases.</p>
+  <p class="chips"><span class="chip">Engine 29.8.0</span> <span class="chip">BuildKit 0.33.0</span> <span class="chip">Compose 5.5.1</span> <span class="chip">Desktop 4.90.0</span> <span class="chip">containerd store: default since 29.0</span> <span class="chip">verified 2026-09-08</span></p>
+</header>
+
+<section class="unit" id="u01">
+  <header>
+    <h2><span class="n">01</span>Core CLI &amp; container lifecycle</h2>
+    <span class="docs"><a href="https://docs.docker.com/reference/cli/docker/container/">docs: docker container</a></span>
+  </header>
+  <dl class="rows">
+    <dt>Run detached, self-cleaning, published</dt>
+    <dd><code>docker run -d --rm --name web -p 8080:80 nginx:1.27</code> <span class="cmt">— <code>-d</code> backgrounds it, <code>--rm</code> removes the container on exit, <code>-p host:container</code> publishes a port</span></dd>
+    <dt>Run interactively with a shell</dt>
+    <dd><code>docker run -it --rm alpine:3.20 sh</code></dd>
+    <dt>Exec into a running container</dt>
+    <dd><code>docker exec -it web sh</code> <span class="cmt">— minimal images often have no <code>bash</code>, only <code>sh</code></span></dd>
+    <dt>Follow logs</dt>
+    <dd><code>docker logs -f --tail 100 --timestamps web</code></dd>
+    <dt>List containers</dt>
+    <dd><code>docker ps</code> running only · <code>docker ps -a</code> include stopped</dd>
+    <dt>Stop / kill / restart</dt>
+    <dd><code>docker stop web</code> (SIGTERM, grace period) · <code>docker kill web</code> (SIGKILL) · <code>docker restart web</code></dd>
+    <dt>Clean up</dt>
+    <dd><code>docker container prune</code> stopped containers · <code>docker image prune -a</code> unused images · <code>docker system prune -af --volumes</code> everything unreferenced, volumes included <span class="cmt">— irreversible, see gotchas</span></dd>
+    <dt>Copy files in / out</dt>
+    <dd><code>docker cp web:/app/log.txt .</code> · <code>docker cp ./config.json web:/app/</code></dd>
+    <dt>Inspect one field</dt>
+    <dd><code>docker inspect -f '{{ .State.Health.Status }}' web</code> <span class="cmt">— Go template syntax against the full JSON</span></dd>
+    <dt>Live resource stats</dt>
+    <dd><code>docker stats --no-stream</code></dd>
+    <dt>Processes inside a container</dt>
+    <dd><code>docker top web</code></dd>
+    <dt>Detach without stopping</dt>
+    <dd><code>docker attach web</code>, then <kbd>Ctrl-p</kbd> <kbd>Ctrl-q</kbd> to leave it running</dd>
+    <dt>Runtime resource caps</dt>
+    <dd><code>docker run --memory=512m --memory-swap=512m --cpus=1.5 ...</code></dd>
+    <dt>Wait for exit code (CI, scripts)</dt>
+    <dd><code>docker wait web</code></dd>
+    <dt>Change policy on a live container</dt>
+    <dd><code>docker update --restart=unless-stopped web</code></dd>
+    <dt>Rename</dt>
+    <dd><code>docker rename web web-old</code></dd>
+  </dl>
+</section>
+
+<section class="unit" id="u02">
+  <header>
+    <h2><span class="n">02</span>Dockerfile: modern syntax &amp; multi-stage</h2>
+    <span class="docs"><a href="https://docs.docker.com/reference/dockerfile/">docs: Dockerfile reference</a></span>
+  </header>
+  <dl class="rows">
+    <dt>Pin the frontend (always line one)</dt>
+    <dd><code># syntax=docker/dockerfile:1</code> <span class="cmt">— floats to the latest 1.x; without it, heredocs / mount flags / <code>--link</code> do not parse at all</span></dd>
+    <dt>Cache package installs across builds</dt>
+    <dd><code>RUN --mount=type=cache,target=/var/cache/apt apt-get update &amp;&amp; apt-get install -y curl</code></dd>
+    <dt>Build secret, never in a layer</dt>
+    <dd><code>RUN --mount=type=secret,id=npmrc,target=/root/.npmrc npm ci</code> <span class="cmt">— pass it with <code>docker build --secret id=npmrc,src=$HOME/.npmrc</code></span></dd>
+    <dt>Bind the build context instead of COPY</dt>
+    <dd><code>RUN --mount=type=bind,source=.,target=/src,ro go build -C /src -o /out/app ./...</code></dd>
+    <dt>Multi-line script, no <code>&amp;&amp; \</code> chain</dt>
+    <dd>heredoc — see example below <span class="since">syntax 1.4</span></dd>
+    <dt>Copy without ownership/mtime churn</dt>
+    <dd><code>COPY --link --chown=1000:1000 src/ /app/</code> <span class="since">syntax 1.4</span></dd>
+    <dt>Skip files beyond <code>.dockerignore</code></dt>
+    <dd><code>COPY --exclude=**/*.md --exclude=**/*.test.* . .</code></dd>
+    <dt>Verified remote fetch</dt>
+    <dd><code>ADD --checksum=sha256:&lt;digest&gt; https://example.com/f.tar.gz /tmp/</code></dd>
+    <dt>Build one stage only (local dev)</dt>
+    <dd><code>docker build --target build -t app:dev .</code></dd>
+    <dt>Cross-compile for another platform</dt>
+    <dd><code>FROM --platform=$BUILDPLATFORM golang:1.24 AS build</code> + <code>ARG TARGETOS TARGETARCH</code></dd>
+    <dt>Healthcheck baked into the image</dt>
+    <dd><code>HEALTHCHECK --interval=30s --timeout=3s --retries=3 CMD curl -f http://localhost/health || exit 1</code></dd>
+    <dt>Drop root before <code>CMD</code></dt>
+    <dd><code>USER 10001:10001</code></dd>
+    <dt>Exec form vs shell form</dt>
+    <dd><code>CMD ["nginx", "-g", "daemon off;"]</code> (no shell, receives signals directly) vs <code>CMD nginx -g 'daemon off;'</code> (runs through <code>/bin/sh -c</code>, swallows signal 1)</dd>
+  </dl>
+  <pre><code class="language-dockerfile"># syntax=docker/dockerfile:1
+FROM golang:1.24 AS build
+WORKDIR /src
+COPY go.* .
+RUN --mount=type=cache,target=/root/.cache/go-build go mod download
+COPY . .
+RUN --mount=type=cache,target=/root/.cache/go-build go build -o /out/app .
+
+# multi-line script without the classic "&amp;&amp; \" chain
+RUN &lt;&lt;EOF
+set -eux
+go vet ./...
+EOF
+
+FROM gcr.io/distroless/base-debian12
+COPY --from=build /out/app /app
+USER nonroot:nonroot
+ENTRYPOINT ["/app"]</code></pre>
+</section>
+
+<section class="unit" id="u03">
+  <header>
+    <h2><span class="n">03</span>BuildKit, Buildx &amp; Bake</h2>
+    <span class="docs"><a href="https://docs.docker.com/build/">docs: Docker Build</a></span>
+  </header>
+  <dl class="rows">
+    <dt>Build (BuildKit is the engine)</dt>
+    <dd><code>docker build -t app:1.0 .</code> <span class="cmt">— BuildKit has been the default builder for plain <code>docker build</code> <span class="since">23.0</span></span></dd>
+    <dt>Multi-platform image, one push</dt>
+    <dd><code>docker buildx build --platform linux/amd64,linux/arm64 -t user/app:1.0 --push .</code></dd>
+    <dt>Create / select a builder</dt>
+    <dd><code>docker buildx create --name multi --driver docker-container --use --bootstrap</code></dd>
+    <dt>Registry-backed layer cache (CI)</dt>
+    <dd><code>docker buildx build --cache-to type=registry,ref=user/app:cache,mode=max --cache-from type=registry,ref=user/app:cache .</code></dd>
+    <dt>Emit SBOM + provenance</dt>
+    <dd><code>docker buildx build --sbom=true --provenance=mode=max -t app:1.0 --push .</code> <span class="cmt">— attestations default to OCI artifact descriptors <span class="since">BuildKit 0.32</span>; payloads up to 80&#8202;MiB <span class="since">BuildKit 0.33</span></span></dd>
+    <dt>Every build target in one file</dt>
+    <dd><code>docker buildx bake web api</code> <span class="cmt">— reads <code>docker-bake.hcl</code> (or <code>.json</code>) in the working directory</span></dd>
+    <dt>Reuse a Compose file as bake targets</dt>
+    <dd><code>docker buildx bake -f compose.yaml</code></dd>
+    <dt>Debug a failed step interactively</dt>
+    <dd><code>docker buildx debug --invoke sh build .</code></dd>
+    <dt>See why a layer missed cache</dt>
+    <dd><code>docker buildx build --progress=plain --no-cache-filter=&lt;stage&gt; .</code></dd>
+    <dt>Inspect the active builder</dt>
+    <dd><code>docker buildx inspect --bootstrap</code></dd>
+    <dt>Inspect a past build without rebuilding</dt>
+    <dd><code>docker buildx history ls</code> / <code>docker buildx history inspect &lt;ref&gt;</code></dd>
+    <dt>Windows build secrets</dt>
+    <dd><code>RUN --mount=type=secret,id=cred</code> <span class="since">BuildKit 0.33 — first release to support this on Windows containers</span></dd>
+  </dl>
+</section>
+
+<section class="unit" id="u04">
+  <header>
+    <h2><span class="n">04</span>Images, registries &amp; supply chain</h2>
+    <span class="docs"><a href="https://docs.docker.com/scout/">docs: Docker Scout</a></span>
+  </header>
+  <dl class="rows">
+    <dt>Tag and push</dt>
+    <dd><code>docker tag app:1.0 registry.example.com/team/app:1.0</code> then <code>docker push registry.example.com/team/app:1.0</code></dd>
+    <dt>Log in without a plaintext password</dt>
+    <dd><code>docker login registry.example.com -u ci --password-stdin</code></dd>
+    <dt>Inspect a remote manifest without pulling</dt>
+    <dd><code>docker buildx imagetools inspect user/app:1.0</code></dd>
+    <dt>See why an image is big</dt>
+    <dd><code>docker history --no-trunc app:1.0</code></dd>
+    <dt>CVE scan + fix suggestion</dt>
+    <dd><code>docker scout cves app:1.0</code> · <code>docker scout recommendations app:1.0</code></dd>
+    <dt>Did this build regress security?</dt>
+    <dd><code>docker scout compare app:1.0 --to=app:0.9</code></dd>
+    <dt>Read the SBOM baked into an image</dt>
+    <dd><code>docker buildx imagetools inspect app:1.0 --format '{{ json .SBOM }}'</code></dd>
+    <dt>Move an image without a registry</dt>
+    <dd><code>docker save app:1.0 -o app.tar</code> / <code>docker load -i app.tar</code></dd>
+    <dt>Sign an image</dt>
+    <dd><code>cosign sign registry.example.com/team/app:1.0</code> <span class="cmt">— Sigstore keyless signing is what teams actually run now; <code>docker trust sign</code> (Notary v1) still works but is legacy tooling</span></dd>
+    <dt>Remove dangling/untagged layers</dt>
+    <dd><code>docker image prune</code></dd>
+    <dt>List local images</dt>
+    <dd><code>docker images</code></dd>
+  </dl>
+</section>
+
+<section class="unit" id="u05">
+  <header>
+    <h2><span class="n">05</span>Networking</h2>
+    <span class="docs"><a href="https://docs.docker.com/engine/network/">docs: networking overview</a></span>
+  </header>
+  <dl class="rows">
+    <dt>List / inspect</dt>
+    <dd><code>docker network ls</code> / <code>docker network inspect bridge</code></dd>
+    <dt>Isolated network per project</dt>
+    <dd><code>docker network create --driver bridge appnet</code></dd>
+    <dt>Attach a running container to another network</dt>
+    <dd><code>docker network connect appnet web</code></dd>
+    <dt>Publish vs expose</dt>
+    <dd><code>-p 8080:80</code> opens a host port; <code>EXPOSE 80</code> in a Dockerfile is documentation only and publishes nothing</dd>
+    <dt>Bind to one interface, not every one</dt>
+    <dd><code>docker run -p 127.0.0.1:8080:80 ...</code> <span class="cmt">— on a shared host, the default <code>0.0.0.0</code> publish is often the actual security bug</span></dd>
+    <dt>Name-based DNS between containers</dt>
+    <dd>only on a user-defined network (<code>appnet</code> above) — the default <code>bridge</code> network has none</dd>
+    <dt>Share another container's network stack</dt>
+    <dd><code>docker run --network container:web ...</code></dd>
+    <dt>Host networking (Linux only)</dt>
+    <dd><code>docker run --network host ...</code></dd>
+    <dt>Debug DNS/connectivity from inside</dt>
+    <dd><code>docker run --rm --network appnet nicolaka/netshoot dig web</code></dd>
+    <dt>IPv6</dt>
+    <dd><code>docker network create --ipv6 --subnet fd00:dead:beef::/64 appnet6</code> <span class="cmt">— dual-stack default bridge network available <span class="since">28.0</span></span></dd>
+  </dl>
+</section>
+
+<section class="unit" id="u06">
+  <header>
+    <h2><span class="n">06</span>Volumes &amp; storage drivers</h2>
+    <span class="docs"><a href="https://docs.docker.com/engine/storage/">docs: storage overview</a></span>
+  </header>
+  <dl class="rows">
+    <dt>Named volume (Docker-managed, portable)</dt>
+    <dd><code>docker run -v app-data:/var/lib/app ...</code></dd>
+    <dt>Bind mount (host path, dev inner loop)</dt>
+    <dd><code>docker run -v "$(pwd)/src:/app/src" ...</code></dd>
+    <dt>Explicit long syntax when it's not obvious</dt>
+    <dd><code>--mount type=volume,source=app-data,target=/var/lib/app</code></dd>
+    <dt>Read-only mount</dt>
+    <dd><code>-v ./config.json:/app/config.json:ro</code></dd>
+    <dt>tmpfs for scratch that must never touch disk</dt>
+    <dd><code>docker run --tmpfs /run:rw,size=64m ...</code></dd>
+    <dt>List / inspect / remove</dt>
+    <dd><code>docker volume ls</code> / <code>docker volume inspect app-data</code> / <code>docker volume prune</code></dd>
+    <dt>Back up a volume</dt>
+    <dd><code>docker run --rm -v app-data:/data -v "$(pwd)":/backup alpine tar czf /backup/data.tgz -C /data .</code></dd>
+    <dt>Which storage backend is active</dt>
+    <dd><code>docker info -f '{{ .DriverStatus }}'</code></dd>
+    <dt>Opt into the containerd image store</dt>
+    <dd>daemon.json below, then <code>sudo systemctl restart docker</code> <span class="since">default on fresh installs since Engine 29.0</span></dd>
+    <dt>Switching snapshotters</dt>
+    <dd>hides, but does not delete, images/containers created under the previous one <span class="cmt">— check with <code>docker info</code> before assuming data loss</span></dd>
+  </dl>
+  <pre><code class="language-json">{
+  "features": { "containerd-snapshotter": true }
+}</code></pre>
+</section>
+
+<section class="unit" id="u07">
+  <header>
+    <h2><span class="n">07</span>Docker Compose</h2>
+    <span class="docs"><a href="https://docs.docker.com/compose/">docs: Compose</a></span>
+  </header>
+  <dl class="rows">
+    <dt>Up, rebuild if needed, detached</dt>
+    <dd><code>docker compose up -d --build</code></dd>
+    <dt>Tear down, drop volumes too</dt>
+    <dd><code>docker compose down -v</code></dd>
+    <dt>Follow one service's logs</dt>
+    <dd><code>docker compose logs -f api</code></dd>
+    <dt>One-off command in a fresh container</dt>
+    <dd><code>docker compose run --rm api pytest</code></dd>
+    <dt>Shell into a running service</dt>
+    <dd><code>docker compose exec api sh</code></dd>
+    <dt>Live sync + rebuild on change</dt>
+    <dd><code>docker compose watch</code> <span class="since">2.22</span></dd>
+    <dt>Scale a service</dt>
+    <dd><code>docker compose up -d --scale worker=3</code></dd>
+    <dt>Start only part of the stack</dt>
+    <dd><code>docker compose --profile debug up -d</code></dd>
+    <dt>Validate &amp; print the merged config</dt>
+    <dd><code>docker compose config</code></dd>
+    <dt>Wait for "ready", not just "started"</dt>
+    <dd><code>depends_on: db: condition: service_healthy</code> — needs a real <code>healthcheck:</code> on <code>db</code>, see example below</dd>
+    <dt>Pre-start lifecycle hook</dt>
+    <dd><code>pre_start:</code> service hook <span class="since">5.3</span> <span class="cmt">— replaces hand-rolled wait scripts run before the app container starts</span></dd>
+    <dt>Layer config per environment</dt>
+    <dd><code>docker compose -f compose.yaml -f compose.prod.yaml up -d</code></dd>
+    <dt>The <code>version:</code> key</dt>
+    <dd>obsolete since the Compose Specification — omit it, the schema is inferred from the file's shape</dd>
+    <dt>Pull policy with a refresh window</dt>
+    <dd><code>pull_policy: daily</code> <span class="since">5.5</span> <span class="cmt">— re-pulls at most once a day instead of on every <code>up</code></span></dd>
+  </dl>
+  <pre><code class="language-yaml">services:
+  db:
+    image: postgres:17
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U app"]
+      interval: 5s
+      timeout: 3s
+      retries: 10
+  api:
+    build: .
+    depends_on:
+      db:
+        condition: service_healthy
+    develop:
+      watch:
+        - action: sync
+          path: ./src
+          target: /app/src</code></pre>
+</section>
+
+<section class="unit" id="u08">
+  <header>
+    <h2><span class="n">08</span>Security &amp; resource limits</h2>
+    <span class="docs"><a href="https://docs.docker.com/engine/security/">docs: security</a></span>
+  </header>
+  <dl class="rows">
+    <dt>Never run as root</dt>
+    <dd><code>USER 10001:10001</code> near the end of the Dockerfile</dd>
+    <dt>Drop all capabilities, add back what's needed</dt>
+    <dd><code>docker run --cap-drop=ALL --cap-add=NET_BIND_SERVICE ...</code></dd>
+    <dt>Read-only root filesystem</dt>
+    <dd><code>docker run --read-only --tmpfs /tmp ...</code></dd>
+    <dt>Block privilege escalation</dt>
+    <dd><code>docker run --security-opt=no-new-privileges ...</code></dd>
+    <dt>Custom seccomp / AppArmor profile</dt>
+    <dd><code>--security-opt seccomp=profile.json</code> / <code>--security-opt apparmor=profile-name</code> <span class="cmt">— AppArmor profile customization <span class="since">29.8</span></span></dd>
+    <dt>Resource caps</dt>
+    <dd><code>--cpus=1.5 --memory=512m --pids-limit=256</code></dd>
+    <dt>Per-device block I/O limits</dt>
+    <dd><code>--device-read-bps /dev/sda:10mb</code> <span class="since">29.6 — per-device blkio settings added to the API</span></dd>
+    <dt>Rootless daemon (no root process at all)</dt>
+    <dd><code>dockerd-rootless-setuptool.sh install</code></dd>
+    <dt>Per-container umask</dt>
+    <dd><code>docker run --umask=0027 ...</code> <span class="since">29.8</span></dd>
+    <dt>Survive a reboot, not a manual stop</dt>
+    <dd><code>--restart unless-stopped</code></dd>
+    <dt>Never mount the host socket into an untrusted container</dt>
+    <dd>avoid <code>-v /var/run/docker.sock:/var/run/docker.sock</code> <span class="cmt">— it is root-equivalent access to the host, not a sandbox boundary</span></dd>
+  </dl>
+</section>
+
+<section class="unit" id="u09">
+  <header>
+    <h2><span class="n">09</span>Gotchas &amp; pitfalls</h2>
+    <span class="docs"><a href="https://docs.docker.com/build/building/best-practices/">docs: build best practices</a></span>
+  </header>
+  <ul class="tight">
+    <li><strong><code>docker run</code> without <code>-d</code></strong> blocks the shell and dies with your terminal — use <code>-d</code>, not <code>&amp;</code>, if it should outlive the session.</li>
+    <li><strong><code>EXPOSE</code> publishes nothing.</strong> Only <code>-p</code>/<code>--publish</code> opens a host port; <code>EXPOSE</code> is metadata for humans and tools like Compose.</li>
+    <li><strong>The default <code>bridge</code> network has no container-name DNS.</strong> Multi-container apps need a user-defined network — Compose creates one for you automatically.</li>
+    <li><strong><code>latest</code> is not "the latest stable."</strong> It's whatever the maintainer last pushed under that tag; pin a real version, and a digest for anything you ship.</li>
+    <li><strong><code>docker system prune -af --volumes</code> deletes unreferenced volumes too</strong>, irreversibly. Read the confirmation prompt before scripting past it.</li>
+    <li><strong>A bind mount shadows whatever the image already had at that path.</strong> "Missing files in the container" is as often a mount hiding the build's own output as it is a build bug.</li>
+    <li><strong>Build cache invalidates from the first changed instruction onward.</strong> Put the steps that rarely change (package installs, <code>go mod download</code>) before <code>COPY . .</code>, never after.</li>
+    <li><strong><code>depends_on</code> alone only waits for "container started," not "app ready."</strong> Pair it with <code>condition: service_healthy</code> and a real <code>HEALTHCHECK</code>, or the first request still races the database.</li>
+    <li><strong>Mounting <code>/var/run/docker.sock</code> into a container hands it root on the host.</strong> It is not a sandbox; it's a different name for "give this process root."</li>
+    <li><strong><code>--restart=always</code> on a crash-looping container</strong> is an infinite restart loop that burns CPU and fills the log driver — use <code>unless-stopped</code> and fix the healthcheck instead.</li>
+    <li><strong><code>COPY --from=&lt;image&gt;</code> re-resolves that tag</strong> whenever BuildKit can't satisfy it from cache — an unpinned tag drifts silently; pin the digest for anything reproducible.</li>
+    <li><strong>Line endings and permission bits don't always survive a bind-mount round-trip identically</strong> between Windows/WSL2 and Linux — CRLF creeping into a shell script is a classic "works on my machine."</li>
+  </ul>
+</section>
+
+<section class="unit" id="u10">
+  <header>
+    <h2><span class="n">10</span>Modern vs legacy</h2>
+    <span class="docs"><a href="https://docs.docker.com/engine/deprecated/">docs: deprecated features</a></span>
+  </header>
+  <div class="tw">
+  <table class="grid">
+    <thead><tr><th>Task</th><th>Modern</th><th>Legacy still seen</th><th>Since</th></tr></thead>
+    <tbody>
+      <tr class="hi"><td>Image storage backend</td><td>containerd image store</td><td>overlay2 classic graphdriver</td><td>Engine 29.0</td></tr>
+      <tr class="hi"><td>Dev inner loop</td><td><code>docker compose watch</code></td><td>bind mount + manual restart / nodemon-in-container</td><td>Compose 2.22</td></tr>
+      <tr class="hi"><td>Supply-chain evidence</td><td>SBOM + provenance attestations</td><td>none — trust the tag/registry alone</td><td>Buildx 0.10; OCI descriptors default BuildKit 0.32</td></tr>
+      <tr><td>Build images</td><td>BuildKit (<code>docker build</code> / <code>buildx build</code>)</td><td>classic builder (<code>DOCKER_BUILDKIT=0</code>)</td><td>Engine 23.0</td></tr>
+      <tr><td>Multi-target build config</td><td><code>docker buildx bake</code> (HCL/JSON)</td><td>shell scripts wrapping <code>docker build</code> flags</td><td>Buildx 0.10</td></tr>
+      <tr><td>Orchestrate multi-container apps</td><td><code>docker compose</code> (Go plugin, now 5.x)</td><td><code>docker-compose</code> (Python v1) — EOL 2023-06</td><td>Compose 2.0</td></tr>
+      <tr><td>Compose file schema</td><td>Compose Specification, no <code>version:</code> key</td><td><code>version: "3.8"</code> top-level key</td><td>Compose 2.x</td></tr>
+      <tr><td>Copy in a Dockerfile</td><td><code>COPY --link</code></td><td>plain <code>COPY</code></td><td>syntax 1.4</td></tr>
+      <tr><td>Build-time secrets</td><td><code>RUN --mount=type=secret</code></td><td>baked <code>ARG</code>/<code>ENV</code>, "copy then delete" hacks</td><td>syntax 1.2</td></tr>
+      <tr><td>Multi-line RUN scripts</td><td>heredoc <code>RUN &lt;&lt;EOF</code></td><td><code>&amp;&amp;</code> chains with trailing <code>\</code></td><td>syntax 1.4</td></tr>
+      <tr><td>Wait for a dependency</td><td><code>depends_on: condition: service_healthy</code></td><td><code>wait-for-it.sh</code> / sleep hacks in the entrypoint</td><td>Compose 1.27</td></tr>
+      <tr><td>Image signing</td><td><code>cosign sign</code> (Sigstore, keyless)</td><td><code>docker trust sign</code> (Notary v1)</td><td>de facto shift, ~2022</td></tr>
+    </tbody>
+  </table>
+  </div>
+</section>
+
+<section class="unit" id="u11">
+  <header>
+    <h2><span class="n">11</span>Version timeline</h2>
+    <span class="docs"><a href="https://docs.docker.com/engine/release-notes/">docs: Engine release notes</a></span>
+  </header>
+  <div class="tw">
+  <table class="grid">
+    <thead><tr><th>Version</th><th>Date</th><th>What changed</th></tr></thead>
+    <tbody>
+      <tr class="hi"><td>Desktop 4.90.0</td><td>2026-09-07</td><td>Ask Gordon (Docker AI) as a persistent side drawer with contextual assistance; start/stop Kubernetes cloud clusters via Docker Offload</td></tr>
+      <tr class="hi"><td>Engine 29.8.0</td><td>2026-09-03</td><td><em>newly added:</em> per-container <code>--umask</code>, AppArmor profile customization; security fix closing an AF_VSOCK/socketcall sandbox-escape path; Swarm gossip and service-discovery fixes</td></tr>
+      <tr class="hi"><td>Compose 5.5.1</td><td>2026-09-03</td><td>lifecycle hook output now captured and surfaced; fixes to event subscriptions, symlinked-directory syncing in <code>watch</code>, and IPAM options on network creation</td></tr>
+      <tr class="hi"><td>BuildKit 0.33.0 / syntax 1.27</td><td>2026-09-02</td><td><em>newly stable:</em> <code>RUN --mount=type=secret</code> on Windows containers; attestation payloads raised to 80&#8202;MiB; build history can now be disabled daemon-wide</td></tr>
+      <tr><td>Compose 5.5.0</td><td>2026-08-17</td><td>image-digest reconciliation rewritten to stop unnecessary container recreation (existing containers may recreate once on upgrade); <code>pull_policy</code> honors refresh windows (<code>daily</code>/<code>weekly</code>/<code>every_N</code>)</td></tr>
+      <tr><td>Engine 29.7.0</td><td>2026-07-30</td><td><em>newly stable:</em> <code>type=image</code> mounts; <em>new:</em> experimental embedded-containerd daemon mode, <code>default-stop-timeout</code> daemon option</td></tr>
+      <tr><td>BuildKit 0.32.0</td><td>2026-07-29</td><td><em>newly default:</em> attestations as OCI artifact descriptors; <em>newly added:</em> SBOM scanning for Windows images</td></tr>
+      <tr><td>Compose 5.3.0</td><td>2026-07-02</td><td>native <code>pre_start</code> lifecycle hook — no more hand-rolled wait scripts before the app container starts</td></tr>
+      <tr class="hi"><td>Engine 29.0</td><td>2026 H1</td><td><em>newly default:</em> containerd image store on fresh installs; <em>newly deprecated:</em> cgroup v1 (supported to 2029-05), legacy <code>*_ENV</code> link variables (removal targeted for 30.0)</td></tr>
+      <tr><td>Buildx 0.10</td><td>2023</td><td>Bake reaches GA; SBOM/provenance attestations (<code>--sbom</code>, <code>--provenance</code>) land</td></tr>
+      <tr><td>Engine 23.0</td><td>2023</td><td>BuildKit becomes the default builder for plain <code>docker build</code></td></tr>
+      <tr><td>Compose v1 (<code>docker-compose</code>, Python)</td><td>EOL 2023-06</td><td>removed from current Docker Desktop; the <code>docker compose</code> v2 Go plugin is the only supported path</td></tr>
+    </tbody>
+  </table>
+  </div>
+  <div class="note"><p><strong>Also worth knowing:</strong> Docker Model Runner now ships <em>disabled by default</em> in current Desktop builds — enable it under Settings if your workflow uses it. Every fact above was checked against Docker's own release notes and GitHub release pages on 2026-09-08; treat the trailing patch digit of the newest rows as liable to tick up by the time you read this, the substance shouldn't have moved.</p></div>
+</section>
+</main>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.11.1/highlight.min.js"></script>
+<script>
+(function () {
+  if (window.hljs) { try { hljs.highlightAll(); } catch (e) { /* highlighting is decoration */ } }
+
+  var toggle = document.querySelector('.navtoggle');
+  var side = document.getElementById('side');
+  if (toggle) {
+    toggle.addEventListener('click', function () {
+      var open = document.body.classList.toggle('nav-open');
+      toggle.setAttribute('aria-expanded', open ? 'true' : 'false');
+    });
+  }
+  if (side) {
+    side.addEventListener('click', function (e) {
+      if (e.target.closest('a')) {
+        document.body.classList.remove('nav-open');
+        if (toggle) toggle.setAttribute('aria-expanded', 'false');
+      }
+    });
+  }
+
+  var links = Array.prototype.slice.call(document.querySelectorAll('.units a'));
+  var units = links.map(function (a) { return document.getElementById(a.getAttribute('href').slice(1)); });
+  var ticking = false;
+  function spy() {
+    ticking = false;
+    var best = 0;
+    for (var i = 0; i < units.length; i++) {
+      if (units[i] && units[i].getBoundingClientRect().top <= 140) best = i;
+    }
+    for (var j = 0; j < links.length; j++) {
+      if (j === best) links[j].setAttribute('aria-current', 'true');
+      else links[j].removeAttribute('aria-current');
+    }
+  }
+  function onScroll() {
+    if (!ticking) { ticking = true; window.requestAnimationFrame(spy); }
+  }
+  window.addEventListener('scroll', onScroll, { passive: true });
+  window.addEventListener('resize', onScroll, { passive: true });
+  spy();
+})();
+</script>
+</body>
+</html>

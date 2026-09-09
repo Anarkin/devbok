@@ -1,0 +1,1063 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Authn &amp; authz (.NET, OAuth/OIDC) · experience · devbok</title>
+<link href="https://fonts.googleapis.com/css2?family=Cascadia+Mono:wght@400;600&display=swap" rel="stylesheet">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.11.1/highlight.min.js"></script>
+<style>
+:root { color-scheme: light;
+  --bg: #ffffff; --fg: #111111; --muted: #6b6b6b; --line: #111111; --soft: #f4f4f4; --border: #cccccc;
+  --accent: #047857; --accent-soft: color-mix(in srgb, var(--accent) 12%, var(--bg));
+  --code: color-mix(in srgb, var(--accent) 70%, var(--fg));
+  --hl-kw: #a626a4; --hl-str: #50a14f; --hl-num: #986801; --hl-cmt: #6b6b6b; --hl-type: #0184bc; --hl-fn: #4078f2; --hl-attr: #986801; }
+@media (prefers-color-scheme: dark) { :root { color-scheme: dark;
+  --bg: #222222; --fg: #cccccc; --muted: #8f8f8f; --line: #111111; --soft: #2c2c2c; --border: #4a4a4a;
+  --accent: #57f9cb; --accent-soft: color-mix(in srgb, var(--accent) 16%, var(--bg));
+  --hl-kw: #c678dd; --hl-str: #98c379; --hl-num: #d19a66; --hl-cmt: #8f8f8f; --hl-type: #56b6c2; --hl-fn: #61afef; --hl-attr: #e5c07b; } }
+
+*, *::before, *::after { box-sizing: border-box; }
+html { scroll-behavior: smooth; }
+html, body { max-width: 100%; overflow-x: hidden; }
+body { margin: 0; background: var(--bg); color: var(--fg);
+  font-family: system-ui, sans-serif; font-size: 16px; line-height: 1.6; }
+a { color: var(--accent); }
+:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+h1, h2, h3, h4 { font-family: system-ui, sans-serif; font-weight: 700; line-height: 1.25; }
+h2 { font-size: 1.5em; margin: 0 0 8px; }
+h3 { font-size: 1.17em; margin: 24px 0 8px; }
+h4 { font-size: 1em; margin: 16px 0 6px; }
+p { margin: 10px 0; }
+ul, ol { padding-left: 22px; }
+
+code, pre, kbd, .chip, .label, .meta, .num, .side, .docs { font-family: "Cascadia Mono", Consolas, monospace; font-size: 12px; }
+code { background: var(--soft); border: 1px solid var(--border); border-radius: 3px; padding: 0 .3em; color: var(--code); overflow-wrap: anywhere; }
+pre { background: var(--soft); border: 1px solid var(--border); border-radius: 4px; padding: 12px 14px; overflow-x: auto; line-height: 1.5; margin: 14px 0; max-width: 100%; }
+pre code { background: none; border: 0; border-radius: 0; padding: 0; color: inherit; white-space: pre; overflow-wrap: normal; }
+.hljs { color: var(--fg); background: transparent; }
+.hljs-keyword, .hljs-built_in, .hljs-literal, .hljs-selector-tag { color: var(--hl-kw); }
+.hljs-string, .hljs-regexp, .hljs-selector-attr { color: var(--hl-str); }
+.hljs-number, .hljs-symbol { color: var(--hl-num); }
+.hljs-comment, .hljs-quote, .hljs-doctag { color: var(--hl-cmt); font-style: italic; }
+.hljs-title, .hljs-title.class_, .hljs-type, .hljs-name, .hljs-section, .hljs-selector-class, .hljs-selector-pseudo { color: var(--hl-type); }
+.hljs-title.function_ { color: var(--hl-fn); }
+.hljs-meta, .hljs-attr, .hljs-attribute, .hljs-tag, .hljs-property, .hljs-variable { color: var(--hl-attr); }
+.hljs-template-tag, .hljs-template-variable { color: var(--hl-attr); }
+.hljs-code, .hljs-formula { color: var(--hl-cmt); }
+.hljs-operator, .hljs-subst, .hljs-punctuation, .hljs-params { color: var(--fg); }
+.hljs-emphasis { font-style: italic; } .hljs-strong { font-weight: 700; }
+
+.hero { margin: 0 0 24px; padding: 0 0 24px; border-bottom: 2px solid var(--line); }
+.hero h1 { margin: 0 0 8px; font-size: 2em; line-height: 1.2; font-weight: 700; }
+.hero .meta { margin: 0 0 12px; font-family: "Cascadia Mono", Consolas, monospace; font-size: 12px; color: var(--muted); }
+.hero .summary { margin: 0 0 12px; }
+.hero .chips { display: flex; flex-wrap: wrap; gap: 6px; margin: 0; }
+
+.side { position: fixed; top: 0; bottom: 0; left: 0; width: 260px; display: flex; flex-direction: column; background: var(--bg); border-right: 2px solid var(--line); font-family: "Cascadia Mono", Consolas, monospace; font-size: 12px; }
+.units { list-style: none; margin: 0; padding: 12px 0; overflow-y: auto; flex: 1; }
+.units a { display: grid; grid-template-columns: 2.5em 1fr; padding: 9px 20px 9px 17px; border-left: 3px solid transparent; color: var(--fg); text-decoration: none; line-height: 1.4; }
+.units .n { color: var(--muted); font-weight: 400; }
+.units a:hover { background: var(--soft); }
+.units a[aria-current="true"] { background: var(--accent-soft); border-left-color: var(--accent); font-weight: 700; }
+.side footer { padding: 12px 20px; border-top: 2px solid var(--line); color: var(--muted); line-height: 1.5; }
+.units .t { min-width: 0; overflow-wrap: anywhere; }
+
+main { margin-left: 260px; padding: 24px; max-width: calc(80ch + 260px + 48px); min-width: 0; }
+.chips { display: flex; flex-wrap: wrap; gap: 6px; margin: 10px 0; }
+.chip { display: inline-block; text-transform: uppercase; background: var(--soft); border: 1px solid var(--border);
+  border-radius: 4px; padding: 1px 7px; color: var(--fg); letter-spacing: .02em; }
+.chip.tier { border-color: var(--accent); color: var(--accent); }
+.label { display: inline-block; text-transform: uppercase; color: var(--accent); border: 1px solid var(--accent);
+  border-radius: 4px; padding: 0 6px; vertical-align: middle;
+  font-family: "Cascadia Mono", Consolas, monospace; font-size: 12px; }
+.callout { background: var(--soft); border-left: 3px solid var(--accent); padding: 10px 14px; margin: 16px 0; min-width: 0; }
+.callout p:first-child { margin-top: 0; } .callout p:last-child { margin-bottom: 0; }
+.tablewrap { overflow-x: auto; max-width: 100%; margin: 12px 0; }
+table { border-collapse: collapse; width: 100%; }
+th, td { text-align: left; padding: 7px 10px; border-bottom: 1px solid var(--border); vertical-align: top; }
+th { color: var(--muted); font-weight: 600; }
+tr.hl td { background: var(--accent-soft); }
+details { border: 1px solid var(--border); border-radius: 4px; margin: 8px 0; padding: 8px 12px; min-width: 0; }
+details > summary { font-weight: 700; cursor: pointer; }
+details > summary::marker { color: var(--accent); }
+details[open] > summary { margin-bottom: 6px; }
+details p:last-child { margin-bottom: 2px; }
+.story { padding-top: 24px; margin-top: 28px; border-top: 1px solid var(--line); }
+.num { color: var(--muted); margin-right: 8px; }
+dl.star { margin: 10px 0; display: grid; grid-template-columns: minmax(10ch, max-content) 1fr; gap: 6px 16px; }
+dl.star dt { font-weight: 700; } dl.star dd { margin: 0; min-width: 0; }
+.docs { color: var(--muted); margin-top: 20px; overflow-wrap: anywhere; }
+.theme { margin: 28px 0 8px; color: var(--muted); text-transform: uppercase;
+  font-family: "Cascadia Mono", Consolas, monospace; font-size: 12px; letter-spacing: .06em;
+  border-bottom: 1px solid var(--border); padding-bottom: 4px; }
+#sideToggle { display: none; position: fixed; top: 10px; left: 10px; z-index: 30; background: var(--bg); color: var(--fg);
+  border: 1px solid var(--border); border-radius: 4px; padding: 6px 10px;
+  font-family: "Cascadia Mono", Consolas, monospace; font-size: 12px; cursor: pointer; }
+#sideBackdrop { display: none; position: fixed; inset: 0; background: rgba(0,0,0,.35); z-index: 15; }
+
+@media (max-width: 720px) {
+  .side { transform: translateX(-100%); transition: transform .2s ease; z-index: 20; }
+  .side.open { transform: translateX(0); }
+  #sideToggle { display: inline-block; }
+  #sideBackdrop.show { display: block; }
+  main { margin-left: 0; padding: 56px 16px 24px; }
+  dl.star { grid-template-columns: 1fr; }
+  dl.star dd { margin-bottom: 8px; }
+}
+@media print { .side, #sideToggle, #sideBackdrop { display: none; } main { margin: 0; max-width: none; } details { break-inside: avoid; } }
+</style>
+</head>
+<body>
+<!-- devbok
+slug: auth
+kind: experience
+version: 1
+topic: "Authentication & authorization (OAuth 2.1, OpenID Connect, JWT vs cookies, the ASP.NET Core authn/authz stack, Entra ID, token lifetimes and revocation; mainly for .NET developers)"
+prompt: experience.md@2bcfefa8
+generated: 2026-09-08
+-->
+<button id="sideToggle" type="button" aria-controls="side" aria-expanded="false">units</button>
+<div id="sideBackdrop"></div>
+<nav class="side" id="side" aria-label="Units">
+  <ol class="units">
+    <li><a href="#u01"><span class="n">01</span><span class="t">The Monday-morning refresh storm</span></a></li>
+    <li><a href="#u02"><span class="n">02</span><span class="t">The alg nobody pinned</span></a></li>
+    <li><a href="#u03"><span class="n">03</span><span class="t">Retiring ADAL</span></a></li>
+    <li><a href="#u04"><span class="n">04</span><span class="t">BFF or bust</span></a></li>
+    <li><a href="#u05"><span class="n">05</span><span class="t">&quot;Just put it in localStorage&quot;</span></a></li>
+    <li><a href="#u06"><span class="n">06</span><span class="t">Three time zones, one nbf error</span></a></li>
+    <li><a href="#u07"><span class="n">07</span><span class="t">The JWKS stampede</span></a></li>
+    <li><a href="#u08"><span class="n">08</span><span class="t">Sunsetting the session table</span></a></li>
+    <li><a href="#u09"><span class="n">09</span><span class="t">Teaching PKCE to the new hire</span></a></li>
+    <li><a href="#u10"><span class="n">10</span><span class="t">The MFA exception for launch week</span></a></li>
+    <li><a href="#u11"><span class="n">11</span><span class="t">The revocation that locked out the building</span></a></li>
+    <li><a href="#u12"><span class="n">12</span><span class="t">Single-tenant today, multi-tenant tomorrow</span></a></li>
+    <li><a href="#u13"><span class="n">13</span><span class="t">The audience nobody owned</span></a></li>
+    <li><a href="#u14"><span class="n">14</span><span class="t">The identity provider we didn&#39;t ship</span></a></li>
+    <li><a href="#u15"><span class="n">15</span><span class="t">Paying for tokens we didn&#39;t need</span></a></li>
+    <li><a href="#u16"><span class="n">16</span><span class="t">Passkeys, one team at a time</span></a></li>
+    <li><a href="#u17"><span class="n">17</span><span class="t">The certificate nobody rotated</span></a></li>
+    <li><a href="#u18"><span class="n">18</span><span class="t">The auth tests that cried wolf</span></a></li>
+    <li><a href="#u19"><span class="n">19</span><span class="t">No, we&#39;re not shipping ROPC</span></a></li>
+    <li><a href="#u20"><span class="n">20</span><span class="t">The cookie that broke the load balancer</span></a></li>
+    <li><a href="#u21"><span class="n">21</span><span class="t">The big behavioural Q&amp;A</span></a></li>
+    <li><a href="#u22"><span class="n">22</span><span class="t">Night-before cheat sheet</span></a></li>
+  </ol>
+  <footer>Authn &amp; authz (.NET, OAuth/OIDC) · experience · version 1 · 2026-09-08</footer>
+</nav>
+
+<main>
+<header class="hero">
+  <h1>Authn &amp; authz (.NET, OAuth/OIDC)</h1>
+  <p class="meta">experience · OAuth 2.1 draft-ietf-oauth-v2-1-16 · released 2026-09-03 · ASP.NET Core 10 (LTS) · GA 2025-11-11</p>
+  <p class="summary">Twenty behavioural stories about authentication and authorization on the .NET stack, each one an <strong>ideation scaffold and not a history to recite</strong>: everything under the <span class="label">EXAMPLE — replace with your own</span> label is fiction, set at no named company, invented to jog your memory and to teach the mechanism the story turns on. Work a unit in order — read the worked example, use the recall prompts to surface your own equivalent, drop your facts into the STAR/CARL skeleton, then pressure-test the answer against the drill chain until it still holds at the tier you are actually interviewing for. I read the topic as the full stack a lead .NET engineer actually owns: OAuth 2.0/2.1 and OpenID Connect as protocols, the ASP.NET Core authentication and authorization middleware that implements them, Microsoft Entra ID as the identity provider most of these teams run on, and the token-lifetime and revocation trade-offs that connect all three. Two facts worth carrying into the room: <strong>OAuth 2.1</strong> is still a draft (draft-16, published three days before this page, targeting IESG submission in December 2026) that formally retires the implicit and password grants and expects sender-constrained tokens — and <strong>DPoP (RFC 9449)</strong>, the mechanism for that, has no native support in ASP.NET Core&#39;s JWT bearer handler yet; it is tracked for .NET 12 planning, so anyone doing it today on .NET 10 is doing it by hand or through a library.</p>
+  <p class="chips"><span class="chip">20 stories</span> <span class="chip">20 archetypes</span> <span class="chip">tiers: mid → principal</span> <span class="chip">+ 20 cross-cutting Q&amp;A</span> <span class="chip">OAuth 2.1 draft-16</span> <span class="chip">.NET 10 / Entra ID</span></p>
+</header>
+
+<p>The coverage table is the map. Read down the <strong>Archetype</strong> column and mark the rows where you already have a real story; the empty rows are the gaps to go hunting for in your own history before the interview, not gaps to invent. Auth work carries a specific trap: it is easy to describe the protocol correctly and never say what you actually decided, broke, or shipped. Anchor every answer in a decision you personally made under a constraint — a deadline, an incident, a disagreement — not in a description of how OAuth works.</p>
+
+<div class="tablewrap">
+<table>
+<thead><tr><th>#</th><th>Story title</th><th>Archetype</th><th>Tier</th></tr></thead>
+<tbody>
+<tr><td><a href="#u01">01</a></td><td>The Monday-morning refresh storm</td><td>Performance problem diagnosed</td><td>Senior</td></tr>
+<tr><td><a href="#u02">02</a></td><td>The alg nobody pinned</td><td>Security issue found and fixed</td><td>Senior</td></tr>
+<tr><td><a href="#u03">03</a></td><td>Retiring ADAL</td><td>Migration / version upgrade</td><td>Staff</td></tr>
+<tr><td><a href="#u04">04</a></td><td>BFF or bust</td><td>Hard architectural trade-off</td><td>Staff</td></tr>
+<tr><td><a href="#u05">05</a></td><td>&quot;Just put it in localStorage&quot;</td><td>Technical disagreement with a colleague</td><td>Mid</td></tr>
+<tr><td><a href="#u06">06</a></td><td>Three time zones, one nbf error</td><td>Nasty debugging session</td><td>Mid</td></tr>
+<tr><td><a href="#u07">07</a></td><td>The JWKS stampede</td><td>Scaling challenge</td><td>Staff</td></tr>
+<tr><td><a href="#u08">08</a></td><td>Sunsetting the session table</td><td>Tech-debt paydown / refactor</td><td>Senior</td></tr>
+<tr><td><a href="#u09">09</a></td><td>Teaching PKCE to the new hire</td><td>Mentoring / levelling someone up</td><td>Senior</td></tr>
+<tr><td><a href="#u10">10</a></td><td>The MFA exception for launch week</td><td>Scope / deadline negotiation</td><td>Staff</td></tr>
+<tr><td><a href="#u11">11</a></td><td>The revocation that locked out the building</td><td>Data-loss / corruption scare</td><td>Mid</td></tr>
+<tr><td><a href="#u12">12</a></td><td>Single-tenant today, multi-tenant tomorrow</td><td>Ambiguous / shifting requirements</td><td>Senior</td></tr>
+<tr><td><a href="#u13">13</a></td><td>The audience nobody owned</td><td>Cross-team / integration dependency</td><td>Staff</td></tr>
+<tr><td><a href="#u14">14</a></td><td>The identity provider we didn&#39;t ship</td><td>Project that failed or was cancelled</td><td>Principal</td></tr>
+<tr><td><a href="#u15">15</a></td><td>Paying for tokens we didn&#39;t need</td><td>Cost-optimisation win</td><td>Senior</td></tr>
+<tr><td><a href="#u16">16</a></td><td>Passkeys, one team at a time</td><td>Introducing a new tool</td><td>Senior</td></tr>
+<tr><td><a href="#u17">17</a></td><td>The certificate nobody rotated</td><td>On-call firefighting</td><td>Mid</td></tr>
+<tr><td><a href="#u18">18</a></td><td>The auth tests that cried wolf</td><td>CI / test / reliability improvement</td><td>Mid</td></tr>
+<tr><td><a href="#u19">19</a></td><td>No, we&#39;re not shipping ROPC</td><td>Pushing back on a stakeholder or manager</td><td>Principal</td></tr>
+<tr><td><a href="#u20">20</a></td><td>The cookie that broke the load balancer</td><td>Production incident / outage</td><td>Staff</td></tr>
+</tbody>
+</table>
+</div>
+<section class="story" id="u01">
+<h2><span class="num">01</span>The Monday-morning refresh storm</h2>
+<p class="chips"><span class="chip tier">Senior</span> <span class="chip">Performance problem diagnosed</span></p>
+
+<h3>Worked example <span class="label">EXAMPLE — replace with your own</span></h3>
+<p>Every Monday between 09:02 and 09:11 our sign-in endpoint's P95 latency went from 80ms to somewhere north of 4 seconds, and roughly 1-in-6 users landed on an interactive re-login screen instead of a silent one. It never happened on any other day. I pulled a week of Application Insights dependency data and lined up the timestamps of failed <code>acquireTokenSilent</code> calls against token <code>iat</code> claims from the previous Friday — they clustered almost exactly 72 hours apart. Our SPA registration was a public client, and Entra ID caps refresh token lifetime for that client type at 24 hours regardless of activity; MSAL.js was supposed to renew silently via a hidden iframe before that, but renewal only fires while the tab is open and focused, and nobody's laptop is open at 6pm Friday. So every session that had been idle since Friday afternoon expired at almost the same moment on Monday morning, and every one of those users hit the token endpoint within the same nine-minute window when they opened their laptops.</p>
+<p>The fix had two parts. Short term: stop scheduling renewal purely on a fixed timer and instead renew opportunistically on tab focus and network reconnect, with a random 0-90s jitter so five thousand laptops opening in the same nine minutes didn't all call the token endpoint in the same seven seconds. Longer term — the real fix, which shipped a quarter later — was moving session state behind a BFF (see story 04) so the browser held an opaque cookie instead of a token with a hard 24h ceiling, and the refresh happened server-side on a schedule we controlled.</p>
+<pre><code class="language-typescript">// before: fixed-interval silent renewal, no jitter — everyone fires together
+setInterval(() => msalInstance.acquireTokenSilent(request), 15 * 60 * 1000);
+
+// after: renew on focus/reconnect, with jitter, and a floor so we don't spam
+let lastAttempt = 0;
+async function renewIfNeeded() {
+  const now = Date.now();
+  if (now - lastAttempt < 60_000) return;          // don't hammer on rapid focus events
+  lastAttempt = now;
+  const jitterMs = Math.random() * 90_000;         // spread the herd across 90s
+  await new Promise(r => setTimeout(r, jitterMs));
+  await msalInstance.acquireTokenSilent(request).catch(() => promptInteractive());
+}
+window.addEventListener('focus', renewIfNeeded);
+window.addEventListener('online', renewIfNeeded);
+</code></pre>
+<div class="tablewrap"><table>
+<thead><tr><th></th><th>Before</th><th>After jitter</th></tr></thead>
+<tbody>
+<tr><td>Trigger</td><td>fixed 15-min timer, all clients in phase</td><td>focus/reconnect + random 0-90s spread</td></tr>
+<tr><td>Monday 09:00-09:15 token calls</td><td>~5,200 in a 9-minute window</td><td>same 5,200 spread over ~90 minutes of natural logins</td></tr>
+<tr><td>Token endpoint P95</td><td>4.1s</td><td>95ms</td></tr>
+<tr><td>Interactive-fallback rate</td><td>~17%</td><td>~2%</td></tr>
+</tbody>
+</table></div>
+<div class="callout"><p><strong>What the interviewer is really probing:</strong> whether you understand that token <em>lifetime</em> and token <em>renewal scheduling</em> are two separate knobs, and whether you can diagnose a periodic, correlated failure from raw telemetry instead of guessing. They also want to see you notice the second-order effect — a fix on the client (jitter) buys time, but the durable fix is architectural (stop handing the browser a hard-expiring credential at all).</p></div>
+
+<h3>Situation → Task → Action → Result</h3>
+<dl class="star">
+<dt>Situation</dt><dd>A SPA on a public Entra ID client registration with a periodic, correlated latency spike every Monday morning, discovered through support tickets before it showed up in dashboards.</dd>
+<dt>Task</dt><dd>Find the root cause and stop the customer-visible interactive-login fallback within the sprint, since it was generating a steady trickle of support tickets each week.</dd>
+<dt>Action</dt><dd>Correlated failed silent-renewal timestamps against token issuance times to find the 24h public-client ceiling and the synchronized-idle-expiry pattern; shipped focus/reconnect-triggered renewal with jitter as an immediate mitigation.</dd>
+<dt>Result</dt><dd>P95 on the token endpoint dropped from 4.1s to 95ms and interactive fallback fell from ~17% to ~2% the same week; the BFF migration that removed the ceiling entirely followed a quarter later.</dd>
+</dl>
+
+<h3>Recall prompts</h3>
+<details><summary>What's the actual number for how long your fix took to diagnose vs. ship?</summary><p>Pin down two durations separately: time-to-root-cause (usually the more impressive number if it involved correlating telemetry across systems) and time-to-mitigation. Don't let them blur into one vague "a few days."</p></details>
+<details><summary>Was there a metric you distrusted before you found the real signal?</summary><p>Interviewers like hearing about a red herring — a graph that looked causal but wasn't (CPU, deploy timing, a WAF rule) — because it shows you didn't stop at the first correlation you found.</p></details>
+<details><summary>Who else got paged or looped in, and what was friction like?</summary><p>If this crossed a team boundary (platform team owns the IdP config, you own the SPA), say what convincing them took, not just what you personally did.</p></details>
+<details><summary>What would you do differently on the very next incident of this shape?</summary><p>A good answer names a standing change — an alert on token-endpoint P95 by minute-of-week, or a runbook entry — not just "be more careful."</p></details>
+
+<h3>Drill chain</h3>
+<details><summary>Why does Entra ID give public clients (SPAs, mobile apps) shorter refresh token lifetimes than confidential clients?</summary><p>A public client can't hold a secret — anyone can read its client ID out of the compiled bundle — so there's no way to prove the token request is coming from a trusted server process. Shortening the refresh token's blast radius limits how long a stolen token is useful if it leaks from browser storage or a compromised device. Confidential clients authenticate with a secret or certificate on every token request, so a stolen refresh token alone isn't enough to mint new access tokens, and Entra can afford to let those live longer — up to 90 days by default.</p></details>
+<details><summary>Why did the failures cluster instead of spreading evenly through the day?</summary><p>Tokens were being renewed on a fixed wall-clock timer while the tab was open, so a token issued Friday afternoon and never refreshed over a closed-laptop weekend expired at almost the exact same offset for everyone who logged in around the same time Friday. When people opened laptops Monday morning in a tight nine-minute band, every one of those expired sessions hit the token endpoint in that same window — it's a thundering herd caused by synchronized token issuance, not synchronized user behavior.</p></details>
+<details><summary>Why is jitter alone not a complete fix?</summary><p>Jitter smooths the arrival curve so the token endpoint doesn't see a spike, but it doesn't change the underlying fact that every session still has a hard 24-hour ceiling and still depends on the browser tab being open and focused to renew. Any week where unusually many people are off on a Friday and back en masse Monday can still produce a smaller version of the same herd. It's a mitigation, not a fix for the root constraint.</p></details>
+<details><summary>How does moving to a BFF change this specific failure mode?</summary><p>In a BFF, the browser never holds the token with the 24h public-client ceiling — it holds an httpOnly session cookie, and the server-side session refreshes tokens against Entra as a confidential client on its own schedule, independent of whether any particular browser tab is open. The synchronized-idle-expiry pattern disappears because renewal isn't gated on client-side wall-clock timers or tab focus at all.</p></details>
+<details><summary>What would you monitor going forward to catch this class of problem earlier?</summary><p>A percentile latency metric on the token endpoint sliced by time-of-day and day-of-week, plus a count of interactive-fallback events versus silent-renewal successes. Either one trending against day-of-week seasonality, rather than absolute thresholds, would have surfaced this pattern in the first affected week instead of the fourth.</p></details>
+
+<p class="docs">Docs: <a href="https://learn.microsoft.com/en-us/entra/identity-platform/configurable-token-lifetimes">Microsoft Entra configurable token lifetimes</a> · <a href="https://learn.microsoft.com/en-us/entra/msal/javascript/">MSAL.js documentation</a></p>
+</section>
+
+<section class="story" id="u02">
+<h2><span class="num">02</span>The alg nobody pinned</h2>
+<p class="chips"><span class="chip tier">Senior</span> <span class="chip">Security issue found and fixed</span></p>
+
+<h3>Worked example <span class="label">EXAMPLE — replace with your own</span></h3>
+<p>During a routine dependency-audit pass ahead of a SOC 2 renewal, I was reviewing every service's JWT validation setup and found one internal API that constructed its own <code>TokenValidationParameters</code> instead of using the shared library the rest of the org had standardized on two years earlier. It set <code>IssuerSigningKey</code> to the tenant's RSA public key correctly, but it never set <code>ValidAlgorithms</code>. Microsoft.IdentityModel doesn't refuse an HMAC-signed token just because you handed it an RSA public key for validation — if the key material can also be interpreted as bytes for an HMAC, and the token's header claims <code>alg: HS256</code>, some validation paths will happily try to verify the HMAC signature using the RSA public key's bytes as the shared secret. Since our JWKS endpoint published that public key openly, anyone could compute a valid HS256 signature over an arbitrary payload using bytes we ourselves were broadcasting, and forge a token that service would accept as genuinely signed by our IdP.</p>
+<p>I built a proof-of-concept against a sandboxed copy of the service — not production — that minted an HS256 token claiming an admin role, using nothing but the tenant's published JWKS, and confirmed the endpoint accepted it. I filed it as a critical finding same day, and we shut off the code path within a few hours by pinning <code>ValidAlgorithms</code> to exactly <code>["RS256"]</code> everywhere, then wrote a static-analysis rule that fails CI on any <code>TokenValidationParameters</code> construction missing an explicit algorithm allow-list.</p>
+<pre><code class="language-csharp">// vulnerable: no algorithm pin — alg-confusion window is open
+var tvp = new TokenValidationParameters {
+    IssuerSigningKey = rsaSecurityKey,
+    ValidIssuer = issuer,
+    ValidAudience = audience
+};
+
+// fixed: only the algorithm we actually issue is ever accepted
+var tvp = new TokenValidationParameters {
+    IssuerSigningKey = rsaSecurityKey,
+    ValidAlgorithms = new[] { SecurityAlgorithms.RsaSha256 },
+    ValidIssuer = issuer,
+    ValidAudience = audience
+};
+</code></pre>
+<div class="callout"><p><strong>What the interviewer is really probing:</strong> whether you understand JWT validation as a set of independent checks that must <em>all</em> be pinned — signature, algorithm, issuer, audience, expiry — rather than a single black-box "is this token valid" call. Alg-confusion is a classic because it's invisible in code review unless you already know to look for the missing allow-list.</p></div>
+
+<h3>Situation → Task → Action → Result</h3>
+<dl class="star">
+<dt>Situation</dt><dd>A routine security-audit pass surfaced an internal service that built JWT validation parameters by hand and omitted the algorithm allow-list, opening an RS256/HS256 confusion path against a publicly-published signing key.</dd>
+<dt>Task</dt><dd>Confirm exploitability without touching production, then get a fix shipped same-day given the severity.</dd>
+<dt>Action</dt><dd>Built a sandboxed proof-of-concept forging an admin-claim token from the public JWKS, filed a critical finding, pinned <code>ValidAlgorithms</code> across the service, and added a CI rule to catch the same class of bug elsewhere.</dd>
+<dt>Result</dt><dd>Fix shipped within hours of discovery; the CI rule caught two more instances of the same pattern in other repos within the following month, before they reached production.</dd>
+</dl>
+
+<h3>Recall prompts</h3>
+<details><summary>What was the actual blast radius if it had been exploited before you found it?</summary><p>Name the specific claim or role you could forge and what that would have unlocked — "admin API access to the billing service" reads very differently from "read access to a public endpoint." Vague severity claims don't land.</p></details>
+<details><summary>How did you prove it without touching anything real?</summary><p>Be ready to describe the sandbox setup concretely — a cloned service, a test tenant's JWKS, a token you minted and replayed — because "I'm pretty sure it would have worked" is a much weaker story than "I forged one and it worked."</p></details>
+<details><summary>Did you consider not disclosing it internally as loudly as you did?</summary><p>This tests judgment about proportionate response. A good answer explains why you escalated same-day rather than quietly patching it — auditability, other services on the same pattern, compliance timing.</p></details>
+
+<h3>Drill chain</h3>
+<details><summary>Walk me through exactly how the RS256/HS256 confusion attack works.</summary><p>The server's validation code is handed one key object meant for RS256 (an asymmetric public key) but decides which verification algorithm to run based on the untrusted <code>alg</code> header inside the token itself. If the library allows HMAC verification and the attacker sets <code>alg: HS256</code>, the verifier treats the RSA public key's raw bytes as the shared HMAC secret. Since the public key is, by design, public — published on the JWKS endpoint — the attacker can compute a correct HMAC signature over any payload they want using those same bytes, producing a token the server will accept as authentic.</p></details>
+<details><summary>Why does pinning ValidAlgorithms fully close this, and is any part of it still your responsibility afterward?</summary><p>Pinning tells the validator to reject any token whose header algorithm isn't on your explicit allow-list, so an attacker's HS256 token is rejected before signature verification is even attempted, regardless of what key material is loaded. It closes this specific attack, but it's still your job to keep the allow-list in sync if you ever legitimately rotate to a new algorithm, and to make sure every service — not just the one you found — enforces it.</p></details>
+<details><summary>Why didn't code review catch this originally?</summary><p>The vulnerable code looked completely idiomatic — it set an issuer, an audience, and a signing key, which is what most examples show — and the absence of a line is much harder to spot in review than the presence of a wrong one. It also required knowing the specific alg-confusion attack class to know that one more property needed setting; most reviewers were checking for "does this validate what it should," not "does this reject what it shouldn't."</p></details>
+<details><summary>Could this same class of bug show up anywhere other than JWT libraries?</summary><p>Yes — anywhere a protocol lets the sender declare which algorithm or format the receiver should use to interpret their data, and the receiver trusts that declaration without an allow-list. Deserialization gadgets, content-type sniffing, and some encryption-mode negotiation bugs are the same shape: never let untrusted input pick the security mechanism used to validate itself.</p></details>
+<details><summary>What's the CI rule you added, concretely?</summary><p>A simple static-analysis check that flags any construction of <code>TokenValidationParameters</code> (or the equivalent in whatever stack a repo uses) that doesn't set an explicit, non-empty algorithm allow-list, failing the build rather than just warning. It's intentionally narrow and pattern-based rather than a general security linter, because narrow rules that fire reliably get fixed, and broad ones that fire noisily get suppressed.</p></details>
+
+<p class="docs">Docs: <a href="https://learn.microsoft.com/en-us/dotnet/api/microsoft.identitymodel.tokens.tokenvalidationparameters.validalgorithms">TokenValidationParameters.ValidAlgorithms</a> · <a href="https://datatracker.ietf.org/doc/html/rfc8725">RFC 8725, JWT Best Current Practices</a></p>
+</section>
+
+<section class="story" id="u03">
+<h2><span class="num">03</span>Retiring ADAL</h2>
+<p class="chips"><span class="chip tier">Staff</span> <span class="chip">Migration / version upgrade</span></p>
+
+<h3>Worked example <span class="label">EXAMPLE — replace with your own</span></h3>
+<p>We had eleven services still using ADAL (Azure AD Authentication Library) years after Microsoft's stated end-of-support date, because every one of them worked and nobody wanted to touch working auth code. The forcing function was a v1-endpoint deprecation notice from our IdP team with a real shutoff date, which meant "it still works" was about to stop being true all at once, for every service, on the same day. I ran the migration as a staff-level program rather than eleven separate tickets: one reference implementation migrated first (the lowest-traffic service, converted from ADAL's <code>AuthenticationContext</code> to MSAL's <code>IConfidentialClientApplication</code>, with the v1 <code>resource</code> parameter replaced by v2 <code>scope</code> arrays), a migration guide written directly from what broke during that first conversion, then the other ten services split across three engineers over six weeks.</p>
+<p>The sharpest edge wasn't the library swap — MSAL's API is a reasonable analog of ADAL's — it was the v1-to-v2 token shape change underneath it. v1 tokens used <code>resource</code>-scoped access tokens and a different claim set; v2 tokens are scope-scoped and, critically, the <code>aud</code> claim format and some optional-claims defaults differ. Two services had downstream token validation that hardcoded assumptions about v1 claim shapes, and those broke silently in staging until we added a full-coverage integration test that decoded and asserted on every claim we depended on, not just "token validates."</p>
+<div class="tablewrap"><table>
+<thead><tr><th></th><th>ADAL / v1 endpoint</th><th>MSAL / v2 endpoint</th></tr></thead>
+<tbody>
+<tr><td>Library</td><td><code>AuthenticationContext</code></td><td><code>IConfidentialClientApplication</code> / <code>IPublicClientApplication</code></td></tr>
+<tr><td>Token request param</td><td><code>resource</code></td><td><code>scope</code> (array, resource + permission per entry)</td></tr>
+<tr><td>Support status</td><td>retired, no security fixes</td><td>actively maintained</td></tr>
+<tr><td>Multi-tenant issuer shape</td><td>tenant-specific only</td><td>tenant-specific or <code>/common</code>, needs explicit issuer validation either way</td></tr>
+</tbody>
+</table></div>
+<div class="callout"><p><strong>What the interviewer is really probing:</strong> whether you can run a mandatory, deadline-driven migration as a program with a reference implementation and a written guide instead of eleven improvised one-offs, and whether you understand that "swap the library" migrations in auth almost always hide a token-shape change underneath that only integration tests catch.</p></div>
+
+<h3>Situation → Task → Action → Result</h3>
+<dl class="star">
+<dt>Situation</dt><dd>Eleven services still on the retired ADAL library and the deprecated v1 identity endpoint, with a hard shutoff date announced by the IdP team.</dd>
+<dt>Task</dt><dd>Migrate all eleven to MSAL and the v2 endpoint before the shutoff, without an outage in any of them.</dd>
+<dt>Action</dt><dd>Converted the lowest-traffic service first as a reference implementation, wrote a migration guide from what actually broke, then split the remaining ten across three engineers with claim-level integration tests as the exit criteria for each.</dd>
+<dt>Result</dt><dd>All eleven migrated inside the six-week window with zero production incidents; two services' latent v1-claim-shape assumptions were caught in staging by the new integration tests rather than in production.</dd>
+</dl>
+
+<h3>Recall prompts</h3>
+<details><summary>What was the actual forcing function — a real deadline or an internal one?</summary><p>External, immovable deadlines (a vendor shutoff, a compliance date) make a much stronger story than "we decided it was time," because they explain why a team finally prioritized long-dormant tech debt.</p></details>
+<details><summary>What broke in the first migration that you didn't expect?</summary><p>Have one concrete surprise ready — a claim that changed shape, a default that flipped — because "everything went smoothly" undersells the value of doing a reference implementation first.</p></details>
+<details><summary>How did you split the remaining work, and why that way?</summary><p>Be ready to justify the allocation — by risk (touch the highest-traffic services with your most senior person), by team ownership, or by dependency order — rather than just "we divided it evenly."</p></details>
+
+<h3>Drill chain</h3>
+<details><summary>Why did Microsoft deprecate ADAL and the v1 endpoint instead of just patching them indefinitely?</summary><p>The v1 endpoint and ADAL predate a lot of what became core to modern OAuth/OIDC practice — cleaner scope-based consent, the id_token/access_token separation OIDC formalizes, and a claims model that generalizes better across app types including v2's unified personal-and-work-account support. Maintaining two parallel identity stacks indefinitely means every new security capability has to be built twice or only ships to one; retiring the older one is what let Microsoft actually invest in things like Conditional Access and CAE on a single modern surface.</p></details>
+<details><summary>What's the concrete difference between a resource-scoped and a scope-scoped access token request?</summary><p>A v1 <code>resource</code> parameter names one target API and the resulting token is implicitly scoped to whatever permissions the app was granted against that resource as a whole. A v2 <code>scope</code> parameter is a space-delimited list where each entry names a specific permission on a specific resource, so a single token request can ask for narrower, explicit permissions across multiple resources, and the resulting access token's claims reflect exactly those granted scopes rather than a broader resource-level grant.</p></details>
+<details><summary>Why would a claim shape change silently instead of causing an obvious error?</summary><p>Token validation in most stacks only asserts on the specific claims your code reads, and it will happily accept a token whose optional claims are absent, renamed, or reshaped as long as issuer, audience, signature and expiry check out. A service that read a claim positionally or assumed a default that v1 always set doesn't get an exception — it gets a null, an empty role list, or a fallback path, and that only surfaces as a functional bug days later, not a validation failure at token-acceptance time.</p></details>
+<details><summary>How would you have caught the claim-shape issue before staging?</summary><p>A contract test against the actual v2 token shape — decoding a real v2 token from a test tenant and asserting on every claim the service depends on, not just checking that validation returns true — run in the same PR that changed the library. That's exactly the integration test we ended up writing during the migration; doing it as step one instead of a fix-after-the-fact would have caught both instances before they ever reached staging.</p></details>
+<details><summary>If you had to do this again with twenty services instead of eleven, what would you change?</summary><p>I'd invest more upfront in an automated compatibility check — a script that scans each service's token-handling code for known v1-only assumptions (resource-parameter usage, specific claim names) — so the program starts with a prioritized, evidence-based list instead of "probably fine, we'll find out in migration." At twenty-plus services the cost of building that scanner pays for itself quickly.</p></details>
+
+<p class="docs">Docs: <a href="https://learn.microsoft.com/en-us/entra/identity-platform/msal-migration">Migrate applications to MSAL</a> · <a href="https://learn.microsoft.com/en-us/entra/identity-platform/v2-oauth2-auth-code-flow">Microsoft identity platform and OAuth 2.0 authorization code flow (v2)</a></p>
+</section>
+
+<section class="story" id="u04">
+<h2><span class="num">04</span>BFF or bust</h2>
+<p class="chips"><span class="chip tier">Staff</span> <span class="chip">Hard architectural trade-off</span></p>
+
+<h3>Worked example <span class="label">EXAMPLE — replace with your own</span></h3>
+<p>After the Monday-morning refresh storm (story 01) and a separate finding that our SPA's access token, sitting in <code>sessionStorage</code>, was readable by any script that executed on the page, I was asked to make the call on whether to move the SPA to a Backend-for-Frontend pattern — an httpOnly session cookie plus a confidential-client server component holding the actual tokens — or stay token-in-browser and just harden what we had (short token lifetimes, aggressive CSP, subresource integrity). Both were real options with real costs. The BFF closes the XSS-can-steal-the-token risk almost entirely, because a script running on the page never has anything better than a cookie it can't read, only ride along on requests it can already make. But it trades that for a CSRF surface — cookies get sent automatically by the browser on any request to the cookie's domain, so now the BFF has to enforce anti-forgery tokens or strict <code>SameSite</code> correctly, and it adds a server-side session store and an extra network hop for every API call that used to go browser-to-API directly.</p>
+<p>I made the call for BFF, but the deciding factor wasn't "BFF is more secure" in the abstract — it was that our specific threat model already had a confirmed XSS finding from a third-party npm package six months earlier, and a working CSRF-mitigation pattern already existed in two other services I could copy the double-submit-cookie logic from. If we'd had a clean XSS record and no existing CSRF tooling to reuse, hardening in place would have been the more defensible short-term call. I wrote the trade-off up as a one-page decision doc so the next person facing this doesn't have to re-derive it from scratch.</p>
+<div class="tablewrap"><table>
+<thead><tr><th></th><th>Token in browser (SPA + API)</th><th>BFF (cookie + server-held tokens)</th></tr></thead>
+<tbody>
+<tr><td>XSS steals the token</td><td>yes, if script executes on page</td><td>no — script never sees the token, only rides the cookie</td></tr>
+<tr><td>CSRF risk</td><td>low (token isn't auto-sent by browser)</td><td>real — needs anti-forgery token / strict SameSite</td></tr>
+<tr><td>Extra infra</td><td>none</td><td>server-side session store, one more hop per API call</td></tr>
+<tr><td>Public-client refresh-lifetime ceiling</td><td>applies (see story 01)</td><td>doesn't — server is a confidential client</td></tr>
+</tbody>
+</table></div>
+<div class="callout"><p><strong>What the interviewer is really probing:</strong> whether you can hold two real, non-strawman options in your head and make a threat-model-driven call rather than reciting "cookies are more secure" as received wisdom — and whether you can articulate the cost you accepted (CSRF surface, infra) in exchange for the risk you removed.</p></div>
+
+<h3>Situation → Task → Action → Result</h3>
+<dl class="star">
+<dt>Situation</dt><dd>A SPA holding access tokens in browser storage, with a confirmed prior XSS finding from a third-party dependency, facing a decision between a BFF migration and in-place hardening.</dd>
+<dt>Task</dt><dd>Make and justify an architectural call with real security and infrastructure trade-offs on both sides, for a system with an actual (not hypothetical) XSS history.</dd>
+<dt>Action</dt><dd>Weighed the concrete threat model against the concrete cost, chose BFF because reusable CSRF-mitigation code already existed elsewhere in the org, and documented the trade-off in a decision doc.</dd>
+<dt>Result</dt><dd>The SPA migrated to a BFF over the following quarter; the specific XSS-to-token-theft path was closed, and the decision doc has since been reused by two other teams facing the same choice.</dd>
+</dl>
+
+<h3>Recall prompts</h3>
+<details><summary>What was the actual evidence that tipped the decision, not just the textbook argument?</summary><p>"We had a real XSS finding" is a much stronger anchor than "XSS is theoretically possible." If your version of this story doesn't have a concrete incident or finding behind it, look for what other concrete signal (a compliance requirement, an existing CSRF pattern to reuse) made the call non-arbitrary.</p></details>
+<details><summary>What did you accept giving up, specifically?</summary><p>Name the CSRF surface and the extra infrastructure cost explicitly — a good answer doesn't just sell the choice, it shows you knew the price.</p></details>
+<details><summary>Who disagreed, and what was their argument?</summary><p>If nobody disagreed, that's worth noting too, but a staff-level story usually has at least one dissenting voice (often: "this adds a hop and complexity for a risk we haven't seen exploited yet") that you had to address on the merits.</p></details>
+
+<h3>Drill chain</h3>
+<details><summary>Why can't you just set the token cookie's SameSite to Strict and skip anti-forgery tokens entirely?</summary><p><code>SameSite=Strict</code> stops the cookie from being sent on cross-site navigations and requests, which blocks most CSRF, but it also breaks legitimate cross-site flows like a link from an email or another site landing the user on an authenticated page, and it doesn't help at all against attacks originating from a subdomain of your own site if you have one that's less trusted. Most BFF implementations use <code>SameSite=Lax</code> or <code>Strict</code> as a strong first layer but still add an anti-forgery token as defense in depth, because relying on a single browser-enforced attribute for your entire CSRF posture is fragile against edge cases and future browser behavior changes.</p></details>
+<details><summary>What does the BFF's server component actually need to be, technically, to be a confidential client?</summary><p>It needs to hold a client secret or certificate that only it — never the browser — has access to, and use that credential when it exchanges an authorization code for tokens or refreshes them, proving to the IdP that the request is coming from a trusted server process rather than an arbitrary caller. That's the whole reason a confidential client can be trusted with longer-lived refresh tokens: possession of the token alone isn't sufficient to get new access tokens without also proving possession of the secret.</p></details>
+<details><summary>If the org had no existing CSRF tooling to reuse, how would that change your recommendation?</summary><p>It would raise the near-term cost of BFF meaningfully, since building and testing anti-forgery handling from scratch is real work with its own risk of getting subtly wrong. I'd likely recommend hardening in place first — short token lifetime, strict CSP, dependency-scanning to prevent a repeat of the XSS source — and revisit BFF once either a second XSS incident occurred or the CSRF tooling existed to make the migration cheaper.</p></details>
+<details><summary>Does moving to a BFF eliminate the need for CSP and dependency scanning?</summary><p>No — it removes token theft as a payoff for XSS, but an XSS vulnerability still lets an attacker perform any action the logged-in user's cookie allows, make requests on their behalf, exfiltrate whatever's rendered on the page, or manipulate the DOM. CSP and dependency hygiene remain necessary; BFF narrows what a successful XSS can achieve, it doesn't make XSS itself irrelevant.</p></details>
+
+<p class="docs">Docs: <a href="https://datatracker.ietf.org/doc/draft-ietf-oauth-browser-based-apps/">OAuth 2.0 for Browser-Based Apps (IETF draft)</a> · <a href="https://docs.duendesoftware.com/bff/">Duende.BFF documentation</a></p>
+</section>
+<section class="story" id="u05">
+<h2><span class="num">05</span>&quot;Just put it in localStorage&quot;</h2>
+<p class="chips"><span class="chip tier">Mid</span> <span class="chip">Technical disagreement with a colleague</span></p>
+
+<h3>Worked example <span class="label">EXAMPLE — replace with your own</span></h3>
+<p>A colleague on my team building a new internal dashboard wanted to store the access token in <code>localStorage</code> so it would survive a page refresh without a redirect round-trip, which is a completely reasonable thing to want. I pushed back, and the disagreement got a little heated in a PR thread before we took it to a fifteen-minute call. My concern wasn't abstract "localStorage is insecure" — it was that this specific dashboard rendered user-submitted freeform text (support ticket notes) without sanitizing it server-side, which meant a stored-XSS payload was a realistic risk, not a hypothetical one, and anything in <code>localStorage</code> is readable by any script that executes on that origin, no exceptions, no flags.</p>
+<p>He countered, correctly, that an httpOnly cookie has its own problem: it's automatically attached to every request to that domain, so we'd need CSRF protection we didn't currently have anywhere in the app. We ended up compromising on a middle path for this one app rather than either extreme: keep the access token in memory only (a module-level variable, gone on refresh) backed by a silent-refresh call on load using a refresh token that itself lived in an httpOnly cookie, so the worst an XSS payload could do was ride the current in-memory access token until the tab closed, not exfiltrate a durable credential that worked from anywhere. It cost us one extra round trip on every page load, which we measured at under 120ms, and we thought that was a fair price given the actual XSS exposure. It wasn't the "correct" universal answer — it was the right answer for that app's specific risk profile.</p>
+<div class="callout"><p><strong>What the interviewer is really probing:</strong> whether you can disagree productively — with evidence about the actual app's risk, not a rule quoted from a blog post — and whether you can reach a real compromise instead of "I was right and they backed down." A story where you simply won is much less interesting than one where the resolution was better than either person's starting position.</p></div>
+
+<h3>Situation → Task → Action → Result</h3>
+<dl class="star">
+<dt>Situation</dt><dd>A teammate proposed storing access tokens in localStorage on a dashboard that rendered unsanitized user-submitted text, creating a realistic stored-XSS-to-token-theft path.</dd>
+<dt>Task</dt><dd>Resolve the disagreement on technical merits without stalling the PR or making it personal.</dd>
+<dt>Action</dt><dd>Named the specific, concrete risk rather than a general rule, listened to the CSRF counter-argument, and proposed a middle-ground design (in-memory token, httpOnly refresh cookie) that addressed both concerns.</dd>
+<dt>Result</dt><dd>Shipped the compromise design with a measured 120ms cost per page load; the pattern was later adopted by one other internal tool with a similar risk profile.</dd>
+</dl>
+
+<h3>Recall prompts</h3>
+<details><summary>What was the actual disagreement about — a fact, or a risk tolerance?</summary><p>Be precise about whether you were disagreeing about what's technically true (can localStorage be read by XSS — not really debatable) versus how much that risk mattered for this specific app (genuinely debatable). Conflating the two makes the story sound like you were just right and they were wrong.</p></details>
+<details><summary>What did the other person's position get right?</summary><p>A believable disagreement story credits the other side's valid point — here, the CSRF gap a cookie-based approach would open — before explaining why you still landed where you did.</p></details>
+<details><summary>How did the conversation actually resolve — did someone concede, or did the solution change?</summary><p>The strongest version of this story is one where the final design is neither party's original proposal, because that's evidence of a real technical conversation rather than a status contest.</p></details>
+
+<h3>Drill chain</h3>
+<details><summary>Is an in-memory-only access token actually meaningfully safer than one in localStorage?</summary><p>Yes, in a specific way: an XSS payload that runs while the tab is open can still read an in-memory variable through clever means if it can execute arbitrary JS in that context, so it's not a perfect defense against a determined script running right now. But it can't exfiltrate a token that persists after the tab closes or the page navigates away, because there's nothing left to read — localStorage survives exactly that, handing an attacker a durable credential they can use from their own infrastructure at their leisure, not just during the attack window.</p></details>
+<details><summary>Why does an httpOnly cookie need CSRF protection but a token you attach yourself in a header doesn't?</summary><p>A cookie is attached by the browser automatically to any matching request, including ones triggered by a malicious page the user happens to have open in another tab — the browser doesn't ask whether the request is "supposed" to be authenticated, it just sends the cookie because the domain matches. A token you read from memory and attach as an <code>Authorization</code> header yourself is only sent by your own JavaScript choosing to send it, so a different site's page can't trigger an authenticated request just by getting the browser to navigate there or submit a form.</p></details>
+<details><summary>If this dashboard didn't render any user-submitted content, would your recommendation change?</summary><p>Probably, yes — with a much smaller realistic XSS surface (assuming dependencies were also reasonably controlled), the calculus shifts, and a simpler token-in-memory-or-storage design with strict CSP might be a defensible trade for the lower complexity. This is exactly why I framed it as risk-profile-dependent rather than a universal rule — the right answer for a dashboard rendering trusted, developer-authored content can differ from one rendering arbitrary user text.</p></details>
+<details><summary>What's the actual mechanism an XSS payload uses to read localStorage?</summary><p>Once malicious JavaScript executes in the page's origin — through an unsanitized rendering of attacker-controlled content, a compromised dependency, or a vulnerable third-party script — it has the same privileges as any other script on that page, which includes full read/write access to <code>window.localStorage</code> for that origin. There's no browser-level isolation between "your app's code" and "code that ended up running in your app's page" once execution happens; the origin, not the source of the script, is what storage access is scoped to.</p></details>
+<details><summary>How would you measure whether the 120ms extra round trip actually mattered to users?</summary><p>Real-user monitoring on page-load timing segmented before and after the change, plus a look at whether any downstream metric — bounce rate on that dashboard, task-completion time — moved. For an internal tool used by employees rather than a latency-sensitive public product, 120ms was well within what we judged acceptable without needing exhaustive measurement, but I'd say that judgment call explicitly rather than pretend we ran a rigorous A/B test we didn't run.</p></details>
+
+<p class="docs">Docs: <a href="https://cheatsheetseries.owasp.org/cheatsheets/HTML5_Security_Cheat_Sheet.html#local-storage">OWASP HTML5 Security Cheat Sheet, local storage</a> · <a href="https://datatracker.ietf.org/doc/draft-ietf-oauth-browser-based-apps/">OAuth 2.0 for Browser-Based Apps</a></p>
+</section>
+
+<section class="story" id="u06">
+<h2><span class="num">06</span>Three time zones, one nbf error</h2>
+<p class="chips"><span class="chip tier">Mid</span> <span class="chip">Nasty debugging session</span></p>
+
+<h3>Worked example <span class="label">EXAMPLE — replace with your own</span></h3>
+<p>A batch job that ran on a container in one region started intermittently rejecting perfectly valid tokens with <code>SecurityTokenNotYetValidException</code>, but only for about ninety seconds after each container cold-start, and only maybe one run in five. Nothing about the token was wrong — same issuer, same audience, same signature, verified independently against the JWKS. The exception message told me exactly what was failing (<code>nbf</code>, not-before) but not why a token that was already past its not-before time by the time our code ran would ever hit that check.</p>
+<p>The container's clock, it turned out, synced via NTP on startup but took a little over a minute to actually converge, during which it could be running up to 40 seconds behind real time. Microsoft.IdentityModel's <code>TokenValidationParameters</code> has a <code>ClockSkew</code> property that defaults to five minutes specifically to absorb small clock drift between the token issuer and the validating server — but our shared validation library had an override that set it to <code>TimeSpan.Zero</code>, added years earlier by someone chasing an unrelated bug, with a comment that just said "tighten validation." With zero tolerance, any container whose clock was more than a few seconds behind the IdP's clock at token-issuance time would see a token whose <code>nbf</code> claim was, from that container's skewed perspective, still in the future.</p>
+<pre><code class="language-csharp">// the trap: someone "tightened" validation years ago and never explained why
+var tvp = new TokenValidationParameters {
+    IssuerSigningKey = key,
+    ClockSkew = TimeSpan.Zero        // removes the 5-minute default tolerance entirely
+};
+
+// fixed: restore a bounded tolerance instead of removing it
+var tvp = new TokenValidationParameters {
+    IssuerSigningKey = key,
+    ClockSkew = TimeSpan.FromSeconds(60)   // enough for NTP convergence, not enough to matter for security
+};
+</code></pre>
+<div class="callout"><p><strong>What the interviewer is really probing:</strong> whether you can debug an intermittent, timing-dependent failure by reading the exact exception rather than guessing, and whether you understand <code>ClockSkew</code> well enough to know that zero is almost never the right value — it's a security-usability trade-off, not a "stricter is safer" knob.</p></div>
+
+<h3>Situation → Task → Action → Result</h3>
+<dl class="star">
+<dt>Situation</dt><dd>A batch job intermittently rejected valid tokens with an <code>nbf</code> validation error, correlated with recent container cold-starts, in a system spanning three regions.</dd>
+<dt>Task</dt><dd>Find why a structurally valid token was failing a time-based check and fix it without weakening security.</dd>
+<dt>Action</dt><dd>Traced the failure to sub-minute NTP convergence delay on cold-start colliding with a <code>ClockSkew = TimeSpan.Zero</code> override left in the shared validation library from an unrelated, undocumented change years earlier.</dd>
+<dt>Result</dt><dd>Restored a bounded 60-second skew tolerance; the intermittent failures stopped entirely, and I added a code comment plus a changelog entry explaining why zero skew is unsafe, to stop the next person reintroducing it.</dd>
+</dl>
+
+<h3>Recall prompts</h3>
+<details><summary>What was the exact exception type and message you started from?</summary><p>Naming the precise exception (<code>SecurityTokenNotYetValidException</code>, not a vague "auth error") signals you actually debugged this rather than reconstructing a plausible-sounding story after the fact.</p></details>
+<details><summary>What made this specific bug hard rather than obvious?</summary><p>The intermittency and the multi-region angle are the hook — "it failed every time" is a much easier bug than "it failed one run in five, only on cold-start, only in one region." Keep that texture in your version.</p></details>
+<details><summary>Who had touched the offending line originally, and did you talk to them?</summary><p>If you can, describe what the original "tighten validation" change was trying to fix — even a guess, clearly labeled as a guess — because it shows you tried to understand the change's intent rather than just ripping it out.</p></details>
+
+<h3>Drill chain</h3>
+<details><summary>Why does JWT validation include a not-before check at all — what attack does it prevent?</summary><p>The <code>nbf</code> claim lets an issuer mint a token now that shouldn't be usable until some future time — for example, a scheduled permission grant that shouldn't take effect until a maintenance window ends. Without it, there'd be no way to issue a token in advance for future use without it being immediately valid, which matters for pre-provisioning access or coordinating a time-gated rollout.</p></details>
+<details><summary>Why is ClockSkew = TimeSpan.Zero dangerous rather than just occasionally inconvenient?</summary><p>It assumes perfect clock synchronization between every token issuer and every validating server in the system, which is never actually true — NTP drift, container cold-start delay, and clock skew in virtualized environments are all real and common. Setting it to zero doesn't make validation more secure against a real attacker, who doesn't need to exploit clock skew to forge a token; it just makes the system fragile against ordinary infrastructure reality, trading reliability for a security property that was never actually at risk from clock tolerance in the first place.</p></details>
+<details><summary>What's actually at risk if you set ClockSkew too generously, say 30 minutes?</summary><p>A token whose <code>exp</code> has technically passed remains usable for up to that skew window past its stated expiry, and a token whose <code>nbf</code> hasn't technically arrived yet becomes usable that much early. For most access tokens with reasonably short lifetimes this is a minor extension of an already-bounded window, but for anything security-sensitive — a one-time step-up-auth token, a short-lived elevation grant — a large skew tolerance meaningfully extends the window an attacker has if they've somehow obtained a token near its boundary.</p></details>
+<details><summary>Why didn't restarting the container fix it permanently?</summary><p>Because the underlying cause was cold-start NTP convergence time, which happens again every time a fresh container starts — a restart doesn't fix a systemic timing characteristic, it just resets the clock to the same not-yet-converged state that caused the bug in the first place. Any new container hitting the token endpoint in that same post-start window would reproduce it, which is exactly why it looked "random" rather than tied to any one host.</p></details>
+<details><summary>How would you have caught this in testing before it reached three regions in production?</summary><p>An integration test that explicitly simulates clock skew — mocking the system clock to be, say, 30 seconds behind the token's issuance time and asserting validation still succeeds under the configured tolerance — would have caught a zero-skew regression immediately. That kind of test is easy to write and almost nobody writes it, because "the token is valid" tests default to using perfectly synchronized clocks.</p></details>
+
+<p class="docs">Docs: <a href="https://learn.microsoft.com/en-us/dotnet/api/microsoft.identitymodel.tokens.tokenvalidationparameters.clockskew">TokenValidationParameters.ClockSkew</a> · <a href="https://datatracker.ietf.org/doc/html/rfc7519#section-4.1.5">RFC 7519, JWT nbf claim</a></p>
+</section>
+
+<section class="story" id="u07">
+<h2><span class="num">07</span>The JWKS stampede</h2>
+<p class="chips"><span class="chip tier">Staff</span> <span class="chip">Scaling challenge</span></p>
+
+<h3>Worked example <span class="label">EXAMPLE — replace with your own</span></h3>
+<p>During a scheduled signing-key rotation on our IdP — a routine, announced event — every one of our roughly ninety API instances started returning 401s for a two-to-three minute window, right at the rotation timestamp. Each instance's <code>ConfigurationManager</code> (the piece of Microsoft.IdentityModel that fetches and caches the JWKS) had cached the old signing key set, and when the new key started signing tokens, every instance simultaneously discovered its cached key set no longer had a matching <code>kid</code>, and every one of them went and re-fetched the JWKS endpoint at effectively the same moment. Ninety near-simultaneous requests isn't a large number in absolute terms, but the JWKS endpoint sat behind the same shared IdP infrastructure that was also mid-rotation and momentarily under elevated load from every other tenant's fleet doing the exact same thing at the exact same second, and a chunk of our requests got rate-limited, which meant those instances kept the stale key set a little longer and kept failing.</p>
+<p>The actual fix wasn't caching harder — caching was already correctly in place — it was making key rotation itself non-instantaneous from the validator's point of view. We moved to a rotation runbook where the IdP publishes both the outgoing and incoming signing keys in the JWKS simultaneously for a defined overlap window before and after the cutover, so a validator with a slightly stale cache still finds the new key present, and a validator that already refreshed still finds the old key present for tokens issued moments before rotation. That converts "everyone must refresh in the same instant or fail" into "refresh whenever, both keys are valid for the whole overlap window," which eliminates the stampede's root cause rather than just spreading it out.</p>
+<div class="callout"><p><strong>What the interviewer is really probing:</strong> whether you understand that key rotation is a distributed-systems coordination problem, not just a caching problem, and whether you can name the actual fix (overlap window) instead of a band-aid (retry with backoff, which helps but doesn't remove the root cause).</p></div>
+
+<h3>Situation → Task → Action → Result</h3>
+<dl class="star">
+<dt>Situation</dt><dd>A routine IdP signing-key rotation caused a synchronized 401 spike across ~90 API instances as every instance's cached JWKS simultaneously went stale and re-fetched at once, compounding under the IdP's own rotation-time load.</dd>
+<dt>Task</dt><dd>Eliminate the recurring rotation-time outage window, which had happened on the last two rotations and was scheduled to recur.</dd>
+<dt>Action</dt><dd>Diagnosed the synchronized-cache-miss mechanism, then worked with the IdP-owning team to change the rotation runbook to publish old and new keys simultaneously for an overlap window instead of an instantaneous cutover.</dd>
+<dt>Result</dt><dd>The next two scheduled rotations produced zero 401 spikes; the overlap-window runbook became the org's standard rotation procedure.</dd>
+</dl>
+
+<h3>Recall prompts</h3>
+<details><summary>What was the actual instance count and outage duration, and how did you get those numbers?</summary><p>Specific numbers from your own monitoring (dashboard screenshots, incident timeline) carry more weight than "a lot of instances for a while." If you don't remember the exact figures, say "roughly" but still give a number.</p></details>
+<details><summary>Was this your infrastructure to fix, or did it require another team's cooperation?</summary><p>If the IdP was owned by a different team (internal platform team, or an external vendor), be ready to describe how you got the rotation runbook changed — that's often the more staff-level part of the story than the diagnosis itself.</p></details>
+<details><summary>What would a naive first fix have looked like, and why didn't you stop there?</summary><p>Naming "add retry with jitter on the client side" as a fix you considered and rejected as insufficient — because it reduces the spike's peak but doesn't remove the coordination failure — shows you evaluated more than one option.</p></details>
+
+<h3>Drill chain</h3>
+<details><summary>Why does caching the JWKS make this worse instead of better, at first glance?</summary><p>Caching isn't the problem — not caching at all would mean every single token validation hits the JWKS endpoint, which is far worse under normal load. The problem is that a naive cache invalidates on a single trigger (cache-miss on an unknown <code>kid</code>) with no jitter or staggering, so when the trigger fires for one instance it fires for all of them at essentially the same instant, turning what should be background refresh traffic into a synchronized burst.</p></details>
+<details><summary>Why is an overlap window a strictly better fix than exponential backoff with jitter on the client?</summary><p>Backoff with jitter spreads the retry traffic out over time, which reduces the peak load on the JWKS endpoint, but it doesn't change the fact that some tokens will still be rejected by some validators during the window before their cache catches up — it shrinks the failure window, it doesn't remove it. An overlap window removes the failure mode entirely: any validator, whether it refreshed a second ago or an hour ago, finds a valid key for any token issued during the transition, so there's no window in which a legitimately issued token fails validation anywhere in the fleet.</p></details>
+<details><summary>How long should an overlap window be, and what determines that?</summary><p>Long enough to cover the slowest realistic cache-refresh interval across your entire validator fleet, plus margin — if your <code>ConfigurationManager</code> refreshes on a fixed interval or on cache-miss with some minimum refresh spacing, the window needs to exceed the longest gap any instance could plausibly go without picking up the new key. In practice this is usually measured in tens of minutes to a few hours for JWKS rotations, not seconds, precisely because you want it to be safe even for a validator that's been unusually slow to refresh.</p></details>
+<details><summary>Does this same coordination problem show up anywhere outside of signing-key rotation?</summary><p>Yes — TLS certificate rotation, feature-flag config changes read from a cached config source, and DNS record changes with a low-but-nonzero effective TTL are all the same shape: many independent caches, each individually reasonable, that invalidate on the same external trigger at the same moment. The general fix pattern is the same too — overlap the old and new state for a window rather than cutting over instantaneously.</p></details>
+<details><summary>What would you monitor to catch a rotation problem before it caused customer-visible 401s?</summary><p>An alert on the 401 rate specifically correlated with the scheduled rotation window, and separately, a synthetic canary that validates a freshly-issued token against every environment continuously through a rotation event, so you'd see the failure in a synthetic check seconds before real traffic was affected, rather than finding out from a customer-impact dashboard after the fact.</p></details>
+
+<p class="docs">Docs: <a href="https://learn.microsoft.com/en-us/entra/identity-platform/signing-key-rollover">Microsoft Entra ID signing key rollover</a> · <a href="https://www.rfc-editor.org/rfc/rfc7517">RFC 7517, JSON Web Key (JWK)</a></p>
+</section>
+
+<section class="story" id="u08">
+<h2><span class="num">08</span>Sunsetting the session table</h2>
+<p class="chips"><span class="chip tier">Senior</span> <span class="chip">Tech-debt paydown / refactor</span></p>
+
+<h3>Worked example <span class="label">EXAMPLE — replace with your own</span></h3>
+<p>We had a SQL Server table holding server-side session state — roughly 40 million rows at any given time, growing, with a cleanup job that was itself becoming a scaling problem — left over from an era before the app adopted OIDC. Every authenticated request did a database round-trip just to look up whether the session cookie mapped to a valid, non-expired session, which meant our auth check was on the critical path of every single request and scaled with database load rather than with compute. The paydown wasn't glamorous and had zero feature value attached to it, which made it a hard sell against roadmap work, until I framed it in terms the roadmap owners cared about: this table was the reason our P99 latency had a floor around 45ms no matter how much we scaled out application instances, because every instance still funneled through the same database for the same lookup.</p>
+<p>The refactor moved session validation to signed, self-contained tokens — an access token whose claims and expiry could be checked in-process with no database call at all — while keeping a much smaller server-side record only for the small set of operations that genuinely need central revocation (explicit logout, admin-forced sign-out). That's a deliberate trade-off: pure stateless JWT validation can't support instant revocation of an individual token before its natural expiry, so we kept short access-token lifetimes (10 minutes) and a lightweight revocation list checked only on refresh, rather than on every request, to get most of the latency win without giving up revocation entirely.</p>
+<div class="tablewrap"><table>
+<thead><tr><th></th><th>Before: session table</th><th>After: token + thin revocation list</th></tr></thead>
+<tbody>
+<tr><td>Per-request DB call for auth</td><td>yes, every request</td><td>no — only on refresh (every ~10 min)</td></tr>
+<tr><td>Row count / growth</td><td>~40M rows, growing, needs cleanup job</td><td>revocation list only, orders of magnitude smaller</td></tr>
+<tr><td>P99 latency floor</td><td>~45ms</td><td>~6ms</td></tr>
+<tr><td>Instant revocation of one session</td><td>yes</td><td>bounded by 10-minute access-token lifetime</td></tr>
+</tbody>
+</table></div>
+<div class="callout"><p><strong>What the interviewer is really probing:</strong> whether you can sell a pure tech-debt project by tying it to a metric leadership already cares about (latency floor, infra cost), and whether you understand that "stateless tokens" isn't a free lunch — you gave up instant revocation and consciously decided that a 10-minute bound was an acceptable trade, rather than pretending the trade-off didn't exist.</p></div>
+
+<h3>Situation → Task → Action → Result</h3>
+<dl class="star">
+<dt>Situation</dt><dd>A 40-million-row server-side session table on the critical path of every authenticated request, creating a latency floor and a growing cleanup burden, with no feature-facing reason for anyone to prioritize fixing it.</dd>
+<dt>Task</dt><dd>Get the refactor prioritized and executed without a feature to attach it to, and without silently giving up the revocation guarantees people relied on.</dd>
+<dt>Action</dt><dd>Reframed the ask around the P99 latency floor it caused, migrated to self-contained tokens with short lifetimes plus a small revocation list checked on refresh rather than per-request.</dd>
+<dt>Result</dt><dd>P99 latency floor dropped from ~45ms to ~6ms; the cleanup job and its associated on-call noise were retired entirely; revocation now takes up to 10 minutes to fully apply instead of being instant, a trade-off that was explicitly signed off on rather than discovered later.</dd>
+</dl>
+
+<h3>Recall prompts</h3>
+<details><summary>What was the specific metric you used to make tech debt visible to non-engineers?</summary><p>"It's messy" doesn't get roadmap time. "It puts a 45ms floor under every request regardless of how much we scale" does. Have your version of that translation ready.</p></details>
+<details><summary>What guarantee did you consciously give up, and who signed off on that?</summary><p>Naming the revocation-latency trade-off, and who explicitly agreed to accept it (a security lead, a product owner), shows you didn't just quietly ship a regression under the cover of a refactor.</p></details>
+<details><summary>How did you validate the new design before fully decommissioning the old table?</summary><p>A dual-write or shadow-read period, a load test, or a staged rollout are all credible answers — "we just cut over" is a much riskier story to tell about 40 million rows of session state.</p></details>
+
+<h3>Drill chain</h3>
+<details><summary>Why can't a stateless JWT be instantly revoked?</summary><p>The whole point of a self-contained, signed token is that any validator can check it's genuine and unexpired using only the signing key, without asking a central authority — that's what makes it fast and horizontally scalable. But that same property means there's no central place to ask "has this specific token been revoked" without reintroducing exactly the per-request central lookup you were trying to eliminate; the only way to bound the damage is to keep the token's natural lifetime short.</p></details>
+<details><summary>Why is a 10-minute access-token lifetime with a refresh-time revocation check a reasonable middle ground?</summary><p>It keeps the expensive, centralized check off the hot path — the vast majority of requests just validate a signature and an expiry claim locally — while still bounding how long a revoked token can be used to at most one refresh interval. Ten minutes was chosen as short enough that a compromised or explicitly-revoked session doesn't stay usable for long, but long enough that the refresh traffic itself doesn't become the new scaling bottleneck.</p></details>
+<details><summary>What would you have done differently if the business genuinely needed instant, sub-second revocation?</summary><p>I'd have kept per-request central validation but attacked the latency differently — moving the revocation check to a fast in-memory store like Redis instead of SQL Server, and making sure that store itself was horizontally scaled and close to the compute. That trades the "no per-request call at all" win for a "the per-request call is now single-digit milliseconds" win, which is a legitimate alternative if instant revocation is a hard requirement.</p></details>
+<details><summary>How did you make sure the cutover itself didn't cause an incident, given 40 million existing sessions?</summary><p>Existing sessions in the old table were allowed to age out naturally rather than being force-migrated — new logins after the cutover date got the new token-based flow, and the old validation path stayed live, reading from the shrinking table, until it was empirically down to zero active rows over roughly the old maximum session lifetime. That avoided a hard cutover that would have force-logged-out every active user simultaneously.</p></details>
+<details><summary>Is this the same trade-off as the BFF-vs-token-in-browser story, or a different one?</summary><p>Related but distinct — the BFF story (04) is about where the token lives and who can read it (browser vs server), while this one is about whether validating it requires a central lookup at all (stateful session vs self-contained token). You can combine them: a BFF's server-side session can itself be backed by either a database session table or a self-contained token that the BFF holds — the two decisions are largely independent.</p></details>
+
+<p class="docs">Docs: <a href="https://learn.microsoft.com/en-us/aspnet/core/security/authentication/">ASP.NET Core authentication overview</a> · <a href="https://datatracker.ietf.org/doc/html/rfc6749#section-1.5">RFC 6749, refresh token / access token lifetime rationale</a></p>
+</section>
+<section class="story" id="u09">
+<h2><span class="num">09</span>Teaching PKCE to the new hire</h2>
+<p class="chips"><span class="chip tier">Senior</span> <span class="chip">Mentoring / levelling someone up</span></p>
+
+<h3>Worked example <span class="label">EXAMPLE — replace with your own</span></h3>
+<p>A new hire on my team, strong on backend work but new to OAuth, was assigned to add a "sign in with our IdP" button to a native mobile app, and their first draft used the authorization code flow but skipped PKCE entirely, reasoning — not unreasonably — that PKCE was "for public clients that can't keep a secret" and the mobile app already had an embedded client secret compiled into the binary. I could have just told them to add PKCE and cited the spec, but that teaches "do this because I said so," not "here's how to reason about this yourself next time." Instead I asked them to walk me through what actually stops someone from decompiling the app and extracting that "secret." They got there themselves within the conversation: a secret embedded in a binary distributed to every user's device isn't a secret at all, so the app was already effectively a public client no matter what the client registration called it, and PKCE exists precisely to protect the authorization code in transit for clients that can't prove their identity with a real secret.</p>
+<p>We paired on adding it — generating a <code>code_verifier</code>, deriving the <code>code_challenge</code> with SHA-256, sending the challenge in the authorization request and the verifier in the token exchange — and I had them write the two-paragraph explanation that went into our internal wiki afterward, in their own words, because writing it down is what made it stick. Two months later they caught a similar issue in a different service's PR before I did.</p>
+<pre><code class="language-csharp">// PKCE: generate once per authorization attempt, never reuse across requests
+var verifierBytes = RandomNumberGenerator.GetBytes(32);
+var codeVerifier = Base64UrlEncoder.Encode(verifierBytes);
+
+var challengeBytes = SHA256.HashData(Encoding.ASCII.GetBytes(codeVerifier));
+var codeChallenge = Base64UrlEncoder.Encode(challengeBytes);
+
+// authorization request carries the challenge; only the verifier proves
+// this token exchange came from the same client that started the flow
+</code></pre>
+<div class="callout"><p><strong>What the interviewer is really probing:</strong> whether you mentor by building understanding rather than issuing corrections, and whether you can explain PKCE's actual threat model (authorization code interception) clearly enough that someone with no OAuth background can reconstruct the reasoning themselves.</p></div>
+
+<h3>Situation → Task → Action → Result</h3>
+<dl class="star">
+<dt>Situation</dt><dd>A new hire's first OAuth implementation omitted PKCE on a native app, reasoning that an embedded client secret made the app confidential rather than public.</dd>
+<dt>Task</dt><dd>Correct the gap in a way that built lasting understanding rather than just fixing the PR.</dd>
+<dt>Action</dt><dd>Asked guiding questions until they identified themselves why an embedded secret isn't really secret, paired on the PKCE implementation, and had them document it in their own words.</dd>
+<dt>Result</dt><dd>PKCE shipped correctly in that PR; the new hire independently caught an equivalent gap in an unrelated service two months later, which I take as the real evidence the mentoring worked.</dd>
+</dl>
+
+<h3>Recall prompts</h3>
+<details><summary>What's the concrete evidence the mentoring "worked," beyond them fixing the one PR?</summary><p>The strongest version of this story has a second, independent data point — them catching a similar issue later, teaching it to someone else, or asking a noticeably sharper question in a later review. "They fixed it" alone doesn't prove understanding stuck.</p></details>
+<details><summary>What was your first instinct, before you decided to ask questions instead of just telling them?</summary><p>Being honest that the "just tell them" instinct existed and you chose against it is more convincing than implying you always default to Socratic questioning — it shows a deliberate choice under time pressure.</p></details>
+<details><summary>How did you make sure this didn't feel like a gotcha or a test?</summary><p>Tone matters here — describe how you framed the questions so it read as "let's figure this out together" rather than "let me see if you know this."</p></details>
+
+<h3>Drill chain</h3>
+<details><summary>What exact attack does PKCE prevent that the authorization code flow alone doesn't?</summary><p>Without PKCE, if an attacker can intercept the authorization code — through a malicious app registered on the same custom URI scheme on a mobile device, or a compromised network path on the redirect — they can exchange that code for tokens themselves, because the code alone is normally enough at the token endpoint for a public client. PKCE ties the code to a secret (the code verifier) generated fresh by the legitimate client at the start of that specific flow, so an attacker holding only the intercepted code can't complete the exchange without also having generated the matching verifier, which they never saw.</p></details>
+<details><summary>Why is SHA-256 used to derive the challenge instead of sending the verifier directly in the authorization request?</summary><p>The code challenge is sent in the authorization request, which travels through the browser or system browser and can end up in logs, browser history, or referrer headers — sending the raw verifier there would defeat the purpose, since anything that could see the challenge could also see the verifier. Hashing means only a value derived from the verifier is exposed early in the flow, and the actual verifier is only ever sent once, directly to the token endpoint over TLS, at the very end.</p></details>
+<details><summary>Is PKCE only relevant for mobile and SPA clients?</summary><p>It's most critical for public clients that genuinely can't hold a secret, but OAuth 2.1 requires it for every client type, confidential clients included, because it's cheap to implement and adds a layer of protection against authorization code interception regardless of client type — there's no meaningful downside to using it even where a client secret also exists.</p></details>
+<details><summary>What would you have done if the new hire had pushed back and insisted the embedded secret was good enough?</summary><p>I'd have asked them to actually try extracting the secret from a built APK or IPA using a decompiler, rather than debating it in the abstract — a hands-on demonstration that the "secret" is trivially recoverable is usually more convincing than any argument, and it turns an abstract security claim into something they've personally verified.</p></details>
+<details><summary>How do you generally decide when to explain versus when to let someone struggle toward the answer?</summary><p>It depends on the cost of the struggle and how foundational the concept is — for something as foundational and reusable as "public clients can't keep secrets," the time spent letting them reason it out pays for itself the next several times they touch OAuth. For a narrow, one-off gotcha with no transferable principle behind it, I'd just explain it and move on rather than turning everything into a teaching moment.</p></details>
+
+<p class="docs">Docs: <a href="https://datatracker.ietf.org/doc/html/rfc7636">RFC 7636, Proof Key for Code Exchange (PKCE)</a> · <a href="https://learn.microsoft.com/en-us/entra/identity-platform/v2-oauth2-auth-code-flow">Microsoft identity platform: authorization code flow</a></p>
+</section>
+
+<section class="story" id="u10">
+<h2><span class="num">10</span>The MFA exception for launch week</h2>
+<p class="chips"><span class="chip tier">Staff</span> <span class="chip">Scope / deadline negotiation</span></p>
+
+<h3>Worked example <span class="label">EXAMPLE — replace with your own</span></h3>
+<p>Ten days before a major product launch, the mobile team asked for an exception: skip the newly-required MFA step for first-time sign-ins from the launch campaign's landing flow, because their conversion-funnel testing showed a measurable drop-off at the MFA prompt, and marketing had a fixed launch date tied to external advertising spend that couldn't move. Security's default answer to "can we skip MFA" is no, and I understood why, but flatly saying no without engaging with the actual business constraint wasn't going to make the deadline pressure disappear — it would just push the conversation to someone more senior who might grant a worse exception under more time pressure.</p>
+<p>I proposed a narrower trade than what was asked for: instead of skipping MFA outright, use Conditional Access risk signals we already had configured to require MFA only for sign-ins Entra's risk engine flagged as elevated risk, and allow a step-down to a lighter verification (email-based one-time code instead of an authenticator app enrollment flow) for low-risk, first-time sign-ins during launch week specifically, reverting to the full policy afterward. That kept a real MFA-equivalent control in place for the sign-ins that actually looked risky, addressed the literal complaint (the friction was in the enrollment flow, not authentication itself), and gave marketing a concrete, time-boxed answer instead of an open-ended no or an unbounded yes.</p>
+<div class="callout"><p><strong>What the interviewer is really probing:</strong> whether you can negotiate a security requirement under real business pressure without either capitulating on the substance or being an immovable obstacle — the strongest answers here find a narrower, time-boxed, risk-informed middle ground rather than treating it as a binary security-versus-business fight.</p></div>
+
+<h3>Situation → Task → Action → Result</h3>
+<dl class="star">
+<dt>Situation</dt><dd>A ten-day-out request to disable MFA for a launch campaign's sign-in flow, driven by measured conversion drop-off and an immovable external launch date.</dd>
+<dt>Task</dt><dd>Find a resolution that didn't simply remove a security control under deadline pressure, and didn't simply block the business without an alternative.</dd>
+<dt>Action</dt><dd>Proposed a risk-based step-down (lighter verification for low-risk sign-ins only, using existing Conditional Access signals) instead of an outright MFA bypass, time-boxed to launch week.</dd>
+<dt>Result</dt><dd>Shipped the narrower exception; conversion drop-off at the friction point improved to within the target range, and the policy reverted automatically after the time-boxed window without needing a follow-up decision.</dd>
+</dl>
+
+<h3>Recall prompts</h3>
+<details><summary>What was the actual conversion number that made this a real business problem, not a hypothetical one?</summary><p>A concrete drop-off percentage from the mobile team's own funnel data anchors this as a real negotiation with real stakes on both sides, rather than a vague "they wanted less friction."</p></details>
+<details><summary>Who had the authority to grant the exception, and did you need their sign-off?</summary><p>Naming whether this required a security lead's or a CISO-equivalent's approval, and how you got it, shows you understand the actual decision-making structure rather than implying you unilaterally decided a security policy.</p></details>
+<details><summary>What would you have done if there had been no risk-signal infrastructure already in place to build the compromise on?</summary><p>If your version of this story required building new detection from scratch under a ten-day deadline, that's a materially harder story — be honest about whether the compromise was only possible because existing tooling made it cheap.</p></details>
+
+<h3>Drill chain</h3>
+<details><summary>Why is a risk-based step-down meaningfully different from just disabling MFA for a segment of traffic?</summary><p>An outright bypass removes the control for every sign-in in that segment regardless of how suspicious it looks, while a risk-based approach keeps the strong control exactly where the signal says it's warranted and only relaxes it where the signal says risk is low — it's not "less security," it's "the same security budget spent more precisely." The number of sign-ins that get the lighter path in a risk-based approach is also typically much smaller than the whole segment, since most launch-week sign-ins that do look risky still get the full challenge.</p></details>
+<details><summary>What signals would a Conditional Access risk engine actually use to judge a first-time sign-in low-risk?</summary><p>Things like whether the sign-in originates from an IP address or network range with no prior association with credential compromise, whether the device and browser fingerprint look consistent with normal traffic patterns rather than known bot or scripted-attack signatures, and whether the velocity of sign-in attempts from that identity or IP is within normal bounds rather than showing a spray pattern. None of these alone is proof of safety, which is exactly why the fallback for anything flagged is still the full MFA challenge.</p></details>
+<details><summary>Why time-box the exception instead of leaving the lighter path in place if it worked well?</summary><p>Because the exception was justified by a specific, temporary constraint — a fixed launch date and paid campaign traffic — not by a permanent judgment that the lighter path is generally acceptable; leaving it in place indefinitely would mean the exception silently becomes the new baseline without anyone deciding that on the merits. A time-box forces an explicit second decision if anyone wants it to continue, rather than letting a launch-week exception become permanent by default.</p></details>
+<details><summary>What would you have said if the risk-based compromise still wasn't good enough for marketing?</summary><p>I'd have asked them to quantify what conversion improvement they actually needed and checked whether that number was achievable at all without materially increasing account-takeover risk — if the honest answer was "no, not without a real security trade-off," I'd escalate that trade-off explicitly to whoever owned the launch decision, framed as their call to make with full information, rather than either side unilaterally deciding it.</p></details>
+<details><summary>How does this story relate to the broader tension between OAuth 2.1's push toward stronger authentication and real product pressure to reduce friction?</summary><p>It's the same tension playing out at the policy layer instead of the protocol layer — OAuth 2.1 mandates stronger baseline mechanisms (PKCE everywhere, sender-constrained tokens), and separately, product and security teams are constantly negotiating how much friction a stronger authentication step is allowed to add. Risk-based, adaptive controls are the industry's general answer to that tension: keep the strong baseline, but make how often the user actually feels it proportional to actual risk rather than uniform for everyone.</p></details>
+
+<p class="docs">Docs: <a href="https://learn.microsoft.com/en-us/entra/identity/conditional-access/overview">Microsoft Entra Conditional Access overview</a> · <a href="https://learn.microsoft.com/en-us/entra/id-protection/concept-identity-protection-risks">Microsoft Entra ID Protection risk detections</a></p>
+</section>
+
+<section class="story" id="u11">
+<h2><span class="num">11</span>The revocation that locked out the building</h2>
+<p class="chips"><span class="chip tier">Mid</span> <span class="chip">Data-loss / corruption scare</span></p>
+
+<h3>Worked example <span class="label">EXAMPLE — replace with your own</span></h3>
+<p>We ran a Redis cluster as a distributed cache for our session-and-token-cache layer, sitting in front of Entra ID to avoid round-tripping to the IdP on every request. During a routine Redis version upgrade, a misconfigured persistence setting meant that a failover during the upgrade window silently dropped roughly forty minutes of recent writes — not the whole dataset, just a gap in the middle of it, which is the worst kind of partial data loss because nothing looked obviously broken at first. What made it visible fast was that our office badge-reader system authenticated employees at the door through an SSO integration riding on the same session cache, and for about twenty minutes that morning, employees whose sessions had been written in that gap were denied entry at every door in the building, badge readers logging clean "access denied — session not found" errors that looked identical to a revoked or expired credential.</p>
+<p>My first instinct was that this was a mass revocation event — someone had run a bulk sign-out — and I spent the first ten minutes chasing that theory through the audit logs before finding nothing, which was itself the clue: a real revocation leaves an audit trail, and there wasn't one. Once I looked at the Redis cluster's own replication logs instead of application-level logs, the failover-during-persistence-gap timing lined up exactly with the affected session-creation window. We restored access immediately by forcing an interim fallback to direct Entra ID token validation (bypassing the cache) for any session-cache miss, which cost latency but restored correctness, then fixed the persistence configuration and added a synthetic write-then-read canary against the cache cluster to catch the next silent gap within seconds instead of forty minutes.</p>
+<div class="callout"><p><strong>What the interviewer is really probing:</strong> whether you can stay methodical during a scare that looks like a security incident but might be an infrastructure bug, and whether you understand the real cost of caching auth state — a cache-layer bug doesn't just slow things down, it can silently and partially corrupt exactly the data that decides who gets access to things, including physical spaces if that's what's wired to it.</p></div>
+
+<h3>Situation → Task → Action → Result</h3>
+<dl class="star">
+<dt>Situation</dt><dd>A Redis persistence misconfiguration caused a silent, partial data-loss gap in a session cache during a routine upgrade, manifesting as a physical badge-reader lockout for affected employees and initially looking like an unexplained mass revocation.</dd>
+<dt>Task</dt><dd>Distinguish a genuine security/revocation event from an infrastructure data-loss bug, restore access quickly, and prevent recurrence.</dd>
+<dt>Action</dt><dd>Ruled out revocation via the absence of an audit trail, found the real cause in Redis replication logs, forced an immediate fallback to direct IdP validation to restore correctness, then fixed the persistence config and added a synthetic canary.</dd>
+<dt>Result</dt><dd>Access restored building-wide within about twenty minutes of the first report; the canary has caught one subsequent near-miss before it caused any user-visible impact.</dd>
+</dl>
+
+<h3>Recall prompts</h3>
+<details><summary>What was the first wrong theory you chased, and how long did you spend on it?</summary><p>Being honest that you initially suspected the wrong cause (a security revocation event rather than an infra bug) and naming how you disproved it — via the missing audit trail — makes the story credible rather than a tidy narrative assembled after the fact.</p></details>
+<details><summary>What made this feel like a "data-loss scare" rather than just an outage?</summary><p>The specific fear here is worth naming explicitly — that a silent, partial gap in an auth-adjacent data store is scarier than an obvious full outage, because you don't know the boundaries of what's affected until you've fully investigated, and it plausibly could have been a security event.</p></details>
+<details><summary>What was the actual fallback mechanism, and what did it cost?</summary><p>Naming the specific trade-off — bypassing the cache entirely cost latency but was worth it for correctness during the incident — shows you weighed the trade-off rather than just flipping a switch labeled "fix."</p></details>
+
+<h3>Drill chain</h3>
+<details><summary>Why does caching authentication state introduce a data-loss risk that stateless token validation doesn't have?</summary><p>A cache is, by definition, holding a copy of state that something else considers authoritative, and if that copy is lost or corrupted, the system's behavior depends entirely on what the fallback does — deny by default, which causes exactly this kind of false lockout, or fail open, which is far worse from a security standpoint. Pure stateless token validation has no separate cache layer to lose; the token itself carries everything needed to validate it, so there's no intermediate copy of session truth that can silently drift or vanish.</p></details>
+<details><summary>Why fail closed (deny access) rather than fail open when the cache has a gap?</summary><p>Failing open on an authentication cache miss means anyone whose session isn't found gets treated as authenticated by default, which turns any cache bug into a wide-open security hole rather than a contained availability problem. Failing closed is the safer default because the worst case is a false lockout — annoying, visible, and fixable — rather than a false authorization, which could go unnoticed and be actively exploited.</p></details>
+<details><summary>How would you design the badge-reader integration differently knowing what you know now?</summary><p>I'd decouple physical access validation from the same cache tier used for web-session lookups entirely, even though they both ultimately trust the same IdP, specifically so that a bug in one system's caching layer can't take down building entry as a side effect. Shared infrastructure for unrelated consumers is efficient right up until an incident in one blast-radius takes out something with a completely different risk profile.</p></details>
+<details><summary>What's the synthetic canary actually checking, mechanically?</summary><p>It writes a known session record into the cache on a short interval, then immediately reads it back and verifies the value matches what was written, alerting if a read ever returns missing or stale data within a time bound that should be well inside normal replication lag. It's deliberately simple — it doesn't try to validate real auth logic, just that write-then-read consistency holds, because that's the specific property that silently broke.</p></details>
+<details><summary>Would this incident have been prevented by better testing of the Redis upgrade itself?</summary><p>Possibly — a staging environment that exercised a failover during the upgrade under realistic write load might have surfaced the persistence misconfiguration before production, but failover timing is notoriously hard to reproduce deterministically in a lower environment. The canary is a more durable fix than better pre-upgrade testing alone, because it protects against this same failure mode regardless of what future change introduces it, not just this specific upgrade.</p></details>
+
+<p class="docs">Docs: <a href="https://redis.io/docs/latest/operate/oss_and_stack/management/persistence/">Redis persistence documentation</a> · <a href="https://learn.microsoft.com/en-us/entra/identity-platform/access-tokens">Microsoft identity platform access tokens</a></p>
+</section>
+
+<section class="story" id="u12">
+<h2><span class="num">12</span>Single-tenant today, multi-tenant tomorrow</h2>
+<p class="chips"><span class="chip tier">Senior</span> <span class="chip">Ambiguous / shifting requirements</span></p>
+
+<h3>Worked example <span class="label">EXAMPLE — replace with your own</span></h3>
+<p>We built an internal admin tool's auth against Entra ID assuming a single tenant forever — hardcoded issuer validation against our own tenant ID, no thought given to anyone else. Eight months later, sales closed a deal that required white-labeling the tool for two external partner organizations, each running their own Entra tenant, and the requirement showed up as "make it work for them too" with no spec beyond that, because nobody on the sales side understood there was a meaningful technical difference between "add a user" and "add a whole tenant."</p>
+<p>The ambiguity I had to resolve myself was exactly how multi-tenant should work: change the app registration's <code>SignInAudience</code> to accept any organizational account and validate issuer against a dynamic list of allow-listed tenant IDs (safe, explicit, but needs an admin action per new partner), versus accepting the common <code>/common</code> multi-tenant endpoint and validating any issuer with correct token structure (more flexible, but now anyone with an Entra tenant, not just approved partners, could theoretically get a token our app would accept unless we added our own authorization layer on top). I chose the allow-list approach specifically because "unlimited tenants" wasn't the actual requirement — "these two specific partners, and future partners we explicitly approve" was — and building for unlimited tenants when only an allow-listed few were ever in scope would have meant maintaining a much larger, harder-to-reason-about trust boundary for a capability nobody asked for.</p>
+<div class="tablewrap"><table>
+<thead><tr><th></th><th>Allow-listed multi-tenant</th><th>Fully open (/common) multi-tenant</th></tr></thead>
+<tbody>
+<tr><td>Issuer validation</td><td>explicit tenant-ID allow-list</td><td>any structurally valid issuer</td></tr>
+<tr><td>New partner onboarding</td><td>one admin action to add tenant ID</td><td>none needed — but so does anyone else</td></tr>
+<tr><td>Matches actual requirement (2 named partners)</td><td>yes</td><td>over-built for the actual ask</td></tr>
+</tbody>
+</table></div>
+<div class="callout"><p><strong>What the interviewer is really probing:</strong> whether you can take a vague, business-driven requirement ("make it work for partners") and translate it into a specific, bounded technical decision instead of either guessing wrong or stalling for a fully-specified requirement that was never going to arrive from sales.</p></div>
+
+<h3>Situation → Task → Action → Result</h3>
+<dl class="star">
+<dt>Situation</dt><dd>An internal tool built single-tenant by design suddenly needed to support two external partner Entra tenants, with the requirement stated only as "make it work for them" and no technical detail supplied.</dd>
+<dt>Task</dt><dd>Resolve the ambiguity into a concrete multi-tenant design without over-building for a scope nobody had actually asked for.</dd>
+<dt>Action</dt><dd>Identified the real requirement (a small, explicit set of approved partners, not unlimited tenants) and implemented allow-listed issuer validation with a per-tenant admin onboarding step rather than the fully open <code>/common</code> endpoint.</dd>
+<dt>Result</dt><dd>Both partners onboarded within the sales-committed timeline; a third partner added eighteen months later took under an hour of admin work, validating that the allow-list model scaled to the actual pace of partner growth.</dd>
+</dl>
+
+<h3>Recall prompts</h3>
+<details><summary>How did you figure out what was actually being asked, given how vague the initial requirement was?</summary><p>Name who you went and asked, and what question actually got you the real scope — "two specific named partners" instead of "partners in general" is the kind of clarifying detail that turns an ambiguous request into a tractable one.</p></details>
+<details><summary>What would over-building for this have looked like, concretely?</summary><p>Be ready to describe the fully-open alternative you rejected and why it was riskier or more complex than the actual need justified — this is the crux of the story, not a side note.</p></details>
+<details><summary>Did the requirement shift again after you shipped, and how did your design hold up?</summary><p>The third-partner data point (if you have an equivalent) is good evidence that your bounded design absorbed the next round of the same kind of change cheaply, rather than needing to be redone.</p></details>
+
+<h3>Drill chain</h3>
+<details><summary>What's the actual security risk of validating any issuer against the /common multi-tenant endpoint with no allow-list?</summary><p>Any organization with its own Entra tenant can register an app and get tokens whose issuer will pass structural validation, so unless the application itself enforces authorization beyond "is this token valid" — checking tenant ID, specific user, or role against its own access-control list — it will accept sign-ins from organizations that were never intended to have access. It's not that the tokens are forged or invalid; it's that "valid token" and "authorized to use this app" are different questions, and the open endpoint alone only answers the first one.</p></details>
+<details><summary>Why does an allow-list model still need per-app authorization logic, not just issuer validation?</summary><p>The allow-list controls which tenants can reach the app at all, but within an allow-listed partner tenant, you generally still want to control which specific users or roles from that tenant get which level of access — the allow-list is a coarse, tenant-level gate, not a substitute for user- or role-level authorization inside the app.</p></details>
+<details><summary>How would this design change if the number of partners grew from two to two hundred?</summary><p>At that scale, manual per-tenant admin onboarding becomes the bottleneck, and I'd want a self-service partner-onboarding flow — still allow-list-based in spirit, but with an automated verification and approval step instead of a manual admin action — rather than switching to the fully open model just to avoid onboarding friction. The security posture (explicit approval per tenant) is worth preserving even as the mechanism for granting that approval gets automated.</p></details>
+<details><summary>What's the difference between SignInAudience settings for single-tenant, multi-tenant, and personal-plus-work accounts?</summary><p>Single-tenant restricts sign-in to accounts in the app's own home tenant only; multi-tenant (<code>AzureADMultipleOrgs</code>) allows accounts from any Microsoft Entra organization but not personal Microsoft accounts; the broadest setting additionally allows personal Microsoft accounts alongside any organizational one. Each step widens who can obtain a structurally valid token for the app, which is exactly why issuer and, where relevant, tenant-ID validation inside the app becomes more important as the setting widens.</p></details>
+<details><summary>If sales promises a fourth partner next month without checking with you first, what would you want changed about that process?</summary><p>I'd push for partner-scale commitments to route through a lightweight technical check before being promised externally — not a full design review, just a confirmation that the existing onboarding model covers the new case or a heads-up if it doesn't — so the ambiguity gets resolved before a customer-facing date exists, rather than after.</p></details>
+
+<p class="docs">Docs: <a href="https://learn.microsoft.com/en-us/entra/identity-platform/single-and-multi-tenant-apps">Single- and multi-tenant app registrations</a> · <a href="https://learn.microsoft.com/en-us/entra/identity-platform/howto-convert-app-to-be-multi-tenant">Convert a single-tenant app to multi-tenant</a></p>
+</section>
+<section class="story" id="u13">
+<h2><span class="num">13</span>The audience nobody owned</h2>
+<p class="chips"><span class="chip tier">Staff</span> <span class="chip">Cross-team / integration dependency</span></p>
+
+<h3>Worked example <span class="label">EXAMPLE — replace with your own</span></h3>
+<p>Four services from three different teams all validated access tokens against the same nominal API, but over roughly two years each team had independently added its own tolerance for the <code>aud</code> claim — one accepted an exact match on the API's App ID URI, one also accepted the API's client ID as an alternate audience value because a client library defaulted to sending that, one accepted both plus a legacy value from a service that had been decommissioned but whose audience string lived on in a shared config file, and one, discovered during the investigation, accepted any audience at all because a "temporary" debug override from an incident eighteen months earlier had never been reverted. Nobody owned the "what audience values are actually correct" question end to end; each team had solved their own immediate problem and moved on.</p>
+<p>I only found this because a partner integration started sending tokens with a new, correctly-spec'd audience value the client library had started using by default in its newest version, and three of the four services accepted it fine while one rejected it — inconsistent behavior across services that were supposed to be interchangeable from the caller's point of view. Untangling it took getting all three team leads in one room, which was the actual staff-level work here: not the technical fix, but getting agreement that one team would own a shared, versioned audience-validation policy going forward, documented in one place, with the other three services consuming it rather than each hand-rolling their own tolerance list. The debug override was the most uncomfortable finding to report, since it meant one service had been accepting tokens for any audience for over a year with nobody noticing.</p>
+<div class="callout"><p><strong>What the interviewer is really probing:</strong> whether you can drive a cross-team fix where the technical part is easy and the organizational part (who owns this shared decision going forward) is the actual work, and whether you're willing to surface an uncomfortable finding (a stale debug override) clearly rather than quietly patching it and moving on.</p></div>
+
+<h3>Situation → Task → Action → Result</h3>
+<dl class="star">
+<dt>Situation</dt><dd>Four services across three teams had each independently accumulated their own inconsistent <code>aud</code> claim validation logic over two years, including one with a long-forgotten debug override accepting any audience, surfaced by a partner integration exposing the inconsistency.</dd>
+<dt>Task</dt><dd>Resolve the immediate inconsistency and establish lasting ownership so the same drift didn't recur.</dd>
+<dt>Action</dt><dd>Investigated all four services' actual validation logic, brought the three team leads together, and got agreement on one team owning a shared, versioned audience-validation policy that the others would consume rather than reimplement.</dd>
+<dt>Result</dt><dd>All four services aligned on the shared policy within a month; the stale debug override was closed as a security finding in its own right, and the shared policy has absorbed two subsequent audience-value additions without any team needing its own one-off fix.</dd>
+</dl>
+
+<h3>Recall prompts</h3>
+<details><summary>What was the specific event that exposed the inconsistency?</summary><p>"A new client library default surfaced inconsistent behavior across four services" is concrete; "we noticed our services weren't aligned" is vague. Have the specific trigger ready.</p></details>
+<details><summary>How did you get three team leads to agree on a shared owner, when each team had already solved their own version of the problem?</summary><p>This is the crux of the cross-team story — describe the actual conversation, including any resistance to giving up local control over something a team currently owned outright.</p></details>
+<details><summary>How did you report the stale debug override, and to whom?</summary><p>A staff-level answer treats this as a security finding with its own disclosure path (not just a line item in the same fix), and is honest about how uncomfortable it was for the owning team to hear that it had gone unnoticed for over a year.</p></details>
+
+<h3>Drill chain</h3>
+<details><summary>Why does the aud claim matter at all — what does it actually protect against?</summary><p>The <code>aud</code> claim states which API or resource a token was issued for, and validating it stops a token legitimately issued for one API from being replayed against a different API that trusts the same issuer and signing key. Without audience validation, a token meant only for a low-sensitivity read API could be presented to a higher-sensitivity API and, if that API only checked signature and issuer, be accepted — audience validation is what confines a token to its intended purpose.</p></details>
+<details><summary>Why would a service accept multiple audience values instead of just the one correct one?</summary><p>In practice, different client libraries or SDK versions sometimes populate the audience differently — one sending the App ID URI, another sending the client ID — often for legitimate historical or ecosystem reasons, and a service trying to be compatible with all of them accretes a tolerance list rather than pushing every caller to conform to one value. That's a reasonable short-term accommodation; the failure here was that it was never centralized, reviewed, or bounded, so it silently grew to include values nobody could justify anymore.</p></details>
+<details><summary>Why is a "temporary" debug override that accepts any audience so dangerous specifically, compared to other kinds of debug code left behind?</summary><p>Because it defeats the one check that confines a token to its intended API — with it in place, any valid token from the trusted issuer, regardless of what it was actually issued for, is accepted, effectively merging the trust boundary of every API sharing that issuer into one. Most leftover debug code causes a narrow functional bug; this specific kind silently deletes a security boundary while everything continues to look and behave normally for legitimate traffic.</p></details>
+<details><summary>What would you put in place to make sure a shared validation policy doesn't just drift apart again in another two years?</summary><p>A single versioned, tested library or shared configuration that all four services import rather than reimplement, plus a lightweight automated check — even just a scheduled diff against the canonical policy — that flags if any service's actual runtime configuration diverges from what the shared source declares. Ownership without a mechanism to detect drift tends to erode the same way the original inconsistency did: quietly, one local fix at a time.</p></details>
+<details><summary>How would you have caught this before a partner integration exposed it?</summary><p>A cross-service contract test suite that sends the same set of tokens — including edge cases like an unexpected but structurally valid audience — against every service that's supposed to enforce the same policy, and asserts they all respond identically. That test would have failed the moment any one service's tolerance list diverged from the others, long before an external partner's traffic pattern happened to expose it.</p></details>
+
+<p class="docs">Docs: <a href="https://datatracker.ietf.org/doc/html/rfc7519#section-4.1.3">RFC 7519, JWT aud claim</a> · <a href="https://learn.microsoft.com/en-us/entra/identity-platform/access-tokens#validating-tokens">Validating access tokens, Microsoft identity platform</a></p>
+</section>
+
+<section class="story" id="u14">
+<h2><span class="num">14</span>The identity provider we didn&#39;t ship</h2>
+<p class="chips"><span class="chip tier">Principal</span> <span class="chip">Project that failed or was cancelled</span></p>
+
+<h3>Worked example <span class="label">EXAMPLE — replace with your own</span></h3>
+<p>I led a six-month evaluation and partial build-out of a self-hosted identity provider — Duende IdentityServer, specifically — to replace a patchwork of per-product login systems across our platform, motivated by a real problem: five products, five different session models, and a support burden from users who couldn't understand why signing out of one didn't sign them out of another. We got far enough to have a working proof of concept handling two of the five products' authentication, with token issuance, a shared user store, and a working OIDC flow validated end to end. Then Duende's 2022 licensing change — commercial licensing tied to revenue thresholds that our growth trajectory meant we'd cross within about eighteen months — turned what had looked like a straightforward open-source adoption into a recurring six-figure cost, and that number, combined with a shift in company priorities toward a different strategic bet, was enough for leadership to cancel the project rather than fund it through to completion.</p>
+<p>The hardest part of this story isn't the technical work, it's owning that six months of a team's time produced no shipped product — and being the one who has to say that plainly in a retro rather than dress it up. What I take responsibility for: I should have flagged the licensing-cost trajectory as a risk in month one, not discovered it as a surprise in month five, because the licensing terms were publicly known well before we started; I under-weighted a cost risk that was knowable in advance. What the project did produce despite being cancelled: the shared-user-store design and the OIDC integration pattern we'd validated were reused, largely unchanged, when we adopted Entra External ID a year later for the same consolidation goal — so the six months weren't purely wasted, but that's a real silver lining, not an excuse, and I say it as the second half of the story, not the headline.</p>
+<div class="callout"><p><strong>What the interviewer is really probing:</strong> whether you can talk about a real failure honestly, own your specific part in it without deflecting to "the licensing change was unforeseeable" (it wasn't, fully), and whether you extracted real, reusable value from the effort rather than treating it as a total loss you'd rather not discuss.</p></div>
+
+<h3>Situation → Task → Action → Result</h3>
+<dl class="star">
+<dt>Situation</dt><dd>Five products with fragmented, inconsistent login systems and real user-visible pain; a six-month project to consolidate onto a self-hosted Duende IdentityServer instance that got a working two-product proof of concept built.</dd>
+<dt>Task</dt><dd>Deliver a shared identity provider that would eventually replace all five products' auth systems.</dd>
+<dt>Action</dt><dd>Led the evaluation, build-out, and proof-of-concept validation; when Duende's licensing change made projected costs jump into six figures annually right as company priorities shifted, presented the trade-off plainly to leadership rather than pushing to continue regardless.</dd>
+<dt>Result</dt><dd>The project was cancelled with no product shipped; the shared-user-store and OIDC integration design were reused successfully in a later Entra External ID adoption, and I changed how I flag licensing-model risk on every build-vs-buy evaluation since.</dd>
+</dl>
+
+<h3>Recall prompts</h3>
+<details><summary>What specifically do you own about why this failed, versus what was genuinely outside your control?</summary><p>The company-priority shift was outside your control; not flagging a publicly-known licensing risk early enough was not. Keep those two things separate and be specific about which is which — conflating them either overstates your fault or dodges it.</p></details>
+<details><summary>What did you actually say in the retro, and how did the team react?</summary><p>Being asked to narrate a hard conversation is common here — have a real memory of how you framed "this didn't ship" to a team that spent six months on it, not just the outcome.</p></details>
+<details><summary>What tangible thing survived the cancellation, and how do you know it was actually reused rather than you retroactively claiming credit?</summary><p>Point to something concrete and checkable — a design doc, a piece of code, a named engineer who reused the pattern — rather than a vague "the learnings carried forward."</p></details>
+
+<h3>Drill chain</h3>
+<details><summary>What exactly changed in Duende's licensing in 2022, and why did it matter for a growing company specifically?</summary><p>Duende introduced commercial licensing fees tied to factors including organizational revenue, replacing what had effectively been free, unrestricted use under the previous open-source model; the fee scales with the size of business using it. For a company on a growth trajectory, that meant a cost that looked negligible at evaluation time was contractually going to become substantial within a couple of years, which is a very different risk profile than a flat, predictable license fee.</p></details>
+<details><summary>Was building on Duende the wrong call from the start, given hindsight?</summary><p>Given the information available at evaluation time, no — it was a mature, well-regarded, and (at that point) genuinely low-cost option, and the technical evaluation criteria were sound. The mistake was a diligence gap: not modeling the licensing cost forward against our own growth projections before committing engineering time, which is a process failure I could have prevented independent of whether Duende itself was the right technical choice.</p></details>
+<details><summary>Would OpenIddict have avoided this problem entirely?</summary><p>OpenIddict is a genuinely free, permissively-licensed open-source alternative with a smaller but active maintainer community, and it would have avoided this specific licensing-cost trajectory — it's one of the options I'd weight more heavily in a similar evaluation today. It comes with its own trade-offs, mainly a thinner set of out-of-the-box UI and admin tooling compared to what Duende offered commercially, so it's not a strictly dominant choice, just a different point on the build-effort-versus-cost curve.</p></details>
+<details><summary>How do you evaluate build-vs-buy for identity infrastructure differently now, because of this?</summary><p>I now explicitly model licensing cost forward against realistic 2-3 year growth or usage projections as a first-week diligence step, not an afterthought, for any dependency whose pricing is tied to a variable like revenue, seat count, or usage rather than a flat fee. I also weight "how has this vendor's licensing changed before" as its own evaluation criterion, since a licensing change once is a signal the model can change again.</p></details>
+<details><summary>Knowing it would be cancelled, would you have run the project differently to preserve more value from the start?</summary><p>Yes — I'd have structured the two-product proof of concept to be more explicitly reusable as standalone design artifacts (a written integration pattern, not just working code coupled to Duende's specific APIs) from day one, rather than that reusability being a fortunate side effect discovered after cancellation. Assuming any six-month infrastructure bet might not ship as originally planned, and designing the interim deliverables to survive that outcome, is a discipline I apply to every long-horizon project now.</p></details>
+
+<p class="docs">Docs: <a href="https://blog.duendesoftware.com/posts/20221107_licensing/">Duende Software licensing announcement</a> · <a href="https://documentation.openiddict.com/">OpenIddict documentation</a></p>
+</section>
+
+<section class="story" id="u15">
+<h2><span class="num">15</span>Paying for tokens we didn&#39;t need</h2>
+<p class="chips"><span class="chip tier">Senior</span> <span class="chip">Cost-optimisation win</span></p>
+
+<h3>Worked example <span class="label">EXAMPLE — replace with your own</span></h3>
+<p>A routine license review turned up that we were paying for Entra ID P2 seats — the tier that unlocks Identity Protection risk-based Conditional Access and PIM — for every employee in the company, roughly 2,400 seats, when a usage audit showed only about 340 of them were in any group actually targeted by a P2-dependent policy. The rest had been provisioned that way at a time when the plan was to roll P2 policies out company-wide, a plan that had since narrowed to just engineering and finance without anyone revisiting the licensing to match.</p>
+<p>Fixing it wasn't just "downgrade everyone" — I had to first confirm, group by group, that no P2-only feature was silently load-bearing somewhere unexpected (a Conditional Access policy referencing risk signals that would silently stop enforcing, not error loudly, if the license were removed), which meant auditing every active Conditional Access policy's dependencies before touching a single license assignment. Once confirmed, we moved license assignment from "everyone gets P2 by default" to a group-based assignment tied to the same security groups that Conditional Access policies already targeted, so license scope and policy scope couldn't drift apart again the way they had the first time.</p>
+<div class="tablewrap"><table>
+<thead><tr><th></th><th>Before</th><th>After</th></tr></thead>
+<tbody>
+<tr><td>P2 seats provisioned</td><td>~2,400 (company-wide)</td><td>~340 (matches actual policy targeting)</td></tr>
+<tr><td>Assignment method</td><td>default-on for all users</td><td>group-based, tied to CA-policy target groups</td></tr>
+<tr><td>Risk of drift recurring</td><td>high — no link between license and policy scope</td><td>low — same group controls both</td></tr>
+</tbody>
+</table></div>
+<div class="callout"><p><strong>What the interviewer is really probing:</strong> whether you approach a cost win with the same care you'd apply to a security change — verifying nothing silently breaks — rather than just cutting the number and hoping, and whether your fix addresses the reason the waste accumulated in the first place, not just the current snapshot of it.</p></div>
+
+<h3>Situation → Task → Action → Result</h3>
+<dl class="star">
+<dt>Situation</dt><dd>Roughly 2,400 Entra ID P2 seats provisioned company-wide, but only about 340 users actually in scope for any policy that required the P2 tier, left over from a since-narrowed rollout plan.</dd>
+<dt>Task</dt><dd>Right-size the licensing without silently breaking any policy that depended on it.</dd>
+<dt>Action</dt><dd>Audited every active Conditional Access policy's dependency on P2 features group by group, then moved to group-based license assignment tied to the same groups the policies already targeted.</dd>
+<dt>Result</dt><dd>Reduced provisioned P2 seats from ~2,400 to ~340 with zero policy regressions, and the group-based tie between license and policy scope has kept the two in sync through two subsequent org changes.</dd>
+</dl>
+
+<h3>Recall prompts</h3>
+<details><summary>What was the actual dollar or percentage saving, and did you have to defend that number to anyone?</summary><p>Cost stories land better with a real figure — even an approximate per-seat cost times the seat delta — and a mention of whether finance or a vendor-management team needed convincing that the reduction was safe.</p></details>
+<details><summary>What's the one thing you checked before downgrading anyone that, if you'd skipped it, could have caused an outage?</summary><p>The Conditional-Access-dependency audit is the load-bearing safety check in this story — be ready to describe a specific policy you found that would have silently stopped enforcing if you'd rushed the downgrade.</p></details>
+<details><summary>Why did the over-provisioning happen in the first place, and does your fix address that root cause?</summary><p>A good answer distinguishes the immediate waste (too many seats) from the process gap that let it happen (licensing not linked to policy scope) and shows the fix targets the second, not just the first.</p></details>
+
+<h3>Drill chain</h3>
+<details><summary>What specifically does a Conditional Access policy lose if the referenced license is removed, and why is that dangerous?</summary><p>A policy that depends on Identity Protection risk signals or PIM without the underlying P2 license simply stops being able to evaluate that condition for the affected users, and depending on how the policy is authored, it can either fail closed (block sign-in, a visible outage) or in some configurations silently not apply the intended control rather than erroring — the second case is the dangerous one, because access that was supposed to be gated behaves as if it isn't, with no obvious alarm.</p></details>
+<details><summary>Why move to group-based licensing instead of just correcting the current seat count?</summary><p>Correcting the current count fixes today's snapshot but does nothing to stop the same drift from recurring the next time the intended policy scope changes — which it will, since org structure and security policy both evolve. Tying license assignment to the same group that Conditional Access policy targeting already uses means the two are structurally coupled going forward, so a scope change to the policy's target group automatically updates who needs the license, instead of requiring someone to remember to also update licensing by hand.</p></details>
+<details><summary>How did you verify the 340 number was actually correct and not itself missing some edge case?</summary><p>By cross-referencing every Conditional Access policy's target group definitions against sign-in logs over a full quarter, to catch not just who was targeted currently but anyone who'd hit a P2-dependent policy at all in a period long enough to include quarterly access reviews, seasonal contractors, or infrequent admin accounts that a shorter window might miss.</p></details>
+<details><summary>Is there a security risk in reducing licenses too aggressively, beyond just breaking a policy?</summary><p>Yes — if the audit under-counts who genuinely needs risk-based protection (say, an admin account that signs in rarely but is high-value if compromised), removing their P2 coverage removes real protection for a real risk, purely because their low sign-in frequency made them look unimportant in a usage-frequency-based audit. That's why the audit needs to be based on policy applicability and risk profile, not just observed usage volume.</p></details>
+<details><summary>How would you present this win to a non-technical stakeholder who just sees a licensing cost line item?</summary><p>I'd frame it as "we found and fixed a mismatch between what we were paying for and what we were using, with zero change in actual security posture" — leading with the safety verification, not just the savings number, since a stakeholder hearing "we cut security licenses" without that context might reasonably worry it was a risk-for-cost trade rather than pure waste elimination.</p></details>
+
+<p class="docs">Docs: <a href="https://learn.microsoft.com/en-us/entra/id-governance/licensing-groups-assign">Assign licenses to groups in Microsoft Entra ID</a> · <a href="https://learn.microsoft.com/en-us/entra/id-protection/overview-identity-protection">Microsoft Entra ID Protection overview</a></p>
+</section>
+
+<section class="story" id="u16">
+<h2><span class="num">16</span>Passkeys, one team at a time</h2>
+<p class="chips"><span class="chip tier">Senior</span> <span class="chip">Introducing a new tool</span></p>
+
+<h3>Worked example <span class="label">EXAMPLE — replace with your own</span></h3>
+<p>ASP.NET Core Identity picked up native WebAuthn/passkey support as part of the .NET 10 release, and I wanted to introduce passkey sign-in as an option for our customer-facing app both for the real security win (phishing-resistant by construction, no shared secret an attacker can intercept or replay) and because customer support had a steady trickle of password-reset tickets that a passwordless option would meaningfully reduce. Rather than a company-wide rollout, I introduced it to one internal team first — our own engineering org, dogfooding it on our internal tools — for a month before it touched a single customer, specifically because passkey UX has real platform-dependent rough edges (cross-device sync behavior differs between ecosystems, and recovery-if-you-lose-your-device flows aren't as mature or well-understood by users as password reset is) that I wanted us to hit ourselves first.</p>
+<p>That dogfooding month surfaced a real gap: our account-recovery flow assumed a user always had at least a password as a fallback, and a user who registered passkey-only and then lost their only enrolled device had no path back into their account at all short of a manual support intervention. We fixed that before customer rollout by requiring at least one fallback method (a recovery code shown once at enrollment, stored by the user) for any passkey-only account, and only then rolled it out to customers gradually, cohort by cohort, watching support ticket volume and enrollment success rate at each step rather than flipping it on for everyone at once.</p>
+<div class="callout"><p><strong>What the interviewer is really probing:</strong> whether you introduce new auth mechanisms with a staged, risk-aware rollout rather than a flag-flip, and whether you specifically anticipate the account-recovery edge case that passwordless methods create — because "how do you get back in when it breaks" is the single most common gap in a rushed passkey rollout.</p></div>
+
+<h3>Situation → Task → Action → Result</h3>
+<dl class="star">
+<dt>Situation</dt><dd>ASP.NET Core Identity's new native WebAuthn/passkey support in .NET 10 created an opportunity to reduce password-reset support volume, but passkey UX and recovery flows had real platform-dependent maturity gaps.</dd>
+<dt>Task</dt><dd>Introduce passkey sign-in without creating a new class of account-recovery incident.</dd>
+<dt>Action</dt><dd>Dogfooded internally for a month, discovered and fixed a passkey-only-account lockout gap in account recovery, then rolled out to customers gradually by cohort with recovery-code fallback required from the start.</dd>
+<dt>Result</dt><dd>Zero passkey-related lockout support escalations in the customer rollout; password-reset ticket volume dropped measurably among the cohort that adopted passkeys within the first quarter.</dd>
+</dl>
+
+<h3>Recall prompts</h3>
+<details><summary>What was the specific gap the dogfooding month found, and would you have found it without dogfooding first?</summary><p>The account-recovery lockout gap is the concrete payoff of the staged approach — be ready to say plainly that you likely wouldn't have caught it in design review alone, since it only became obvious when someone internally actually lost a device.</p></details>
+<details><summary>How did you decide the cohort order for the customer rollout?</summary><p>Whether you started with the most technically sophisticated users, the lowest-risk segment, or opt-in volunteers is a real design decision worth being able to justify.</p></details>
+<details><summary>What metric told you it was safe to expand to the next cohort?</summary><p>Naming the specific numbers you watched — enrollment success rate, support ticket volume, sign-in failure rate — rather than "it seemed to be going well" makes this a much stronger story.</p></details>
+
+<h3>Drill chain</h3>
+<details><summary>Why are passkeys phishing-resistant in a way passwords and even most MFA aren't?</summary><p>A passkey is bound cryptographically to the specific origin it was registered for during the WebAuthn ceremony, so the browser or platform simply won't offer or use it on a look-alike phishing domain, regardless of how convincing the page looks to a human. Passwords and most OTP-based MFA rely on the human correctly recognizing the real site before entering a value that works anywhere it's typed, which is exactly the step phishing attacks exploit.</p></details>
+<details><summary>What does "requiring at least one fallback method" actually protect against, and does it weaken the phishing-resistance property?</summary><p>It protects against total account lockout when someone loses their only enrolled device or authenticator, without which the only recovery path is a manual, harder-to-scale support process. It doesn't weaken passkey's phishing-resistant sign-in path itself, since the fallback is only used for account recovery, not day-to-day authentication — the trade-off is that the fallback mechanism (a recovery code) is only as strong as how well the user protects it, so it's worth being deliberate about not making the fallback itself the weak link an attacker targets instead.</p></details>
+<details><summary>Why introduce this to an internal team before customers instead of doing a small opt-in customer beta first?</summary><p>An internal team gives faster, higher-bandwidth feedback — people who'll actually report a confusing recovery flow in detail rather than just churning silently — and any problems discovered have zero customer-facing blast radius or support-ticket cost while being fixed. A customer beta is still valuable for validating real-world behavior across a more diverse device and platform mix, which is exactly why the customer rollout that followed was itself staged and gradual rather than a single flip.</p></details>
+<details><summary>What platform-dependent rough edges specifically did you run into?</summary><p>Cross-device passkey sync behaves differently depending on which platform ecosystem a user's devices are in, so a user who enrolls a passkey on one device doesn't always get a consistent experience finding or using it from a different device or browser without understanding their own platform's sync model. That inconsistency is exactly what made the recovery-path gap more urgent to fix — losing track of which device holds a usable passkey is a more common user experience than losing a device outright.</p></details>
+<details><summary>How do you decide when a new authentication mechanism is mature enough to become the default rather than an option?</summary><p>I'd want to see enrollment and successful sign-in rates for the new mechanism approach parity with the existing default across a representative slice of the user base, plus a support-ticket rate for the new mechanism at or below the old one, sustained over at least one full quarter, before considering flipping the default. Making something the default is a much bigger commitment than offering it as an option, since it changes the experience for users who never explicitly opted in.</p></details>
+
+<p class="docs">Docs: <a href="https://learn.microsoft.com/en-us/aspnet/core/security/authentication/identity/passkeys">Passkey support in ASP.NET Core Identity</a> · <a href="https://www.w3.org/TR/webauthn-3/">Web Authentication (WebAuthn) Level 3</a></p>
+</section>
+<section class="story" id="u17">
+<h2><span class="num">17</span>The certificate nobody rotated</h2>
+<p class="chips"><span class="chip tier">Mid</span> <span class="chip">On-call firefighting</span></p>
+
+<h3>Worked example <span class="label">EXAMPLE — replace with your own</span></h3>
+<p>I got paged at 2:40am to every downstream service simultaneously failing token exchange against our confidential-client app registration, with the IdP's error response saying, plainly, that client authentication had failed. Nothing had deployed in the prior twelve hours, which ruled out a bad release as the immediate cause and pointed at something external changing state on its own — and a credential with a fixed lifetime doing exactly what it was always going to do eventually was the first thing I checked. The client certificate we used to authenticate the confidential client had a two-year lifetime, had been provisioned by a contractor who'd left the company over a year earlier, and had no calendar reminder, no expiry monitoring, and no entry in the runbook that even mentioned a certificate existed as opposed to a client secret, which is what everyone assumed we were using.</p>
+<p>The immediate fix was mechanical but time-pressured at 3am: generate a new certificate, upload the public key to the app registration, update the confidential-client configuration in every one of six services with the new certificate's thumbprint, and redeploy — made harder by the fact that our deployment pipeline for that credential rotation was itself undocumented, since nobody had done it since initial setup two years earlier. Service was restored a little under ninety minutes after the page. The next morning's write-up mattered more than the fix itself: every credential of this kind now has an expiry date recorded in a central inventory with an automated 60-day and 14-day warning, and — separately — we set a policy that any credential with a fixed expiry gets a calendar-driven rotation scheduled at provisioning time, not left to whoever happens to notice first.</p>
+<div class="callout"><p><strong>What the interviewer is really probing:</strong> whether you can diagnose and fix a live outage under 3am pressure by systematically ruling out the likelier cause (a bad deploy) before chasing a less obvious one, and whether the follow-through — an actual inventory and alerting, not just "we'll be more careful" — shows you treat firefighting as a signal to fix a process gap, not just a fire to put out.</p></div>
+
+<h3>Situation → Task → Action → Result</h3>
+<dl class="star">
+<dt>Situation</dt><dd>A 2:40am page for total token-exchange failure across six downstream services, traced to an expired, unmonitored client certificate provisioned two years earlier by an employee who had since left.</dd>
+<dt>Task</dt><dd>Restore service as fast as possible, then close the process gap that let a credential expire with zero warning.</dd>
+<dt>Action</dt><dd>Ruled out a bad deploy, identified the expired certificate from the IdP's client-authentication error, generated and rotated in a new certificate across all six services, then built a central credential-expiry inventory with 60- and 14-day automated warnings.</dd>
+<dt>Result</dt><dd>Service restored in under 90 minutes; the credential inventory has since caught and prompted proactive rotation of three other approaching-expiry credentials well before any of them caused an incident.</dd>
+</dl>
+
+<h3>Recall prompts</h3>
+<details><summary>What was the exact error message that pointed you at the certificate?</summary><p>A specific IdP error string or code is a strong credibility signal for this kind of story — vague "it just said auth failed" is much weaker than naming the actual client-authentication failure response.</p></details>
+<details><summary>What made the rotation itself harder than it should have been, at 3am?</summary><p>The undocumented rotation process is the real texture of this story — describe what you had to reconstruct or guess at in the moment, not just "then I rotated the cert."</p></details>
+<details><summary>What's the actual number of services or credentials the follow-up inventory now covers?</summary><p>A concrete scope for the fix (how many credentials, what warning thresholds) shows the fix was systematic rather than a one-off patch for this specific certificate.</p></details>
+
+<h3>Drill chain</h3>
+<details><summary>Why would a confidential client use a certificate instead of a client secret in the first place?</summary><p>A certificate-based credential is generally considered stronger than a shared secret because the private key never needs to be transmitted to the IdP at all — only a signed assertion proving possession of it — whereas a client secret is a shared value that has to be stored and compared, and is more exposed if a config store or environment variable leaks. Certificates are also easier to rotate without downtime using overlapping validity windows, since an app registration can hold multiple valid credentials simultaneously.</p></details>
+<details><summary>If certificates support overlapping validity for zero-downtime rotation, why did this cause an outage at all?</summary><p>Overlapping validity only helps if someone actually provisions the new certificate before the old one expires — the capability existed, but nothing in the process triggered anyone to use it, because there was no monitoring or reminder tied to the certificate's known expiry date. The outage wasn't a limitation of the credential type; it was a complete absence of any process that would have surfaced the upcoming expiry with enough lead time to rotate proactively.</p></details>
+<details><summary>Why did nobody notice this certificate even existed, let alone that it was expiring?</summary><p>It was provisioned once by someone no longer at the company, worked silently for two years with zero operational touchpoints, and was never documented in the runbook that the rest of the team actually referenced — every default assumption ("we use a client secret") was wrong for this specific registration and nobody had reason to question it until it broke. That's a common failure mode for infrequently-touched infrastructure: correctness with zero visibility is indistinguishable from correctness with good monitoring, until the day it isn't.</p></details>
+<details><summary>What would automated expiry monitoring need to actually check, beyond just the certificate's notAfter date?</summary><p>It needs an inventory of every credential in use — certificates and secrets both — mapped to which app registrations and which services depend on them, because monitoring only the ones you already know about doesn't help with the ones nobody documented in the first place. Building that inventory, by querying the IdP's own app-registration data rather than relying on tribal knowledge of what's supposed to exist, is what actually closes the blind spot this incident exposed.</p></details>
+<details><summary>How is this different from the JWKS-rotation stampede story (07)?</summary><p>That story was about the IdP's own signing keys rotating on schedule and every validator needing to keep up with a known, planned change; this one is about a client-side credential expiring unnoticed because no process tracked it at all. Both are "a credential's lifecycle wasn't handled gracefully," but one is a coordination problem between many validators and a planned rotation, and the other is a monitoring and ownership gap on an unplanned-for, single credential.</p></details>
+
+<p class="docs">Docs: <a href="https://learn.microsoft.com/en-us/entra/identity-platform/certificate-credentials">Microsoft identity platform certificate credentials</a> · <a href="https://learn.microsoft.com/en-us/entra/identity-platform/howto-configure-app-expiration">Manage app and credential expiration</a></p>
+</section>
+
+<section class="story" id="u18">
+<h2><span class="num">18</span>The auth tests that cried wolf</h2>
+<p class="chips"><span class="chip tier">Mid</span> <span class="chip">CI / test / reliability improvement</span></p>
+
+<h3>Worked example <span class="label">EXAMPLE — replace with your own</span></h3>
+<p>Our authentication integration test suite had a roughly 8% flake rate — failing intermittently with no code change involved — which had gotten bad enough that engineers had started reflexively re-running failed CI jobs without reading the failure first, which is exactly the habit that lets a real regression slip through disguised as "probably just flaky again." I picked it up as a reliability project after a genuine auth bug did slip through that way — a test that correctly caught a real issuer-validation regression failed, got re-run without investigation, passed on retry because the retry happened to hit a different, unaffected code path in a race, and the bug shipped.</p>
+<p>Digging into the actual failures, almost all of them traced back to two causes: tests that minted short-lived tokens and asserted against wall-clock time without any tolerance, which failed whenever CI runner load pushed a test's execution past the token's few-second validity window, and tests that hit a real (test-tenant) IdP over the network for every single test case, which failed whenever that shared test tenant was rate-limited by other teams' CI runs happening concurrently. Neither cause had anything to do with the correctness of the code under test — they were entirely properties of the test harness.</p>
+<pre><code class="language-csharp">// before: real network call per test, wall-clock assertions, no tolerance
+var token = await realIdpClient.GetTokenAsync(shortLifetime: TimeSpan.FromSeconds(5));
+await Task.Delay(TimeSpan.FromSeconds(6));   // meant to prove expiry — flaky under load
+Assert.False(validator.IsValid(token));
+
+// after: fake token issuer under test control, virtual clock, no network dependency
+var fakeIssuer = new FakeTokenIssuer(clock: fakeClock);
+var token = fakeIssuer.IssueToken(lifetime: TimeSpan.FromSeconds(5));
+fakeClock.Advance(TimeSpan.FromSeconds(6));   // deterministic, no wall-clock race
+Assert.False(validator.IsValid(token));
+</code></pre>
+<div class="callout"><p><strong>What the interviewer is really probing:</strong> whether you understand that flaky tests aren't a minor annoyance but a direct threat to catching real regressions — the story only has weight if you connect the flakiness to an actual bug that got through — and whether your fix addressed the root cause (network and wall-clock dependency in the harness) rather than just adding retries, which would have made the "cry wolf" problem worse, not better.</p></div>
+
+<h3>Situation → Task → Action → Result</h3>
+<dl class="star">
+<dt>Situation</dt><dd>An auth integration test suite with ~8% flake rate had trained the team to reflexively re-run failures without investigating, which let a real issuer-validation regression ship after its failing test was dismissed as flaky.</dd>
+<dt>Task</dt><dd>Eliminate the root causes of flakiness, not just reduce the failure rate with retries.</dd>
+<dt>Action</dt><dd>Traced flakes to wall-clock-dependent token-expiry assertions and live network calls to a shared, rate-limited test tenant; replaced both with a fake token issuer and a controllable virtual clock.</dd>
+<dt>Result</dt><dd>Flake rate dropped from ~8% to under 0.5% over the following month, and CI runtime for the suite also dropped by roughly a third from removing the network round-trips.</dd>
+</dl>
+
+<h3>Recall prompts</h3>
+<details><summary>What was the actual regression that shipped because of a dismissed flaky test?</summary><p>This is the anchor of the story — be specific about what the bug was (an issuer-validation gap, in this version) and how it was discovered after shipping, since that's what makes the flakiness a real problem rather than an abstract inconvenience.</p></details>
+<details><summary>What was the flake rate before and after, with real numbers?</summary><p>"It was pretty flaky, now it's much better" is weak; an actual percentage and a timeframe for the improvement is what makes this a credible reliability win.</p></details>
+<details><summary>Did you consider just adding a retry policy to the CI job instead, and why didn't you stop there?</summary><p>Naming that a retry-based fix was tempting and cheap, but would have reinforced exactly the behavior (ignoring failures) that caused the missed regression, shows you understood the deeper problem rather than just the symptom.</p></details>
+
+<h3>Drill chain</h3>
+<details><summary>Why is testing against a real IdP appealing in the first place, if it causes this much flakiness?</summary><p>It gives you confidence that your code works against the actual protocol implementation and its real quirks, not just against your own assumptions encoded in a fake — a fake issuer can be wrong in ways that a real IdP integration test would catch. The trade-off is reliability and speed versus that extra fidelity, and the right answer for most of a test suite is a fast, deterministic fake for unit and most integration tests, with a much smaller number of true end-to-end tests against a real (or realistic sandboxed) IdP to catch the fidelity gaps the fakes can't.</p></details>
+<details><summary>How do you make sure the fake token issuer stays faithful to how the real IdP actually behaves?</summary><p>By building the fake against the same claims schema, signing mechanism, and validation edge cases the real IdP exposes, and periodically running a small set of contract tests against the real IdP to confirm the fake hasn't drifted — the fake is a stand-in for behavior you've already characterized, not a guess at how auth in general should work. Any time the real IdP changes something material, the fake needs a corresponding update, or it starts giving false confidence.</p></details>
+<details><summary>Why does a virtual clock fix the expiry-assertion flakiness better than just adding a longer buffer, like sleeping for 30 seconds instead of 6?</summary><p>A longer sleep reduces the chance of flaking under moderate load but doesn't eliminate the dependency on wall-clock timing under load at all — it's still possible, just less likely, and it makes every test run slower for everyone regardless of whether that particular run was under load. A virtual clock removes the dependency on real elapsed time entirely: advancing a fake clock by six seconds is instantaneous and deterministic, so the test can never flake due to CI runner scheduling variance, no matter how loaded the runner is.</p></details>
+<details><summary>What's the risk of over-relying on fakes across the whole suite?</summary><p>You can end up with a suite that passes consistently while the real integration has silently drifted out of sync with what the fakes assume — every fake is only as good as how faithfully and recently it was validated against the real thing. That's exactly why a smaller layer of genuine end-to-end tests against a real or realistic IdP sandbox needs to stay in the pipeline, even after the bulk of the suite moves to fast, deterministic fakes.</p></details>
+<details><summary>How would you convince a team that's grown used to re-running flaky tests to change that habit?</summary><p>Showing them the specific regression that slipped through because of exactly that habit is more persuasive than any general argument about test hygiene — concrete, recent, and painful beats abstract best practice. I'd pair that with making the fix visibly reduce their day-to-day pain (faster, more reliable CI) so the behavior change is reinforced by their own experience, not just a policy announcement.</p></details>
+
+<p class="docs">Docs: <a href="https://learn.microsoft.com/en-us/aspnet/core/test/">Testing in ASP.NET Core</a> · <a href="https://martinfowler.com/articles/nonDeterminism.html">Eradicating Non-Determinism in Tests, Martin Fowler</a></p>
+</section>
+
+<section class="story" id="u19">
+<h2><span class="num">19</span>No, we&#39;re not shipping ROPC</h2>
+<p class="chips"><span class="chip tier">Principal</span> <span class="chip">Pushing back on a stakeholder or manager</span></p>
+
+<h3>Worked example <span class="label">EXAMPLE — replace with your own</span></h3>
+<p>A product director, under pressure from a large prospective customer's procurement team, asked me to add support for the Resource Owner Password Credentials grant to our public API so that customer's legacy integration — which could only send a username and password directly — could authenticate without them having to touch their own code before a contract renewal deadline. The ask came framed as "just enable one more grant type, it's a config flag," which understated the real scope of what was being asked, and it was coming from someone senior enough that a flat "no" without a well-reasoned, written case would likely have been escalated and possibly overridden.</p>
+<p>I put together a short written brief rather than relying on a hallway conversation: ROPC requires our API to directly receive and handle the customer's actual end-user passwords, which is both a meaningfully larger liability and compliance surface (we'd be a party to credential handling we currently have zero exposure to) and is being formally removed in the OAuth 2.1 specification specifically because it defeats the security properties the rest of OAuth is built around — no way to scope consent, no way to support MFA transparently, and a password that, once shared with us, is one more place it can leak from. I proposed an alternative that solved the actual business problem — a time-boxed, closely-scoped client-credentials grant for that one customer's specific legacy integration point, with a contractual commitment from them to migrate to the standard authorization code flow within two quarters — which met their renewal deadline without taking on a liability we'd very likely still be carrying five years later once "temporary" quietly became permanent.</p>
+<div class="callout"><p><strong>What the interviewer is really probing:</strong> whether you can push back on a senior stakeholder using a well-reasoned, written business-and-security argument rather than just asserting technical authority, and whether you offer a real alternative that solves their actual underlying problem instead of just blocking the ask.</p></div>
+
+<h3>Situation → Task → Action → Result</h3>
+<dl class="star">
+<dt>Situation</dt><dd>A product director, under customer-driven deadline pressure, requested adding the ROPC grant to support a legacy integration that could only send a raw username and password.</dd>
+<dt>Task</dt><dd>Push back on a request that created real, lasting security and compliance liability, without simply blocking a business-critical deadline.</dd>
+<dt>Action</dt><dd>Wrote a short brief laying out the specific liability and the OAuth 2.1 deprecation context, then proposed a scoped, time-boxed client-credentials alternative tied to a contractual migration commitment from the customer.</dd>
+<dt>Result</dt><dd>The director accepted the alternative; the customer signed the renewal on schedule, and the migration commitment was met within the two-quarter window, closing out the scoped exception entirely rather than it becoming permanent.</dd>
+</dl>
+
+<h3>Recall prompts</h3>
+<details><summary>What made this a genuine risk of being overridden, rather than an easy yes to your objection?</summary><p>Name the actual pressure the director was under (a contract renewal, a revenue number) so the stakes of your pushback are clear — this story is weaker if it sounds like the director would have happily agreed with you regardless.</p></details>
+<details><summary>What did you put in writing, and why writing rather than just a conversation?</summary><p>A written brief creates a record and forces precision in a way a hallway conversation doesn't — be ready to describe roughly what it contained and why that format mattered for this particular ask.</p></details>
+<details><summary>Did the alternative you proposed actually get delivered on time, or did the "two quarters" slip?</summary><p>If your version of this story has a similar exception that never actually got closed out, say so honestly — that's a common and realistic outcome, and it's worth being ready to discuss what you'd do about a stakeholder who let a time-boxed exception quietly become permanent.</p></details>
+
+<h3>Drill chain</h3>
+<details><summary>Why exactly is ROPC being removed in OAuth 2.1, in concrete technical terms?</summary><p>It requires the client application to collect the resource owner's actual credentials and forward them directly to the authorization server, which means the client sees the raw password — defeating the core OAuth principle that the client never needs to see the user's actual credentials, only a token scoped to what it's allowed to do. It also has no clean way to support anything beyond a single factor, since there's no interactive step for the authorization server to challenge with MFA, and no way for the user to see or control what scopes they're consenting to, since there's no consent screen in the flow at all.</p></details>
+<details><summary>Why is client-credentials a legitimate compromise here, when it also skips the interactive user-consent flow?</summary><p>Client credentials is designed for exactly this shape of problem — machine-to-machine access where there's no human resource owner in the loop at all, which is different from ROPC's shape of "a human's credentials, handled by a client on their behalf." The scoped alternative treated the legacy integration as a service-to-service call under the customer's own organizational credential, not as a stand-in for an individual user's login, which is the correct model for what was actually a backend system integration wearing a "user login" costume.</p></details>
+<details><summary>What would you have done if the director had insisted on ROPC anyway, after hearing your case?</summary><p>I'd escalate the decision explicitly to whoever owns risk acceptance at that level — a CISO-equivalent or VP engineering — framed as "here's the liability, here's my recommended alternative, this needs a risk-acceptance decision above my authority if we proceed with ROPC anyway," rather than either quietly complying or refusing to implement a decision made above me. Principal-level pushback means making sure the right person makes an informed decision, not that you personally get to veto it forever.</p></details>
+<details><summary>Is there ever a legitimate use case for ROPC even under OAuth 2.1's guidance?</summary><p>Essentially no for anything user-facing or externally exposed; the specification itself frames it as something to actively avoid and phase out, reserved historically for narrow legacy migration scenarios where no better option existed yet. Its removal from the 2.1 spec reflects that the ecosystem has matured to the point where those narrow scenarios can and should be solved with device-code flow, client-credentials, or a proper interactive flow instead.</p></details>
+<details><summary>How do you generally decide when a security concern is worth a formal pushback versus just noting it and moving on?</summary><p>I weigh how hard the resulting liability would be to unwind later against how much friction pushing back adds right now — a decision that's cheap to reverse if wrong gets a lighter-weight objection, while one that creates a durable liability, a precedent other teams will point to, or direct handling of sensitive data gets the full written-case treatment. ROPC scored high on all three: hard to unwind once customers depend on it, an obvious precedent for the next "just this once" request, and direct exposure to raw user passwords.</p></details>
+
+<p class="docs">Docs: <a href="https://datatracker.ietf.org/doc/html/draft-ietf-oauth-v2-1-13#section-1.3.4">OAuth 2.1 draft, deprecated grant types</a> · <a href="https://datatracker.ietf.org/doc/html/rfc6749#section-4.3">RFC 6749 §4.3, Resource Owner Password Credentials Grant</a></p>
+</section>
+
+<section class="story" id="u20">
+<h2><span class="num">20</span>The cookie that broke the load balancer</h2>
+<p class="chips"><span class="chip tier">Staff</span> <span class="chip">Production incident / outage</span></p>
+
+<h3>Worked example <span class="label">EXAMPLE — replace with your own</span></h3>
+<p>Users in one large customer's tenant started getting <code>400 Request Header Or Cookie Too Large</code> errors from our load balancer on every request, for that tenant only, with no deploy correlated to the start time. That customer had recently completed an internal reorg that put a large fraction of their employees into a deeply nested set of Entra security groups, and our app's authentication cookie carried every group claim from the token verbatim — a design that had worked fine for years because most tenants' users belonged to a handful of groups, and nobody had built for the case of a user belonging to hundreds.</p>
+<p>Entra ID actually has a built-in mechanism for exactly this — when a user's group membership count exceeds a threshold, the token stops including the full list of group object IDs and instead includes a <code>hasgroups: true</code> indicator plus an overage claim pointing the app at the Microsoft Graph API to fetch the actual group list on demand — but our cookie-construction code had been written before that tenant ever hit the overage threshold, and it silently fell back to whatever partial or malformed group data made it into the token rather than detecting the overage indicator and switching to the Graph lookup path. The cookie kept growing as more of the reorg's group assignments propagated, until it crossed the load balancer's header-size limit and every request from that tenant started failing outright.</p>
+<pre><code class="language-csharp">// missing: no check for the overage indicator before trusting groups claims
+var groups = principal.FindAll("groups").Select(c => c.Value);
+cookie.Claims.AddRange(groups);   // grows unbounded with group count
+
+// fixed: detect overage, fetch on demand instead of inflating the cookie
+if (principal.HasClaim("hasgroups", "true")) {
+    // don't trust an incomplete groups claim — resolve via Graph when needed,
+    // and cache that resolution server-side, never in the cookie itself
+    groups = await graphClient.GetUserGroupsAsync(principal.GetObjectId());
+} else {
+    groups = principal.FindAll("groups").Select(c => c.Value);
+}
+</code></pre>
+<div class="callout"><p><strong>What the interviewer is really probing:</strong> whether you can diagnose a customer-specific, load-balancer-level outage back to an authentication-claims design decision that had been silently correct for years until one customer's org structure changed, and whether you know the actual mechanism (groups overage) rather than just "cookies got big, we made them smaller."</p></div>
+
+<h3>Situation → Task → Action → Result</h3>
+<dl class="star">
+<dt>Situation</dt><dd>One large customer's entire tenant started failing every request with a load-balancer header-size error after an internal reorg pushed many of their users past Entra ID's group-count overage threshold, which the app's cookie-construction logic didn't handle.</dd>
+<dt>Task</dt><dd>Restore access for the affected tenant and eliminate the unbounded-cookie-growth risk for any tenant, not just this one.</dd>
+<dt>Action</dt><dd>Diagnosed the tenant-specific header-size failure back to the groups-overage mechanism being silently mishandled, shipped an immediate mitigation capping cookie size with server-side group resolution, then implemented proper overage-claim detection with on-demand Graph API lookup.</dd>
+<dt>Result</dt><dd>Affected tenant restored within the incident window; the fix is now overage-safe for any tenant regardless of group nesting depth, verified against a synthetic test tenant configured with several hundred groups.</dd>
+</dl>
+
+<h3>Recall prompts</h3>
+<details><summary>Why did this only affect one tenant, and how did that shape your diagnosis?</summary><p>The single-tenant scope is the key clue in this story — walk through how ruling out "everyone" and focusing on "why only them, why now" led you to the reorg and the group-count threshold, rather than jumping straight to the eventual answer.</p></details>
+<details><summary>What was the immediate mitigation versus the durable fix, and how far apart in time were they?</summary><p>Distinguishing a same-day stopgap (server-side capping) from the proper overage-aware implementation shipped later shows a realistic incident-response shape rather than implying you solved everything perfectly in one pass under outage pressure.</p></details>
+<details><summary>How did you verify the fix actually handles the overage case, given you probably don't have a customer tenant with hundreds of groups to test against on demand?</summary><p>A synthetic test tenant or mocked Graph API response deliberately built to trigger the overage threshold is the kind of concrete verification detail that separates "we think it's fixed" from "we proved it's fixed."</p></details>
+
+<h3>Drill chain</h3>
+<details><summary>Why does Entra ID switch to an overage indicator instead of just always including the full group list?</summary><p>Tokens have practical size limits — they typically travel in HTTP headers, and some protocols and infrastructure components have hard caps on header size — so a token that tried to include the full group membership for a user in hundreds or thousands of groups could itself become too large to transmit reliably. The overage mechanism keeps the token itself small and predictable in size regardless of a user's group count, deferring the potentially large group list to an on-demand API call only for the applications that actually need it.</p></details>
+<details><summary>Why put groups in a cookie at all instead of just re-checking the token's claims on every request?</summary><p>Cookies here were standing in for a lightweight session cache, avoiding re-parsing and re-validating the full token or re-querying Graph on every single request — a reasonable performance optimization for the common case, which is exactly why it had worked fine for years before this tenant's structure exceeded the threshold it was never designed to handle. The fix keeps that caching benefit but moves the actual group data to server-side session storage instead of a cookie the client round-trips on every request, so the cookie itself stays small regardless of how large the resolved group list gets.</p></details>
+<details><summary>What would you do differently in a fresh design to avoid this failure mode from the start?</summary><p>I'd design claims-to-cookie mapping with an explicit size budget and a hard assertion that fails fast in a lower environment — rather than silently truncating or growing unbounded in production — the moment any single claim's serialized size approaches a meaningful fraction of the cookie or header limit. Catching "this claim can be unboundedly large" during design or in CI, using a test fixture with a large synthetic group count, is far cheaper than discovering it in production against one customer's real reorg.</p></details>
+<details><summary>Is caching resolved groups server-side instead of in the cookie itself risk-free?</summary><p>No — it reintroduces a version of the same staleness and cache-invalidation trade-off discussed in the JWKS stampede (07) and the Redis session-cache scare (11) stories: a server-side cache of group membership can go stale if a user is removed from a sensitive group and the cache isn't invalidated promptly, briefly granting access that should have been revoked. The mitigation is a bounded cache lifetime short enough that stale authorization data doesn't persist meaningfully longer than the token's own lifetime would have allowed anyway.</p></details>
+<details><summary>How does this connect to the audience-ownership story (13) about cross-team drift?</summary><p>Both are examples of an authentication-adjacent design decision that was correct under the assumptions true at the time it was made, and silently stopped being correct as some external condition — a partner's client library default, a customer's org structure — changed without anyone re-examining the original assumption. The general lesson across both: claims-handling code needs periodic re-validation against real-world data shape, not just correctness at ship time, because the inputs to auth logic are, in practice, controlled by parties outside your own change-management process.</p></details>
+
+<p class="docs">Docs: <a href="https://learn.microsoft.com/en-us/entra/identity-platform/reference-claims-overage">Microsoft identity platform, groups overage claim</a> · <a href="https://learn.microsoft.com/en-us/graph/api/user-list-memberof">Microsoft Graph, list group memberships</a></p>
+</section>
+<section class="story" id="u21">
+<h2><span class="num">21</span>The big behavioural Q&amp;A</h2>
+<p>These are cross-cutting prompts that don't map to one specific story above — they're the ones an interviewer asks to see how you think about auth work in general, often as follow-ups once they've heard one or two of your stories. Answer each in the first person from your own history; where a prompt below sounds like one of the twenty stories, that's deliberate — the same material should hold up from more than one angle.</p>
+
+<p class="theme">Failure &amp; ownership</p>
+<details><summary>Tell me about an authentication or authorization bug you personally shipped to production.</summary><p>Pick a real one and own it plainly — what the bug was, how it was found (ideally not by a customer), and what changed in your own process afterward, not just in the codebase. Avoid a story where the bug was really someone else's and you're narrating it at a safe distance.</p></details>
+<details><summary>What's a security assumption you held that turned out to be wrong?</summary><p>The alg-confusion story (02) or the ROPC pushback (19) are both good anchors — the strongest answers name the specific incorrect belief plainly ("I assumed a public key couldn't also be used to forge an HMAC signature") rather than a vague "I learned a lot about security."</p></details>
+<details><summary>Describe a time you had to tell your manager something they didn't want to hear about an auth system.</summary><p>The cancelled identity-provider project (14) or the ROPC pushback (19) both fit — focus on how you framed the bad news (with data, with an alternative) rather than just that you delivered it.</p></details>
+<details><summary>What's the largest blast radius a mistake of yours has had, and how did you find out?</summary><p>Be honest about scale — number of users, services, or tenants affected — and be specific about the discovery mechanism (a dashboard, a customer report, an audit), since how you found out often matters as much as the mistake itself.</p></details>
+
+<p class="theme">Conflict &amp; influence</p>
+<details><summary>Tell me about a technical disagreement over an auth decision where you were the one who had to change your mind.</summary><p>If every disagreement story you have ends with you being right, that's a gap — think about a case from the "just put it in localStorage" family (05) where the other person's constraint genuinely changed your recommendation.</p></details>
+<details><summary>How do you handle a security recommendation getting rejected by someone more senior?</summary><p>The MFA-exception negotiation (10) and the ROPC pushback (19) both show a version of this — the key point to make is that you distinguish "I disagree and will say so clearly" from "I disagree and will escalate/block," and you pick deliberately based on the actual stakes.</p></details>
+<details><summary>Describe a time you had to get several teams to agree on a shared auth standard.</summary><p>The audience-ownership story (13) is the direct anchor — emphasize the organizational work (getting agreement, establishing ownership) over the technical fix itself, since that's usually the harder and more interesting part to an interviewer at this level.</p></details>
+<details><summary>What do you do when a stakeholder's deadline and a security requirement are genuinely in tension?</summary><p>Name a real example (the MFA exception, story 10, is built for this) and be explicit that you look for a narrower, time-boxed middle ground before treating it as a binary choice between the deadline and the requirement.</p></details>
+
+<p class="theme">Leadership &amp; mentoring</p>
+<details><summary>How do you bring a junior engineer up to speed on OAuth or OIDC concepts they've never used?</summary><p>The PKCE mentoring story (09) is the direct fit — the reusable point is that you build understanding through guided questions rather than handing over the answer, and that you have evidence (a later, independent catch) that it actually stuck.</p></details>
+<details><summary>Tell me about introducing a new authentication mechanism to a team or company.</summary><p>The passkey rollout (16) fits directly — the strongest version of this answer leads with the staged, risk-aware rollout structure, not just "we adopted passkeys."</p></details>
+<details><summary>How do you make sure auth-related tribal knowledge doesn't live only in your head?</summary><p>Point to something concrete — a written migration guide (03), a documented decision doc (04), a central credential inventory (17) — as evidence you actively externalize knowledge rather than just claiming you value documentation.</p></details>
+<details><summary>Describe a time you had to push a team to fix a systemic reliability or security problem that had no urgent deadline.</summary><p>The session-table paydown (08) or the flaky-test reliability project (18) both fit — the key theme is how you made a non-urgent, non-glamorous problem visible and prioritized without an external forcing function.</p></details>
+
+<p class="theme">Ambiguity &amp; prioritisation</p>
+<details><summary>Tell me about a time the requirements for an auth feature were unclear or kept changing.</summary><p>The single-tenant-to-multi-tenant story (12) is built for this — the core skill being tested is turning a vague ask into a specific, bounded technical decision, not waiting for a fully-specified requirement that was never going to arrive.</p></details>
+<details><summary>How do you decide how much security to build for a requirement that isn't fully specified yet?</summary><p>Name a principle you actually use — build for the requirement you can defend today, document the assumption, and make the design cheap to extend rather than trying to guess the eventual full scope — and back it with the multi-tenant story (12) or a similar one of your own.</p></details>
+<details><summary>Describe a time you had to make an irreversible-feeling auth decision with incomplete information.</summary><p>The BFF-or-bust trade-off (04) is a good anchor — emphasize what information you did have (a real XSS finding, existing CSRF tooling) that made the decision less of a guess than it might sound.</p></details>
+<details><summary>How do you prioritize a security fix against feature work when you don't own the roadmap?</summary><p>The session-table story (08) shows one approach — translate the fix into a metric the roadmap owner already cares about (a latency floor, a cost line item) rather than arguing "security" as an abstract priority.</p></details>
+
+<p class="theme">Values &amp; motivation</p>
+<details><summary>Why does authentication and authorization work specifically interest you, versus other kinds of backend engineering?</summary><p>A genuine answer usually references something concrete — the combination of protocol precision and real human stakes (account takeover, data exposure) if it's wrong, or the satisfaction of a system that's both correct and fast. Avoid a generic "security is important" answer with no personal texture.</p></details>
+<details><summary>What's a mistake you see teams repeatedly make with authentication that isn't the classic OWASP-list stuff?</summary><p>Good raw material: treating token lifetime and renewal scheduling as the same knob (story 01), assuming a claim shape will never change underneath a library upgrade (story 03), or building for an ambiguous "everyone" when the real requirement is a small, bounded set (story 12).</p></details>
+<details><summary>How do you stay current on a fast-moving area like OAuth 2.1 and its ecosystem?</summary><p>Speak concretely — which specs or changelogs you actually track (the OAuth 2.1 draft itself, an IdP's release notes, a library's GitHub issues for gaps like DPoP support), not just "I read blog posts." Naming a specific, recent thing you learned this way is stronger than a general claim.</p></details>
+<details><summary>What would you want to fix about your current or most recent auth system if you had unlimited time?</summary><p>This is a chance to show you have a real, current mental list of technical debt or design compromises rather than a system you consider finished — anchor it in something specific and be honest about why it hasn't already been fixed (priority, risk, cost).</p></details>
+</section>
+
+<section class="story" id="u22">
+<h2><span class="num">22</span>Night-before cheat sheet</h2>
+<p>Ten sentences to have loaded and ready to say out loud, not to read from. If you can say each one in your own words without looking, you're ready.</p>
+<ol>
+<li>OAuth 2.1 is still a draft — draft-16, published 2026-09-03, targeting IESG submission in December 2026 — and it formally retires the implicit and password grants while mandating PKCE for every client and expecting sender-constrained tokens.</li>
+<li>DPoP, the sender-constrained-token mechanism OAuth 2.1 leans on, has no native support in ASP.NET Core's JWT bearer handler as of .NET 10 — it's tracked for .NET 12 planning, so anyone doing it today is doing it by hand or through a third-party library.</li>
+<li>JWT validation is several independent checks, not one — signature, algorithm allow-list, issuer, audience, expiry, not-before — and skipping the algorithm allow-list specifically opens the door to RS256/HS256 confusion attacks against a publicly-published signing key.</li>
+<li>Entra ID's default <code>ClockSkew</code> is five minutes for a reason — real infrastructure clocks drift — and setting it to zero doesn't add security against a real attacker, it just makes the system fragile against ordinary NTP and container-startup timing.</li>
+<li>Signing-key rotation is a distributed-coordination problem: the fix for a rotation-time outage is publishing old and new keys simultaneously for an overlap window, not just adding client-side retry with jitter.</li>
+<li>Public clients (SPAs, mobile apps) get shorter refresh-token lifetimes than confidential clients because they can't prove their identity with a secret — an embedded "secret" in a distributed binary isn't a secret, which is exactly the PKCE story.</li>
+<li>A Backend-for-Frontend trades XSS-can-steal-the-token risk for a CSRF surface you now have to defend — it's a real trade-off decided by threat model, not a free security upgrade you should default to without reason.</li>
+<li>Entra's groups-overage mechanism (<code>hasgroups</code> plus a Graph lookup) exists because a user in hundreds of groups can't have every group ID stuffed into a token or cookie without hitting real header-size limits — code that doesn't check for it silently breaks the moment one tenant's org structure grows past the threshold.</li>
+<li>Continuous Access Evaluation gets you near-real-time revocation for CAE-capable resources via critical events and Conditional Access re-evaluation — both the app and the resource API have to declare the <code>cp1</code> client capability for it to apply.</li>
+<li>Both .NET 9 and .NET 8 reach end of support on 2026-11-10 — if anything you'd talk about is still running on either, know your migration plan for that date, because it's close.</li>
+</ol>
+<div class="callout"><p>If you only remember one thing under pressure: every one of these stories is really about the same question — what happens when the credential, the clock, the claim shape, or the org structure stops matching what the code assumed on day one. Anchor your own answers in the moment you noticed the mismatch and what you did about it, not in a description of how the protocol is supposed to work.</p></div>
+<p class="docs">Docs: <a href="https://datatracker.ietf.org/doc/draft-ietf-oauth-v2-1/">OAuth 2.1 draft (IETF datatracker)</a> · <a href="https://dotnet.microsoft.com/en-us/platform/support/policy/dotnet-core">.NET support lifecycle policy</a></p>
+</section>
+
+</main>
+<script>
+(function () {
+  "use strict";
+  var KEY_PREFIX = "devbok:auth:experience:v1:";
+
+  var side = document.getElementById("side");
+  var toggle = document.getElementById("sideToggle");
+  var backdrop = document.getElementById("sideBackdrop");
+  if (toggle && side && backdrop) {
+    toggle.addEventListener("click", function () {
+      var open = side.classList.toggle("open");
+      backdrop.classList.toggle("show", open);
+      toggle.setAttribute("aria-expanded", open ? "true" : "false");
+    });
+    backdrop.addEventListener("click", function () {
+      side.classList.remove("open");
+      backdrop.classList.remove("show");
+      toggle.setAttribute("aria-expanded", "false");
+    });
+  }
+
+  var links = Array.prototype.slice.call(document.querySelectorAll(".units a"));
+  var sections = links.map(function (a) {
+    return document.getElementById(a.getAttribute("href").slice(1));
+  });
+  if (window.IntersectionObserver) {
+    var observer = new IntersectionObserver(function (entries) {
+      entries.forEach(function (entry) {
+        var idx = sections.indexOf(entry.target);
+        if (idx === -1) return;
+        if (entry.isIntersecting) {
+          links.forEach(function (a) { a.removeAttribute("aria-current"); });
+          links[idx].setAttribute("aria-current", "true");
+        }
+      });
+    }, { rootMargin: "-10% 0px -70% 0px" });
+    sections.forEach(function (s) { if (s) observer.observe(s); });
+  }
+
+  var details = Array.prototype.slice.call(document.querySelectorAll("details"));
+  details.forEach(function (d, i) {
+    var key = KEY_PREFIX + "open:" + i;
+    try {
+      var stored = localStorage.getItem(key);
+      if (stored === "1") d.setAttribute("open", "");
+    } catch (e) { /* storage unavailable, ignore */ }
+    d.addEventListener("toggle", function () {
+      try { localStorage.setItem(key, d.open ? "1" : "0"); } catch (e) { /* ignore */ }
+    });
+  });
+
+  try {
+    if (window.hljs) hljs.highlightAll();
+  } catch (e) { /* ignore */ }
+})();
+</script>
+</body>
+</html>

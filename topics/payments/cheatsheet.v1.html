@@ -1,0 +1,543 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Payment systems & integrations · cheatsheet · devbok</title>
+<link rel="preconnect" href="https://fonts.googleapis.com/">
+<link rel="preconnect" href="https://fonts.gstatic.com/" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Cascadia+Mono:wght@400;700&amp;display=swap">
+<style>
+:root { color-scheme: light;
+  --bg: #ffffff; --fg: #111111; --muted: #6b6b6b; --line: #111111; --soft: #f4f4f4; --border: #cccccc;
+  --accent: #635bff; --accent-soft: color-mix(in srgb, var(--accent) 12%, var(--bg)); }
+@media (prefers-color-scheme: dark) { :root { color-scheme: dark;
+  --bg: #222222; --fg: #cccccc; --muted: #8f8f8f; --line: #111111; --soft: #2c2c2c; --border: #4a4a4a;
+  --accent: #635bff; --accent-soft: color-mix(in srgb, var(--accent) 16%, var(--bg)); } }
+
+*, *::before, *::after { box-sizing: border-box; }
+html { -webkit-text-size-adjust: 100%; }
+body { margin: 0; background: var(--bg); color: var(--fg);
+  font-family: system-ui, sans-serif; font-size: 16px; line-height: 1.6; overflow-wrap: break-word; }
+h1, h2, h3 { font-family: system-ui, sans-serif; font-weight: 700; }
+h2 { font-size: 1.5em; }
+h3 { font-size: 1.17em; }
+a { color: var(--accent); }
+a:focus-visible, button:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+img { max-width: 100%; }
+
+code, kbd, pre, .mono, .chip, .since, .docs, .hero .meta, .side, dl.rows dd, table.grid { font-family: "Cascadia Mono", Consolas, monospace; font-size: 12px; }
+code { background: var(--soft); border-radius: 3px; padding: 0 3px; overflow-wrap: anywhere; }
+pre { background: var(--soft); border: 1px solid var(--border); border-radius: 4px;
+  margin: 10px 0 0; padding: 10px 12px; overflow-x: auto; max-width: 100%; line-height: 1.5; }
+pre code { background: none; border: 0; padding: 0; white-space: pre; }
+pre code.hljs { background: transparent; padding: 0; }
+
+.hero { margin: 0 0 24px; padding: 0 0 24px; border-bottom: 2px solid var(--line); }
+.hero h1 { margin: 0 0 8px; font-size: 2em; line-height: 1.2; font-weight: 700; }
+.hero .meta { margin: 0 0 12px; font-family: "Cascadia Mono", Consolas, monospace; font-size: 12px; color: var(--muted); }
+.hero .summary { margin: 0 0 12px; }
+.hero .chips { display: flex; flex-wrap: wrap; gap: 6px; margin: 0; }
+
+.side { position: fixed; top: 0; bottom: 0; left: 0; width: 260px; display: flex; flex-direction: column; background: var(--bg); border-right: 2px solid var(--line); font-family: "Cascadia Mono", Consolas, monospace; font-size: 12px; }
+.units { list-style: none; margin: 0; padding: 12px 0; overflow-y: auto; flex: 1; }
+.units a { display: grid; grid-template-columns: 2.5em 1fr; padding: 9px 20px 9px 17px; border-left: 3px solid transparent; color: var(--fg); text-decoration: none; line-height: 1.4; }
+.units .n { color: var(--muted); font-weight: 400; }
+.units a:hover { background: var(--soft); }
+.units a[aria-current="true"] { background: var(--accent-soft); border-left-color: var(--accent); font-weight: 700; }
+.side footer { padding: 12px 20px; border-top: 2px solid var(--line); color: var(--muted); line-height: 1.5; }
+
+.content { margin-left: 260px; padding: 24px; max-width: 120ch; min-width: 0; }
+.unit { border-top: 2px solid var(--line); margin: 0 0 26px; padding: 14px 0 0; min-width: 0; }
+.unit > header { display: flex; flex-wrap: wrap; align-items: baseline; gap: 4px 14px; margin: 0 0 4px; min-width: 0; }
+.unit h2 { margin: 0; line-height: 1.25; }
+.unit h2 .n { font-family: "Cascadia Mono", Consolas, monospace; font-size: 12px; color: var(--muted); margin-right: 10px; }
+.docs { color: var(--muted); }
+.docs a { color: var(--accent); text-decoration: none; }
+.docs a:hover { text-decoration: underline; }
+
+dl.rows { display: grid; grid-template-columns: minmax(0, 30ch) minmax(0, 1fr);
+  margin: 12px 0 0; border-top: 1px solid var(--border); min-width: 0; }
+dl.rows dt { grid-column: 1; margin: 0; padding: 6px 14px 6px 0; border-bottom: 1px solid var(--border);
+  min-width: 0; line-height: 1.35; }
+dl.rows dd { grid-column: 2; margin: 0; padding: 7px 0 6px; border-bottom: 1px solid var(--border);
+  min-width: 0; line-height: 1.5; overflow-wrap: anywhere; }
+dl.rows dd code { background: none; padding: 0; }
+.cmt { color: var(--muted); }
+
+.chip { display: inline-block; text-transform: uppercase; letter-spacing: .03em;
+  background: var(--soft); border: 1px solid var(--border); border-radius: 4px; padding: 2px 7px; }
+.since { display: inline-block; border: 1px solid var(--accent); border-radius: 4px;
+  padding: 0 5px; color: var(--accent); white-space: nowrap; }
+.note { background: var(--soft); border-left: 3px solid var(--accent); padding: 8px 12px; margin: 12px 0 0; }
+.note p { margin: 0; }
+
+.tw { overflow-x: auto; margin: 12px 0 0; min-width: 0; }
+table.grid { border-collapse: collapse; width: 100%; }
+table.grid th { text-align: left; font-weight: 400; color: var(--muted);
+  border-bottom: 1px solid var(--border); padding: 6px 14px 6px 0; vertical-align: bottom; }
+table.grid td { border-bottom: 1px solid var(--border); padding: 6px 14px 6px 0; vertical-align: top; }
+table.grid td code { background: none; padding: 0; }
+table.grid tr.hi td { background: var(--accent-soft); }
+
+ul.tight { margin: 12px 0 0; padding-left: 1.1em; }
+ul.tight li { margin: 0 0 3px; }
+
+.navtoggle { display: none; position: fixed; top: 10px; left: 10px; z-index: 30;
+  font-family: "Cascadia Mono", Consolas, monospace; font-size: 12px; color: var(--fg);
+  background: var(--bg); border: 1px solid var(--line); border-radius: 4px; padding: 6px 10px; cursor: pointer; }
+@media (max-width: 720px) {
+  .navtoggle { display: block; }
+  .side { width: min(260px, 84%); transform: translateX(-102%); transition: transform .15s ease; z-index: 25; }
+  body.nav-open .side { transform: none; }
+  .content { margin-left: 0; padding: 52px 16px 24px; }
+  dl.rows { grid-template-columns: minmax(0, 1fr); }
+  dl.rows dt { padding: 6px 0 0; border-bottom: 0; font-weight: 600; }
+  dl.rows dd { padding: 2px 0 7px; }
+}
+
+@media print {
+  :root { color-scheme: light;
+    --bg: #ffffff; --fg: #000000; --muted: #444444; --line: #000000; --soft: #ffffff; --border: #999999;
+    --accent: #000000; --accent-soft: #ffffff; }
+  .side, .navtoggle { display: none !important; }
+  body { font-size: 9pt; line-height: 1.3; background: #fff; color: #000; }
+  .content { margin: 0; padding: 0; max-width: 100%; }
+  code, kbd, pre, .chip, .since, .docs, .hero .meta, dl.rows dd, table.grid { font-size: 7.5pt; }
+  .hero { padding-bottom: 8pt; margin-bottom: 10pt; border-bottom: 1pt solid #000; }
+  .hero h1 { font-size: 16pt; }
+  .unit { break-inside: avoid; page-break-inside: avoid; margin: 0 0 8pt; padding-top: 6pt; border-top: 1pt solid #000; }
+  .unit h2 { font-size: 11pt; }
+  pre { background: #fff; border: 1pt solid #999; padding: 4pt 6pt; }
+  pre code.hljs, pre code.hljs span { color: #000 !important; background: transparent !important; }
+  .note { background: #fff; border-left: 2pt solid #000; }
+  a, a:visited { color: #000; text-decoration: none; }
+  a[href]::after { content: ""; }
+  @page { size: A4; margin: 11mm; }
+}
+</style>
+<style>
+/* devbok: the shared code palette (prompts/shared/page.md, "Code"). */
+:root {
+  --code: color-mix(in srgb, var(--accent) 70%, var(--fg));
+  --hl-kw: #a626a4; --hl-str: #50a14f; --hl-num: #986801; --hl-cmt: #6b6b6b; --hl-type: #0184bc; --hl-fn: #4078f2; --hl-attr: #986801;
+}
+@media (prefers-color-scheme: dark) {
+  :root { --hl-kw: #c678dd; --hl-str: #98c379; --hl-num: #d19a66; --hl-cmt: #8f8f8f; --hl-type: #56b6c2; --hl-fn: #61afef; --hl-attr: #e5c07b; }
+}
+code { color: var(--code); overflow-wrap: anywhere; }
+pre code, pre code.hljs { background: none; border: 0; border-radius: 0; padding: 0; color: inherit; white-space: pre; overflow-wrap: normal; }
+.hljs { color: var(--fg); background: transparent; }
+.hljs-keyword, .hljs-built_in, .hljs-literal, .hljs-selector-tag { color: var(--hl-kw); }
+.hljs-string, .hljs-regexp, .hljs-selector-attr { color: var(--hl-str); }
+.hljs-number, .hljs-symbol { color: var(--hl-num); }
+.hljs-comment, .hljs-quote, .hljs-doctag { color: var(--hl-cmt); font-style: italic; }
+.hljs-title, .hljs-title.class_, .hljs-type, .hljs-name, .hljs-section, .hljs-selector-class, .hljs-selector-pseudo { color: var(--hl-type); }
+.hljs-title.function_ { color: var(--hl-fn); }
+.hljs-meta, .hljs-attr, .hljs-attribute, .hljs-tag, .hljs-property, .hljs-variable { color: var(--hl-attr); }
+.hljs-template-tag, .hljs-template-variable { color: var(--hl-attr); }
+.hljs-code, .hljs-formula { color: var(--hl-cmt); }
+.hljs-operator, .hljs-subst, .hljs-punctuation, .hljs-params { color: var(--fg); }
+.hljs-emphasis { font-style: italic; }
+.hljs-strong { font-weight: 700; }
+@media print { code, .hljs, .hljs span { color: #000 !important; background: transparent !important; } }
+</style>
+</head>
+<body>
+<!-- devbok
+slug: payments
+kind: cheatsheet
+version: 1
+topic: "Payment systems & integrations (PSP APIs such as Stripe and Adyen, idempotency and retries, webhook handling, 3-D Secure/SCA, PCI DSS scope reduction, refunds, chargebacks, ledgers and reconciliation; mainly for .NET developers)"
+prompt: cheatsheet.md@7ff70aff
+generated: 2026-09-08
+-->
+<button class="navtoggle" type="button" aria-expanded="false" aria-controls="side">units</button>
+<nav class="side" id="side" aria-label="Units">
+  <ol class="units">
+    <li><a href="#u01"><span class="n">01</span><span class="t">Stripe API essentials</span></a></li>
+    <li><a href="#u02"><span class="n">02</span><span class="t">Adyen API essentials</span></a></li>
+    <li><a href="#u03"><span class="n">03</span><span class="t">Idempotency &amp; retries</span></a></li>
+    <li><a href="#u04"><span class="n">04</span><span class="t">Webhook handling</span></a></li>
+    <li><a href="#u05"><span class="n">05</span><span class="t">3-D Secure 2.x &amp; SCA/PSD2</span></a></li>
+    <li><a href="#u06"><span class="n">06</span><span class="t">PCI DSS &amp; scope reduction</span></a></li>
+    <li><a href="#u07"><span class="n">07</span><span class="t">Refunds &amp; chargebacks</span></a></li>
+    <li><a href="#u08"><span class="n">08</span><span class="t">Ledgers &amp; reconciliation</span></a></li>
+    <li><a href="#u09"><span class="n">09</span><span class="t">Gotchas &amp; pitfalls</span></a></li>
+    <li><a href="#u10"><span class="n">10</span><span class="t">Modern vs legacy</span></a></li>
+    <li><a href="#u11"><span class="n">11</span><span class="t">Version timeline</span></a></li>
+  </ol>
+  <footer>Payment systems &amp; integrations · cheatsheet · version 1 · 2026-09-08</footer>
+</nav>
+<main class="content">
+<header class="hero">
+  <h1>Payment systems &amp; integrations</h1>
+  <p class="meta">cheatsheet · PCI DSS v4.0.1 · released 2024-06-11</p>
+  <p class="summary">This card treats payments as a field rather than one product, so it anchors on PCI DSS v4.0.1 (2024-06-11) — the only active version of the industry's baseline standard — while naming the Stripe and Adyen API generations, the EMVCo 3-D Secure revision and the card-network dispute rules current as of 2026-09-08 alongside it. Stripe and Adyen are the reference PSPs throughout, with .NET (Stripe.net / Adyen .NET SDK) syntax wherever a concrete example helps, matching the stack the topic names. The most recent citable move: EMVCo published a public-comment draft of 3-D Secure 2.4.0.0 in June 2026 (comment period closes 2026-07-01), and Stripe's next major API generation, Dahlia (2026-08-26), is already in preview one release behind the current stable line, Clover (2025-10-29).</p>
+  <p class="chips"><span class="chip">PCI DSS 4.0.1 · 2024-06-11</span> <span class="chip">Stripe Clover · 2025-10-29</span> <span class="chip">Adyen Checkout API v72</span> <span class="chip">EMV 3DS 2.3.1.1 (2.4 draft)</span> <span class="chip">Visa CE3.0 · 2023-04-15</span> <span class="chip">verified 2026-09-08</span></p>
+</header>
+
+<section class="unit" id="u01">
+  <header>
+    <h2><span class="n">01</span>Stripe API essentials</h2>
+    <span class="docs"><a href="https://docs.stripe.com/api">docs: Stripe API reference</a></span>
+  </header>
+  <dl class="rows">
+    <dt>Auth</dt>
+    <dd><code>Authorization: Bearer sk_test_...</code> / <code>sk_live_...</code> <span class="cmt">— test and live are fully separate stacks: customers, payment methods, webhooks, everything</span></dd>
+    <dt>Pin your API version</dt>
+    <dd><code>Stripe-Version: 2025-10-29.clover</code> header, or set the account default in Workbench <span class="cmt">— never rely on the implicit default drifting under you</span></dd>
+    <dt>Create a payment (modern)</dt>
+    <dd><code>POST /v1/payment_intents</code> with <code>automatic_payment_methods[enabled]=true</code> <span class="cmt">— one PaymentIntent per checkout attempt, confirmed client-side via Stripe.js/Elements</span></dd>
+    <dt>Create a payment (legacy)</dt>
+    <dd><code>POST /v1/charges</code> <span class="cmt">— still works, but no 3DS/SCA branch; treat as legacy since PaymentIntents GA</span> <span class="since">legacy since ~2019</span></dd>
+    <dt>Auth now, capture later</dt>
+    <dd>create with <code>capture_method=manual</code>, then <code>POST /v1/payment_intents/{id}/capture</code></dd>
+    <dt>Off-session (saved card, no shopper present)</dt>
+    <dd><code>PaymentIntentCreateOptions { Customer, PaymentMethod, OffSession = true, Confirm = true }</code> <span class="cmt">— C#/Stripe.net</span></dd>
+    <dt>Expand nested objects, one round trip</dt>
+    <dd><code>GET /v1/payment_intents/{id}?expand[]=latest_charge&amp;expand[]=customer</code></dd>
+    <dt>Cursor pagination</dt>
+    <dd><code>GET /v1/payment_intents?starting_after={id}&amp;limit=100</code></dd>
+    <dt>Fire a test webhook locally</dt>
+    <dd><code>stripe trigger payment_intent.succeeded</code></dd>
+    <dt>Forward webhooks to localhost</dt>
+    <dd><code>stripe listen --forward-to localhost:5000/webhooks/stripe</code> <span class="cmt">— prints a real, throwaway signing secret</span></dd>
+    <dt>Tail live API calls while debugging</dt>
+    <dd><code>stripe logs tail</code></dd>
+  </dl>
+  <pre><code class="language-csharp">var options = new PaymentIntentCreateOptions
+{
+    Amount = 2000,
+    Currency = "usd",
+    Customer = customerId,
+    AutomaticPaymentMethods = new PaymentIntentAutomaticPaymentMethodsOptions { Enabled = true },
+};
+var requestOptions = new RequestOptions { IdempotencyKey = $"order:{orderId}:attempt:1" };
+var intent = await new PaymentIntentService().CreateAsync(options, requestOptions);</code></pre>
+</section>
+
+<section class="unit" id="u02">
+  <header>
+    <h2><span class="n">02</span>Adyen API essentials</h2>
+    <span class="docs"><a href="https://docs.adyen.com/api-explorer/">docs: Adyen API Explorer</a></span>
+  </header>
+  <dl class="rows">
+    <dt>Auth</dt>
+    <dd><code>X-API-Key: &lt;key&gt;</code> <span class="cmt">— not Bearer; generated per merchant/company account in the Customer Area</span></dd>
+    <dt>Create a payment (modern)</dt>
+    <dd><code>POST /checkout/v72/payments</code> <span class="cmt">— one endpoint that adapts to the payment method offered</span></dd>
+    <dt>Classic integration (legacy)</dt>
+    <dd><code>Payment</code> / <code>Recurring</code> / <code>Payout</code> APIs, frozen at <code>v68</code> <span class="cmt">— don't start new integrations here</span></dd>
+    <dt>Idempotency</dt>
+    <dd><code>idempotency-key: &lt;uuid-v4&gt;</code> header, unique per company account, valid 7–14 days after first submission</dd>
+    <dt>.NET SDK, idempotent create</dt>
+    <dd><code>checkoutApi.PaymentsAsync(request, new IdempotencyRequestOptions(idempotencyKey))</code></dd>
+    <dt>Auth now, capture later</dt>
+    <dd><code>captureDelayHours</code> at create time, or explicit <code>POST /payments/{pspReference}/captures</code></dd>
+    <dt>Card on file, merchant-initiated</dt>
+    <dd><code>shopperInteraction=ContAuth</code> + <code>recurringProcessingModel=Subscription</code> on the stored payment method</dd>
+    <dt>Branch on the result</dt>
+    <dd><code>resultCode</code>: <code>Authorised</code> · <code>Refused</code> · <code>Pending</code> · <code>RedirectShopper</code> · <code>ChallengeShopper</code> · <code>IdentifyShopper</code></dd>
+    <dt>Duplicate submission in flight</dt>
+    <dd>HTTP 422/409, error code <code>704</code> ("request already processed or in progress") <span class="cmt">— back off, don't immediately resubmit</span></dd>
+    <dt>Breaking-change rule differs by API family</dt>
+    <dd>adding a response field is non-breaking on "new" APIs (Checkout, Balance Platform) but breaking on "classic" ones (Payment, Recurring, Payout, BinLookup)</dd>
+  </dl>
+</section>
+
+<section class="unit" id="u03">
+  <header>
+    <h2><span class="n">03</span>Idempotency &amp; retries</h2>
+    <span class="docs"><a href="https://docs.stripe.com/api/idempotent_requests">docs: Stripe idempotent requests</a></span>
+  </header>
+  <dl class="rows">
+    <dt>Stripe header</dt>
+    <dd><code>Idempotency-Key: &lt;key&gt;</code> on any POST, cached 24 hours <span class="cmt">— same key + same params replays the cached response; same key + different params errors</span></dd>
+    <dt>Adyen header</dt>
+    <dd><code>idempotency-key: &lt;key&gt;</code>, cached 7–14 days</dd>
+    <dt>Key shape</dt>
+    <dd>derive from your own request id — <code>order:{orderId}:attempt:{n}</code> — never a fresh GUID per HTTP retry of the same logical operation</dd>
+    <dt>What it does NOT cover</dt>
+    <dd>it dedupes the PSP-side write, not your own side effects — still need a unique constraint on your own ledger/order row</dd>
+    <dt>Retry policy</dt>
+    <dd>exponential backoff + jitter on 5xx and timeouts; never blind-retry a 4xx except <code>409</code>/<code>429</code></dd>
+    <dt>Two different bugs, same symptom</dt>
+    <dd>"payment charged twice" (network-level, idempotency key fixes it) vs "fulfillment ran twice" (your webhook handler re-processing one event) — dedupe events by id too</dd>
+    <dt>Client-side double submit</dt>
+    <dd>disable the pay button on click and reuse the same PaymentIntent/idempotency key if the user double-taps</dd>
+    <dt>Amount changed, same key?</dt>
+    <dd>rejected by design — an idempotency key is a promise about one exact request, not "retry this order"</dd>
+  </dl>
+</section>
+
+<section class="unit" id="u04">
+  <header>
+    <h2><span class="n">04</span>Webhook handling</h2>
+    <span class="docs"><a href="https://docs.stripe.com/webhooks">docs: Stripe webhooks</a></span>
+  </header>
+  <dl class="rows">
+    <dt>Verify before trusting (Stripe)</dt>
+    <dd>HMAC-SHA256 of <code>{timestamp}.{raw_body}</code> compared against the <code>v1=</code> value in <code>Stripe-Signature</code>, constant-time compare <span class="cmt">— only the <code>v1</code> scheme is trusted; ignore any other scheme prefix</span></dd>
+    <dt>Verify before trusting (Adyen)</dt>
+    <dd>HMAC-SHA256 over the notification's <code>additionalData.hmacSignature</code> fields, base64-decoded key from the Customer Area</dd>
+    <dt>Stripe retry window</dt>
+    <dd>up to 3 days, exponential backoff, live mode <span class="cmt">— sandbox retries 3× over a few hours</span></dd>
+    <dt>Adyen retry behaviour</dt>
+    <dd>resends on any non-2xx response <span class="cmt">— return <code>[accepted]</code> fast, then process asynchronously</span></dd>
+    <dt>Ordering</dt>
+    <dd>not guaranteed by either PSP — dedupe/order by event id or <code>pspReference</code>, never by a <code>created</code> timestamp (distinct events can share one)</dd>
+    <dt>New in Stripe (Clover+)</dt>
+    <dd>thin events (v2 — small pointer, fetch the object on demand) vs snapshot events (v1 — full object embedded) <span class="cmt">— pick one shape per event destination, they use separate endpoints</span></dd>
+    <dt>Return 2xx fast</dt>
+    <dd>ack in well under 5s, queue the real work <span class="cmt">— a timeout looks exactly like a failure and triggers the retry train</span></dd>
+    <dt>Replay protection</dt>
+    <dd>Stripe's signature check tolerates a 5-minute clock skew on the timestamp by default; never set the tolerance to <code>0</code></dd>
+    <dt>Local dev</dt>
+    <dd><code>stripe listen --forward-to ...</code> mints a throwaway signing secret without touching the live one</dd>
+  </dl>
+  <pre><code class="language-csharp">var json = await new StreamReader(Request.Body).ReadToEndAsync();
+try
+{
+    var stripeEvent = EventUtility.ConstructEvent(
+        json, Request.Headers["Stripe-Signature"], webhookSecret);
+    // handle stripeEvent.Type, dedupe on stripeEvent.Id
+}
+catch (StripeException)
+{
+    return BadRequest(); // signature failed - never process an unverified payload
+}
+return Ok();</code></pre>
+</section>
+
+<section class="unit" id="u05">
+  <header>
+    <h2><span class="n">05</span>3-D Secure 2.x &amp; SCA/PSD2</h2>
+    <span class="docs"><a href="https://www.emvco.com/emv-technologies/3-d-secure/">docs: EMVCo 3-D Secure</a></span>
+  </header>
+  <dl class="rows">
+    <dt>Current spec</dt>
+    <dd>EMV 3DS 2.3.1.1 (published 2025-08-11) <span class="cmt">— v2.4.0.0 is a draft in public comment, closing 2026-07-01; expect frictionless-flow refinements, not a rewrite</span></dd>
+    <dt>Frictionless vs challenge</dt>
+    <dd>risk-based — most authenticated 3DS2 transactions never show the cardholder a challenge screen at all</dd>
+    <dt>Legal driver</dt>
+    <dd>PSD2 SCA in the EEA/UK — two of {something you know, have, are} for most e-commerce card payments</dd>
+    <dt>Exemptions an issuer can apply</dt>
+    <dd>low-value (≤€30, with cumulative caps) · TRA (transaction-risk-analysis, below the issuer/acquirer fraud-rate threshold) · trusted beneficiary (shopper-whitelisted merchant) · recurring (after the first SCA'd payment)</dd>
+    <dt>Merchant-initiated / off-session</dt>
+    <dd>no challenge — authenticate once at setup, then <code>ContAuth</code> (Adyen) / <code>off_session=true</code> (Stripe) for renewals</dd>
+    <dt>3RI (3DS Requestor Initiated)</dt>
+    <dd>non-payment or delayed-authorization flows can still get a 3DS authentication without the cardholder present</dd>
+    <dt>Decoupled authentication</dt>
+    <dd>issuer authenticates out-of-band (a push into the banking app) instead of blocking the checkout on a redirect</dd>
+    <dt>SDK vs browser flow</dt>
+    <dd>native app uses the 3DS2 SDK integration; web checkout uses the browser (redirect/iframe) flow — different device-fingerprint payloads, don't mix them up</dd>
+    <dt>Liability shift</dt>
+    <dd>a completed 3DS authentication shifts most fraud-reason chargeback liability to the issuer — it does not cover "goods/services not received" disputes</dd>
+  </dl>
+</section>
+
+<section class="unit" id="u06">
+  <header>
+    <h2><span class="n">06</span>PCI DSS &amp; scope reduction</h2>
+    <span class="docs"><a href="https://www.pcisecuritystandards.org/standards/pci-dss/">docs: PCI SSC — PCI DSS</a></span>
+  </header>
+  <dl class="rows">
+    <dt>Current standard</dt>
+    <dd>PCI DSS v4.0.1 (2024-06-11) <span class="cmt">— the only active version; v3.2.1 retired 2024-03-31</span></dd>
+    <dt>Future-dated requirements</dt>
+    <dd>became mandatory 2025-03-31 (expanded MFA coverage, targeted risk analyses, authenticated internal vuln scans, etc.) <span class="cmt">— anything still labelled "best practice" in your gap analysis is stale; it's required now</span></dd>
+    <dt>Cheapest scope reduction</dt>
+    <dd>never let cardholder data touch your infrastructure — hosted redirect / PSP iframe (Stripe Checkout, Adyen Drop-in / Hosted Payment Page)</dd>
+    <dt>SAQ A</dt>
+    <dd>fully outsourced e-commerce, PAN never touches your infra (redirect or third-party iframe) <span class="cmt">— smallest questionnaire</span></dd>
+    <dt>SAQ A-EP</dt>
+    <dd>your page's own JS/DOM influences the payment iframe, even though the PSP's iframe still captures the PAN <span class="cmt">— easy to trip into by accident, e.g. a custom validation script on the checkout page</span></dd>
+    <dt>SAQ C-VT</dt>
+    <dd>virtual terminal, manual keying, one transaction at a time, no local card storage <span class="cmt">— common for phone-order flows</span></dd>
+    <dt>SAQ D</dt>
+    <dd>everyone else, and every service provider — full requirement set</dd>
+    <dt>PSP tokens</dt>
+    <dd>a token stands in for the PAN in your database; useless outside that PSP/merchant pairing</dd>
+    <dt>Network tokens (different from PSP tokens)</dt>
+    <dd>Visa Token Service / Mastercard MDES token, bound to a device or merchant, survives card reissue and updates automatically <span class="cmt">— increasingly what "save this card" actually stores under the hood</span></dd>
+  </dl>
+</section>
+
+<section class="unit" id="u07">
+  <header>
+    <h2><span class="n">07</span>Refunds &amp; chargebacks</h2>
+    <span class="docs"><a href="https://docs.stripe.com/disputes">docs: Stripe disputes</a></span>
+  </header>
+  <dl class="rows">
+    <dt>Refund vs cancel/void</dt>
+    <dd>refund reverses a captured charge (funds move back, fees may not); cancelling an uncaptured/authorized intent just releases the hold, no fee</dd>
+    <dt>Partial refunds</dt>
+    <dd>supported by both PSPs, any number of partials up to the original captured amount</dd>
+    <dt>Refund timing</dt>
+    <dd>settles back to the issuer over days, not instantly — the cardholder's bank posts it, not the PSP</dd>
+    <dt>Dispute lifecycle</dt>
+    <dd>chargeback → PSP debits the merchant + opens a dispute → merchant submits evidence within the deadline (typically 7–21 days, network-dependent) → issuer/network decides → arbitration as a last resort</dd>
+    <dt>Reason code drives the evidence</dt>
+    <dd>fraud disputes and "goods/services not received" disputes need completely different evidence packets — never submit generic paperwork</dd>
+    <dt>Visa Compelling Evidence 3.0</dt>
+    <dd>for fraud disputes, cite ≥2 prior undisputed transactions (120–365 days old) sharing the same credential, plus one more matching signal (device/IP/shipping/user-id) <span class="since">effective 2023-04-15</span></dd>
+    <dt>Pre-dispute alerts</dt>
+    <dd>Verifi (Visa) / Ethoca (Mastercard) push real-time alerts so you can refund before the chargeback posts — cheaper than fighting it</dd>
+    <dt>Dispute fee</dt>
+    <dd>non-refundable on most PSPs regardless of outcome — budget it into unit economics, not just the disputed amount</dd>
+    <dt>Friendly fraud vs true fraud</dt>
+    <dd>identical reason code either way — only your own device/behavioural history across orders tells them apart</dd>
+  </dl>
+</section>
+
+<section class="unit" id="u08">
+  <header>
+    <h2><span class="n">08</span>Ledgers &amp; reconciliation</h2>
+    <span class="docs"><a href="https://docs.stripe.com/api/balance_transactions">docs: Stripe balance transactions</a></span>
+  </header>
+  <dl class="rows">
+    <dt>Golden rule</dt>
+    <dd>never mutate a ledger row — append-only entries; a correction is a new reversing entry, never an edit</dd>
+    <dt>Double-entry invariant</dt>
+    <dd>every entry has ≥2 legs (debit/credit) that net to zero per transaction <span class="cmt">— the trial-balance check is what catches bugs</span></dd>
+    <dt>Settlement ≠ revenue</dt>
+    <dd>a Stripe <code>balance_transaction</code> splits gross charge into <code>amount</code> / <code>fee</code> / <code>net</code> — reconcile against <code>net</code>, book <code>fee</code> as an expense; don't compare gross to your books</dd>
+    <dt>Idempotent ledger writes</dt>
+    <dd>unique constraint on <code>(psp, event_id)</code> or <code>(psp, charge_id, type)</code> so a re-delivered webhook can't double-post</dd>
+    <dt>Two reconciliation feeds, one truth</dt>
+    <dd>webhook (near-real-time, drives the ledger) vs the PSP's settlement/payout report file (daily or periodic, the audit check) — they must eventually agree</dd>
+    <dt>Multi-currency</dt>
+    <dd>store minor units (cents) as integers, convert only for display; capture the FX rate actually used at settlement, not at capture, if the PSP settles in a different currency</dd>
+    <dt>Available vs pending balance</dt>
+    <dd>payouts draw only from <code>available</code> — a fresh charge sits in <code>pending</code> until the PSP's hold period clears</dd>
+    <dt>Refund/dispute reversal</dt>
+    <dd>a new reversing entry dated at the reversal event, never a retroactive edit of the original charge's entry</dd>
+  </dl>
+  <pre><code class="language-sql">-- append-only double-entry ledger, dedupe key is the natural key
+CREATE TABLE ledger_entries (
+  id           BIGSERIAL PRIMARY KEY,
+  psp          TEXT NOT NULL,
+  event_id     TEXT NOT NULL,
+  account      TEXT NOT NULL,
+  direction    TEXT NOT NULL CHECK (direction IN ('debit', 'credit')),
+  amount_cents BIGINT NOT NULL,
+  currency     TEXT NOT NULL,
+  posted_at    TIMESTAMPTZ NOT NULL DEFAULT now(),
+  UNIQUE (psp, event_id, account, direction)
+);</code></pre>
+</section>
+
+<section class="unit" id="u09">
+  <header>
+    <h2><span class="n">09</span>Gotchas &amp; pitfalls</h2>
+    <span class="docs"><a href="https://docs.stripe.com/testing">docs: Stripe testing &amp; edge cases</a></span>
+  </header>
+  <ul class="tight">
+    <li><strong>An idempotency key dedupes the HTTP write, not your own side effects.</strong> A webhook you process twice for the same event id is a different bug than a duplicated charge — dedupe both, separately.</li>
+    <li><strong>Authorization holds expire</strong> (issuer-dependent, often around a week). A <code>capture_method=manual</code> intent left too long fails to capture even though the authorization once succeeded.</li>
+    <li><strong>Turning on every payment method offers wallets/BNPL you never tested</strong> — <code>automatic_payment_methods</code> without a currency/country allowlist silently expands your error-path surface.</li>
+    <li><strong>PaymentIntents can land in <code>requires_action</code>.</strong> Skip that branch and checkouts on 3DS-mandatory cards silently die instead of redirecting to the challenge.</li>
+    <li><strong>A webhook signing secret is per-endpoint, not per-account.</strong> Rotating it for one registered endpoint and forgetting a second breaks that second endpoint silently, until the next event fires.</li>
+    <li><strong>Resending an event doesn't cancel the automatic retry already in flight.</strong> Both the manual resend and the original retry can arrive — dedupe by event id regardless of how many times you asked for a redelivery.</li>
+    <li><strong>Not every decline is terminal.</strong> <code>insufficient_funds</code> / <code>do_not_honor</code> are often worth an issuer-side retry after a delay; <code>stolen_card</code> / <code>fraudulent</code> must never be retried.</li>
+    <li><strong>SAQ scope creep from a "harmless" custom field.</strong> A save-card form on your own domain that only forwards into a PSP iframe can reclassify you from SAQ A to SAQ A-EP without anyone noticing until the next assessment.</li>
+    <li><strong>Reconciling by <code>created</code> timestamp instead of event id.</strong> Two distinct events can legitimately share a timestamp; only the id is a safe dedupe/order key.</li>
+    <li><strong>Floating-point rounding on split payments or tax shares</strong> is where off-by-one-cent reconciliation breaks first show up — do the math in integer minor units.</li>
+  </ul>
+</section>
+
+<section class="unit" id="u10">
+  <header>
+    <h2><span class="n">10</span>Modern vs legacy</h2>
+    <span class="docs"><a href="https://docs.stripe.com/payments/payment-intents">docs: PaymentIntents migration</a></span>
+  </header>
+  <div class="tw">
+  <table class="grid">
+    <thead><tr><th>Task</th><th>Modern</th><th>Legacy still seen</th><th>Since</th></tr></thead>
+    <tbody>
+      <tr class="hi"><td>Create a card payment</td><td>Stripe PaymentIntents / Adyen Checkout API</td><td>Stripe Charges API / Adyen classic Payment API</td><td>PaymentIntents 2019; Checkout API mainstream ~2020</td></tr>
+      <tr class="hi"><td>Card authentication</td><td>EMV 3DS 2.x, frictionless-first, risk-based</td><td>3DS 1.0, always redirects to an ACS page</td><td>3DS2 mandated under PSD2 SCA, 2021</td></tr>
+      <tr class="hi"><td>Webhook payload shape (Stripe)</td><td>Thin events (v2, fetch on demand)</td><td>Snapshot events (v1, full object embedded)</td><td>Clover, 2025-10</td></tr>
+      <tr><td>Card storage</td><td>Network token (VTS/MDES) behind a PSP token</td><td>Raw PAN stored/tokenized only by your own vault</td><td>mainstream ~2023</td></tr>
+      <tr><td>Fraud-dispute evidence (Visa)</td><td>Compelling Evidence 3.0, linked prior transactions</td><td>Manual documentation packet, no standard schema</td><td>2023-04-15</td></tr>
+      <tr><td>Recurring / off-session charge</td><td><code>ContAuth</code> / <code>off_session=true</code>, SCA only at setup</td><td>Re-prompting for CVV/3DS on every renewal</td><td>de facto since exemption flows matured, ~2021</td></tr>
+      <tr><td>Scope reduction approach</td><td>Hosted redirect/iframe + tokenization (SAQ A)</td><td>Self-hosted card form posting PAN to your server (SAQ D)</td><td>best practice since v3.2, reinforced in v4.0.1</td></tr>
+      <tr><td>Idempotent retries</td><td>Explicit PSP-native idempotency key</td><td>Manual "check if it already happened" poll before retry</td><td>mainstream ~2015, Stripe pioneered</td></tr>
+    </tbody>
+  </table>
+  </div>
+</section>
+
+<section class="unit" id="u11">
+  <header>
+    <h2><span class="n">11</span>Version timeline</h2>
+    <span class="docs"><a href="https://docs.stripe.com/changelog">docs: Stripe developer changelog</a></span>
+  </header>
+  <div class="tw">
+  <table class="grid">
+    <thead><tr><th>Version</th><th>Date</th><th>What changed</th></tr></thead>
+    <tbody>
+      <tr class="hi"><td>Stripe Dahlia (preview)</td><td>2026-08-26</td><td><em>preview major:</em> drops <code>payment_method_types</code> param; adds Account Signals/Evaluations/Activity APIs, UPI and Billie payment methods</td></tr>
+      <tr class="hi"><td>EMV 3DS 2.4.0.0</td><td>draft 2026-06-03, comment to 2026-07-01</td><td><em>draft:</em> next 3-D Secure protocol revision, currently in public comment — not yet final</td></tr>
+      <tr><td>Stripe Clover</td><td>2025-10-29</td><td><em>current stable major:</em> Payment Records API, Balance Settings API, custom payment methods, MB WAY/TWINT support</td></tr>
+      <tr><td>EMV 3DS 2.3.1.1</td><td>2025-08-11</td><td>latest published protocol + SDK specification bulletins (supersedes 2.3.1)</td></tr>
+      <tr class="hi"><td>PCI DSS v4.0 future-dated requirements</td><td>2025-03-31</td><td><em>newly mandatory:</em> expanded MFA coverage, targeted risk analyses, authenticated internal vulnerability scans — no longer "best practice"</td></tr>
+      <tr><td>PCI DSS v4.0.1</td><td>2024-06-11</td><td>typo/clarification pass over v4.0; currently the only active version</td></tr>
+      <tr><td>PCI DSS v3.2.1</td><td>retired 2024-03-31</td><td>superseded by v4.0 / v4.0.1</td></tr>
+      <tr><td>Visa Compelling Evidence 3.0</td><td>2023-04-15</td><td>standardized linked-transaction fraud-dispute evidence under reason code 10.4</td></tr>
+      <tr><td>PSD2 SCA enforcement</td><td>2021 (after staggered national deadlines)</td><td>3DS2 exemption flows (TRA, low-value, trusted beneficiary) matured alongside enforcement across the EEA</td></tr>
+      <tr><td>Stripe PaymentIntents</td><td>2019</td><td>GA, replacing the Charges API as the recommended way to create a payment</td></tr>
+      <tr><td>Stripe <code>Idempotency-Key</code></td><td>~2015</td><td>pioneered client-supplied idempotency keys for payment APIs, since copied industry-wide including by Adyen</td></tr>
+    </tbody>
+  </table>
+  </div>
+  <div class="note"><p><strong>Also worth knowing:</strong> Adyen's Checkout API is currently at v72 with no fixed release cadence (continuous versioning), while its classic Payment/Recurring/Payout/BinLookup APIs remain frozen at v68 — check both before assuming "latest" means the same number everywhere. Mastercard and Visa each run their own evidence-linking dispute program beyond CE3.0; verify the current name and rules directly with the network before building against them, since only Visa's framework above was independently confirmed for this card on 2026-09-08.</p></div>
+</section>
+</main>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.11.1/highlight.min.js"></script>
+<script>
+(function () {
+  if (window.hljs) { try { hljs.highlightAll(); } catch (e) { /* highlighting is decoration */ } }
+
+  var toggle = document.querySelector('.navtoggle');
+  var side = document.getElementById('side');
+  if (toggle) {
+    toggle.addEventListener('click', function () {
+      var open = document.body.classList.toggle('nav-open');
+      toggle.setAttribute('aria-expanded', open ? 'true' : 'false');
+    });
+  }
+  if (side) {
+    side.addEventListener('click', function (e) {
+      if (e.target.closest('a')) {
+        document.body.classList.remove('nav-open');
+        if (toggle) toggle.setAttribute('aria-expanded', 'false');
+      }
+    });
+  }
+
+  var links = Array.prototype.slice.call(document.querySelectorAll('.units a'));
+  var units = links.map(function (a) { return document.getElementById(a.getAttribute('href').slice(1)); });
+  var ticking = false;
+  function spy() {
+    ticking = false;
+    var best = 0;
+    for (var i = 0; i < units.length; i++) {
+      if (units[i] && units[i].getBoundingClientRect().top <= 140) best = i;
+    }
+    for (var j = 0; j < links.length; j++) {
+      if (j === best) links[j].setAttribute('aria-current', 'true');
+      else links[j].removeAttribute('aria-current');
+    }
+  }
+  function onScroll() {
+    if (!ticking) { ticking = true; window.requestAnimationFrame(spy); }
+  }
+  window.addEventListener('scroll', onScroll, { passive: true });
+  window.addEventListener('resize', onScroll, { passive: true });
+  spy();
+})();
+</script>
+</body>
+</html>

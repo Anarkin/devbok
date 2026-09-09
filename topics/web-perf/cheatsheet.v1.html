@@ -1,0 +1,643 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Web performance &amp; browser platform · cheatsheet · devbok</title>
+<link rel="preconnect" href="https://fonts.googleapis.com/">
+<link rel="preconnect" href="https://fonts.gstatic.com/" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Cascadia+Mono:wght@400;700&amp;display=swap">
+<style>
+:root { color-scheme: light;
+  --bg: #ffffff; --fg: #111111; --muted: #6b6b6b; --line: #111111; --soft: #f4f4f4; --border: #cccccc;
+  --accent: #f44b21; --accent-soft: color-mix(in srgb, var(--accent) 12%, var(--bg));
+  --code: color-mix(in srgb, var(--accent) 70%, var(--fg));
+  --hl-kw: #a626a4; --hl-str: #50a14f; --hl-num: #986801; --hl-cmt: #6b6b6b; --hl-type: #0184bc; --hl-fn: #4078f2; --hl-attr: #986801; }
+@media (prefers-color-scheme: dark) { :root { color-scheme: dark;
+  --bg: #222222; --fg: #cccccc; --muted: #8f8f8f; --line: #111111; --soft: #2c2c2c; --border: #4a4a4a;
+  --accent: #f7795a; --accent-soft: color-mix(in srgb, var(--accent) 16%, var(--bg));
+  --hl-kw: #c678dd; --hl-str: #98c379; --hl-num: #d19a66; --hl-cmt: #8f8f8f; --hl-type: #56b6c2; --hl-fn: #61afef; --hl-attr: #e5c07b; } }
+
+*, *::before, *::after { box-sizing: border-box; }
+html { -webkit-text-size-adjust: 100%; }
+body { margin: 0; background: var(--bg); color: var(--fg);
+  font-family: system-ui, sans-serif; font-size: 16px; line-height: 1.6; overflow-wrap: break-word; }
+h1, h2, h3 { font-family: system-ui, sans-serif; font-weight: 700; }
+h2 { font-size: 1.5em; }
+h3 { font-size: 1.17em; }
+a { color: var(--accent); }
+a:focus-visible, button:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+img { max-width: 100%; }
+
+code, kbd, pre, .mono, .chip, .since, .docs, .hero .meta, .side, dl.rows dd, table.grid { font-family: "Cascadia Mono", Consolas, monospace; font-size: 12px; }
+code { background: var(--soft); border: 1px solid var(--border); border-radius: 3px; padding: 0 .3em; color: var(--code); overflow-wrap: anywhere; }
+pre { background: var(--soft); border: 1px solid var(--border); border-radius: 4px; padding: 12px 14px; overflow-x: auto; line-height: 1.5; margin: 14px 0; max-width: 100%; }
+pre code { background: none; border: 0; border-radius: 0; padding: 0; color: inherit; white-space: pre; overflow-wrap: normal; }
+.hljs { color: var(--fg); background: transparent; }
+.hljs-keyword, .hljs-built_in, .hljs-literal, .hljs-selector-tag { color: var(--hl-kw); }
+.hljs-string, .hljs-regexp, .hljs-selector-attr { color: var(--hl-str); }
+.hljs-number, .hljs-symbol { color: var(--hl-num); }
+.hljs-comment, .hljs-quote, .hljs-doctag { color: var(--hl-cmt); font-style: italic; }
+.hljs-title, .hljs-title.class_, .hljs-type, .hljs-name, .hljs-section, .hljs-selector-class, .hljs-selector-pseudo { color: var(--hl-type); }
+.hljs-title.function_ { color: var(--hl-fn); }
+.hljs-meta, .hljs-attr, .hljs-attribute, .hljs-tag, .hljs-property, .hljs-variable { color: var(--hl-attr); }
+.hljs-template-tag, .hljs-template-variable { color: var(--hl-attr); }
+.hljs-code, .hljs-formula { color: var(--hl-cmt); }
+.hljs-operator, .hljs-subst, .hljs-punctuation, .hljs-params { color: var(--fg); }
+.hljs-emphasis { font-style: italic; } .hljs-strong { font-weight: 700; }
+
+.hero { margin: 0 0 24px; padding: 0 0 24px; border-bottom: 2px solid var(--line); }
+.hero h1 { margin: 0 0 8px; font-size: 2em; line-height: 1.2; font-weight: 700; }
+.hero .meta { margin: 0 0 12px; font-family: "Cascadia Mono", Consolas, monospace; font-size: 12px; color: var(--muted); }
+.hero .summary { margin: 0 0 12px; }
+.hero .chips { display: flex; flex-wrap: wrap; gap: 6px; margin: 0; }
+
+.side { position: fixed; top: 0; bottom: 0; left: 0; width: 260px; display: flex; flex-direction: column; background: var(--bg); border-right: 2px solid var(--line); font-family: "Cascadia Mono", Consolas, monospace; font-size: 12px; }
+.units { list-style: none; margin: 0; padding: 12px 0; overflow-y: auto; flex: 1; }
+.units a { display: grid; grid-template-columns: 2.5em 1fr; padding: 9px 20px 9px 17px; border-left: 3px solid transparent; color: var(--fg); text-decoration: none; line-height: 1.4; }
+.units .n { color: var(--muted); font-weight: 400; }
+.units a:hover { background: var(--soft); }
+.units a[aria-current="true"] { background: var(--accent-soft); border-left-color: var(--accent); font-weight: 700; }
+.side footer { padding: 12px 20px; border-top: 2px solid var(--line); color: var(--muted); line-height: 1.5; }
+
+.content { margin-left: 260px; padding: 24px; max-width: 120ch; min-width: 0; }
+.unit { border-top: 2px solid var(--line); margin: 0 0 26px; padding: 14px 0 0; min-width: 0; }
+.unit > header { display: flex; flex-wrap: wrap; align-items: baseline; gap: 4px 14px; margin: 0 0 4px; min-width: 0; }
+.unit h2 { margin: 0; line-height: 1.25; }
+.unit h2 .n { font-family: "Cascadia Mono", Consolas, monospace; font-size: 12px; color: var(--muted); margin-right: 10px; }
+.unit h3 { margin: 16px 0 0; }
+.docs { color: var(--muted); }
+.docs a { color: var(--accent); text-decoration: none; }
+.docs a:hover { text-decoration: underline; }
+
+dl.rows { display: grid; grid-template-columns: minmax(0, 30ch) minmax(0, 1fr);
+  margin: 12px 0 0; border-top: 1px solid var(--border); min-width: 0; }
+dl.rows dt { grid-column: 1; margin: 0; padding: 6px 14px 6px 0; border-bottom: 1px solid var(--border);
+  min-width: 0; line-height: 1.35; }
+dl.rows dd { grid-column: 2; margin: 0; padding: 7px 0 6px; border-bottom: 1px solid var(--border);
+  min-width: 0; line-height: 1.5; overflow-wrap: anywhere; }
+dl.rows dd code { background: none; border: 0; padding: 0; }
+.cmt { color: var(--muted); }
+
+.chip { display: inline-block; text-transform: uppercase; letter-spacing: .03em;
+  background: var(--soft); border: 1px solid var(--border); border-radius: 4px; padding: 2px 7px; }
+.since { display: inline-block; border: 1px solid var(--accent); border-radius: 4px;
+  padding: 0 5px; color: var(--accent); white-space: nowrap; }
+.note { background: var(--soft); border-left: 3px solid var(--accent); padding: 8px 12px; margin: 12px 0 0; }
+.note p { margin: 0; }
+
+.tw { overflow-x: auto; margin: 12px 0 0; min-width: 0; }
+table.grid { border-collapse: collapse; width: 100%; }
+table.grid th { text-align: left; font-weight: 400; color: var(--muted);
+  border-bottom: 1px solid var(--border); padding: 6px 14px 6px 0; vertical-align: bottom; }
+table.grid td { border-bottom: 1px solid var(--border); padding: 6px 14px 6px 0; vertical-align: top; }
+table.grid td code { background: none; border: 0; padding: 0; }
+table.grid tr.hi td { background: var(--accent-soft); }
+
+ul.tight { margin: 12px 0 0; padding-left: 1.1em; }
+ul.tight li { margin: 0 0 3px; }
+
+.navtoggle { display: none; position: fixed; top: 10px; left: 10px; z-index: 30;
+  font-family: "Cascadia Mono", Consolas, monospace; font-size: 12px; color: var(--fg);
+  background: var(--bg); border: 1px solid var(--line); border-radius: 4px; padding: 6px 10px; cursor: pointer; }
+@media (max-width: 720px) {
+  .navtoggle { display: block; }
+  .side { width: min(260px, 84%); transform: translateX(-102%); transition: transform .15s ease; z-index: 25; }
+  body.nav-open .side { transform: none; }
+  .content { margin-left: 0; padding: 52px 16px 24px; }
+  dl.rows { grid-template-columns: minmax(0, 1fr); }
+  dl.rows dt { padding: 6px 0 0; border-bottom: 0; font-weight: 600; }
+  dl.rows dd { padding: 2px 0 7px; }
+}
+
+@media print {
+  :root { color-scheme: light;
+    --bg: #ffffff; --fg: #000000; --muted: #333333; --line: #000000; --soft: #ffffff; --border: #999999;
+    --accent: #000000; --accent-soft: #ffffff; --code: #000000; }
+  .side, .navtoggle { display: none !important; }
+  body { font-size: 8.5pt; line-height: 1.3; background: #fff; color: #000; }
+  .content { margin: 0; padding: 0; max-width: 100%; }
+  code, kbd, pre, .chip, .since, .docs, .hero .meta, dl.rows dd, table.grid { font-size: 7pt; }
+  .hero { padding-bottom: 8pt; margin-bottom: 10pt; border-bottom: 1pt solid #000; }
+  .hero h1 { font-size: 15pt; }
+  .hero .chips { display: none; }
+  .unit { break-inside: avoid; page-break-inside: avoid; margin: 0 0 8pt; padding-top: 6pt; border-top: 1pt solid #000; }
+  .unit h2 { font-size: 10.5pt; }
+  pre { background: #fff; border: 1pt solid #999; padding: 3pt 5pt; margin: 5pt 0; }
+  .note { background: #fff; border-left: 2pt solid #000; }
+  a, a:visited { color: #000; text-decoration: none; }
+  a[href]::after { content: ""; }
+  code, .hljs, .hljs span { color: #000 !important; background: transparent !important; }
+  @page { size: A4; margin: 10mm; }
+}
+</style>
+</head>
+<body>
+<!-- devbok
+slug: web-perf
+kind: cheatsheet
+version: 1
+topic: "The browser platform and front-end performance (rendering path, critical CSS, Core Web Vitals and how to move each one, bundling and code splitting, caching and HTTP/2-3, images and fonts, memory leaks, DevTools and Lighthouse profiling; framework-agnostic — assume React and Angular specifics are mostly covered separately)"
+prompt: cheatsheet.md@7ff70aff
+generated: 2026-09-08
+-->
+<button class="navtoggle" type="button" aria-expanded="false" aria-controls="side">units</button>
+<nav class="side" id="side" aria-label="Units">
+  <ol class="units">
+    <li><a href="#u01"><span class="n">01</span><span class="t">Rendering pipeline &amp; critical path</span></a></li>
+    <li><a href="#u02"><span class="n">02</span><span class="t">Core Web Vitals &amp; how to move each</span></a></li>
+    <li><a href="#u03"><span class="n">03</span><span class="t">Resource hints &amp; speculative loading</span></a></li>
+    <li><a href="#u04"><span class="n">04</span><span class="t">Bundling &amp; code splitting</span></a></li>
+    <li><a href="#u05"><span class="n">05</span><span class="t">Caching, compression &amp; transport</span></a></li>
+    <li><a href="#u06"><span class="n">06</span><span class="t">Images &amp; fonts</span></a></li>
+    <li><a href="#u07"><span class="n">07</span><span class="t">JS execution cost &amp; memory</span></a></li>
+    <li><a href="#u08"><span class="n">08</span><span class="t">Rendering &amp; compositing idioms</span></a></li>
+    <li><a href="#u09"><span class="n">09</span><span class="t">DevTools &amp; Lighthouse profiling</span></a></li>
+    <li><a href="#u10"><span class="n">10</span><span class="t">Idioms &amp; gotchas</span></a></li>
+    <li><a href="#u11"><span class="n">11</span><span class="t">Modern vs legacy</span></a></li>
+    <li><a href="#u12"><span class="n">12</span><span class="t">Version timeline</span></a></li>
+  </ol>
+  <footer>Web performance &amp; browser platform · cheatsheet · version 1 · 2026-09-08</footer>
+</nav>
+<main class="content">
+<header class="hero">
+  <h1>Web performance &amp; browser platform</h1>
+  <p class="meta">cheatsheet · Chrome/Edge 152 · Core Web Vitals (LCP/INP/CLS) · released 2026-09-08</p>
+  <p class="summary">What's on this card: the browser's rendering pipeline and what actually moves each Core Web Vital, resource hints and bundler-level code splitting, HTTP caching and transport, images and fonts, JS memory and main-thread cost, and the DevTools/Lighthouse workflow for finding all of it — framework-agnostic, so React/Angular-specific rendering tricks are out of scope by design. It reflects Chrome/Edge 152 and the current Lighthouse 13.x DevTools panel, with INP (not FID) as the interactivity Core Web Vital and Long Animation Frames as its diagnostic partner. Verified 2026-09-08: Vite 8 (2026-03-12) shipped Rolldown as its single default Rust bundler, Next.js 16 (2025-10-22) made Turbopack the default bundler for dev and build, and Chrome quietly re-enabled JPEG XL behind a flag around version 145 after removing it outright in 2023 — both that and Speculation Rules remain non-Baseline, so treat them as progressive enhancement, not a safe default.</p>
+  <p class="chips"><span class="chip">Chrome/Edge 152</span> <span class="chip">INP replaced FID · 2024-03-12</span> <span class="chip">LoAF: Chrome 123+</span> <span class="chip">Vite 8: Rolldown default</span> <span class="chip">Turbopack default: Next.js 16</span> <span class="chip">verified 2026-09-08</span></p>
+</header>
+
+<section class="unit" id="u01">
+  <header>
+    <h2><span class="n">01</span>Rendering pipeline &amp; critical path</h2>
+    <span class="docs"><a href="https://developer.mozilla.org/en-US/docs/Web/Performance/Guides/Critical_rendering_path">docs: MDN — critical rendering path</a></span>
+  </header>
+  <dl class="rows">
+    <dt>HTML parsing</dt>
+    <dd>a streaming tokenizer builds the DOM incrementally; the <em>preload scanner</em> reads ahead of the parser for <code>&lt;img&gt;</code>/<code>&lt;link&gt;</code>/<code>&lt;script src&gt;</code> even while it's blocked on something else</dd>
+    <dt>CSSOM</dt>
+    <dd>every discovered stylesheet is render-blocking: the render tree can't be built until all of them have downloaded and parsed, however far the HTML parser has already gotten</dd>
+    <dt>Render tree</dt>
+    <dd>DOM ∩ CSSOM, visible nodes only — <code>display:none</code> is excluded, <code>visibility:hidden</code> is included (it still takes up space)</dd>
+    <dt>Layout (reflow)</dt>
+    <dd>computes the box geometry of every render-tree node; anything that changes size or position triggers it, for that node and everything downstream</dd>
+    <dt>Paint</dt>
+    <dd>rasterizes pixels into layers; triggered by anything that changes appearance without moving boxes (colour, shadow, background)</dd>
+    <dt>Composite</dt>
+    <dd>layers are combined on the GPU by a separate compositor thread — <code>transform</code>/<code>opacity</code> changes skip layout and paint entirely and go straight here</dd>
+    <dt><code>&lt;script&gt;</code>, default</dt>
+    <dd>parser-blocking: HTML parsing halts, the script downloads and executes synchronously, then parsing resumes</dd>
+    <dt><code>defer</code></dt>
+    <dd>downloads in parallel with parsing, executes in document order, right before <code>DOMContentLoaded</code></dd>
+    <dt><code>async</code></dt>
+    <dd>downloads in parallel, executes the instant it arrives regardless of order — briefly blocks the parser at that moment</dd>
+    <dt><code>type="module"</code></dt>
+    <dd>deferred by default; add <code>async</code> to a module script to keep async semantics instead</dd>
+    <dt>DOMContentLoaded vs load</dt>
+    <dd><code>DOMContentLoaded</code> fires once the DOM is parsed, with no wait for images/stylesheets/subframes; <code>load</code> waits for every subresource</dd>
+    <dt><code>requestAnimationFrame</code></dt>
+    <dd>runs immediately before the next paint — the only reliable place to read layout once, then write, exactly once per frame</dd>
+  </dl>
+<pre><code class="language-html">&lt;link rel="stylesheet" href="critical.css"&gt;
+&lt;script src="app.js" defer&gt;&lt;/script&gt;
+&lt;script type="module" src="widgets.js"&gt;&lt;/script&gt;
+&lt;script src="analytics.js" async&gt;&lt;/script&gt;</code></pre>
+  <div class="note"><p><strong>One blocking script beats every optimization below it.</strong> A synchronous <code>&lt;script&gt;</code> placed before your stylesheet stops the parser dead until it runs, whether or not it touches the DOM — order in the <code>&lt;head&gt;</code> is not cosmetic.</p></div>
+</section>
+
+<section class="unit" id="u02">
+  <header>
+    <h2><span class="n">02</span>Core Web Vitals &amp; how to move each</h2>
+    <span class="docs"><a href="https://web.dev/articles/vitals">docs: web.dev — Web Vitals</a></span>
+  </header>
+  <dl class="rows">
+    <dt>LCP</dt>
+    <dd>time to render the largest above-the-fold element (image, poster, block text); good ≤2.5s, poor &gt;4s, scored at the 75th percentile of visits</dd>
+    <dt>LCP subparts</dt>
+    <dd>TTFB + resource load delay + resource load duration + render delay — DevTools' Performance panel breaks a trace into exactly these four</dd>
+    <dt>Moving LCP</dt>
+    <dd>preload the LCP resource with <code>fetchpriority="high"</code>, never <code>loading="lazy"</code> it, cut render-blocking CSS above the fold, push TTFB down with edge/CDN caching</dd>
+    <dt>INP</dt>
+    <dd>replaced FID as the interactivity Core Web Vital on 2024-03-12; the worst (high-percentile) interaction's input delay + processing time + presentation delay, across the whole visit</dd>
+    <dt>Moving INP</dt>
+    <dd>good ≤200ms, poor &gt;500ms; break up long tasks, yield with <code>scheduler.yield()</code>, keep handlers cheap, avoid layout reads inside them</dd>
+    <dt>CLS</dt>
+    <dd>sum of impact-fraction × distance-fraction for every unexpected shift in a session window; good ≤0.1, poor &gt;0.25</dd>
+    <dt>Moving CLS</dt>
+    <dd>size every <code>&lt;img&gt;</code>/<code>&lt;video&gt;</code>, reserve space for ads/embeds with <code>aspect-ratio</code> or <code>min-height</code>, never inject content above existing content, watch web-font swap shifts</dd>
+    <dt>Long Animation Frames</dt>
+    <dd>frame-level successor to Long Tasks (Chrome 123+); attributes a slow interaction's time to the actual scripts and render work that caused it</dd>
+    <dt>Diagnostic-only metrics</dt>
+    <dd>TTFB, FCP — not scored themselves, but TTFB is usually the single biggest lever on LCP</dd>
+    <dt>Field vs lab</dt>
+    <dd>field/RUM (CrUX, real users, 75th percentile) is what Search actually uses; lab (Lighthouse, one run, Total Blocking Time as an INP proxy) is for debugging before there's traffic to measure</dd>
+    <dt><code>web-vitals</code> library</dt>
+    <dd>wraps the raw <code>PerformanceObserver</code> entry types into the same numbers CrUX reports, plus an attribution build that names the offending element/script</dd>
+  </dl>
+<pre><code class="language-javascript">import { onLCP, onINP, onCLS } from 'web-vitals/attribution';
+
+onLCP(({ value, attribution }) =&gt; log('LCP', value, attribution.element, attribution.timeToFirstByte));
+onINP(({ value, attribution }) =&gt; log('INP', value, attribution.interactionTarget, attribution.longAnimationFrameEntries));
+onCLS(({ value, attribution }) =&gt; log('CLS', value, attribution.largestShiftTarget));</code></pre>
+  <div class="note"><p><strong>Lab tools can't measure INP directly.</strong> A synthetic Lighthouse run has no real user interaction, so it reports Total Blocking Time as a proxy — treat an INP number from anywhere but RUM/CrUX or a real session as an estimate.</p></div>
+</section>
+
+<section class="unit" id="u03">
+  <header>
+    <h2><span class="n">03</span>Resource hints &amp; speculative loading</h2>
+    <span class="docs"><a href="https://developer.mozilla.org/en-US/docs/Web/API/Speculation_Rules_API">docs: MDN — Speculation Rules API</a></span>
+  </header>
+  <dl class="rows">
+    <dt><code>preload</code></dt>
+    <dd><code>&lt;link rel="preload" as="…" href="…"&gt;</code> fetches a same-page critical resource at high priority — <code>as</code> is mandatory or the browser drops the priority boost</dd>
+    <dt><code>preconnect</code></dt>
+    <dd>DNS + TCP + TLS to a cross-origin host you know you'll fetch from soon; the browser caps useful preconnects around 4-6, the rest are wasted work</dd>
+    <dt><code>dns-prefetch</code></dt>
+    <dd>DNS resolution only — the cheap fallback for third-party origins you're not certain you'll use</dd>
+    <dt><code>modulepreload</code></dt>
+    <dd>preloads an ES module and, in Chromium, its static import graph — not just the one file</dd>
+    <dt><code>prefetch</code></dt>
+    <dd>low-priority fetch for the <em>next</em> likely navigation, cached for reuse when it happens</dd>
+    <dt><code>fetchpriority</code></dt>
+    <dd><code>high</code>/<code>low</code>/<code>auto</code> on <code>&lt;img&gt;</code>, <code>&lt;link&gt;</code>, <code>&lt;script&gt;</code> and <code>fetch()</code> — put it on the one true bottleneck resource, not several; diluted priority helps nothing</dd>
+    <dt>Speculation Rules API</dt>
+    <dd><code>&lt;script type="speculationrules"&gt;</code> declares <code>prefetch</code>/<code>prerender</code> rules by URL pattern; replaces the old Chrome-only <code>&lt;link rel="prerender"&gt;</code></dd>
+    <dt>Speculation Rules status</dt>
+    <dd>experimental, not Baseline, Chromium-only — never target sign-out, cart-mutation or analytics URLs; a prerendered page fully executes its JS</dd>
+    <dt><code>loading="lazy"</code> / <code>decoding="async"</code></dt>
+    <dd>native lazy-load/async-decode for below-the-fold <code>&lt;img&gt;</code>/<code>&lt;iframe&gt;</code> — never combine either with the LCP image</dd>
+    <dt>Early Hints (103)</dt>
+    <dd>the server sends <code>preconnect</code>/<code>preload</code> hints in an interim response while still computing the real one, so the browser starts fetching during backend think-time</dd>
+    <dt>Back/forward cache</dt>
+    <dd>instant nav from a frozen page snapshot; <code>Cache-Control: no-store</code>, open <code>BroadcastChannel</code>s/WebSockets and <code>unload</code> listeners all block it — use <code>pagehide</code>/<code>visibilitychange</code> instead</dd>
+  </dl>
+<pre><code class="language-html">&lt;script type="speculationrules"&gt;
+{
+  "prerender": [{ "where": { "href_matches": "/products/*" }, "eagerness": "moderate" }],
+  "prefetch":  [{ "where": { "not": { "href_matches": "/logout" } }, "eagerness": "conservative" }]
+}
+&lt;/script&gt;
+&lt;link rel="preload" as="image" href="/hero.avif" fetchpriority="high"&gt;</code></pre>
+</section>
+
+<section class="unit" id="u04">
+  <header>
+    <h2><span class="n">04</span>Bundling &amp; code splitting</h2>
+    <span class="docs"><a href="https://vite.dev/guide/features.html">docs: Vite — features &amp; code splitting</a></span>
+  </header>
+  <dl class="rows">
+    <dt><code>import()</code></dt>
+    <dd>the only code-splitting primitive; every major bundler turns a dynamic import into its own chunk automatically</dd>
+    <dt>Tree-shaking</dt>
+    <dd>static ESM analysis drops unused exports; mark a package <code>"sideEffects": false</code> so bundlers can shake it aggressively</dd>
+    <dt>Chunk strategy</dt>
+    <dd>route-level splitting first, then one shared vendor chunk, then split further only where a flame chart actually shows it matters</dd>
+    <dt>Rolldown <span class="since">Vite 8 · 2026-03</span></dt>
+    <dd>Rust rewrite of Rollup; Vite 8 ships it as the single default bundler for both dev and build, 10-30× faster than the old esbuild(dev)/Rollup(build) split — needs Node 20.19+/22.12+</dd>
+    <dt>Rspack</dt>
+    <dd>Rust, webpack-config-compatible — a drop-in for an existing webpack loader/plugin setup that wants Rust-speed without a config rewrite</dd>
+    <dt>Turbopack <span class="since">Next.js 16 · 2025-10-22</span></dt>
+    <dd>Rust, built into Next.js; default bundler for dev <em>and</em> build since 16.0 — incremental, caches down to the function level, persists to disk between runs</dd>
+    <dt>esbuild</dt>
+    <dd>still the fastest single-purpose transform/minify step; several tools still shell out to it even where Rolldown/Rspack own the module graph</dd>
+    <dt>Module Federation</dt>
+    <dd>runtime composition of independently built and deployed bundles (webpack/Rspack) — the actual mechanism behind most "micro-frontend" architectures</dd>
+    <dt>Minification</dt>
+    <dd>esbuild/SWC/Terser for JS; Lightning CSS for CSS — minify, nest and autoprefix in one Rust pass</dd>
+    <dt>Source maps</dt>
+    <dd>ship a hidden source map to your error tracker, never to the client — full source maps in production is a common accidental leak of unminified logic</dd>
+    <dt>Bundle analysis</dt>
+    <dd><code>rollup-plugin-visualizer</code>, <code>webpack-bundle-analyzer</code>, or DevTools' Coverage panel (unit 09) to see what's actually shipped versus used</dd>
+  </dl>
+<pre><code class="language-javascript">// route-level split — every bundler above turns this into its own chunk
+const openAdminPanel = () => import('./AdminPanel.js').then(m => m.render());
+button.addEventListener('click', openAdminPanel, { once: true });</code></pre>
+</section>
+
+<section class="unit" id="u05">
+  <header>
+    <h2><span class="n">05</span>Caching, compression &amp; transport</h2>
+    <span class="docs"><a href="https://developer.mozilla.org/en-US/docs/Web/HTTP/Caching">docs: MDN — HTTP caching</a></span>
+  </header>
+  <dl class="rows">
+    <dt><code>max-age</code></dt>
+    <dd>seconds the response is fresh for — no revalidation needed anywhere in that window</dd>
+    <dt><code>immutable</code></dt>
+    <dd>never revalidate, even on reload — for content-hashed assets only (<code>app.3f2a1c.js</code>), never for HTML</dd>
+    <dt><code>no-cache</code></dt>
+    <dd>always revalidate with the server (ETag/Last-Modified) before use — despite the name it <em>can</em> cache, just never without asking first</dd>
+    <dt><code>no-store</code></dt>
+    <dd>never cache at all, and it disables bfcache on that navigation — reserve for genuinely sensitive responses</dd>
+    <dt><code>stale-while-revalidate</code></dt>
+    <dd>serve the stale copy immediately, refetch in the background — smooths perceived latency for content that's fine slightly stale</dd>
+    <dt>Validators</dt>
+    <dd><code>ETag</code> (strong/weak) or <code>Last-Modified</code>; a 304 response has no body, just headers — the cheapest possible cache hit</dd>
+    <dt>Fingerprint + long cache</dt>
+    <dd>hash the filename, cache the asset a year with <code>immutable</code>; the HTML referencing it stays <code>no-cache</code></dd>
+    <dt>Service worker strategies</dt>
+    <dd>cache-first (static shell), network-first (API data), stale-while-revalidate (everything in between) — Workbox packages all three</dd>
+    <dt>HTTP/2</dt>
+    <dd>one TCP connection, multiplexed streams, HPACK header compression; server push is deprecated and removed from every major browser</dd>
+    <dt>HTTP/3 (QUIC)</dt>
+    <dd>UDP-based, no transport-level head-of-line blocking, faster repeat-visit setup (0-RTT); broad support since Chrome 87 / Firefox 88 / Safari 16</dd>
+    <dt>Compression</dt>
+    <dd>Brotli beats gzip by roughly 15-20% on text at similar CPU cost; pre-compress static assets at build time, compress HTML/API responses dynamically</dd>
+    <dt>CDN / edge</dt>
+    <dd>cache static assets and, increasingly, run SSR/API logic at edge PoPs to cut the network leg out of TTFB entirely</dd>
+  </dl>
+<pre><code class="language-http">Cache-Control: max-age=31536000, immutable   # /assets/app.3f2a1c.js
+Cache-Control: no-cache                      # /index.html
+Cache-Control: no-store                      # /api/session</code></pre>
+</section>
+
+<section class="unit" id="u06">
+  <header>
+    <h2><span class="n">06</span>Images &amp; fonts</h2>
+    <span class="docs"><a href="https://developer.mozilla.org/en-US/docs/Web/Media/Guides/Formats/Image_types">docs: MDN — image file type guide</a></span>
+  </header>
+  <dl class="rows">
+    <dt>AVIF</dt>
+    <dd>best compression, roughly 50% smaller than JPEG at equal quality; no progressive rendering; Chrome 85+, Firefox 93+, Safari 16.1+</dd>
+    <dt>WebP</dt>
+    <dd>the safe universal modern default — ~25-35% smaller than JPEG, supports animation and alpha, effectively universal support</dd>
+    <dt>JPEG XL</dt>
+    <dd>lossless+lossy, progressive, HDR; Safari shipped it (17+), Chrome removed it in 2023 then quietly re-enabled it behind <code>#enable-jxl-image-format</code> around version 145 — still not Baseline, ship a fallback</dd>
+    <dt><code>&lt;picture&gt;</code> + <code>srcset</code>/<code>sizes</code></dt>
+    <dd>format fallback via <code>&lt;picture&gt;&lt;source type&gt;</code>; resolution switching via <code>srcset</code>/<code>sizes</code> on a single format</dd>
+    <dt>Art direction</dt>
+    <dd><code>&lt;picture&gt;&lt;source media="…"&gt;</code> swaps the whole image, not just the resolution, per breakpoint</dd>
+    <dt><code>loading="lazy"</code></dt>
+    <dd>every below-the-fold <code>&lt;img&gt;</code>/<code>&lt;iframe&gt;</code>; pair with <code>decoding="async"</code> so decode doesn't block the main thread</dd>
+    <dt>Image CDNs</dt>
+    <dd>on-the-fly resize/format/quality via URL params (<code>?format=avif&amp;width=800</code>) instead of pre-generating every variant at build time</dd>
+    <dt><code>font-display</code></dt>
+    <dd><code>swap</code> (fallback then swap, may shift layout) or <code>optional</code> (only use the web font if already cached — zero shift risk); avoid the default <code>block</code> on text-heavy pages</dd>
+    <dt>Metric overrides</dt>
+    <dd><code>size-adjust</code>/<code>ascent-override</code>/<code>descent-override</code> in <code>@font-face</code> tune the fallback to match the web font's metrics and remove swap-induced CLS</dd>
+    <dt>Variable fonts</dt>
+    <dd>one file covers a whole weight/width axis range via <code>font-variation-settings</code>, replacing 4-9 static weight files</dd>
+    <dt>WOFF2</dt>
+    <dd>the only format worth shipping today; subset to the actual character set/script in use to shrink further</dd>
+    <dt>Preloading fonts</dt>
+    <dd><code>&lt;link rel="preload" as="font" type="font/woff2" crossorigin&gt;</code> on the one font rendering visible text first — preloading every weight defeats the point</dd>
+  </dl>
+<pre><code class="language-css">@font-face {
+  font-family: "Inter";
+  src: url("/inter-var.woff2") format("woff2-variations");
+  font-weight: 100 900;
+  font-display: optional;
+  size-adjust: 100.2%;
+  ascent-override: 90%;
+}</code></pre>
+</section>
+
+<section class="unit" id="u07">
+  <header>
+    <h2><span class="n">07</span>JS execution cost &amp; memory</h2>
+    <span class="docs"><a href="https://developer.chrome.com/docs/web-platform/long-animation-frames">docs: Chrome for Developers — Long Animation Frames</a></span>
+  </header>
+  <dl class="rows">
+    <dt>Parse + compile cost</dt>
+    <dd>every byte shipped costs time before a single line executes; V8's bytecode cache only helps repeat visits, not the first one</dd>
+    <dt>Main-thread breakdown</dt>
+    <dd>DevTools' bottom-up view splits a trace into Loading / Scripting / Rendering / Painting / System — fix whichever dominates, not whichever is easiest</dd>
+    <dt>Long tasks</dt>
+    <dd>anything over 50ms on the main thread blocks input; <code>PerformanceObserver</code> with <code>entryTypes: ['longtask']</code> or <code>'long-animation-frame'</code> surfaces them</dd>
+    <dt><code>scheduler.yield()</code></dt>
+    <dd>cooperatively yields mid-task and resumes at <code>user-visible</code> priority — the modern replacement for the <code>setTimeout(fn, 0)</code> chunking hack</dd>
+    <dt><code>scheduler.postTask()</code></dt>
+    <dd>schedules work at an explicit priority (<code>user-blocking</code>/<code>user-visible</code>/<code>background</code>), replacing ad-hoc <code>requestIdleCallback</code>/<code>setTimeout</code> priority guessing</dd>
+    <dt><code>isInputPending()</code></dt>
+    <dd>lets a long synchronous loop check whether it should yield right now instead of finishing the current batch first</dd>
+    <dt>Detached DOM nodes</dt>
+    <dd>the #1 real leak: a removed node stays alive because a closure, listener or cache still references it — heap snapshots flag these explicitly as "Detached"</dd>
+    <dt>Forgotten subscriptions</dt>
+    <dd><code>setInterval</code>, <code>ResizeObserver</code>/<code>IntersectionObserver</code>, and event listeners that outlive the view that created them</dd>
+    <dt><code>WeakMap</code>/<code>WeakRef</code></dt>
+    <dd>associate metadata with an object, or hold a reference to it, without keeping it alive past its natural lifetime</dd>
+    <dt><code>FinalizationRegistry</code></dd>
+    <dd>runs a cleanup callback after GC reclaims an object — never rely on <em>when</em>, only that it eventually will</dd>
+    <dt>Web Workers / OffscreenCanvas</dt>
+    <dd>move CPU-bound parsing, diffing or drawing off the main thread entirely, rather than chunking it on-thread</dd>
+    <dt>WASM</dt>
+    <dd>for hot numeric/codec/image paths — compression, video processing — where even optimized JS is the bottleneck</dd>
+  </dl>
+<pre><code class="language-javascript">async function processAll(items) {
+  for (const item of items) {
+    handle(item);
+    if (navigator.scheduling?.isInputPending()) await scheduler.yield();
+  }
+}</code></pre>
+</section>
+
+<section class="unit" id="u08">
+  <header>
+    <h2><span class="n">08</span>Rendering &amp; compositing idioms</h2>
+    <span class="docs"><a href="https://developer.mozilla.org/en-US/docs/Web/CSS/CSS_containment">docs: MDN — CSS containment</a></span>
+  </header>
+  <dl class="rows">
+    <dt><code>contain: layout paint</code></dt>
+    <dd>a subtree's layout/paint can't affect, or be affected by, anything outside it — shrinks the browser's invalidation scope</dd>
+    <dt><code>contain: strict</code></dt>
+    <dd>layout + paint + size + style in one declaration, the strongest isolation available</dd>
+    <dt><code>content-visibility: auto</code></dt>
+    <dd>skips layout/paint entirely for off-screen subtrees; pair with <code>contain-intrinsic-size</code> or the element collapses to zero height and shifts everything else (CLS)</dd>
+    <dt>Compositor-only animation</dt>
+    <dd>animating <code>transform</code>/<code>opacity</code> runs on the compositor thread, skipping layout and paint; animating <code>top</code>/<code>left</code>/<code>width</code> does not</dd>
+    <dt><code>will-change</code></dt>
+    <dd>pre-promotes an element to its own layer right before an animation starts; leaving it on permanently wastes GPU memory on every such element</dd>
+    <dt>Layout thrashing</dt>
+    <dd>reading (<code>offsetWidth</code>, <code>getBoundingClientRect</code>) then writing in a loop forces a synchronous layout on every iteration — batch all reads, then all writes</dd>
+    <dt>Forced synchronous layout</dt>
+    <dd>a layout-triggering read right after a DOM write invalidates the browser's own batching and computes layout immediately, on the spot</dd>
+    <dt>View Transitions API</dt>
+    <dd><code>document.startViewTransition(updateDOM)</code> animates between two DOM states in one call, same-document since 2024; cross-document (MPA) view transitions followed later and need an opt-in on both pages</dd>
+    <dt><code>@container</code> queries</dt>
+    <dd>style based on an ancestor's size, not the viewport; broadly supported now, and the containment they imply also limits recalculation scope</dd>
+    <dt>Passive listeners</dt>
+    <dd><code>{ passive: true }</code> on <code>scroll</code>/<code>touchstart</code> lets the compositor start scrolling before your handler even runs</dd>
+  </dl>
+<pre><code class="language-css">.card { content-visibility: auto; contain-intrinsic-size: 320px 240px; }</code></pre>
+</section>
+
+<section class="unit" id="u09">
+  <header>
+    <h2><span class="n">09</span>DevTools &amp; Lighthouse profiling</h2>
+    <span class="docs"><a href="https://developer.chrome.com/docs/lighthouse/overview">docs: Chrome for Developers — Lighthouse</a></span>
+  </header>
+  <dl class="rows">
+    <dt>Performance panel</dt>
+    <dd>record a trace, read the flame chart top-down or the bottom-up/call-tree views by total vs self time</dd>
+    <dt>Insights sidebar</dt>
+    <dd>auto-generated findings per recorded trace — render-blocking requests, LCP breakdown, third-party cost — start here before hand-reading the flame chart</dd>
+    <dt>LoAF in the trace</dt>
+    <dd>long frames are called out directly with per-script attribution, no manual Long Tasks correlation needed</dd>
+    <dt>Network panel</dt>
+    <dd>waterfall plus a priority column; the "initiator" column traces exactly what requested a resource and why</dd>
+    <dt>Custom throttling</dt>
+    <dd>round-trip time and packet loss are now configurable alongside bandwidth — closer to real mobile conditions than the old fixed presets</dd>
+    <dt>Coverage panel</dt>
+    <dd><code>Ctrl/Cmd+Shift+P</code> → "Show Coverage"; red bytes are shipped-but-unused JS/CSS, the fastest way to justify a code-split</dd>
+    <dt>Memory panel</dt>
+    <dd>heap snapshot (take, act, take, diff by retained size) or an allocation-instrumentation timeline to catch a leak growing in real time</dd>
+    <dt>Lighthouse CLI</dt>
+    <dd><code>lighthouse &lt;url&gt; --view</code> for a local report; <code>lighthouse-ci</code> to gate PRs on a budget</dd>
+    <dt>Lighthouse categories</dt>
+    <dd>v13's "Agentic Browsing" category, surfaced through the PSI API, audits <code>llms.txt</code> and AI-agent readability alongside the classic Performance/Accessibility/SEO set</dd>
+    <dt>PageSpeed Insights</dt>
+    <dd>Lighthouse (lab) numbers next to real CrUX (field) numbers for the same URL, side by side</dd>
+    <dt>WebPageTest</dt>
+    <dd>multi-location, multi-connection runs with a filmstrip and full waterfall — the tool for "why is it slow <em>there</em>, not here"</dd>
+    <dt>bfcache tester</dt>
+    <dd>DevTools' Application panel has a dedicated "Back/forward cache" section that names the exact API or header blocking it</dd>
+  </dl>
+<pre><code class="language-bash">lighthouse https://example.com --view --preset=desktop
+lighthouse https://example.com --output=json --output-path=./report.json --chrome-flags="--headless"</code></pre>
+</section>
+
+<section class="unit" id="u10">
+  <header>
+    <h2><span class="n">10</span>Idioms &amp; gotchas</h2>
+    <span class="docs"><a href="https://web.dev/explore/fast">docs: web.dev — fast load times</a></span>
+  </header>
+  <h3>Idioms worth keeping</h3>
+  <dl class="rows">
+    <dt>Measure, then optimize</dt>
+    <dd>a Lighthouse score chased without a LoAF trace or heap-snapshot root cause is optimizing the wrong thing</dd>
+    <dt>Ship the LCP resource first</dt>
+    <dd>one correct <code>fetchpriority="high"</code> preload beats a dozen speculative optimizations elsewhere on the page</dd>
+    <dt>Budget, don't guess</dt>
+    <dd>a performance budget (bytes, TTFB, INP) enforced in CI catches a regression before a user does</dd>
+    <dt>Feature-detect the experimental</dt>
+    <dd>Speculation Rules, cross-document View Transitions and <code>scheduler.yield()</code> are none of them universal — check support, don't assume it</dd>
+    <dt>Treat third-party scripts as untrusted</dt>
+    <dd>sandbox in an iframe, load via a facade, or move to a worker — you can't performance-fix code you don't own</dd>
+    <dt>RUM is the source of truth</dt>
+    <dd>Lighthouse is for debugging; CrUX/RUM at the 75th percentile is what actually gets scored and ranked</dd>
+  </dl>
+  <h3>Gotchas, one line each</h3>
+  <ul class="tight">
+    <li><code>loading="lazy"</code> on the LCP image is the single most common self-inflicted LCP regression.</li>
+    <li>A CDN cache hit can still count toward TTFB if the edge revalidates on every request — check <code>Age</code>/<code>X-Cache</code>, don't assume.</li>
+    <li><code>will-change</code> left on indefinitely after an animation ends keeps consuming GPU memory for nothing.</li>
+    <li><code>console.log(bigObj)</code> keeps retaining that object for the life of the DevTools session — a classic false-positive "leak" in a heap diff.</li>
+    <li><code>IntersectionObserver</code>/<code>ResizeObserver</code> callbacks run on the main thread — a heavy callback still costs INP even though the observer itself is cheap.</li>
+    <li>Domain sharding is a pre-HTTP/2 trick; on HTTP/2+ it just adds redundant TLS handshakes and hurts.</li>
+    <li><code>Cache-Control: no-store</code> silently disables bfcache — reach for <code>no-cache</code> or a short <code>max-age</code> if you need both freshness and instant back-nav.</li>
+    <li>A <code>&lt;link rel="preload"&gt;</code> for a resource the page doesn't use within a few seconds is a wasted download, and Lighthouse flags it as such.</li>
+    <li>Minifying already-minified vendor bundles a second time in your own build step burns CI time for near-zero byte savings.</li>
+    <li><code>font-display: swap</code> trades flash-of-invisible-text for flash-of-different-metrics — it can cause the exact CLS it was meant to avoid.</li>
+    <li>A service worker's <code>cache.addAll()</code> install step fails entirely if even one URL in the list 404s.</li>
+    <li>Preconnecting to more origins than the browser's connection budget allows just gets the excess ones silently dropped.</li>
+    <li>CLS session windows can span a client-side route change — a shift right after a "new page" in an SPA still counts against the same session.</li>
+    <li><code>requestIdleCallback</code> gives no guaranteed deadline under load — <code>scheduler.postTask</code>/<code>scheduler.yield</code> give actual priority control instead.</li>
+    <li>A synchronous <code>&lt;script&gt;</code> placed before your stylesheet blocks the parser regardless of what either one actually does.</li>
+  </ul>
+</section>
+
+<section class="unit" id="u11">
+  <header>
+    <h2><span class="n">11</span>Modern vs legacy</h2>
+    <span class="docs"><a href="https://developer.mozilla.org/en-US/docs/Glossary/Baseline/Compatibility">docs: MDN — Baseline browser compatibility</a></span>
+  </header>
+  <div class="tw">
+    <table class="grid">
+      <thead><tr><th>Task</th><th>Modern</th><th>Legacy still seen</th><th>Since</th></tr></thead>
+      <tbody>
+        <tr class="hi"><td>Measure interactivity</td><td>INP</td><td>FID</td><td>Core Web Vital since 2024-03-12</td></tr>
+        <tr class="hi"><td>Diagnose slow interactions</td><td>Long Animation Frames (LoAF)</td><td>Long Tasks API alone</td><td>Chrome 123</td></tr>
+        <tr class="hi"><td>Default dev/build bundler</td><td>Rolldown (Vite 8), Turbopack (Next.js 16), Rspack</td><td>webpack, or esbuild+Rollup split</td><td>Vite 8 · 2026-03, Next.js 16 · 2025-10</td></tr>
+        <tr><td>Preloading the next page</td><td>Speculation Rules (prerender/prefetch)</td><td><code>&lt;link rel="prerender"&gt;</code> (Chrome-only), manual prefetch</td><td>Chromium, experimental</td></tr>
+        <tr><td>Image format</td><td>AVIF, WebP fallback</td><td>JPEG/PNG only</td><td>Chrome 85, Safari 16.1</td></tr>
+        <tr><td>Off-viewport rendering</td><td><code>content-visibility: auto</code></td><td>manual virtualization only</td><td>Chrome 85</td></tr>
+        <tr><td>State-change animation</td><td>View Transitions API</td><td>CSS-only fade hacks, JS animation libraries</td><td>Baseline 2024 (same-doc)</td></tr>
+        <tr><td>Container-relative styling</td><td><code>@container</code> queries</td><td>JS-measured breakpoints, deep BEM naming discipline</td><td>Chrome 105, Baseline 2023</td></tr>
+        <tr><td>Font loading</td><td>variable font + <code>font-display</code> + metric overrides</td><td>multiple static weight files, no override</td><td>wide support</td></tr>
+        <tr><td>Idle/priority scheduling</td><td><code>scheduler.postTask</code>/<code>scheduler.yield</code></td><td><code>requestIdleCallback</code>, <code>setTimeout(fn, 0)</code></td><td>Chrome 94 (postTask), Chrome 129 (yield)</td></tr>
+        <tr><td>Text/asset compression</td><td>Brotli</td><td>gzip only</td><td>near-universal now</td></tr>
+        <tr><td>Cache busting</td><td>content hash + <code>immutable</code></td><td>query-string cache-busting (<code>?v=</code>)</td><td>long-standing</td></tr>
+        <tr><td>Transport</td><td>HTTP/3 (QUIC)</td><td>HTTP/2 only</td><td>Chrome 87, Firefox 88, Safari 16</td></tr>
+        <tr><td>Server-initiated hints</td><td>103 Early Hints</td><td>none — client waits for the full response</td><td>Chrome 103</td></tr>
+      </tbody>
+    </table>
+  </div>
+</section>
+
+<section class="unit" id="u12">
+  <header>
+    <h2><span class="n">12</span>Version timeline</h2>
+    <span class="docs"><a href="https://developer.chrome.com/blog">docs: Chrome for Developers blog</a> · <a href="https://chromestatus.com/roadmap">Chrome Platform Status roadmap</a></span>
+  </header>
+  <div class="tw">
+    <table class="grid">
+      <thead><tr><th>Date</th><th>Release</th><th>What changed</th></tr></thead>
+      <tbody>
+        <tr class="hi"><td>2026-09-08</td><td>Chrome/Edge 152 stable</td><td>current stable; DevTools ships alongside Lighthouse 13.x with a refined Insights sidebar and LoAF script attribution in the Performance panel</td></tr>
+        <tr class="hi"><td>2026-03-12</td><td>Vite 8.0</td><td><strong>newly default:</strong> Rolldown (Rust) becomes the single bundler for dev and build, 10-30× faster than the previous esbuild/Rollup split; requires Node 20.19+/22.12+</td></tr>
+        <tr><td>~2026-02 (Chrome ~145)</td><td>JPEG XL re-enabled behind a flag</td><td><code>#enable-jxl-image-format</code> returns, three years after Chrome removed native JPEG XL support — <strong>not</strong> a Baseline decision, no default support yet</td></tr>
+        <tr class="hi"><td>2025-10-22</td><td>Next.js 16.0</td><td><strong>newly default:</strong> Turbopack for both dev and build, replacing webpack; Cache Components and <code>cacheLife</code>/<code>cacheTag</code> stabilize</td></tr>
+        <tr class="hi"><td>2024-03-12</td><td>INP replaces FID</td><td>INP becomes the third, official Core Web Vital for interactivity; FID is retired from CrUX/Search scoring</td></tr>
+        <tr><td>2024-03 (Chrome 123)</td><td>Long Animation Frames ships</td><td><strong>newly stable:</strong> frame-level successor to Long Tasks, with per-script attribution; <code>web-vitals</code> v4+ uses it automatically for INP attribution</td></tr>
+        <tr><td>2022 (Chrome 103)</td><td>103 Early Hints</td><td>servers can send <code>preconnect</code>/<code>preload</code> hints before the final response is ready</td></tr>
+        <tr><td>2020–2022</td><td>HTTP/3 (QUIC) default-enabled</td><td>Chrome 87, Firefox 88, Safari 16 turn it on by default; now effectively universal support</td></tr>
+      </tbody>
+    </table>
+  </div>
+  <h3>What is next</h3>
+  <dl class="rows">
+    <dt>Cross-document View Transitions</dt>
+    <dd>expected to see wider adoption as more sites animate MPA-style navigations without a SPA rewrite</dd>
+    <dt>Speculation Rules</dt>
+    <dd>still Chromium-only — watch for another engine's position before relying on it beyond progressive enhancement</dd>
+    <dt>JPEG XL</dt>
+    <dd>re-enabled behind a flag, not yet a shipping decision — don't build a production dependency on it yet</dd>
+  </dl>
+  <div class="note"><p>The timeline is the fastest-rotting part of this card. Re-verify Chrome/Lighthouse version numbers and API stability against the <a href="https://developer.chrome.com/blog">Chrome for Developers blog</a>, <a href="https://web.dev/blog">web.dev</a> and <a href="https://caniuse.com">caniuse.com</a> before quoting one in an interview.</p></div>
+</section>
+</main>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.11.1/highlight.min.js"></script>
+<script>
+(function () {
+  if (window.hljs) { try { hljs.highlightAll(); } catch (e) { /* highlighting is decoration */ } }
+
+  var toggle = document.querySelector('.navtoggle');
+  var side = document.getElementById('side');
+  if (toggle) {
+    toggle.addEventListener('click', function () {
+      var open = document.body.classList.toggle('nav-open');
+      toggle.setAttribute('aria-expanded', open ? 'true' : 'false');
+    });
+  }
+  if (side) {
+    side.addEventListener('click', function (e) {
+      if (e.target.closest('a')) {
+        document.body.classList.remove('nav-open');
+        if (toggle) toggle.setAttribute('aria-expanded', 'false');
+      }
+    });
+  }
+
+  var links = Array.prototype.slice.call(document.querySelectorAll('.units a'));
+  var units = links.map(function (a) { return document.getElementById(a.getAttribute('href').slice(1)); });
+  var ticking = false;
+  function spy() {
+    ticking = false;
+    var best = 0;
+    for (var i = 0; i < units.length; i++) {
+      if (units[i] && units[i].getBoundingClientRect().top <= 140) best = i;
+    }
+    for (var j = 0; j < links.length; j++) {
+      if (j === best) links[j].setAttribute('aria-current', 'true');
+      else links[j].removeAttribute('aria-current');
+    }
+  }
+  function onScroll() {
+    if (!ticking) { ticking = true; window.requestAnimationFrame(spy); }
+  }
+  window.addEventListener('scroll', onScroll, { passive: true });
+  window.addEventListener('resize', onScroll, { passive: true });
+  spy();
+})();
+</script>
+</body>
+</html>

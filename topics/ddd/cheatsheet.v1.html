@@ -1,0 +1,438 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Domain-Driven Design (.NET) · cheatsheet · devbok</title>
+<link rel="preconnect" href="https://fonts.googleapis.com/">
+<link rel="preconnect" href="https://fonts.gstatic.com/" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Cascadia+Mono:wght@400;700&display=swap" rel="stylesheet">
+<style>
+:root { color-scheme: light;
+  --bg: #ffffff; --fg: #111111; --muted: #6b6b6b; --line: #111111; --soft: #f4f4f4; --border: #cccccc;
+  --accent: #be185d; --accent-soft: color-mix(in srgb, var(--accent) 12%, var(--bg));
+  --code: color-mix(in srgb, var(--accent) 70%, var(--fg));
+  --hl-kw: #a626a4; --hl-str: #50a14f; --hl-num: #986801; --hl-cmt: #6b6b6b; --hl-type: #0184bc; --hl-fn: #4078f2; --hl-attr: #986801; }
+@media (prefers-color-scheme: dark) { :root { color-scheme: dark;
+  --bg: #222222; --fg: #cccccc; --muted: #8f8f8f; --line: #111111; --soft: #2c2c2c; --border: #4a4a4a;
+  --accent: #ec659d; --accent-soft: color-mix(in srgb, var(--accent) 16%, var(--bg));
+  --hl-kw: #c678dd; --hl-str: #98c379; --hl-num: #d19a66; --hl-cmt: #8f8f8f; --hl-type: #56b6c2; --hl-fn: #61afef; --hl-attr: #e5c07b; } }
+
+* { box-sizing: border-box; min-width: 0; }
+html, body { margin: 0; padding: 0; }
+body { background: var(--bg); color: var(--fg); font-family: system-ui, sans-serif; font-size: 16px; line-height: 1.6; overflow-x: hidden; }
+h1, h2, h3 { font-family: system-ui, sans-serif; font-weight: 700; margin: 0; }
+h1 { font-size: 2em; }
+h2 { font-size: 1.5em; }
+h3 { font-size: 1.17em; }
+a { color: var(--accent); }
+a:focus-visible, button:focus-visible, .units a:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+p { margin: 0 0 10px; }
+
+/* sidebar, verbatim */
+.side { position: fixed; top: 0; bottom: 0; left: 0; width: 260px; display: flex; flex-direction: column; background: var(--bg); border-right: 2px solid var(--line); font-family: "Cascadia Mono", Consolas, monospace; font-size: 12px; z-index: 10; }
+.units { list-style: none; margin: 0; padding: 12px 0; overflow-y: auto; flex: 1; }
+.units a { display: grid; grid-template-columns: 2.5em 1fr; padding: 9px 20px 9px 17px; border-left: 3px solid transparent; color: var(--fg); text-decoration: none; line-height: 1.4; }
+.units .n { color: var(--muted); font-weight: 400; }
+.units a:hover { background: var(--soft); }
+.units a[aria-current="true"] { background: var(--accent-soft); border-left-color: var(--accent); font-weight: 700; }
+.side footer { padding: 12px 20px; border-top: 2px solid var(--line); color: var(--muted); line-height: 1.5; }
+
+.navtoggle { display: none; position: fixed; top: 10px; left: 10px; z-index: 20; background: var(--soft); color: var(--fg); border: 1px solid var(--border); border-radius: 4px; font-family: "Cascadia Mono", Consolas, monospace; font-size: 12px; padding: 8px 12px; cursor: pointer; }
+
+.content { margin-left: 260px; padding: 24px; max-width: 120ch; }
+
+/* hero, verbatim */
+.hero { margin: 0 0 24px; padding: 0 0 24px; border-bottom: 2px solid var(--line); }
+.hero h1 { margin: 0 0 8px; font-size: 2em; line-height: 1.2; font-weight: 700; }
+.hero .meta { margin: 0 0 12px; font-family: "Cascadia Mono", Consolas, monospace; font-size: 12px; color: var(--muted); }
+.hero .summary { margin: 0 0 12px; }
+.hero .chips { display: flex; flex-wrap: wrap; gap: 6px; margin: 0; }
+
+.chip { font-family: "Cascadia Mono", Consolas, monospace; font-size: 12px; text-transform: uppercase; background: var(--soft); border: 1px solid var(--border); border-radius: 4px; padding: 3px 8px; display: inline-block; }
+
+.unit { margin: 0 0 30px; padding: 0 0 22px; border-bottom: 1px solid var(--border); }
+.unit:last-of-type { border-bottom: 0; }
+.unit > header { display: flex; align-items: baseline; justify-content: space-between; gap: 12px; flex-wrap: wrap; margin: 0 0 10px; }
+.unit h2 { display: flex; align-items: baseline; gap: 10px; }
+.unit h2 .n { font-family: "Cascadia Mono", Consolas, monospace; font-size: 12px; color: var(--muted); font-weight: 400; border: 1px solid var(--border); border-radius: 3px; padding: 2px 6px; }
+.unit .docs { font-family: "Cascadia Mono", Consolas, monospace; font-size: 12px; }
+.unit .docs a { overflow-wrap: anywhere; }
+.unit h3 { margin: 14px 0 6px; }
+
+dl.rows { display: grid; grid-template-columns: minmax(140px, 1fr) minmax(0, 2.2fr); gap: 6px 16px; margin: 0 0 12px; }
+dl.rows dt { font-weight: 700; padding: 6px 0; border-top: 1px solid var(--border); }
+dl.rows dd { margin: 0; padding: 6px 0; border-top: 1px solid var(--border); }
+dl.rows dt:first-of-type, dl.rows dd:first-of-type { border-top: 0; }
+
+code { background: var(--soft); border: 1px solid var(--border); border-radius: 3px; padding: 0 .3em; color: var(--code); overflow-wrap: anywhere; }
+pre { background: var(--soft); border: 1px solid var(--border); border-radius: 4px; padding: 12px 14px; overflow-x: auto; line-height: 1.5; margin: 14px 0; max-width: 100%; }
+pre code { background: none; border: 0; border-radius: 0; padding: 0; color: inherit; white-space: pre; overflow-wrap: normal; }
+.hljs { color: var(--fg); background: transparent; }
+.hljs-keyword, .hljs-built_in, .hljs-literal, .hljs-selector-tag { color: var(--hl-kw); }
+.hljs-string, .hljs-regexp, .hljs-selector-attr { color: var(--hl-str); }
+.hljs-number, .hljs-symbol { color: var(--hl-num); }
+.hljs-comment, .hljs-quote, .hljs-doctag { color: var(--hl-cmt); font-style: italic; }
+.hljs-title, .hljs-title.class_, .hljs-type, .hljs-name, .hljs-section, .hljs-selector-class, .hljs-selector-pseudo { color: var(--hl-type); }
+.hljs-title.function_ { color: var(--hl-fn); }
+.hljs-meta, .hljs-attr, .hljs-attribute, .hljs-tag, .hljs-property, .hljs-variable { color: var(--hl-attr); }
+.hljs-template-tag, .hljs-template-variable { color: var(--hl-attr); }
+.hljs-code, .hljs-formula { color: var(--hl-cmt); }
+.hljs-operator, .hljs-subst, .hljs-punctuation, .hljs-params { color: var(--fg); }
+.hljs-emphasis { font-style: italic; } .hljs-strong { font-weight: 700; }
+
+.note { background: var(--soft); border-left: 3px solid var(--accent); padding: 10px 14px; margin: 12px 0; }
+.note ul, .note ol { margin: 0; padding-left: 1.2em; }
+ul.tight { margin: 0 0 12px; padding-left: 1.2em; }
+ul.tight li { margin: 0 0 5px; }
+
+.tw { overflow-x: auto; margin: 12px 0; }
+table.grid { border-collapse: collapse; width: 100%; font-size: 15px; }
+table.grid caption { text-align: left; font-family: "Cascadia Mono", Consolas, monospace; font-size: 12px; color: var(--muted); margin-bottom: 6px; }
+table.grid th, table.grid td { border-bottom: 1px solid var(--border); padding: 8px 10px; text-align: left; vertical-align: top; }
+table.grid th { color: var(--muted); font-weight: 700; font-family: "Cascadia Mono", Consolas, monospace; font-size: 12px; text-transform: uppercase; }
+table.grid td code { white-space: normal; }
+
+.timeline { list-style: none; margin: 0; padding: 0; }
+.timeline li { padding: 8px 0; border-top: 1px solid var(--border); display: grid; grid-template-columns: minmax(150px,auto) 1fr; gap: 12px; }
+.timeline li:first-child { border-top: 0; }
+.timeline .when { font-family: "Cascadia Mono", Consolas, monospace; font-size: 12px; color: var(--muted); white-space: nowrap; }
+
+@media (max-width: 720px) {
+  .navtoggle { display: block; }
+  .side { transform: translateX(-100%); transition: transform .18s ease; width: 82%; max-width: 300px; }
+  .side.open { transform: translateX(0); box-shadow: 2px 0 12px rgba(0,0,0,.3); }
+  .content { margin-left: 0; padding: 24px 16px 24px; padding-top: 56px; }
+  dl.rows { grid-template-columns: 1fr; }
+  dl.rows dt { border-top: 1px solid var(--border); padding-bottom: 0; }
+  dl.rows dd { border-top: 0; padding-top: 2px; }
+  .timeline li { grid-template-columns: 1fr; gap: 2px; }
+}
+
+@media print {
+  .side, .navtoggle { display: none !important; }
+  .content { margin-left: 0 !important; max-width: 100% !important; padding: 0 !important; }
+  body { background: #fff !important; color: #000 !important; }
+  * { color: #000 !important; background: transparent !important; box-shadow: none !important; text-shadow: none !important; }
+  a { color: #000 !important; text-decoration: none !important; }
+  .unit { break-inside: avoid; page-break-inside: avoid; border-bottom: 1px solid #000; }
+  pre, code, table.grid th, table.grid td, .chip, .note { border-color: #000 !important; }
+  code, .hljs, .hljs span { color: #000 !important; background: transparent !important; }
+}
+</style>
+</head>
+<body>
+<!-- devbok
+slug: ddd
+kind: cheatsheet
+version: 1
+topic: "Domain Driven Design (mainly for .NET developers)"
+prompt: cheatsheet.md@7ff70aff
+generated: 2026-09-08
+-->
+<button class="navtoggle" id="navtoggle" aria-expanded="false" aria-controls="side">Units ☰</button>
+<nav class="side" id="side" aria-label="Units">
+  <ol class="units">
+    <li><a href="#u01"><span class="n">01</span><span class="t">Building blocks</span></a></li>
+    <li><a href="#u02"><span class="n">02</span><span class="t">Invariants &amp; strong IDs</span></a></li>
+    <li><a href="#u03"><span class="n">03</span><span class="t">Domain events</span></a></li>
+    <li><a href="#u04"><span class="n">04</span><span class="t">Repositories &amp; specs</span></a></li>
+    <li><a href="#u05"><span class="n">05</span><span class="t">CQRS &amp; mediator</span></a></li>
+    <li><a href="#u06"><span class="n">06</span><span class="t">EF Core 10 mapping</span></a></li>
+    <li><a href="#u07"><span class="n">07</span><span class="t">Context mapping</span></a></li>
+    <li><a href="#u08"><span class="n">08</span><span class="t">Ubiquitous language</span></a></li>
+    <li><a href="#u09"><span class="n">09</span><span class="t">Monolith vs microservices</span></a></li>
+    <li><a href="#u10"><span class="n">10</span><span class="t">Gotchas &amp; pitfalls</span></a></li>
+    <li><a href="#u11"><span class="n">11</span><span class="t">Modern vs legacy</span></a></li>
+    <li><a href="#u12"><span class="n">12</span><span class="t">Version timeline</span></a></li>
+  </ol>
+  <footer>Domain-Driven Design (.NET) · cheatsheet · version 1 · 2026-09-08</footer>
+</nav>
+<main class="content">
+<header class="hero">
+  <h1>Domain-Driven Design (.NET)</h1>
+  <p class="meta">cheatsheet · .NET 10.0.12 (LTS) · released 2026-09-08</p>
+  <p class="summary">This card maps DDD's tactical building blocks and strategic tools onto the current .NET stack; since DDD itself carries no version, the version facts here pin to today's .NET 10 LTS and its ecosystem rather than to the pattern language. It favors the C# 14 / EF Core 10 idioms a lead engineer should reach for over the legacy patterns still common in existing codebases, including the recent move of MediatR and MassTransit to commercial licensing. Every claim below is dated to the release that made it true.</p>
+  <p class="chips"><span class="chip">.NET 10.0.12 LTS</span> <span class="chip">C# 14</span> <span class="chip">EF Core 10</span> <span class="chip">MediatR v13+ commercial</span> <span class="chip">MassTransit v9+ commercial</span> <span class="chip">Wolverine MIT</span></p>
+</header>
+
+<section class="unit" id="u01">
+  <header><h2><span class="n">01</span>Building blocks</h2><span class="docs"><a href="https://learn.microsoft.com/dotnet/csharp/whats-new/csharp-14">C# 14 field keyword</a></span></header>
+  <dl class="rows">
+    <dt>Entity</dt><dd>Identity-based equality; mutable over its lifetime; compare by <code>Id</code>, never by value. Behaviour lives on it, not in a service.</dd>
+    <dt>Value object</dt><dd>Structural equality, immutable, no identity. Use a C# <code>record</code>/<code>record struct</code>, or a source-generated wrapper (unit 02) instead of a bare primitive.</dd>
+    <dt>Aggregate root</dt><dd>The one entity a repository loads and saves; every invariant that must hold *right now* lives inside its boundary. Reference other aggregates by <code>Id</code>, never by object reference.</dd>
+    <dt>Aggregate boundary rule</dt><dd>One aggregate = one transaction = one lock. If two "invariants" never need to be consistent in the same instant, they belong to different aggregates.</dd>
+    <dt>Validated setter, C# 14</dt><dd>The <code>field</code> keyword lets a property validate without a hand-declared backing field.</dd>
+  </dl>
+  <pre><code class="language-csharp">// Value object: immutable record, structural equality for free
+public sealed record Money(decimal Amount, string Currency)
+{
+    public static Money Zero(string currency) =&gt; new(0m, currency);
+}
+
+// Entity / aggregate root with a C# 14 validated auto-property
+public sealed class Order
+{
+    public OrderId Id { get; }
+    public Money Total
+    {
+        get;
+        private set =&gt; field = value.Amount &gt;= 0
+            ? value
+            : throw new ArgumentOutOfRangeException(nameof(value), "Total cannot be negative.");
+    } = Money.Zero("USD");
+
+    private readonly List&lt;OrderLine&gt; _lines = new();
+    public IReadOnlyList&lt;OrderLine&gt; Lines =&gt; _lines;
+}</code></pre>
+</section>
+
+<section class="unit" id="u02">
+  <header><h2><span class="n">02</span>Invariants &amp; strong IDs</h2><span class="docs"><a href="https://github.com/ardalis/GuardClauses">Ardalis.GuardClauses</a> · <a href="https://github.com/SteveDunn/Vogen">Vogen</a></span></header>
+  <dl class="rows">
+    <dt>Guard clauses</dt><dd><code>Ardalis.GuardClauses</code> (v5.0.0, 2024-09-30) — fluent precondition checks at the top of constructors/methods instead of scattered <code>if</code> blocks.</dd>
+    <dt>Strongly-typed IDs</dt><dd><code>Vogen</code> source-generates value objects (<code>CustomerId</code>, <code>Money</code>) from primitives, blocking <code>default</code>, bare <code>new</code>, and reflection bypass at compile time. Kills primitive obsession without hand-rolled wrapper boilerplate.</dd>
+    <dt>Construction</dt><dd>Private constructor + a <code>Create</code>/<code>Reconstitute</code> factory that returns a <code>Result</code> or throws — never a public parameterless constructor on a domain type.</dd>
+    <dt>Setter visibility</dt><dd>Public getters, private setters mutated only through named methods (<code>Ship()</code>, <code>Cancel()</code>) that enforce invariants and raise domain events (unit 03).</dd>
+  </dl>
+  <pre><code class="language-csharp">using Ardalis.GuardClauses;
+
+public sealed class Customer
+{
+    public CustomerId Id { get; }
+    public string Email { get; private set; }
+
+    private Customer(CustomerId id, string email)
+    {
+        Id = id;
+        Email = Guard.Against.NullOrWhiteSpace(email);
+    }
+
+    public static Customer Create(CustomerId id, string email) =&gt; new(id, email);
+}
+
+// Vogen: source-generated strongly-typed id, no runtime allocation cost
+[ValueObject&lt;Guid&gt;]
+public readonly partial struct CustomerId { }</code></pre>
+</section>
+
+<section class="unit" id="u03">
+  <header><h2><span class="n">03</span>Domain events</h2><span class="docs"><a href="https://learn.microsoft.com/ef/core/saving/change-tracking/events">EF Core SaveChanges events</a></span></header>
+  <dl class="rows">
+    <dt>Raise</dt><dd>An aggregate method appends to its own <code>_domainEvents</code> list; it never calls a bus, mediator or dispatcher directly — that would couple the domain model to infrastructure.</dd>
+    <dt>Collect</dt><dd>A shared <code>Entity</code>/<code>AggregateRoot</code> base class exposes <code>DomainEvents</code> read-only and a protected <code>Raise(...)</code>/<code>ClearDomainEvents()</code> pair.</dd>
+    <dt>Dispatch</dt><dd>An EF Core <code>SaveChangesInterceptor</code> (or a mediator pipeline step) walks tracked aggregates after <code>SaveChangesAsync</code> and publishes what they collected, inside the same transaction where possible.</dd>
+    <dt>Cross-process delivery</dt><dd>The outbox pattern: write the event row in the same DB transaction as the state change, then a separate relay publishes it — avoids the dual-write problem between DB commit and bus publish.</dd>
+    <dt>Library support</dt><dd><b>Wolverine</b> ships a transactional inbox/outbox out of the box; MediatR needs a hand-built dispatcher; MassTransit's outbox needs the (now commercial, unit 05) package.</dd>
+  </dl>
+  <pre><code class="language-csharp">public abstract class AggregateRoot
+{
+    private readonly List&lt;IDomainEvent&gt; _events = new();
+    public IReadOnlyList&lt;IDomainEvent&gt; DomainEvents =&gt; _events;
+    protected void Raise(IDomainEvent e) =&gt; _events.Add(e);
+    public void ClearDomainEvents() =&gt; _events.Clear();
+}
+
+// Dispatch after commit, from a SaveChangesInterceptor.SavedChangesAsync override
+foreach (var agg in ChangeTracker.Entries&lt;AggregateRoot&gt;().Select(e =&gt; e.Entity))
+{
+    foreach (var evt in agg.DomainEvents) await _publisher.Publish(evt);
+    agg.ClearDomainEvents();
+}</code></pre>
+</section>
+
+<section class="unit" id="u04">
+  <header><h2><span class="n">04</span>Repositories &amp; specifications</h2><span class="docs"><a href="https://specification.ardalis.com/">Ardalis.Specification</a></span></header>
+  <dl class="rows">
+    <dt>Repository granularity</dt><dd>One repository per aggregate root, never per table and never one generic <code>IRepository&lt;T&gt;</code> for every entity — a fixed generic surface forces every aggregate through the same query shape.</dd>
+    <dt>Specification pattern</dt><dd>Encapsulate a reusable query (filter + include + sort + paging) as an object implementing <code>ISpecification&lt;T&gt;</code>; the repository takes the spec instead of exposing <code>IQueryable&lt;T&gt;</code> to callers.</dd>
+    <dt>Leaking <code>IQueryable</code></dt><dd>Returning <code>IQueryable&lt;T&gt;</code> from a repository leaks the ORM (and, eventually, the schema) past the domain boundary — return materialized lists or apply a spec.</dd>
+    <dt>Read models</dt><dd>Queries for UI/reporting bypass the aggregate/repository entirely and hit the DB (or a projection) directly — CQRS's query side, unit 05.</dd>
+  </dl>
+  <pre><code class="language-csharp">public sealed class ActiveOrdersForCustomerSpec : Specification&lt;Order&gt;
+{
+    public ActiveOrdersForCustomerSpec(CustomerId id)
+    {
+        Query.Where(o =&gt; o.CustomerId == id &amp;&amp; o.Status != OrderStatus.Cancelled)
+             .Include(o =&gt; o.Lines)
+             .OrderByDescending(o =&gt; o.PlacedAtUtc);
+    }
+}
+
+// repository.ListAsync(new ActiveOrdersForCustomerSpec(customerId));</code></pre>
+</section>
+
+<section class="unit" id="u05">
+  <header><h2><span class="n">05</span>CQRS &amp; mediator</h2><span class="docs"><a href="https://wolverinefx.net/">Wolverine</a> · <a href="https://www.mediatr.io/">MediatR licensing</a></span></header>
+  <dl class="rows">
+    <dt>CQRS</dt><dd>Separate the write side (commands mutate one aggregate, return little or nothing) from the read side (queries return DTOs, skip the domain model entirely).</dd>
+    <dt>Mediator pipeline</dt><dd>A command/query handler wrapped by cross-cutting behaviours — validation, logging, transaction, outbox — resolved and invoked by a mediator instead of chained by hand in each handler.</dd>
+    <dt>MediatR licensing</dt><dd>Commercial since <b>v13.0.0</b> (2025-07-02); current is <b>14.2.0</b> (2026-07-02). Tiers via mediatr.io: Standard $799/yr (≤10 devs), Professional $1,499/yr (≤50), Enterprise $6,399/yr (unlimited). Free "Community License" for orgs under $5M revenue <i>and</i> $10M raised (bundles AutoMapper).</dd>
+    <dt>Wolverine</dt><dd>MIT-licensed in-process command bus <i>and</i> out-of-process messaging from Jeremy Miller/JasperFx — the drop-in-shaped replacement teams are migrating to; adds built-in transactional inbox/outbox.</dd>
+    <dt>MassTransit licensing</dt><dd>Also went commercial: current <b>9.2.1</b> (2026-08-26) "must be licensed"; versions before the change remain under the old permissive OSS license.</dd>
+  </dl>
+  <div class="tw"><table class="grid">
+    <caption>Command handler shape, mediator vs Wolverine</caption>
+    <thead><tr><th>Concern</th><th>MediatR (pre-v13, pinned)</th><th>Wolverine</th></tr></thead>
+    <tbody>
+      <tr><td>Handler discovery</td><td><code>IRequestHandler&lt;TReq,TRes&gt;</code> via DI registration</td><td>Convention: a <code>Handle</code> method, no interface needed</td></tr>
+      <tr><td>Cross-cutting behaviour</td><td><code>IPipelineBehavior&lt;,&gt;</code> chain</td><td>Middleware policies, source-generated per handler</td></tr>
+      <tr><td>Outbox</td><td>Hand-wired or via a separate package</td><td>Built in (EF Core / Marten / RavenDB)</td></tr>
+    </tbody>
+  </table></div>
+</section>
+
+<section class="unit" id="u06">
+  <header><h2><span class="n">06</span>EF Core 10 mapping</h2><span class="docs"><a href="https://learn.microsoft.com/ef/core/what-is-new/ef-core-10.0/whatsnew">EF Core 10 what's new</a></span></header>
+  <dl class="rows">
+    <dt>Value objects: complex types</dt><dd>EF Core 10 recommends <b>complex types</b> over owned entity types for value objects — they have real value semantics: copy on assign, compared by content, no shadow key.</dd>
+    <dt>Owned entity types (legacy)</dt><dd>Reference/identity semantics: <code>customer.Billing = customer.Shipping</code> silently does the wrong thing, and owned types never supported <code>ExecuteUpdateAsync</code>.</dd>
+    <dt>JSON-backed complex types</dt><dd><code>ComplexProperty(...).ToJson()</code> maps a complex type straight to a JSON column — no manual converter.</dd>
+    <dt>Struct complex types</dt><dd>Complex types can now be <code>readonly record struct</code>, avoiding a heap allocation per value object per row.</dd>
+    <dt><code>ExecuteUpdateAsync</code></dt><dd>Now works against JSON columns and complex-type properties — bulk-update a <code>Money</code>/<code>Address</code> field without loading the aggregate.</dd>
+    <dt>Named query filters</dt><dd>Multiple, independently toggleable filters per entity (<code>HasQueryFilter("softDelete", ...)</code>, <code>HasQueryFilter("tenant", ...)</code>) — combine soft-delete with multi-tenancy without one giant AND'd predicate.</dd>
+  </dl>
+  <pre><code class="language-csharp">modelBuilder.Entity&lt;Order&gt;(b =&gt;
+{
+    b.ComplexProperty(o =&gt; o.Total);                 // value semantics, no owned-type identity
+    b.ComplexProperty(o =&gt; o.ShippingAddress).ToJson(); // one JSON column, still strongly typed
+
+    b.HasQueryFilter("softDelete", o =&gt; !o.IsDeleted);
+    b.HasQueryFilter("tenant", o =&gt; o.TenantId == _tenant.Current);
+});</code></pre>
+</section>
+
+<section class="unit" id="u07">
+  <header><h2><span class="n">07</span>Context mapping</h2><span class="docs"><a href="https://martinfowler.com/bliki/BoundedContext.html">Fowler: Bounded Context</a></span></header>
+  <dl class="rows">
+    <dt>Bounded context</dt><dd>A boundary of linguistic and model consistency — "Order" means one specific thing inside it. It is a modelling boundary, not automatically a deployment boundary (unit 09).</dd>
+    <dt>Anti-corruption layer (ACL)</dt><dd>A translation adapter at the edge of your context that converts a legacy or upstream model into your ubiquitous language, so foreign concepts never leak inward.</dd>
+    <dt>Skipping the ACL</dt><dd>The most common context-mapping mistake: "just reuse their DTO for now" — the legacy model's shape becomes permanent because nothing forces the translation later.</dd>
+  </dl>
+  <div class="tw"><table class="grid">
+    <caption>Context mapping patterns</caption>
+    <thead><tr><th>Pattern</th><th>Use when</th></tr></thead>
+    <tbody>
+      <tr><td>Shared kernel</td><td>Two teams truly co-own one small, stable model (rare — creates coupling).</td></tr>
+      <tr><td>Customer / supplier</td><td>Downstream team has influence over upstream's roadmap and priorities.</td></tr>
+      <tr><td>Conformist</td><td>Downstream has no influence; it accepts the upstream model as-is.</td></tr>
+      <tr><td>Anti-corruption layer</td><td>Downstream wants its own model and will pay to translate at the boundary.</td></tr>
+      <tr><td>Open host service / published language</td><td>One upstream serves many consumers through a stable, documented contract.</td></tr>
+      <tr><td>Separate ways</td><td>No meaningful integration benefit — duplicate the small overlap instead.</td></tr>
+    </tbody>
+  </table></div>
+</section>
+
+<section class="unit" id="u08">
+  <header><h2><span class="n">08</span>Ubiquitous language</h2><span class="docs"><a href="https://martinfowler.com/bliki/UbiquitousLanguage.html">Fowler: Ubiquitous Language</a></span></header>
+  <dl class="rows">
+    <dt>Ubiquitous language</dt><dd>A model-derived vocabulary shared by domain experts and code inside one bounded context — the class/method names in the code <i>are</i> the words the business uses.</dd>
+    <dt>Event storming</dt><dd>A workshop technique (orange stickies = domain events, in timeline order) used to discover bounded contexts and aggregate boundaries before writing a line of code.</dd>
+    <dt>Same word, two meanings</dt><dd>The classic smell that reveals a missing context boundary: "Customer" in Sales and "Customer" in Support silently mean different things, and one shared class is quietly wrong for one of them.</dd>
+    <dt>Glossary drift</dt><dd>A language that isn't reinforced in code review decays back into implementation jargon within a few sprints — treat the glossary as a living artifact, not a one-time deliverable.</dd>
+  </dl>
+</section>
+
+<section class="unit" id="u09">
+  <header><h2><span class="n">09</span>Monolith vs microservices</h2><span class="docs"><a href="https://learn.microsoft.com/dotnet/architecture/microservices/">.NET microservices architecture guide</a></span></header>
+  <dl class="rows">
+    <dt>Bounded context = natural seam</dt><dd>Whether you ship one deployable or many, the bounded context is the unit that should never be split mid-boundary — splitting it creates a distributed monolith, not a service.</dd>
+    <dt>Modular monolith</dt><dd>Each bounded context is a separate project/assembly with <code>internal</code> types at its edges and an architecture test (e.g. a dependency-direction unit test) enforcing that other modules only reach it through its public contract.</dd>
+    <dt>When to extract a service</dt><dd>Split out only when a context needs its own scaling profile, its own deploy cadence, or its own team boundary (Conway's law) — not by default, and not speculatively.</dd>
+    <dt>Team topology</dt><dd>A service boundary that doesn't match a team boundary tends to need cross-team coordination for every change — the org chart leaks into the architecture either way.</dd>
+  </dl>
+</section>
+
+<section class="unit" id="u10">
+  <header><h2><span class="n">10</span>Gotchas &amp; pitfalls</h2></header>
+  <ul class="tight">
+    <li>Anemic domain model — public setters everywhere, all logic in "services": a smell that behaviour has leaked off the aggregate.</li>
+    <li>Fat aggregate — loading unrelated data through one root to save a join kills performance; split by invariant, not by "everything sort of related."</li>
+    <li>Repository returning <code>IQueryable&lt;T&gt;</code> — leaks the ORM past the domain boundary; return materialized results or a specification instead.</li>
+    <li>Domain events raised but never dispatched — forgetting to wire the interceptor/pipeline step silently drops behaviour, with no exception to notice.</li>
+    <li>Upgrading MediatR blind — pulling <code>v13+</code> without reading the license terms bills the team; pin to the last OSS <code>12.x</code> or move to Wolverine first.</li>
+    <li>Owned entity types for money/address — EF tracks them by reference, so <code>a.Address = b.Address</code> doesn't behave like a value copy; use complex types (EF Core 10+) instead.</li>
+    <li>Anti-corruption layer skipped "to save time" — the legacy model's shape leaks in and never leaves.</li>
+    <li>Generic <code>IRepository&lt;T&gt;</code> for every entity — forces one query shape on every aggregate and defeats the specification pattern.</li>
+    <li>Value object with a public parameterless constructor — an EF materialization backdoor that bypasses every invariant you wrote.</li>
+    <li>Publishing the whole aggregate as an integration event — couples every consumer to your internal shape; publish a projected DTO in the published language instead.</li>
+  </ul>
+</section>
+
+<section class="unit" id="u11">
+  <header><h2><span class="n">11</span>Modern vs legacy</h2></header>
+  <div class="tw"><table class="grid">
+    <thead><tr><th>Task</th><th>Modern</th><th>Legacy still seen</th><th>Since</th></tr></thead>
+    <tbody>
+      <tr><td>Value objects in EF Core</td><td>Complex types (<code>ComplexProperty</code>)</td><td>Owned entity types (<code>OwnsOne</code>)</td><td>EF Core 10, Nov 2025</td></tr>
+      <tr><td>Mediator / CQRS pipeline</td><td>Wolverine (MIT), or MediatR pinned to 12.x</td><td>MediatR ≥13 unlicensed in prod</td><td>MediatR 13.0, Jul 2025</td></tr>
+      <tr><td>Messaging / integration events</td><td>Wolverine, or MassTransit pinned pre-license</td><td>MassTransit ≥9 unlicensed in prod</td><td>MassTransit 9.0, 2026</td></tr>
+      <tr><td>Validated property</td><td><code>field</code> keyword in the setter</td><td>Hand-declared backing field + property</td><td>C# 14 / .NET 10</td></tr>
+      <tr><td>Strongly-typed IDs</td><td>Source-generated value object (Vogen)</td><td>Raw <code>Guid</code>/<code>int</code> primitive</td><td>ongoing</td></tr>
+      <tr><td>Query filters</td><td>Multiple named filters per entity</td><td>Single unnamed filter, hand-combined predicate</td><td>EF Core 10</td></tr>
+      <tr><td>JSON-backed value object</td><td><code>ComplexProperty(...).ToJson()</code></td><td>Manual <code>ValueConverter</code> to a JSON string</td><td>EF Core 10</td></tr>
+      <tr><td>Precondition checks</td><td>Fluent guard clauses (Ardalis.GuardClauses)</td><td>Hand-rolled <code>if (x is null) throw</code> blocks</td><td>ongoing</td></tr>
+      <tr><td>Service decomposition</td><td>Modular monolith, extract per bounded context on demand</td><td>Microservices-by-default, split along table/CRUD lines</td><td>ongoing</td></tr>
+    </tbody>
+  </table></div>
+</section>
+
+<section class="unit" id="u12">
+  <header><h2><span class="n">12</span>Version timeline</h2></header>
+  <ol class="timeline">
+    <li><span class="when">2026-09-08</span><span>.NET 10.0.12 — current .NET 10 LTS servicing patch (this card's reference stack).</span></li>
+    <li><span class="when">2026-08-26</span><span>MassTransit 9.2.1 — license changed to commercial for new versions; pre-change versions remain under the old OSS license.</span></li>
+    <li><span class="when">2026-07-02</span><span>MediatR 14.2.0 — still under the commercial license introduced at v13.</span></li>
+    <li><span class="when">2025-11-11</span><span>.NET 10 GA (LTS, supported into Nov 2028); C# 14 ships — <code>field</code> keyword, extension members and null-conditional assignment go stable.</span></li>
+    <li><span class="when">2025-11</span><span>EF Core 10 GA — complex types recommended over owned entity types for value objects; <code>.ToJson()</code> for complex types; named, independently-toggleable query filters; <code>ExecuteUpdateAsync</code> reaches JSON/complex properties.</span></li>
+    <li><span class="when">2025-07-02</span><span>MediatR 13.0.0 — commercial license introduced (paid tiers, plus a free Community License under revenue/capital-raised thresholds).</span></li>
+    <li><span class="when">2024-09-30</span><span>Ardalis.GuardClauses 5.0.0.</span></li>
+  </ol>
+</section>
+
+</main>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.11.1/highlight.min.js"></script>
+<script>
+(function () {
+  try { if (window.hljs) hljs.highlightAll(); } catch (e) { /* decoration only */ }
+
+  var toggle = document.getElementById('navtoggle');
+  var side = document.getElementById('side');
+  if (toggle && side) {
+    toggle.addEventListener('click', function () {
+      var open = side.classList.toggle('open');
+      toggle.setAttribute('aria-expanded', open ? 'true' : 'false');
+    });
+    side.querySelectorAll('a').forEach(function (a) {
+      a.addEventListener('click', function () {
+        side.classList.remove('open');
+        toggle.setAttribute('aria-expanded', 'false');
+      });
+    });
+  }
+
+  var links = Array.prototype.slice.call(document.querySelectorAll('.units a'));
+  var sections = links.map(function (a) { return document.querySelector(a.getAttribute('href')); });
+  var ticking = false;
+  function onScroll() {
+    if (ticking) return;
+    ticking = true;
+    requestAnimationFrame(function () {
+      var current = null;
+      for (var i = 0; i < sections.length; i++) {
+        var el = sections[i];
+        if (el && el.getBoundingClientRect().top <= 140) current = links[i];
+      }
+      links.forEach(function (a) { a.removeAttribute('aria-current'); });
+      if (current) current.setAttribute('aria-current', 'true');
+      else if (links[0]) links[0].setAttribute('aria-current', 'true');
+      ticking = false;
+    });
+  }
+  window.addEventListener('scroll', onScroll, { passive: true });
+  onScroll();
+})();
+</script>
+</body>
+</html>

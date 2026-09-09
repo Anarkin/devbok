@@ -1,0 +1,968 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Domain-Driven Design (.NET) · study · devbok</title>
+<link rel="preconnect" href="https://fonts.googleapis.com/">
+<link rel="preconnect" href="https://fonts.gstatic.com/" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Cascadia+Mono&display=swap" rel="stylesheet">
+<style>
+:root { color-scheme: light;
+  --bg: #ffffff; --fg: #111111; --muted: #6b6b6b; --line: #111111; --soft: #f4f4f4; --border: #cccccc;
+  --accent: #be185d; --accent-soft: color-mix(in srgb, var(--accent) 12%, var(--bg));
+  --code: color-mix(in srgb, var(--accent) 70%, var(--fg));
+  --hl-kw: #a626a4; --hl-str: #50a14f; --hl-num: #986801; --hl-cmt: #6b6b6b; --hl-type: #0184bc; --hl-fn: #4078f2; --hl-attr: #986801; }
+@media (prefers-color-scheme: dark) { :root { color-scheme: dark;
+  --bg: #222222; --fg: #cccccc; --muted: #8f8f8f; --line: #111111; --soft: #2c2c2c; --border: #4a4a4a;
+  --accent: #ec659d; --accent-soft: color-mix(in srgb, var(--accent) 16%, var(--bg));
+  --hl-kw: #c678dd; --hl-str: #98c379; --hl-num: #d19a66; --hl-cmt: #8f8f8f; --hl-type: #56b6c2; --hl-fn: #61afef; --hl-attr: #e5c07b; } }
+
+* { box-sizing: border-box; }
+html, body { margin: 0; padding: 0; }
+body { background: var(--bg); color: var(--fg); font-family: system-ui, sans-serif; font-size: 16px; line-height: 1.6; }
+h1, h2, h3 { font-family: system-ui, sans-serif; font-weight: 700; margin: 0; }
+h1 { font-size: 2em; line-height: 1.2; }
+h2 { font-size: 1.5em; margin: 0 0 14px; padding-top: 48px; scroll-margin-top: 12px; }
+h3 { font-size: 1.17em; margin: 20px 0 10px; }
+p { margin: 0 0 14px; }
+a { color: var(--accent); }
+ul, ol { padding-left: 1.3em; }
+li { margin: 4px 0; }
+img, svg { max-width: 100%; }
+
+/* hero, verbatim */
+.hero { margin: 0 0 24px; padding: 0 0 24px; border-bottom: 2px solid var(--line); }
+.hero h1 { margin: 0 0 8px; font-size: 2em; line-height: 1.2; font-weight: 700; }
+.hero .meta { margin: 0 0 12px; font-family: "Cascadia Mono", Consolas, monospace; font-size: 12px; color: var(--muted); }
+.hero .summary { margin: 0 0 12px; }
+.hero .chips { display: flex; flex-wrap: wrap; gap: 6px; margin: 0; }
+
+/* sidebar, verbatim */
+.side { position: fixed; top: 0; bottom: 0; left: 0; width: 260px; display: flex; flex-direction: column; background: var(--bg); border-right: 2px solid var(--line); font-family: "Cascadia Mono", Consolas, monospace; font-size: 12px; }
+.units { list-style: none; margin: 0; padding: 12px 0; overflow-y: auto; flex: 1; }
+.units a { display: grid; grid-template-columns: 2.5em 1fr; padding: 9px 20px 9px 17px; border-left: 3px solid transparent; color: var(--fg); text-decoration: none; line-height: 1.4; min-width: 0; }
+.units .n { color: var(--muted); font-weight: 400; }
+.units .t { min-width: 0; overflow-wrap: anywhere; }
+.units a:hover { background: var(--soft); }
+.units a[aria-current="true"] { background: var(--accent-soft); border-left-color: var(--accent); font-weight: 700; }
+.side footer { padding: 12px 20px; border-top: 2px solid var(--line); color: var(--muted); line-height: 1.5; }
+
+/* code palette, verbatim */
+code { background: var(--soft); border: 1px solid var(--border); border-radius: 3px; padding: 0 .3em; color: var(--code); overflow-wrap: anywhere; }
+pre { background: var(--soft); border: 1px solid var(--border); border-radius: 4px; padding: 12px 14px; overflow-x: auto; line-height: 1.5; margin: 14px 0; max-width: 100%; }
+pre code { background: none; border: 0; border-radius: 0; padding: 0; color: inherit; white-space: pre; overflow-wrap: normal; }
+.hljs { color: var(--fg); background: transparent; }
+.hljs-keyword, .hljs-built_in, .hljs-literal, .hljs-selector-tag { color: var(--hl-kw); }
+.hljs-string, .hljs-regexp, .hljs-selector-attr { color: var(--hl-str); }
+.hljs-number, .hljs-symbol { color: var(--hl-num); }
+.hljs-comment, .hljs-quote, .hljs-doctag { color: var(--hl-cmt); font-style: italic; }
+.hljs-title, .hljs-title.class_, .hljs-type, .hljs-name, .hljs-section, .hljs-selector-class, .hljs-selector-pseudo { color: var(--hl-type); }
+.hljs-title.function_ { color: var(--hl-fn); }
+.hljs-meta, .hljs-attr, .hljs-attribute, .hljs-tag, .hljs-property, .hljs-variable { color: var(--hl-attr); }
+.hljs-template-tag, .hljs-template-variable { color: var(--hl-attr); }
+.hljs-code, .hljs-formula { color: var(--hl-cmt); }
+.hljs-operator, .hljs-subst, .hljs-punctuation, .hljs-params { color: var(--fg); }
+.hljs-emphasis { font-style: italic; } .hljs-strong { font-weight: 700; }
+
+/* layout */
+.content { margin-left: 260px; padding: 24px; max-width: 80ch; min-width: 0; }
+.unit { min-width: 0; }
+.unit > .table-wrap, .unit > pre { max-width: 100%; }
+
+/* components */
+.chip { display: inline-block; font-family: "Cascadia Mono", Consolas, monospace; font-size: 12px; text-transform: uppercase; background: var(--soft); border: 1px solid var(--border); border-radius: 4px; padding: 3px 8px; color: var(--fg); }
+.callout { background: var(--soft); border-left: 3px solid var(--accent); padding: 10px 14px; margin: 16px 0; border-radius: 0 4px 4px 0; min-width: 0; }
+.callout p:last-child { margin-bottom: 0; }
+.callout .label { display: block; text-transform: uppercase; font-family: "Cascadia Mono", Consolas, monospace; font-size: 12px; color: var(--accent); margin-bottom: 6px; font-weight: 700; }
+.try-it { border: 1px solid var(--border); border-radius: 4px; padding: 12px 14px; margin: 16px 0; min-width: 0; }
+.try-it .label { display: block; text-transform: uppercase; font-family: "Cascadia Mono", Consolas, monospace; font-size: 12px; color: var(--muted); margin-bottom: 8px; font-weight: 700; }
+.try-it ol { margin: 0; }
+details.qa { border: 1px solid var(--border); border-radius: 4px; padding: 10px 14px; margin: 10px 0; min-width: 0; }
+details.qa summary { cursor: pointer; font-weight: 700; }
+details.qa summary::marker { color: var(--accent); }
+details.qa .a { margin-top: 10px; padding-top: 10px; border-top: 1px solid var(--border); }
+details.solution { border: 1px dashed var(--border); border-radius: 4px; padding: 8px 12px; margin-top: 10px; }
+details.solution summary { cursor: pointer; color: var(--muted); font-family: "Cascadia Mono", Consolas, monospace; font-size: 12px; text-transform: uppercase; }
+.table-wrap { overflow-x: auto; margin: 16px 0; }
+table { border-collapse: collapse; width: 100%; }
+th, td { border-bottom: 1px solid var(--border); text-align: left; padding: 6px 10px; vertical-align: top; }
+th { color: var(--muted); font-weight: 700; font-family: "Cascadia Mono", Consolas, monospace; font-size: 12px; text-transform: uppercase; white-space: normal; }
+.divider { font-family: "Cascadia Mono", Consolas, monospace; font-size: 12px; text-transform: uppercase; color: var(--muted); border-top: 1px solid var(--border); margin: 28px 0 12px; padding-top: 12px; }
+.qa-group:first-of-type .divider { margin-top: 8px; }
+.sources { font-size: 13px; color: var(--muted); margin-top: 10px; }
+.sources a { color: var(--muted); }
+.cheat-box { border: 1px solid var(--border); border-radius: 4px; padding: 6px 18px; background: var(--soft); }
+.cheat-box li { margin: 10px 0; }
+:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+
+.toggle-side { display: none; }
+@media (max-width: 720px) {
+  .side { transform: translateX(-100%); transition: transform .2s ease; z-index: 20; box-shadow: 2px 0 8px rgba(0,0,0,.2); }
+  .side.open { transform: translateX(0); }
+  .content { margin-left: 0; padding: 60px 16px 24px; max-width: 100%; }
+  .toggle-side { display: block; position: fixed; top: 10px; left: 10px; z-index: 30; width: 40px; height: 40px; border-radius: 4px; border: 1px solid var(--border); background: var(--soft); color: var(--fg); font-family: "Cascadia Mono", Consolas, monospace; font-size: 16px; }
+}
+</style>
+</head>
+<body>
+<!-- devbok
+slug: ddd
+kind: study
+version: 1
+topic: "Domain Driven Design (mainly for .NET developers)"
+prompt: study.md@e02cbdee
+generated: 2026-09-08
+-->
+<button class="toggle-side" type="button" aria-label="Toggle unit list" aria-controls="side-nav">&#9776;</button>
+<nav class="side" id="side-nav" aria-label="Units">
+  <ol class="units">
+    <li><a href="#u01" aria-current="true"><span class="n">01</span><span class="t">Foundations &amp; Ubiquitous Language</span></a></li>
+    <li><a href="#u02"><span class="n">02</span><span class="t">Bounded Contexts &amp; Context Mapping</span></a></li>
+    <li><a href="#u03"><span class="n">03</span><span class="t">Entities &amp; Value Objects</span></a></li>
+    <li><a href="#u04"><span class="n">04</span><span class="t">Aggregates &amp; Invariants</span></a></li>
+    <li><a href="#u05"><span class="n">05</span><span class="t">Layering: Domain, Application, Repositories</span></a></li>
+    <li><a href="#u06"><span class="n">06</span><span class="t">Domain Events &amp; Integration</span></a></li>
+    <li><a href="#u07"><span class="n">07</span><span class="t">CQRS &amp; the Application Layer</span></a></li>
+    <li><a href="#u08"><span class="n">08</span><span class="t">Event Sourcing</span></a></li>
+    <li><a href="#u09"><span class="n">09</span><span class="t">Modular Monoliths &amp; Team Boundaries</span></a></li>
+    <li><a href="#u10"><span class="n">10</span><span class="t">Testing the Domain Model</span></a></li>
+    <li><a href="#u11"><span class="n">11</span><span class="t">Anti-Patterns &amp; Legacy Adoption</span></a></li>
+    <li><a href="#u12"><span class="n">12</span><span class="t">The Big Q&amp;A</span></a></li>
+    <li><a href="#u13"><span class="n">13</span><span class="t">Night-Before Cheat Sheet</span></a></li>
+  </ol>
+  <footer>Domain-Driven Design (.NET) · study · version 1 · 2026-09-08</footer>
+</nav>
+<div class="content">
+  <header class="hero">
+    <h1>Domain-Driven Design (.NET)</h1>
+    <p class="meta">study · .NET 10 / EF Core 10 (LTS) · released 2025-11-11</p>
+    <p class="summary">Domain-Driven Design has no version number of its own — Eric Evans' 2003 book still anchors the vocabulary — so this guide pins "latest" to the .NET 10 / EF Core 10 LTS release (November 2025) that today's DDD code actually runs on. Two changes from the last year matter for interviews: EF Core 10 now recommends complex types over owned entity types for value objects, because owned entities carry hidden identity that breaks the copy-by-value semantics DDD expects; and MediatR, the de-facto in-process mediator for CQRS-flavoured .NET codebases, moved to a commercial license in 2025, pushing teams toward Wolverine or a short hand-rolled mediator. The rest of the field is stable: bounded contexts, aggregates and ubiquitous language remain the strategic core, while the industry's pendulum has swung back from microservices-by-default toward modular monoliths that keep bounded contexts as in-process modules until a real scaling or team reason forces a split. Pitched for a lead/principal engineer: expect trade-off and system-design conversations more than definitional recall, with the fundamentals covered fast, as verification rather than first exposure.</p>
+    <p class="chips">
+      <span class="chip">Strategic + Tactical Design</span>
+      <span class="chip">Bounded Context</span>
+      <span class="chip">.NET 10 / EF Core 10</span>
+      <span class="chip">CQRS</span>
+      <span class="chip">Modular Monolith</span>
+    </p>
+  </header>
+
+  <section class="unit" id="u01">
+    <h2>01 · Foundations &amp; Ubiquitous Language</h2>
+    <p>DDD starts from a diagnosis, not a technique: in any system big enough to matter, most of the difficulty is <em>essential</em> complexity — the actual tangle of rules the business runs on — not the <em>accidental</em> complexity of frameworks and wiring. Eric Evans' 2003 book bet that the highest-leverage move is to make the code's structure mirror the business's structure so closely that a domain expert and a developer can point at the same class and mean the same thing. The mechanism for that is the <strong>ubiquitous language</strong>: a vocabulary, forged in conversation with domain experts, that is used identically in speech, in requirements, in tests and in the code itself — not a glossary bolted on afterward, but the language the model is built out of. When the language drifts (the business says "hold", the code says "Suspended", the database column says "status = 3"), that drift <em>is</em> the bug: it means two mental models are diverging and every future change has to translate between them.</p>
+    <p>Evans' classification splits a domain model into a small vocabulary of building-block roles: <strong>entities</strong> (things distinguished by identity, which persists through change — a specific Order), <strong>value objects</strong> (things distinguished by their attributes, with no identity of their own — an Address or a Money amount), <strong>domain services</strong> (an operation that doesn't naturally belong to any one entity or value, e.g. "transfer funds between two accounts"), and <strong>domain events</strong> (something that happened, that other parts of the model may care about). Getting fluent at spotting which role a concept plays is the single most testable "fundamentals" skill in a DDD interview, because every later topic — aggregates, bounded contexts, CQRS — is built as a composition of these four roles.</p>
+    <p>The second half of Evans' insight, easy to forget at senior level, is that not every part of a system deserves this investment. He proposes a <strong>core domain</strong> — the part that is genuinely the reason the business wins or loses (for an e-commerce company, plausibly pricing and fulfillment logistics, not user authentication) — surrounded by <strong>supporting subdomains</strong> (specific to this business but not differentiating) and <strong>generic subdomains</strong> (solved problems: auth, payments processing, email). A lead engineer's real job is triage: pour modelling effort and your best people into the core domain, buy or commodity-build the generic ones, and resist the urge to DDD everything uniformly — that uniformity is the most common way teams burn budget on ceremony with no payoff.</p>
+    <h3>Anemic vs. rich: where the language actually lives</h3>
+    <p>The language is falsified the moment behaviour moves off the model and into a "service" that pokes at public setters — the <em>anemic domain model</em> anti-pattern (unit 11 covers it as a named trap). Compare the same rule expressed both ways:</p>
+    <pre><code class="language-csharp">// Anemic: Order is a bag of properties; the rule lives in a service, in technical vocabulary
+public class Order
+{
+    public OrderStatus Status { get; set; }
+    public DateTime? ShippedAt { get; set; }
+}
+
+public class OrderService
+{
+    public void Cancel(Order order)
+    {
+        if (order.Status == OrderStatus.Shipped)
+            throw new InvalidOperationException("bad state");
+        order.Status = OrderStatus.Cancelled;
+    }
+}</code></pre>
+    <pre><code class="language-csharp">// Rich: the rule is the model. "Cancel" and the exception speak the language a domain expert uses.
+public class Order
+{
+    public OrderStatus Status { get; private set; }
+
+    public void Cancel()
+    {
+        if (Status == OrderStatus.Shipped)
+            throw new DomainException("A shipped order can no longer be cancelled — issue a return instead.");
+        Status = OrderStatus.Cancelled;
+    }
+}</code></pre>
+    <div class="table-wrap">
+      <table>
+        <thead><tr><th>Role</th><th>Identity</th><th>Equality</th><th>Mutable?</th><th>Example</th></tr></thead>
+        <tbody>
+          <tr><td>Entity</td><td>Has one, stable over time</td><td>By identity (same Id → same thing, even if fields differ)</td><td>Yes</td><td><code>Order</code>, <code>Customer</code></td></tr>
+          <tr><td>Value object</td><td>None</td><td>By all attributes (structural)</td><td>No — replaced, not edited</td><td><code>Address</code>, <code>Money</code></td></tr>
+          <tr><td>Domain service</td><td>N/A (stateless)</td><td>N/A</td><td>N/A</td><td><code>ExchangeRateConverter</code></td></tr>
+          <tr><td>Domain event</td><td>Has one (it happened once)</td><td>By identity + timestamp</td><td>No — immutable fact</td><td><code>OrderShipped</code></td></tr>
+        </tbody>
+      </table>
+    </div>
+    <div class="callout">
+      <span class="label">Interview trap</span>
+      <p>Candidates recite "ubiquitous language means using business words in code" and stop there. The real claim is stronger and easier to probe: the language is <em>the same language spoken by the business</em>, actively maintained in conversation — when a domain expert's phrasing changes, the model changes, not the other way around. A second, related trap: treating the domain model as a description of the <em>database schema</em>. Schema-first thinking imports relational concerns (nullability, normalization, foreign keys) into a model that should instead be organized around behaviour and invariants; the persistence shape is a downstream concern, not the model.</p>
+    </div>
+    <div class="try-it">
+      <span class="label">Try it</span>
+      <ol>
+        <li>Pick one real feature you own. Write five sentences the way a domain expert would say them out loud, then check whether your class and method names use those exact words. Where they don't, that gap is refactoring backlog, not polish.</li>
+        <li>Find a word in your codebase that means two different things in two different parts of the system (e.g. "Account" in billing vs. "Account" in identity). Note where the collision happens — <strong>solution sketch:</strong> <details class="solution"><summary>show</summary>That seam is very likely a bounded-context boundary you haven't drawn yet; unit 02 gives it a name and a set of tools.</details></li>
+      </ol>
+    </div>
+    <h3>Interview Q&amp;A</h3>
+    <details class="qa"><summary>What problem is DDD actually trying to solve?</summary><div class="a"><p>It's aimed at systems whose difficulty is dominated by the business domain itself — the rules, exceptions and vocabulary an expert has in their head — rather than by technical scale. The claim is that most of that difficulty is essential, not accidental, so the fix isn't a better framework; it's making the code's structure and language mirror the business's structure and language closely enough that both sides can reason about it together. For domains that are genuinely simple — a CRUD admin panel — DDD's ceremony buys you very little, which is itself a DDD-flavoured judgment call.</p></div></details>
+    <details class="qa"><summary>What is the ubiquitous language, precisely, and how do you keep it alive?</summary><div class="a"><p>It's the vocabulary shared by domain experts and the team, used identically in conversation, requirements, tests and code — not a glossary, a living agreement enforced by refusing translation layers between "what the business says" and "what the code says." You keep it alive by having developers sit in on domain conversations, by renaming code the moment a term shifts, and by writing acceptance tests in that vocabulary so a stale name breaks a test, not just a diagram.</p></div></details>
+    <details class="qa"><summary>How do you tell an entity from a value object when a concept is ambiguous — say, an email address?</summary><div class="a"><p>Ask whether two instances with identical attributes are interchangeable. If you don't care <em>which</em> "123 Main St" object you hold, only that it says 123 Main St, it's a value object; if you need to track a specific one through changes — this particular Order even after its total changes — it's an entity. Email address is usually a value object in a Contact context, but could become entity-like (needs its own identity and history) inside an email-deliverability system that tracks bounce history per address.</p></div></details>
+    <details class="qa"><summary>Why does Evans separate core, supporting and generic subdomains, and why does it matter at your level?</summary><div class="a"><p>Because modelling rigor is expensive, and applying it uniformly is a common way senior teams waste a quarter. The core domain is where the business actually differentiates — that's where you invest your best engineers and deepest modelling; supporting subdomains get "good enough" custom code; generic subdomains (auth, payments, email delivery) should usually be bought or wrapped, not modelled at all. As a lead, this framing is your answer to "why are we spending three sprints on the pricing engine's aggregate design but not on the newsletter signup."</p></div></details>
+    <details class="qa"><summary>What's the difference between a domain service and an application service?</summary><div class="a"><p>A domain service holds domain logic that doesn't fit naturally on one entity or value object — think "TransferFunds(fromAccount, toAccount, amount)," which touches two aggregates and enforces a domain rule. An application service (unit 05) is a thin orchestrator one layer up: it starts a transaction, loads aggregates via repositories, calls domain methods, and coordinates side effects like publishing events — it should contain no business rules of its own, only plumbing.</p></div></details>
+    <details class="qa"><summary>Give a concrete example of ubiquitous-language drift causing a real bug.</summary><div class="a"><p>A logistics team called something "Delivered" the moment a carrier scan fired, while finance's "Delivered" meant the customer had signed for it — same word, two different truths. Revenue was recognized on carrier-scan "Delivered," overstating recognized revenue by the transit window, until an audit traced it to the single overloaded enum value shared across two bounded contexts that should never have shared it.</p></div></details>
+    <details class="qa"><summary>Is Evans' Blue Book still the right first reference in 2026, or has it been superseded?</summary><div class="a"><p>The strategic-design half (bounded contexts, context mapping, ubiquitous language) has aged extremely well and is still the reference. The tactical half is usefully supplemented, not replaced, by Vaughn Vernon's "Implementing Domain-Driven Design" (2013) for aggregate design rules, and by more recent community work on Context Mapping (Michael Plöd) and Team Topologies for how bounded contexts map onto teams and deployables — the vocabulary is Evans', the operational playbook has grown around it.</p></div></details>
+    <details class="qa"><summary>How would you introduce ubiquitous language to a team that's never done DDD, without it feeling like a rename exercise?</summary><div class="a"><p>Start from the next feature conversation with a domain expert rather than a code audit — capture the words they actually use, including the awkward and inconsistent ones, and let disagreements surface early since they usually mean two contexts are being conflated. Land it in code incrementally as you touch files for other reasons, and anchor it in a living glossary the team edits together rather than a one-time document; treating it as a rename sprint is exactly the anti-pattern that makes teams give up on DDD after one project.</p></div></details>
+    <details class="qa"><summary>What's a "knowledge-crunching" session, and why does Evans treat modelling as continuous rather than up-front?</summary><div class="a"><p>It's a collaborative session — closely related to what the industry now calls Event Storming — where developers and domain experts work through concrete scenarios together until a shared model emerges, then refine it as new scenarios expose gaps. Evans rejects big-design-up-front because a domain model is a hypothesis about how experts think, and that hypothesis is only validated by continuously testing it against real scenarios and revising — the model is expected to change shape many times before it's good.</p></div></details>
+    <details class="qa"><summary>How do you defend the ubiquitous language against dilution from product, sales or a new hire who reintroduces old terms?</summary><div class="a"><p>Treat the glossary as a contract with a visible owner, and enforce it the same way you'd enforce a linting rule — in code review, flag a reintroduced term and ask which of the two meanings is intended, forcing the disambiguation to happen once rather than silently. Long term, the strongest defense is making the correct term the path of least resistance: if the type, the exception message and the test names all use it, drifting away from it takes active effort.</p></div></details>
+    <details class="qa"><summary>When is DDD's investment not worth it?</summary><div class="a"><p>When the domain is genuinely simple (thin CRUD over a handful of entities with no real invariants), when the system is short-lived or a throwaway prototype, or when the team lacks access to domain experts, making the "ubiquitous" half of ubiquitous language impossible to build. The tell in an interview is a candidate who can name these limits unprompted — it signals judgment rather than dogma.</p></div></details>
+    <p class="sources">Go deeper: <a href="https://www.domainlanguage.com/ddd/reference/" target="_blank" rel="noopener">Eric Evans' free DDD Reference</a>.</p>
+  </section>
+
+  <section class="unit" id="u02">
+    <h2>02 · Bounded Contexts &amp; Context Mapping</h2>
+    <p>The single most important strategic idea in DDD, and the one most likely to actually come up in a principal-level interview, is that you should <strong>stop trying to build one model for the whole business</strong>. A "Customer" means something different to Sales (a lead with a pipeline stage), Billing (an entity with payment terms and a credit limit), and Support (a person with a ticket history) — and forcing one class to serve all three produces a God object riddled with nullable fields nobody fully understands. A <strong>bounded context</strong> is the explicit boundary — usually along team or subsystem lines — inside which a model is internally consistent and a term has exactly one meaning; outside it, the same term is allowed to mean something else, on purpose. Getting this right is what makes ubiquitous language actually work at scale: the language isn't ubiquitous across the whole company, it's ubiquitous <em>within a context</em>, and contexts talk to each other through explicit translation, not shared types.</p>
+    <p>Once you accept multiple models exist, you need a map of how they relate — that's <strong>context mapping</strong>, DDD's most under-taught tool and the one that most directly answers "how would you decompose this system." The canonical patterns, from Evans and refined by the DDD Europe community (Michael Plöd's Context Mapper work is the modern reference), describe the <em>relationship</em> between two contexts, which is as much organisational as technical:</p>
+    <div class="table-wrap">
+      <table>
+        <thead><tr><th>Pattern</th><th>Relationship</th><th>When you reach for it</th></tr></thead>
+        <tbody>
+          <tr><td>Shared Kernel</td><td>Two teams share a small, jointly-owned subset of the model</td><td>Tight collaboration, both teams can agree on changes quickly — otherwise it becomes a bottleneck</td></tr>
+          <tr><td>Customer–Supplier</td><td>Downstream depends on upstream; upstream plans around downstream's needs</td><td>Aligned incentives, e.g. an internal platform team serving a product team</td></tr>
+          <tr><td>Conformist</td><td>Downstream just accepts the upstream model as-is, no translation</td><td>Upstream is powerful/unresponsive (e.g. a SaaS vendor's API) and the cost of translating isn't worth it</td></tr>
+          <tr><td>Anticorruption Layer (ACL)</td><td>Downstream translates the upstream model at the boundary, protecting its own model</td><td>Upstream model is messy, legacy, or actively hostile to your domain's language — the default choice integrating with a legacy system</td></tr>
+          <tr><td>Open Host Service + Published Language</td><td>Upstream exposes a deliberately-designed, documented protocol for many consumers</td><td>One team serves many downstream teams (a public or internal platform API)</td></tr>
+          <tr><td>Separate Ways</td><td>No integration at all — duplication is cheaper than coupling</td><td>The overlap is small and coincidental; integrating would cost more than it saves</td></tr>
+          <tr><td>Big Ball of Mud</td><td>No real boundary — one tangled model</td><td>Not a target, a diagnosis: the honest label for most legacy systems before any DDD work starts</td></tr>
+        </tbody>
+      </table>
+    </div>
+    <p>The anticorruption layer is the pattern worth being able to sketch from memory, because "how do you integrate with the legacy system without your new domain rotting alongside it" is a near-universal senior-interview question. It's a translation boundary: adapters and a small set of DTOs that convert the legacy system's shapes and vocabulary into your bounded context's ubiquitous language, so corruption stops at the wall instead of leaking through your whole model.</p>
+    <pre><code class="language-csharp">// Anticorruption layer: the legacy "LegacyCustomerRecord" never crosses into our domain
+public interface ICustomerAcl { Customer Translate(LegacyCustomerRecord legacy); }
+
+public class CustomerAcl : ICustomerAcl
+{
+    public Customer Translate(LegacyCustomerRecord legacy) =>
+        Customer.Reconstitute(
+            new CustomerId(legacy.CUST_ID),
+            new PersonName(legacy.FNAME, legacy.LNAME),
+            legacy.STATUS_CD == "A" ? CustomerStatus.Active : CustomerStatus.Inactive);
+}</code></pre>
+    <div class="callout">
+      <span class="label">Interview trap</span>
+      <p>Candidates equate "bounded context" with "microservice" 1:1. That's a deployment decision layered on top of a modelling decision — a bounded context is a boundary in the <em>model</em>, and can perfectly well be a module inside a modular monolith (unit 09), one microservice, or in rare cases span a couple of tightly-related small services. Presenting it as always meaning "separate deployable" reads as cargo-culting the 2015-era microservices wave rather than understanding what the boundary is actually for.</p>
+    </div>
+    <div class="try-it">
+      <span class="label">Try it</span>
+      <ol>
+        <li>Draw a context map for a system you know: boxes for each bounded context, arrows for the relationships, and label each arrow with one of the seven patterns above. Most real systems turn out to have at least one undocumented Conformist relationship nobody had named.</li>
+        <li>Pick your ugliest integration with a legacy or third-party system. Sketch (on paper, no code needed) what an anticorruption layer would look like — what does it translate, and what vocabulary does it protect? <details class="solution"><summary>Expected outcome</summary>You should be able to name at least two fields whose meaning subtly differs between the two sides — those are exactly the translations the ACL exists to make explicit instead of silently wrong.</details></li>
+      </ol>
+    </div>
+    <h3>Interview Q&amp;A</h3>
+    <details class="qa"><summary>Define bounded context in one breath, then defend it against "isn't that just a module?"</summary><div class="a"><p>A bounded context is the boundary within which a specific model, and the ubiquitous language it's expressed in, is internally consistent and unambiguous — outside it, the same term can validly mean something else. It's more than "a module" because a module boundary is usually about code organization, while a bounded context boundary is about semantic ownership: crossing it always requires translation, even if the module boundary would let you import the type directly.</p></div></details>
+    <details class="qa"><summary>How do you actually find bounded-context boundaries in an existing tangled system?</summary><div class="a"><p>Look for words that are overloaded — the same field or class name used with subtly different meaning in different parts of the code, which is exactly the smell from unit 01 — and for places where a change in one "area" keeps forcing unrelated changes elsewhere, a sign the areas are actually one undifferentiated context. Event Storming workshops with domain experts are the standard technique: pivotal business events cluster naturally around future context boundaries once you lay them out on a timeline.</p></div></details>
+    <details class="qa"><summary>When would you deliberately choose Conformist over building an anticorruption layer?</summary><div class="a"><p>When the upstream model is good enough, unlikely to actively corrupt your domain, and the cost of a translation layer exceeds its benefit — e.g. consuming a well-designed platform API where you have no real disagreement with its vocabulary. Choosing Conformist should be an active decision recorded somewhere, not the default outcome of "we didn't get around to writing an ACL."</p></div></details>
+    <details class="qa"><summary>What's the difference between Shared Kernel and Open Host Service?</summary><div class="a"><p>Shared Kernel is a small, jointly-owned piece of model shared by a small number of tightly-collaborating teams — changes require mutual agreement, which only scales to a couple of teams. Open Host Service is the opposite shape: one team designs a stable, documented protocol precisely so that <em>many</em> consumers can integrate without needing to coordinate changes with the owning team at all.</p></div></details>
+    <details class="qa"><summary>How would you use context mapping to plan a decomposition of a monolith?</summary><div class="a"><p>Map the current model's implicit contexts first — where the vocabulary already splits, even inside one codebase — before touching deployment topology; extraction order should follow business volatility and team ownership, not technical convenience. Contexts with a Conformist or ACL relationship to the rest of the system are natural first candidates to extract, because the translation boundary already exists in the model and just needs a network hop added.</p></div></details>
+    <details class="qa"><summary>What's a "context map" used for in a real architecture review, beyond documentation?</summary><div class="a"><p>It surfaces where organisational and technical coupling actually is, which is usually not where the org chart says it is — a Conformist relationship your team never agreed to is a governance risk worth escalating before it becomes an incident. It's also the tool for spotting a Shared Kernel that's quietly become a bottleneck because too many teams now depend on it.</p></div></details>
+    <details class="qa"><summary>How do bounded contexts relate to Conway's Law?</summary><div class="a"><p>Conway's Law says system structure mirrors communication structure; DDD's strategic design turns that from an observation into a design lever — deliberately drawing bounded-context boundaries along the lines you want teams to communicate (or not communicate) across. Team Topologies builds directly on this, treating a bounded context as the natural unit a "stream-aligned team" should own end to end.</p></div></details>
+    <details class="qa"><summary>What goes wrong when a Shared Kernel grows too large?</summary><div class="a"><p>Every change requires cross-team agreement, so the kernel becomes a coordination bottleneck and teams start avoiding necessary refactors rather than negotiate them — velocity drops precisely in the shared code that was meant to save duplication. The usual fix is to shrink the kernel back to genuinely stable concepts (e.g. a Money value object) and move the volatile parts behind an explicit API with one clear owner, i.e. convert it into a Customer–Supplier or Open Host relationship.</p></div></details>
+    <details class="qa"><summary>Can two bounded contexts legitimately have entities with the same name and different shapes? Isn't that duplication?</summary><div class="a"><p>Yes, and it's not duplication in the harmful sense — it's the correct outcome of two contexts genuinely modelling different concerns under one English word. A billing "Order" caring about invoicing terms and a fulfillment "Order" caring about pick-pack-ship states aren't the same concept wearing different clothes; forcing them into one shared type is what actually causes the coupling and God-object problems DDD is trying to avoid.</p></div></details>
+    <details class="qa"><summary>How do you communicate context boundaries to non-technical stakeholders who just see "the Customer table"?</summary><div class="a"><p>Frame it in terms they already feel: "Sales' definition of a customer and Billing's definition of a customer already disagree today — this makes that disagreement explicit and safe instead of an accidental bug," using a concrete example of a field that already means different things. A context map with plain-language boxes (not UML) usually lands better than the DDD vocabulary itself.</p></div></details>
+    <details class="qa"><summary>What's the risk of getting bounded-context boundaries wrong early in a project, and how do you course-correct?</summary><div class="a"><p>Drawing them too fine-grained too early creates chatty, tightly-coupled "distributed monolith" contexts that all change together anyway, paying integration overhead for none of the isolation benefit; too coarse, and you're back to a tangled single model. The practical course-correction is to keep contexts as in-process modules with enforced boundaries (unit 09) until real evidence — team ownership friction, independent scaling needs — justifies physically splitting one out; a module boundary is far cheaper to redraw than a network boundary.</p></div></details>
+    <p class="sources">Go deeper: <a href="https://martinfowler.com/bliki/BoundedContext.html" target="_blank" rel="noopener">Martin Fowler, "Bounded Context"</a>.</p>
+  </section>
+
+  <section class="unit" id="u03">
+    <h2>03 · Entities &amp; Value Objects</h2>
+    <p>With the strategic boundaries in place, the tactical building blocks are how you actually write the model inside one. The entity/value-object split from unit 01 has sharp practical consequences once you write real .NET code: an <strong>entity</strong> needs a stable identity (usually a strongly-typed id, not a bare <code>int</code> or <code>Guid</code>, so the compiler stops you from passing a <code>CustomerId</code> where an <code>OrderId</code> is expected) and equality by that identity alone; a <strong>value object</strong> should be immutable, compared by all its fields, and — critically — self-validating, so it is impossible to construct an invalid one. That last property is what makes value objects worth their ceremony: a <code>Money</code> type that guards against negative amounts and mismatched currencies at construction turns a whole category of "how did this get into an invalid state" bugs into a compile-time or constructor-time impossibility instead of a runtime hunt.</p>
+    <pre><code class="language-csharp">// A value object: immutable, self-validating, equality by value (records give you this almost for free)
+public sealed record Money
+{
+    public decimal Amount { get; }
+    public string Currency { get; }
+
+    public Money(decimal amount, string currency)
+    {
+        if (amount < 0) throw new ArgumentException("Money cannot be negative.");
+        if (string.IsNullOrWhiteSpace(currency)) throw new ArgumentException("Currency is required.");
+        Amount = amount; Currency = currency;
+    }
+
+    public static Money operator +(Money a, Money b)
+    {
+        if (a.Currency != b.Currency) throw new InvalidOperationException($"Cannot add {a.Currency} to {b.Currency}.");
+        return new Money(a.Amount + b.Amount, a.Currency);
+    }
+}
+
+// A strongly-typed id sidesteps "primitive obsession" and stops id mix-ups at compile time
+public readonly record struct OrderId(Guid Value)
+{
+    public static OrderId New() => new(Guid.NewGuid());
+}</code></pre>
+    <h3>Mapping value objects in EF Core 10: the switch from owned entities to complex types</h3>
+    <p>This is the sharpest recent .NET-specific change relevant to DDD. EF Core has long offered <em>owned entity types</em> to persist a value object like <code>Address</code> or <code>Money</code> inside its owner's table — but an owned entity type is, under the hood, still an entity type, with hidden identity and reference semantics. That mismatch causes real bugs: assigning <code>customer.BillingAddress = customer.ShippingAddress</code> throws, because EF won't let the same tracked entity instance be referenced twice, and bulk operations like <code>ExecuteUpdateAsync</code> don't support owned types at all. <strong>EF Core 10 (shipped with .NET 10, November 2025, LTS until November 2028)</strong> promotes <em>complex types</em> — introduced in EF 8 for simple cases — to the recommended way to map value objects: complex types have true value semantics (copy-assignment just copies fields, equality compares content), now support optional (nullable) complex properties, mapping to a single JSON column, and structs as well as classes. The EF team's own release notes explicitly advise projects still using owned types for value objects to migrate to complex types.</p>
+    <pre><code class="language-csharp">// EF Core 10: map Address as a complex type — value semantics all the way through
+public class Customer
+{
+    public int Id { get; set; }
+    public Address ShippingAddress { get; set; } = default!;
+    public Address? BillingAddress { get; set; }   // optional complex types: new in EF Core 10
+}
+
+protected override void OnModelCreating(ModelBuilder modelBuilder)
+{
+    modelBuilder.Entity<Customer>(b =>
+    {
+        b.ComplexProperty(c => c.ShippingAddress);
+        b.ComplexProperty(c => c.BillingAddress);
+    });
+}
+
+// Now this just works — no owned-entity identity conflict:
+customer.BillingAddress = customer.ShippingAddress;</code></pre>
+    <div class="table-wrap">
+      <table>
+        <thead><tr><th></th><th>Owned entity type</th><th>Complex type (EF Core 8+, recommended from EF 10)</th></tr></thead>
+        <tbody>
+          <tr><td>Semantics</td><td>Reference (hidden identity)</td><td>Value (true copy on assignment)</td></tr>
+          <tr><td>Assign same instance to two properties</td><td>Throws</td><td>Works as expected</td></tr>
+          <tr><td><code>ExecuteUpdateAsync</code> bulk updates</td><td>Not supported</td><td>Supported (EF 10, including JSON columns)</td></tr>
+          <tr><td>LINQ equality comparison</td><td>By identity — surprising</td><td>By content — matches DDD's definition</td></tr>
+          <tr><td>Collections of the type</td><td>Supported</td><td>Supported for classes; not yet for struct collections</td></tr>
+        </tbody>
+      </table>
+    </div>
+    <div class="callout">
+      <span class="label">Interview trap</span>
+      <p>Candidates say "value objects should be immutable" and stop, without being able to say <em>why</em> that matters operationally: immutability is what makes value objects safe to share, cache and pass across boundaries without defensive copying, and it's what makes equality-by-value sound instead of "equal now, but one of them might mutate later." A second, .NET-specific trap: using a plain <code>class</code> with default equality for a value object — reference equality silently breaks every domain invariant that assumes two equal-looking values are interchangeable. Use <code>record</code>/<code>record struct</code>, or override <code>Equals</code>/<code>GetHashCode</code> explicitly.</p>
+    </div>
+    <div class="try-it">
+      <span class="label">Try it</span>
+      <ol>
+        <li>Take a primitive field in your codebase that's really a value object in disguise — a raw <code>string</code> email, a raw <code>decimal</code> price — and wrap it in a self-validating value type. Note every place the compiler now flags a previously-silent mix-up (e.g. passing a discount amount where a price was expected).</li>
+        <li>If you have an EF Core model using owned types for a value object, sketch the change to a complex type and try assigning the same value to two properties. <details class="solution"><summary>Expected outcome</summary>The owned-type version throws at <code>SaveChanges</code> (or earlier, depending on tracking); the complex-type version just works, because it copies the value instead of aliasing an entity.</details></li>
+      </ol>
+    </div>
+    <h3>Interview Q&amp;A</h3>
+    <details class="qa"><summary>Why should a value object be immutable — what specifically breaks if it isn't?</summary><div class="a"><p>If a value object is mutable, two references that were equal a moment ago can silently diverge, which breaks the "equal by content" contract every consumer relies on — a <code>Money</code> handed to a discount calculator could change underneath it. Immutability also makes value objects trivially safe to share and cache across aggregates and threads, since there's no mutation to synchronize.</p></div></details>
+    <details class="qa"><summary>What is "primitive obsession," and how do strongly-typed ids fix it?</summary><div class="a"><p>It's the smell of representing domain concepts as bare primitives — a raw <code>Guid</code> for both <code>CustomerId</code> and <code>OrderId</code> — so the compiler can't stop you from passing one where the other belongs, and every validation rule has to be re-asserted by hand at each call site. A small wrapper type (a <code>record struct</code> in modern C#) makes the concept a real citizen of the type system: the mistake becomes a compile error instead of a runtime data-corruption incident.</p></div></details>
+    <details class="qa"><summary>Explain the EF Core 10 change from owned entity types to complex types for value objects, and why it matters for DDD specifically.</summary><div class="a"><p>Owned entity types are, underneath, still entities with hidden identity, which gives them reference semantics that actively fight the value semantics DDD expects — you can't assign the same address to two properties, and bulk updates don't work. EF Core 10 (with .NET 10, released November 2025) makes complex types — which compare and copy by content — the recommended mapping, closing that semantic gap; if you're doing an EF Core review of a DDD-flavoured codebase today, owned types used for value objects are now a flagged legacy pattern, not a neutral choice.</p></div></details>
+    <details class="qa"><summary>How do you handle a value object that needs to be looked up or filtered on efficiently in the database?</summary><div class="a"><p>Complex types mapped via table splitting still produce ordinary columns, so ordinary indexes and query translation work exactly as they would on flattened properties — the value-object abstraction is a code-level concern, not a storage-format tax you have to pay in query performance. If you map to a single JSON column instead, EF Core 10's JSON-aware LINQ translation (<code>JSON_VALUE(...)</code> on SQL Server) still lets you filter by an inner property, though a dedicated column is usually still faster for a hot filter path.</p></div></details>
+    <details class="qa"><summary>Can an entity's identity ever change?</summary><div class="a"><p>No — that's the defining property. If the identifier can legitimately change (a customer's loyalty number gets reissued, say), what you actually have is either a new entity with a link to the old one, or the identifier was never truly the entity's identity in the first place and something more stable (a surrogate key) should be.</p></div></details>
+    <details class="qa"><summary>Give an example where the same concept is a value object in one bounded context and an entity in another.</summary><div class="a"><p>A "SKU" is typically a value object inside an Ordering context — two order lines referencing "SKU-123" are interchangeable, nothing about the SKU itself is tracked. Inside an Inventory context that needs to track a specific physical unit's serial number, location history and condition, that same product identity becomes (or grows into) an entity — the correct classification depends on what the context actually needs to do with it, not on some universal truth about SKUs.</p></div></details>
+    <details class="qa"><summary>What's a common mistake when implementing equality for a value object in C#?</summary><div class="a"><p>Overriding <code>Equals</code> without also overriding <code>GetHashCode</code> (or using a plain class with reference equality and forgetting both) — breaks dictionary/set usage and any code that hashes the value object, and produces confusing bugs where two "equal" objects behave differently in a <code>HashSet</code>. Using C# <code>record</code> or <code>record struct</code> for value objects sidesteps this entirely, since value-based equality and hashing are generated for you.</p></div></details>
+    <details class="qa"><summary>Should a value object ever hold a reference to an entity?</summary><div class="a"><p>Generally no — that would give it an implicit identity dependency and complicate its copy-by-value semantics; value objects should be self-contained data. If you find yourself wanting a value object to "know about" a specific entity, that's usually a sign the concept actually needs identity and should be modelled as an entity, or that the relationship belongs one level up, in the aggregate that holds both.</p></div></details>
+    <details class="qa"><summary>How would you migrate an existing EF Core codebase from owned types to complex types, and what's the risk?</summary><div class="a"><p>It's a model-only change for table-split mappings — swap <code>OwnsOne</code>/<code>OwnsMany</code> for <code>ComplexProperty</code>, add a migration, and verify column names haven't shifted — but any code that relied on owned types' reference semantics (tracking a specific owned instance, or comparing by reference) needs auditing, since that behaviour silently changes. Collections of complex value types have some remaining limitations (no struct collections yet as of EF 10), so an owned collection of a class-based value object migrates more cleanly than one using a struct.</p></div></details>
+    <details class="qa"><summary>Why does DDD care about self-validating value objects instead of validating in a separate validation layer?</summary><div class="a"><p>A separate validation layer only protects the paths that call it — anyone constructing the object another way (a test, a mapper, a deserializer) can bypass it and produce an invalid value that then propagates. Making invalidity unrepresentable at construction — throw or refuse to compile — means every consumer of the type can trust its invariants without re-checking, which is the whole point of a rich domain model over an anemic one.</p></div></details>
+    <details class="qa"><summary>What's the trade-off of making every small concept (name, email, percentage) its own value-object type versus keeping primitives?</summary><div class="a"><p>Each wrapper buys compile-time safety and a single place for validation and behaviour, but adds ceremony — more types to map, more constructors, more places EF configuration and serializers need attention — so it pays off fastest for concepts with real validation rules or a real risk of mix-up (money, ids, percentages) and pays off least for a field that's genuinely just a display string. The judgment call is proportional to the blast radius of getting it wrong, not a blanket rule either way.</p></div></details>
+    <p class="sources">Go deeper: <a href="https://learn.microsoft.com/en-us/ef/core/modeling/complex-types" target="_blank" rel="noopener">EF Core docs, "Complex types"</a>.</p>
+  </section>
+
+  <section class="unit" id="u04">
+    <h2>04 · Aggregates &amp; Invariants</h2>
+    <p>An <strong>aggregate</strong> is a cluster of entities and value objects treated as one consistency unit, with a single <strong>aggregate root</strong> — an entity through which the entire cluster is loaded, mutated and saved. The reason aggregates exist at all is <strong>invariant enforcement</strong>: a rule that must always hold ("an order's line-item total must equal its recorded total," "you cannot ship more than was ordered") can only be guaranteed if every mutation that could violate it happens inside one transactional and conceptual boundary. Anything reachable only through the root, and anything that must always be consistent with something else, belongs inside the same aggregate; anything that can tolerate being briefly stale relative to the rest of the system belongs in a different aggregate, updated via eventual consistency (unit 06).</p>
+    <p>Vaughn Vernon's "Effective Aggregate Design" (2011) is the standard operational playbook, and it corrects a common misreading of the original Blue Book: Evans' examples are often larger than they should be, and Vernon's central rule is <strong>design small aggregates</strong>. A large aggregate — say, an <code>Order</code> that holds every historical status change, every note, every attachment as child entities inside one root — means every concurrent edit to any part of it contends for the same lock or the same optimistic-concurrency token, and every load pulls in data most operations don't need. The rule of thumb: reference other aggregates <em>by identity only</em> (an <code>Id</code>, never a live object reference), enforce true invariants inside the aggregate boundary, and treat everything else as eventually consistent through domain events.</p>
+    <pre><code class="language-csharp">public class Order   // aggregate root
+{
+    public OrderId Id { get; }
+    private readonly List&lt;OrderLine&gt; _lines = new();
+    public IReadOnlyCollection&lt;OrderLine&gt; Lines =&gt; _lines.AsReadOnly();
+    public OrderStatus Status { get; private set; }
+
+    public void AddLine(ProductId product, int quantity, Money unitPrice)
+    {
+        if (Status != OrderStatus.Draft)
+            throw new DomainException("Lines can only be added to a draft order.");
+        _lines.Add(new OrderLine(product, quantity, unitPrice));   // OrderLine has no independent identity outside this Order
+    }
+
+    public void Submit()
+    {
+        if (_lines.Count == 0) throw new DomainException("Cannot submit an empty order.");
+        Status = OrderStatus.Submitted;
+        // A Customer is referenced by CustomerId only — never a live Customer object —
+        // so mutating this aggregate can never accidentally reach into another one.
+    }
+}</code></pre>
+    <p>Concurrency inside an aggregate boundary is normally handled with <strong>optimistic concurrency</strong> rather than pessimistic locking: give the root a version/rowversion column, and let a conflicting concurrent write fail at <code>SaveChanges</code> so the application layer can retry or surface a conflict, rather than holding a database lock for the length of a business transaction.</p>
+    <pre><code class="language-csharp">public class Order
+{
+    // ...
+    [Timestamp] public byte[] Version { get; private set; } = default!;  // EF Core optimistic concurrency token
+}
+// A concurrent SaveChangesAsync on a stale Version throws DbUpdateConcurrencyException —
+// the aggregate boundary is exactly the unit that gets this one check, not each field individually.</code></pre>
+    <div class="callout">
+      <span class="label">Interview trap</span>
+      <p>The most common aggregate-design mistake in real .NET codebases is modelling a one-to-many relationship as an aggregate boundary just because EF Core's navigation properties make it easy — e.g. <code>Order</code> owning a <code>Customer</code> as a child collection because "an order belongs to a customer." Ownership in the data-modelling sense is not the same question as "must these be transactionally consistent." A second trap, common among strong engineers overcorrecting: designing one giant aggregate to "guarantee consistency everywhere," which kills write throughput and creates lock contention across unrelated concerns that never needed to be atomic together.</p>
+    </div>
+    <div class="try-it">
+      <span class="label">Try it</span>
+      <ol>
+        <li>Take an aggregate in your codebase and list every invariant it actually enforces. For each one, ask: does violating this really break the business, or would a slightly-stale value be tolerable for a few seconds? Any "tolerable" answer is a candidate for moving out of the aggregate.</li>
+        <li>Deliberately break an aggregate's invariant by mutating a child collection directly instead of through a root method (e.g. exposing a public <code>List&lt;OrderLine&gt;</code> setter) and observe what goes wrong under a concurrent write. <details class="solution"><summary>Expected outcome</summary>Two concurrent requests can both pass a validation check based on stale in-memory state and then both commit, producing a state the invariant was supposed to forbid — the fix is making the collection only mutable through root methods that re-check the invariant against current state.</details></li>
+      </ol>
+    </div>
+    <h3>Interview Q&amp;A</h3>
+    <details class="qa"><summary>What is an aggregate root, and why must all mutation go through it?</summary><div class="a"><p>It's the single entity that acts as the entry point to the whole cluster — every load, every mutation, every save happens through it, and nothing outside the aggregate holds a live reference to its internal entities. Routing everything through the root is what makes invariant enforcement possible at all: if code elsewhere could reach in and mutate a child entity directly, the root could never guarantee the rule held after the fact.</p></div></details>
+    <details class="qa"><summary>What's the correct size for an aggregate — how do you decide what's inside versus outside the boundary?</summary><div class="a"><p>Small, and decided by true invariants, not by data-modelling convenience: something belongs inside the aggregate only if it must be transactionally consistent with the root right now, not eventually. Vernon's guidance is to design the smallest aggregate that can still enforce its invariants, and to reference everything else — even things that look "owned" in an ER diagram — by id, coordinating consistency between aggregates via domain events instead.</p></div></details>
+    <details class="qa"><summary>Why does referencing other aggregates by id instead of by object reference matter so much in practice?</summary><div class="a"><p>A live object reference lets code accidentally reach across an aggregate boundary and mutate something it has no business mutating, silently defeating the invariant guarantee the boundary exists for. It also usually means loading far more data than the operation needs (pulling in a whole Customer graph to check a discount an Order applies), and it makes each aggregate's persistence unit unclear, which complicates both performance and testing.</p></div></details>
+    <details class="qa"><summary>How do you enforce a rule that spans two aggregates, like "the sum of a customer's open orders can't exceed their credit limit"?</summary><div class="a"><p>You don't try to make it a hard, always-consistent invariant across two aggregate boundaries — you either accept eventual consistency (a domain event updates a running total on the Customer aggregate after each Order is submitted, with compensating action if it's later found to be over limit) or you pull the check into a domain service that reads both aggregates and makes the decision at the point of the state-changing command, accepting a small race window. Forcing it into one aggregate to get true atomicity usually costs more in contention than the rare race condition would ever cost in correctness.</p></div></details>
+    <details class="qa"><summary>Optimistic vs. pessimistic concurrency for aggregates — which do you default to and why?</summary><div class="a"><p>Optimistic, by default: a version token that fails a concurrent write at commit time scales far better than holding a database lock across a whole business transaction, especially under real .NET/EF Core web workloads where a request might involve I/O (external calls) between load and save. Pessimistic locking earns its place only for aggregates with very high write contention and cheap, fast transactions, where retry storms under optimistic concurrency would be worse than a short lock wait.</p></div></details>
+    <details class="qa"><summary>What goes wrong with an aggregate that's too large, concretely?</summary><div class="a"><p>Every unrelated field change contends for the same concurrency token, so two edits that have nothing to do with each other (updating a shipping note vs. adding a line item) can conflict and force a retry; loading the aggregate for a small operation pulls in data — and often related entity graphs — the operation never touches, hurting latency; and the object becomes hard to reason about because "what does this really guarantee" stops having a clean answer.</p></div></details>
+    <details class="qa"><summary>Should a repository ever expose a method that loads part of an aggregate?</summary><div class="a"><p>No — the aggregate is the unit of consistency and the unit of loading; a repository should load and save whole aggregates by their root id, never a fragment, because a partially-loaded aggregate can't safely re-validate its own invariants. If a read pattern genuinely only needs a projection of the data, that's a query concern (unit 07's read side), not a reason to weaken the write-side aggregate's loading contract.</p></div></details>
+    <details class="qa"><summary>How does aggregate design interact with EF Core's change tracking?</summary><div class="a"><p>EF Core's change tracker naturally maps well to "load the whole aggregate graph, mutate it via root methods, call <code>SaveChanges</code> once" — as long as child collections are exposed as read-only and mutated only through root methods, so nothing outside the aggregate can add or remove tracked entities behind its back. A common misconfiguration is exposing a public setter on a navigation collection, which lets calling code bypass the root entirely and corrupt the invariant the aggregate exists to protect.</p></div></details>
+    <details class="qa"><summary>Give an example of a rule that looks like an aggregate invariant but isn't.</summary><div class="a"><p>"A product's stock count must never go negative across all warehouses" sounds like an invariant on a Product aggregate, but if warehouses are modelled as separate aggregates for independent scaling and ownership reasons, this becomes a cross-aggregate policy enforced via events and reconciliation, not a single-aggregate invariant — treating it as one forces an unnaturally large aggregate spanning every warehouse. The tell: does violating it for a few seconds actually cause business harm, or just look untidy? Untidy-but-tolerable belongs outside the boundary.</p></div></details>
+    <details class="qa"><summary>How would you explain aggregate boundaries to a team that keeps modelling them as EF Core navigation properties?</summary><div class="a"><p>Reframe the question from "what's related to what" (a data-modelling question EF Core answers for free) to "what must never be observed in an inconsistent state, even for a moment" (a business-rules question EF Core can't answer for you) — most navigation properties turn out to describe legitimate relationships that don't need transactional consistency. Walking through one or two real invariants together, and asking "what actually breaks if this update lands one second late relative to that one," usually converts the team faster than the abstract definition does.</p></div></details>
+    <p class="sources">Go deeper: <a href="https://www.dddcommunity.org/wp-content/uploads/files/pdf_articles/Vernon_2011_1.pdf" target="_blank" rel="noopener">Vaughn Vernon, "Effective Aggregate Design"</a>.</p>
+  </section>
+
+  <section class="unit" id="u05">
+    <h2>05 · Layering: Domain, Application &amp; Repositories</h2>
+    <p>DDD's tactical patterns need somewhere to live that keeps the domain model free of infrastructure concerns — that's the job of layering. Evans' original four layers were User Interface, Application, Domain, and Infrastructure; the modern .NET incarnation is almost always some variant of <strong>Clean Architecture</strong>, <strong>Onion Architecture</strong> or <strong>Hexagonal (Ports &amp; Adapters) Architecture</strong> — different names for the same core rule: the <strong>Dependency Rule</strong>, where dependencies point inward, toward the domain, and the domain itself depends on nothing. The domain layer defines interfaces (ports) it needs — <code>IOrderRepository</code>, <code>IPaymentGateway</code> — and the infrastructure layer implements them (adapters); the domain never references EF Core, HTTP clients, or any concrete infrastructure type. This is what makes a domain model unit-testable without a database and swappable without a rewrite.</p>
+    <div class="table-wrap">
+      <table>
+        <thead><tr><th>Layer</th><th>Contains</th><th>Depends on</th></tr></thead>
+        <tbody>
+          <tr><td>Domain</td><td>Entities, value objects, aggregates, domain events, domain services, repository <em>interfaces</em></td><td>Nothing (no framework, no EF Core, no HTTP)</td></tr>
+          <tr><td>Application</td><td>Use-case orchestration: commands/queries, application services, DTOs, transaction boundaries</td><td>Domain only</td></tr>
+          <tr><td>Infrastructure</td><td>Repository <em>implementations</em>, EF Core <code>DbContext</code>, external API clients, messaging</td><td>Domain (implements its interfaces) and Application</td></tr>
+          <tr><td>Presentation</td><td>Controllers/minimal API endpoints, view models, request/response DTOs</td><td>Application (never Domain or Infrastructure directly)</td></tr>
+        </tbody>
+      </table>
+    </div>
+    <p>The <strong>repository</strong> pattern is the domain's port to persistence: one repository per aggregate root, returning and accepting whole aggregates (unit 04), never fragments. A repository is not a generic data-access wrapper around every table — a <code>GetOrderLinesByProductAsync</code> method on an order repository is a smell, because it exposes internals of the aggregate that should only ever be reached through the root.</p>
+    <pre><code class="language-csharp">// Domain layer: the interface, with zero EF Core knowledge
+public interface IOrderRepository
+{
+    Task&lt;Order?&gt; GetByIdAsync(OrderId id);
+    void Add(Order order);
+}
+
+// Infrastructure layer: the implementation, isolated behind the interface
+public class EfOrderRepository : IOrderRepository
+{
+    private readonly AppDbContext _db;
+    public EfOrderRepository(AppDbContext db) =&gt; _db = db;
+
+    public Task&lt;Order?&gt; GetByIdAsync(OrderId id) =&gt;
+        _db.Orders.Include(o =&gt; o.Lines).SingleOrDefaultAsync(o =&gt; o.Id == id);
+
+    public void Add(Order order) =&gt; _db.Orders.Add(order);
+}
+
+// Application layer: orchestration only — no business rule lives here
+public class SubmitOrderHandler
+{
+    private readonly IOrderRepository _orders;
+    public SubmitOrderHandler(IOrderRepository orders) =&gt; _orders = orders;
+
+    public async Task Handle(SubmitOrderCommand cmd)
+    {
+        var order = await _orders.GetByIdAsync(cmd.OrderId) ?? throw new NotFoundException();
+        order.Submit();                 // the rule lives on the aggregate, not here
+        // SaveChangesAsync via a unit-of-work / DbContext scope commits the transaction
+    }
+}</code></pre>
+    <div class="callout">
+      <span class="label">Interview trap</span>
+      <p>The most common layering violation in real .NET codebases is an EF Core entity that <em>is</em> the domain entity, decorated with data annotations and navigation properties designed for the ORM's convenience rather than the domain's invariants — which quietly makes the "domain" layer depend on EF Core after all. A second trap: application services that contain actual business rules ("if the customer's total this month exceeds X, apply a discount") instead of delegating to the aggregate — this is the anemic-model problem from unit 01 wearing a "Clean Architecture" folder structure as camouflage. Folder structure that matches the layer names is not the same thing as respecting the dependency rule.</p>
+    </div>
+    <div class="try-it">
+      <span class="label">Try it</span>
+      <ol>
+        <li>Pick one class in your "domain" folder and check its <code>using</code> statements. Any reference to <code>Microsoft.EntityFrameworkCore</code>, an HTTP client, or a specific message-bus library is a dependency-rule violation, regardless of what folder the file sits in.</li>
+        <li>Find an application service method over ~15 lines and highlight every line that is a business decision (an <code>if</code> based on domain state) versus orchestration (loading, saving, mapping). <details class="solution"><summary>Expected outcome</summary>Any highlighted "decision" line is a candidate to move onto the aggregate as a method; a healthy application service should be almost entirely orchestration lines.</details></li>
+      </ol>
+    </div>
+    <h3>Interview Q&amp;A</h3>
+    <details class="qa"><summary>State the Dependency Rule and explain why the domain layer can't reference infrastructure, even "just for a small helper."</summary><div class="a"><p>Dependencies point inward: outer layers (infrastructure, presentation) may depend on inner layers (domain, application), but never the reverse — the domain defines the interfaces it needs and infrastructure implements them. The moment the domain references a concrete infrastructure type, even for something small, the domain can no longer be tested or reasoned about in isolation, and a change to that infrastructure detail can now force a change to business logic that has nothing to do with it.</p></div></details>
+    <details class="qa"><summary>What's the difference between a domain service and an application service, precisely, and where does a "SubmitOrder" use case's transaction boundary live?</summary><div class="a"><p>A domain service holds business logic that spans multiple domain objects but doesn't belong to any one of them (unit 01); an application service orchestrates a use case — load, call the domain, save, publish events — and should contain no business rules itself. The transaction boundary belongs in the application layer, typically one transaction per use case / per aggregate save, started and committed around the orchestration, never inside the domain layer which has no concept of "database transaction."</p></div></details>
+    <details class="qa"><summary>Why "one repository per aggregate root" rather than one repository per table or one generic repository?</summary><div class="a"><p>The aggregate, not the table, is the actual unit of consistency and loading (unit 04) — a repository that exposes methods reaching into an aggregate's internals (fetching a child collection directly) breaks the invariant guarantee the aggregate exists to provide. A single generic <code>IRepository&lt;T&gt;</code> for every entity tends to leak persistence concerns (arbitrary <code>IQueryable</code> exposure, generic filtering) into the domain and erases the very aggregate boundaries you're trying to enforce.</p></div></details>
+    <details class="qa"><summary>Should an EF Core entity and a domain entity be the same class?</summary><div class="a"><p>They can be, pragmatically, in many real .NET codebases — EF Core's mapping is flexible enough (private setters, backing fields, owned/complex types) that the domain class doesn't have to look like an anemic DTO just because EF Core maps it. The line not to cross is letting EF Core's convenience (public setters for convenient seeding, exposed navigation collections) leak into the public API of the entity in a way that lets code outside the aggregate mutate it directly — the mapping detail must stay a detail.</p></div></details>
+    <details class="qa"><summary>How do you unit-test a domain model that's properly isolated per the Dependency Rule?</summary><div class="a"><p>Directly, with no database, no HTTP, and no mocks for the domain's own logic — construct an aggregate, call its methods, assert on its state or the domain events it raised. Repository interfaces get faked only at the application-service test boundary, where you're testing orchestration, not domain rules; a domain model that needs a database or a mock framework to test is a sign the Dependency Rule has already been violated somewhere.</p></div></details>
+    <details class="qa"><summary>What's the "Unit of Work" pattern, and does EF Core's DbContext already give it to you?</summary><div class="a"><p>Unit of Work tracks a set of changes across possibly multiple repositories and commits them atomically in one transaction — EF Core's <code>DbContext</code> already behaves this way natively (its change tracker accumulates changes from multiple <code>DbSet</code>s, and one <code>SaveChangesAsync</code> commits them together), so hand-rolling a separate Unit-of-Work abstraction on top of EF Core is usually redundant ceremony rather than a needed pattern.</p></div></details>
+    <details class="qa"><summary>How would you review a pull request to check it respects the layering, in under two minutes?</summary><div class="a"><p>Check the <code>using</code> statements in any file under the domain folder for framework or infrastructure namespaces, and skim the application service methods for any <code>if</code> that's evaluating business state rather than orchestrating a call — those two checks catch the two most common violations (infrastructure leaking in, business rules leaking out) fast. It's not exhaustive, but it's the highest-signal two-minute check for this class of problem.</p></div></details>
+    <details class="qa"><summary>Is Clean/Onion/Hexagonal Architecture required to do DDD? Could you do tactical DDD in a simpler layering?</summary><div class="a"><p>No — the Dependency Rule is a means to protect the domain model's independence, not a DDD requirement in itself; you can absolutely do tactical DDD (rich aggregates, value objects, domain events) inside a simpler three-tier layering as long as business rules genuinely live in the domain classes and not in controllers or services. What DDD actually requires is that the model be rich and language-driven — the specific layering diagram is an implementation choice, and over-formalizing it (extra projects, extra interfaces "for testability" nobody uses) is itself a smell worth flagging in review.</p></div></details>
+    <details class="qa"><summary>What's a "specification" and where does it sit in this layering?</summary><div class="a"><p>A specification is an object that encapsulates a reusable query or business-rule predicate ("orders overdue by more than 30 days") so it can be shared between a repository query, an in-memory check, and a validation rule without duplicating the logic — it's a domain-layer concept (the rule) with an infrastructure-layer translation (to SQL/LINQ) behind the repository interface. Unit 10 covers it as a testing tool as well.</p></div></details>
+    <details class="qa"><summary>How would you introduce this layering into a legacy codebase where controllers call EF Core directly, without a rewrite?</summary><div class="a"><p>Start with the highest-value aggregate — usually the core domain from unit 01 — extract its rules into rich methods on the existing entity classes, introduce a repository interface for just that aggregate, and route new features through it, leaving the rest of the codebase as-is until it's touched for other reasons. Trying to erect the full four-layer structure everywhere on day one, before any real domain logic has moved into it, produces empty ceremony layers with nothing in them — a very common and very visible sign of cargo-culted DDD.</p></div></details>
+    <p class="sources">Go deeper: <a href="https://learn.microsoft.com/en-us/dotnet/architecture/modern-web-apps-azure/common-web-application-architectures" target="_blank" rel="noopener">Microsoft, ".NET application architecture: layering"</a>.</p>
+  </section>
+
+  <section class="unit" id="u06">
+    <h2>06 · Domain Events &amp; Integration</h2>
+    <p>A <strong>domain event</strong> captures something that happened in the domain that other parts of the model, or other systems, might care about — <code>OrderSubmitted</code>, <code>PaymentCaptured</code>, <code>InventoryReserved</code>. Evans introduced them as a first-class Building Block because "the order was submitted" is a fact the ubiquitous language already talks about in the past tense, and modeling it explicitly (rather than inferring it from a row's <code>Status</code> column changing) makes side effects — sending an email, updating a read model, notifying another bounded context — explicit and testable instead of buried in a cascade of method calls. The critical distinction, and a frequent interview probe, is between an <strong>in-process domain event</strong> (raised by an aggregate, handled synchronously in the same transaction, same process, same request — e.g., recalculating an order's total when a line is added) and an <strong>integration event</strong> (published after the transaction commits, consumed by other services or bounded contexts, asynchronous, and must survive process crashes).</p>
+    <p>Conflating the two is the single most common event-related production bug: raising a domain event that triggers a call to another microservice <em>inside</em> the same database transaction couples your consistency boundary to a network call, and if that transaction rolls back after the external call already fired, you've told another system about something that never actually happened. The fix is the <strong>outbox pattern</strong>: when the aggregate's transaction commits, an "outbox" row (the eventual integration event) is written atomically in the same transaction as the domain state, and a separate, independent process (a background poller or a change-data-capture pipeline like Debezium) reads unpublished outbox rows and publishes them to the message broker, retrying until it succeeds — this gives you exactly the reliability guarantee ("the event is published if and only if the transaction committed") that a direct in-transaction publish cannot.</p>
+    <div class="table-wrap">
+      <table>
+        <thead><tr><th></th><th>In-process domain event</th><th>Integration event</th></tr></thead>
+        <tbody>
+          <tr><td>Scope</td><td>Within one bounded context, often one aggregate</td><td>Across bounded contexts / services</td></tr>
+          <tr><td>Timing</td><td>Synchronous, same transaction</td><td>Asynchronous, after commit, via outbox/broker</td></tr>
+          <tr><td>Contract</td><td>Internal C# type, can change freely</td><td>Versioned, published-language contract (unit 02) — breaking it breaks consumers</td></tr>
+          <tr><td>Failure mode</td><td>Throws, transaction rolls back with it</td><td>Must be retried/idempotent; consumer may see it more than once</td></tr>
+        </tbody>
+      </table>
+    </div>
+    <pre><code class="language-csharp">public sealed record OrderSubmitted(OrderId OrderId, DateTimeOffset OccurredOn) : IDomainEvent;
+
+public class Order : AggregateRoot
+{
+    private readonly List&lt;IDomainEvent&gt; _events = new();
+    public IReadOnlyList&lt;IDomainEvent&gt; Events =&gt; _events;
+
+    public void Submit()
+    {
+        if (Lines.Count == 0) throw new DomainException("Cannot submit an empty order.");
+        Status = OrderStatus.Submitted;
+        _events.Add(new OrderSubmitted(Id, DateTimeOffset.UtcNow));   // raised, not yet published
+    }
+}
+
+// After SaveChangesAsync commits the aggregate's transaction:
+//   1. write each event to an Outbox table in the SAME transaction (atomic with the aggregate save)
+//   2. a separate background service polls the Outbox and publishes to the broker, marking rows sent
+//   3. consumers process idempotently, keyed by event id, since at-least-once delivery can duplicate</code></pre>
+    <div class="callout">
+      <span class="label">Interview trap</span>
+      <p>"We publish the event directly to the message bus right after <code>SaveChangesAsync</code>" sounds fine until the process crashes between the two calls — the transaction committed, the event never went out, and downstream systems silently drift out of sync with no error anywhere. The outbox pattern exists specifically to close this gap; if a candidate proposes direct publish-after-commit without mentioning this failure window, that's the follow-up question to ask. The opposite trap is over-modeling: not every state change needs a domain event — raising one for every property setter turns the event stream into noise nobody can operate on.</p>
+    </div>
+    <div class="try-it">
+      <span class="label">Try it</span>
+      <ol>
+        <li>Take the <code>Order</code> aggregate from unit 04 and add an event raised by <code>Submit()</code>. Write a unit test that calls <code>Submit()</code> and asserts on <code>order.Events</code> without touching a database or a message bus at all.</li>
+        <li>Sketch (on paper) an Outbox table schema for the <code>OrderSubmitted</code> event: what columns does a poller need to find unpublished rows efficiently and mark them sent exactly once under concurrent pollers? <details class="solution"><summary>Expected outcome</summary>Minimum: id, event type, payload (JSON), <code>occurred_on</code>, <code>processed_on</code> (nullable — null means unpublished), and a way to claim rows safely under concurrent pollers (e.g., <code>UPDATE ... WHERE processed_on IS NULL LIMIT n FOR UPDATE SKIP LOCKED</code> or an optimistic claim column).</details></li>
+      </ol>
+    </div>
+    <h3>Interview Q&amp;A</h3>
+    <details class="qa"><summary>Why does the transactional outbox pattern exist — what specific failure does it prevent that a direct publish doesn't?</summary><div class="a"><p>It prevents the "dual write" problem: writing to the database and publishing to a message broker are two separate systems with no shared transaction, so a crash between them (or a broker outage) leaves the two permanently out of sync with no automatic recovery. The outbox writes the event as a row in the same database transaction as the domain change, making the event's existence atomic with the state change; a separate publisher then delivers it with retries, so worst case the event is delayed, never lost or falsely sent.</p></div></details>
+    <details class="qa"><summary>What does "at-least-once delivery" mean for integration events, and what does it require of consumers?</summary><div class="a"><p>Because the outbox publisher retries until it gets a delivery acknowledgment, a broker or network blip can cause the same event to be delivered twice — consumers must be idempotent, typically by tracking processed event ids and skipping duplicates, or by designing the handler so applying it twice has the same effect as applying it once (e.g., an upsert rather than an increment).</p></div></details>
+    <details class="qa"><summary>Should an in-process domain event handler be allowed to call another aggregate's repository and save it, in the same request?</summary><div class="a"><p>Generally no if it crosses aggregate boundaries within the same transaction — that reintroduces the multi-aggregate transaction unit 04 warns against, just hidden behind an event handler instead of an explicit call. The common resolution is: update the other aggregate eventually, via its own transaction, triggered by the same domain event but running after the first commit (in-process, later in the request, or via the outbox) — eventual consistency between aggregates, strong consistency within one.</p></div></details>
+    <details class="qa"><summary>How would you version an integration event's schema without breaking existing consumers?</summary><div class="a"><p>Treat it like the Published Language from context mapping (unit 02): add fields as optional/additive rather than removing or renaming existing ones, and if a genuinely breaking change is needed, publish a new event type/version alongside the old one for a transition window rather than mutating the existing contract in place. Consumers should also tolerate unknown fields rather than failing deserialization on them.</p></div></details>
+    <details class="qa"><summary>What's the difference between a domain event and a "notification" in something like MediatR's terms?</summary><div class="a"><p>They're the same underlying concept — MediatR's <code>INotification</code>/<code>IRequest</code> split (unit 07 covers MediatR's current status) is a mechanism for in-process dispatch of domain events to handlers within the same request; the DDD term "domain event" is about what it represents (a business-meaningful fact), while "notification" is about how a particular library delivers it in-process. Nothing stops you from raising a domain event and dispatching it with a hand-rolled dispatcher instead.</p></div></details>
+    <details class="qa"><summary>Why store the event as JSON payload rather than a strongly-typed column per event type in the outbox table?</summary><div class="a"><p>A single generic outbox table (id, event type discriminator, JSON payload, timestamps) scales to any number of event types without a schema migration per new event, and matches how most brokers serialize messages anyway; the cost is losing compile-time/DB-level type safety on the payload, which is an acceptable trade because the payload's shape is validated at serialization/deserialization time in code, not by the database schema.</p></div></details>
+    <details class="qa"><summary>Can you use EF Core's SaveChanges interceptors to implement the outbox pattern, and is that a good idea?</summary><div class="a"><p>Yes — an <code>ISaveChangesInterceptor</code> can inspect the tracked aggregates' raised events before <code>SaveChangesAsync</code> commits and add corresponding outbox rows to the same <code>DbContext</code>, so they're written in the same transaction with no extra plumbing in every application service. It's a good idea specifically because it centralizes the "collect events → write outbox rows" step once, instead of repeating it in every command handler and risking someone forgetting it.</p></div></details>
+    <details class="qa"><summary>A downstream team asks you to add a field to an integration event for their new feature. What do you push back on, and what do you ask?</summary><div class="a"><p>Push back on adding anything that exposes your internal model rather than a genuinely public fact (per Open Host Service from unit 02) — if the field only makes sense in terms of your internal aggregate's implementation, that's a sign the event shouldn't carry it, or that they need a different integration point (a query API) rather than piggybacking on your event. Ask whether the field is additive/optional so existing consumers are unaffected, and whether they actually need it pushed proactively or could pull it via a query when the event tells them "something changed."</p></div></details>
+    <details class="qa"><summary>How do you test an outbox-based flow end-to-end without a real message broker?</summary><div class="a"><p>Split the test into layers: unit-test the aggregate raising the correct events (no infrastructure at all, per the try-it above), integration-test that a saved aggregate produces the right outbox rows (using a real or in-memory database, no broker), and separately test the poller's publish-and-mark-sent logic against a broker test container or a fake — you rarely need all three layers wired together in one test to have confidence in the whole pipeline.</p></div></details>
+    <details class="qa"><summary>What's "eventual consistency" in this context, and how do you explain the acceptable staleness window to a stakeholder who's worried about it?</summary><div class="a"><p>It means data derived from an event (a read model, another bounded context's copy of the data) may lag the source of truth by a small, typically sub-second-to-seconds window while the event travels through the outbox and broker — the stakeholder conversation should focus on what actually breaks if a user sees slightly stale data for that window (usually nothing, since most UX is already tolerant of a page not being millisecond-fresh) versus the availability and coupling cost of forcing synchronous consistency instead.</p></div></details>
+    <details class="qa"><summary>Where do domain events fit if you're not doing full event sourcing (unit 08) — are they only useful with an event store?</summary><div class="a"><p>No — domain events are useful independently of event sourcing; here they're a side-effect and integration mechanism layered on top of a conventional state-stored aggregate (EF Core mapping current state), not the system of record itself. Event sourcing is the more radical step of making the event stream itself the source of truth and deriving current state by replaying it — a separate decision covered next.</p></div></details>
+    <p class="sources">Go deeper: <a href="https://learn.microsoft.com/en-us/azure/architecture/patterns/transactional-outbox" target="_blank" rel="noopener">Microsoft Azure Architecture Center, "Transactional Outbox pattern"</a>.</p>
+  </section>
+
+  <section class="unit" id="u07">
+    <h2>07 · CQRS &amp; the Application Layer</h2>
+    <p><strong>Command Query Responsibility Segregation (CQRS)</strong> splits the model used to change state (commands, routed through the rich domain model — aggregates, invariants, the works) from the model used to read state (queries, which can bypass the domain entirely and read a shape optimized for the screen or report that needs it). This is a direct consequence of a tension DDD surfaces early: an aggregate designed around consistency and invariants is usually a terrible shape for a UI grid or a dashboard that needs to join and flatten data from several aggregates. Greg Young coined the term generalizing Bertrand Meyer's Command-Query Separation principle to the architectural level; the key thing CQRS does <em>not</em> require, despite common conflation, is separate databases or event sourcing — those are optional escalations (a separate read-optimized store, materialized via the domain events from unit 06) you reach for only when a single shared database's read performance or query complexity actually demands it. Most .NET teams practicing CQRS today still read and write the same database — commands go through EF Core and the aggregate, queries run a lean, purpose-built LINQ projection (or raw SQL/Dapper) straight to a DTO, skipping the aggregate's <code>Include</code> graph entirely.</p>
+    <p>The <strong>application layer</strong> (unit 05) is where commands and queries live as discrete objects with their own handler — this is what a mediator library gives you: <code>SubmitOrderCommand</code> in, handled by exactly one <code>SubmitOrderCommandHandler</code>, decoupling the caller (a controller) from the handler and letting cross-cutting concerns (logging, validation, transactions) wrap every command/query uniformly via a pipeline. In .NET, this has meant one library so dominant its name became shorthand for the pattern: <strong>MediatR</strong>. That changed materially in 2025 — MediatR's author moved the project to a commercial license: as of MediatR v13 (2025), production use requires a paid license key purchased through mediatr.io, while the message contracts (<code>IRequest</code>, <code>INotification</code>) were split out into the still-free, MIT-licensed <code>MediatR.Contracts</code> package so consuming libraries that only reference the interfaces aren't forced into the paid tier. This is exactly the kind of very recent, citable change worth walking into an interview with: teams now face a real build vs. buy decision that didn't exist before, and the two live alternatives are <strong>Wolverine</strong> (Jeremy Miller's open-source mediator/messaging framework, which also unifies in-process and out-of-process messaging under one API) and a hand-rolled mediator — often just a few dozen lines using DI's <code>IEnumerable&lt;IHandler&lt;T&gt;&gt;</code> resolution — since the pattern itself is simple enough that many teams conclude they don't need a library-shaped dependency for it at all.</p>
+    <div class="table-wrap">
+      <table>
+        <thead><tr><th>Approach</th><th>License / cost</th><th>Notes (2026)</th></tr></thead>
+        <tbody>
+          <tr><td>MediatR v12.x (pre-2025)</td><td>Free, MIT</td><td>Still usable, no forced upgrade, but no new features/fixes without moving to v13+</td></tr>
+          <tr><td>MediatR v13+ (2025-)</td><td>Commercial, license key via mediatr.io</td><td>Contracts (<code>IRequest</code>/<code>INotification</code>) remain free in <code>MediatR.Contracts</code>; the dispatcher itself is paid</td></tr>
+          <tr><td>Wolverine</td><td>Free, open source</td><td>Broader scope: in-process mediator + out-of-process messaging (queues/brokers) in one framework</td></tr>
+          <tr><td>Hand-rolled mediator</td><td>Free, in-house</td><td>A few dozen lines over DI; no pipeline behaviors/ecosystem out of the box, you build what you need</td></tr>
+        </tbody>
+      </table>
+    </div>
+    <pre><code class="language-csharp">// The pattern itself, independent of any library: a command handled by exactly one handler
+public sealed record SubmitOrderCommand(OrderId OrderId) : IRequest;
+
+public class SubmitOrderCommandHandler : IRequestHandler&lt;SubmitOrderCommand&gt;
+{
+    private readonly IOrderRepository _orders;
+    public SubmitOrderCommandHandler(IOrderRepository orders) =&gt; _orders = orders;
+
+    public async Task Handle(SubmitOrderCommand cmd, CancellationToken ct)
+    {
+        var order = await _orders.GetByIdAsync(cmd.OrderId) ?? throw new NotFoundException();
+        order.Submit();
+    }
+}
+
+// The read side deliberately skips the aggregate — a flat projection for a screen, not a domain object
+public record OrderSummaryDto(Guid Id, string CustomerName, decimal Total, string Status);
+
+public Task&lt;List&lt;OrderSummaryDto&gt;&gt; GetOpenOrders(AppDbContext db) =&gt;
+    db.Orders.Where(o =&gt; o.Status != OrderStatus.Closed)
+             .Select(o =&gt; new OrderSummaryDto(o.Id.Value, o.Customer.Name, o.Total, o.Status.ToString()))
+             .ToListAsync();   // no .Include(), no aggregate hydration — just the shape the screen needs</code></pre>
+    <div class="callout">
+      <span class="label">Interview trap</span>
+      <p>Candidates often describe CQRS as "always means event sourcing and two databases" — that's the maximalist, high-end version, not the definition. The core idea is simply "don't force one model to serve both reads and writes," and it's entirely legitimate — and far more common in practice — to apply it against a single shared database. The second trap: treating "we use MediatR" as synonymous with "we do CQRS" — a mediator library is dispatch plumbing for commands/queries, not the architectural decision itself; you can do CQRS with no mediator at all, and you can use MediatR for something that isn't CQRS.</p>
+    </div>
+    <div class="try-it">
+      <span class="label">Try it</span>
+      <ol>
+        <li>Take the <code>GetOpenOrders</code> query above and rewrite it as if it went through the <code>Order</code> aggregate and its repository instead. Count how many extra objects get hydrated (line items, value objects) that the DTO never uses — that gap is the performance/complexity case for a separate read path.</li>
+        <li>If your codebase uses MediatR, check its version. If it's v13+, find out whether a license key is configured; if it's pre-v13, decide (on paper) whether you'd upgrade-and-pay, migrate to Wolverine, or hand-roll — and write one sentence of justification for each option.</li>
+      </ol>
+    </div>
+    <h3>Interview Q&amp;A</h3>
+    <details class="qa"><summary>Define CQRS precisely, and correct the common misconception that it requires event sourcing or two databases.</summary><div class="a"><p>CQRS is the principle of using separate models for reads and writes — commands mutate state through the domain model with full invariant enforcement, queries return data shaped for their consumer without going through that same model. It requires neither event sourcing nor a separate physical database; both are optional escalations for when a single shared database's read side becomes a genuine bottleneck or the query shape diverges too far from the write model to share it economically.</p></div></details>
+    <details class="qa"><summary>What changed with MediatR in 2025, and what are the concrete options for a .NET team affected by it?</summary><div class="a"><p>As of v13, MediatR requires a paid license key for production use via mediatr.io, while the request/notification interfaces were split into the still-free <code>MediatR.Contracts</code> package. Teams can pay for the license, pin to the last free v12.x release (accepting no further updates), migrate to Wolverine (a broader, free, open-source alternative that also handles out-of-process messaging), or hand-roll a minimal in-process mediator over DI, which is realistic precisely because the core pattern is simple.</p></div></details>
+    <details class="qa"><summary>When would you actually stand up a separate read database for the query side, rather than querying the same database as the writes?</summary><div class="a"><p>When read query complexity or volume genuinely can't be served well by the write-optimized schema — heavy reporting/aggregation workloads competing with transactional load, or a read shape that requires joining across many aggregates or even bounded contexts in ways that would be expensive to compute on demand. The trigger is a measured pain point (slow queries, lock contention, unacceptable latency), not a default architectural starting position.</p></div></details>
+    <details class="qa"><summary>How do pipeline behaviors (in MediatR or Wolverine) relate to cross-cutting concerns like validation, logging, and transactions?</summary><div class="a"><p>A pipeline behavior wraps every command/query handler with middleware-style logic — validate the request before it reaches the handler, log timing/outcome, open and commit a transaction around the handler — without each handler repeating that plumbing itself. This is the main reason teams reach for a mediator library rather than calling handlers directly: it's not the dispatch itself that's hard, it's getting consistent cross-cutting behavior without duplicating it everywhere.</p></div></details>
+    <details class="qa"><summary>Should a query handler ever call into the domain model (aggregates)?</summary><div class="a"><p>Generally no — the point of the read side is to skip the ceremony (loading a whole aggregate graph, enforcing invariants that don't apply to a read-only view) and project directly to the shape the consumer needs, typically via a lean LINQ projection or raw SQL. An occasional exception is a query that needs to reuse a genuinely complex piece of domain logic for a computed field, but even then, prefer duplicating the read-only calculation in the query projection over pulling the whole aggregate into a read path.</p></div></details>
+    <details class="qa"><summary>What's the risk of hand-rolling a mediator instead of using a library, and when is it the right call?</summary><div class="a"><p>The risk is quietly reinventing the pipeline-behavior ecosystem (validation, logging, transaction wrapping, retry) one ad-hoc mechanism at a time as needs arise, ending up with something less consistent than what a mature library gives for free. It's the right call when the team's needs are simple and stable — a handful of cross-cutting concerns, no need for out-of-process messaging — and the cost of a paid or larger dependency outweighs a genuinely small amount of code to write and own.</p></div></details>
+    <details class="qa"><summary>How does CQRS interact with the aggregate boundaries from unit 04 — does every command target exactly one aggregate?</summary><div class="a"><p>In the healthy case, yes — one command should load, mutate, and save exactly one aggregate instance, which is precisely why aggregates should be sized around true transactional consistency needs (unit 04); a command that needs to touch two aggregates in the same transaction is usually a sign either the aggregate boundary is wrong or the operation should be split into two commands coordinated via a domain event (eventual consistency, unit 06) instead of a single cross-aggregate transaction.</p></div></details>
+    <details class="qa"><summary>What's the difference between a "command" that returns nothing and one that returns an id or a result — is that a CQRS violation?</summary><div class="a"><p>Strict Command-Query Separation (Meyer's original principle) says commands shouldn't return domain data, only success/failure — but pragmatic CQRS in most real systems relaxes this slightly, letting a command return the minimum needed for the caller to proceed (a new id, a version stamp for later requests), while still not returning a full query-shaped payload. This is a judgment call to name explicitly in review rather than a hard rule to enforce dogmatically.</p></div></details>
+    <details class="qa"><summary>A junior developer wants to add event sourcing "because we're doing CQRS anyway." What do you ask them?</summary><div class="a"><p>Ask what specific problem event sourcing solves that the current state-stored model plus domain events (unit 06) doesn't — usually the honest answer is "none yet," since event sourcing is a much bigger commitment (unit 08) that should be justified by a real need for full audit history, temporal queries, or true CQRS with independently-scaled read models, not adopted as a default extension of "we already split reads and writes."</p></div></details>
+    <details class="qa"><summary>How would you introduce CQRS-style read/write separation into a codebase currently doing everything through one repository-and-service layer, incrementally?</summary><div class="a"><p>Start with the read side on the highest-traffic or most awkward screen: replace its current aggregate-hydrating query with a direct, flat projection DTO query, measure the improvement, and repeat opportunistically where it pays off — no need to introduce a mediator library, a command/query naming convention, or a separate database on day one. The write side usually needs no change at all if it already goes through the domain model correctly.</p></div></details>
+    <details class="qa"><summary>What do you tell a team that's anxious about MediatR's licensing change affecting a large existing codebase with hundreds of handlers?</summary><div class="a"><p>First, the free v12.x line keeps working indefinitely — there's no forced runtime shutoff, so there's no emergency; the decision (pay, migrate, or hand-roll) can be made on the team's own timeline. Second, because the actual message contracts (<code>IRequest</code>/<code>INotification</code>) stayed free and the handler-calling code is thin, a migration to Wolverine or an in-house dispatcher is mostly mechanical rather than a rewrite of business logic, since none of the domain or handler bodies need to change — only the dispatch registration and pipeline wiring.</p></div></details>
+    <p class="sources">Go deeper: <a href="https://martinfowler.com/bliki/CQRS.html" target="_blank" rel="noopener">Martin Fowler, "CQRS"</a>.</p>
+  </section>
+
+  <section class="unit" id="u08">
+    <h2>08 · Event Sourcing</h2>
+    <p><strong>Event sourcing</strong> takes the domain events from unit 06 and makes them the system of record: instead of storing an aggregate's current state (a row that gets overwritten on every update), you store the full, ordered sequence of events that produced it — <code>OrderCreated</code>, <code>LineAdded</code>, <code>LineAdded</code>, <code>Submitted</code> — and derive current state by replaying them, typically by folding each event over the aggregate's state through the same methods that raised them. This is a genuinely different persistence model, not a variant of "just add an events table" — the event stream <em>is</em> the data; the current-state snapshot, if you keep one at all, is a cache you can always regenerate. The payoff is real: a complete, tamper-evident audit trail of everything that ever happened for free, the ability to answer "what did this order look like at 3pm yesterday" by replaying up to that point, and natural support for the CQRS read-model story from unit 07 — project the same event stream into as many differently-shaped read models as you need, and rebuild them from scratch whenever their shape changes.</p>
+    <p>The cost is equally real and is why event sourcing remains a deliberate, narrow choice rather than a default: every query against current state now requires either replaying the whole stream (slow for long-lived aggregates, mitigated with periodic snapshots) or maintaining projections that can themselves drift or need rebuilding; schema evolution of the events themselves is harder than evolving a table, because old events already committed to the store must still deserialize correctly forever (versioned event types, upcasting old shapes to new ones); and the team now needs real competence in a genuinely less familiar model — most .NET line-of-business systems, even those enthusiastic about DDD, do not use event sourcing, and using it as a badge of "we do real DDD" rather than a response to an actual audit/temporal/CQRS-scale requirement is a well-known trap. Marten (built on PostgreSQL, from the same author as Wolverine) and EventStoreDB are the two most common concrete choices in the .NET ecosystem for teams that do have the requirement.</p>
+    <div class="table-wrap">
+      <table>
+        <thead><tr><th></th><th>State-stored (conventional EF Core)</th><th>Event-sourced</th></tr></thead>
+        <tbody>
+          <tr><td>What's persisted</td><td>Current state (a row per aggregate)</td><td>The full event stream (append-only)</td></tr>
+          <tr><td>Current state</td><td>Read directly</td><td>Derived by replaying events (or from a snapshot/projection)</td></tr>
+          <tr><td>Audit trail</td><td>Bolted on separately (audit tables, triggers) if needed</td><td>Free — it's the primary structure, not an add-on</td></tr>
+          <tr><td>Schema evolution</td><td>Migrate the table</td><td>Old events must still deserialize; version and upcast event shapes</td></tr>
+          <tr><td>Typical adoption</td><td>Default for most .NET line-of-business systems</td><td>Deliberate choice for audit-heavy, temporal-query-heavy, or CQRS-at-scale domains</td></tr>
+        </tbody>
+      </table>
+    </div>
+    <pre><code class="language-csharp">// The events are the same domain events from unit 06 — event sourcing just makes them durable and authoritative
+public sealed record OrderCreated(OrderId Id, CustomerId CustomerId) : IDomainEvent;
+public sealed record LineAdded(OrderId Id, ProductId ProductId, int Quantity) : IDomainEvent;
+public sealed record OrderSubmitted(OrderId Id) : IDomainEvent;
+
+public class Order
+{
+    public OrderId Id { get; private set; } = default!;
+    public OrderStatus Status { get; private set; }
+    private readonly List&lt;OrderLine&gt; _lines = new();
+
+    // Rehydrate by folding the stream — this is the "read" side of event sourcing
+    public static Order FromHistory(IEnumerable&lt;IDomainEvent&gt; history)
+    {
+        var order = new Order();
+        foreach (var e in history) order.Apply(e);
+        return order;
+    }
+
+    private void Apply(IDomainEvent e)
+    {
+        switch (e)
+        {
+            case OrderCreated c: Id = c.Id; Status = OrderStatus.Draft; break;
+            case LineAdded l: _lines.Add(new OrderLine(l.ProductId, l.Quantity)); break;
+            case OrderSubmitted: Status = OrderStatus.Submitted; break;
+        }
+    }
+}</code></pre>
+    <div class="callout">
+      <span class="label">Interview trap</span>
+      <p>"We use domain events, therefore we do event sourcing" is a common conflation to correct — raising and publishing domain events (unit 06) says nothing about what the source of truth is; a conventional EF Core aggregate that raises events for side effects while still storing current state in a table is not event-sourced. The deeper trap is proposing event sourcing to solve a problem (usually "we need an audit log") that a much smaller, well-understood tool already solves — audit tables, temporal tables (SQL Server's built-in <code>SYSTEM_VERSIONING</code>), or <code>CreatedBy</code>/<code>ModifiedBy</code> columns — without the replay complexity, snapshotting, and event-schema-versioning burden that full event sourcing brings.</p>
+    </div>
+    <div class="try-it">
+      <span class="label">Try it</span>
+      <ol>
+        <li>Implement the <code>FromHistory</code> fold above for a small aggregate of your own, then write a test that builds it from a hand-written list of events and asserts on the resulting state — notice you're testing the exact same "given events, then state" shape event-sourcing tests always take.</li>
+        <li>List three concrete questions a stakeholder has asked (or would ask) about your current system's history ("who changed this and when," "what did this look like last month") and for each, decide whether an audit table would answer it just as well as full event sourcing. <details class="solution"><summary>Expected outcome</summary>Most "who/when changed X" questions are answered by an audit trail; only genuine "replay the business logic as of a past point" or "rebuild an entirely new read model from history" needs justify full event sourcing.</details></li>
+      </ol>
+    </div>
+    <h3>Interview Q&amp;A</h3>
+    <details class="qa"><summary>Define event sourcing precisely, and distinguish it from "just raising domain events."</summary><div class="a"><p>Event sourcing means the append-only stream of events is the actual system of record — current state is always a derived, rebuildable projection of that stream, never stored as the primary truth. Raising domain events (unit 06) for side effects and integration is orthogonal — you can do that with a conventional state-stored aggregate that never persists its event history at all; the two are frequently confused because they use the same event types conceptually.</p></div></details>
+    <details class="qa"><summary>How do you handle querying "current state" efficiently in an event-sourced system, given replaying the whole stream every time would be slow?</summary><div class="a"><p>Two standard techniques, often combined: periodic snapshots (store the folded state every N events so replay only needs to start from the last snapshot forward) and CQRS-style projections (a separate, denormalized read model kept up to date as events arrive, queried directly instead of ever replaying). Most production event-sourced systems use projections for anything read-heavy and only fall back to full replay for the aggregate's own write-side consistency check.</p></div></details>
+    <details class="qa"><summary>What happens when you need to change the shape of an event type that's already been persisted thousands of times?</summary><div class="a"><p>You version the event type and write an "upcaster" — a small transform that reads the old shape and produces the new one on the fly during deserialization — so old events keep working without a destructive migration of the event store itself; the event store is append-only by design, so you add new event versions going forward rather than rewriting history. This is genuinely harder than an EF Core migration and is one of the real, ongoing costs of the model.</p></div></details>
+    <details class="qa"><summary>What's the difference between Marten and EventStoreDB, at a decision-making level?</summary><div class="a"><p>Marten builds event sourcing (and general document storage) on top of PostgreSQL, which means a team already running Postgres gets event sourcing without adding a new database technology to operate; EventStoreDB is a purpose-built event store database with its own operational footprint and stream-native features. The practical decision driver is usually "do we want one more infrastructure component to run and monitor" versus "do we want the more event-native tooling" rather than a large functional gap for typical use cases.</p></div></details>
+    <details class="qa"><summary>Can you mix event-sourced and conventional state-stored aggregates in the same bounded context?</summary><div class="a"><p>Yes, and it's common — event sourcing is applied per-aggregate-type based on whether that specific aggregate actually needs the audit/temporal/projection benefits, not as an all-or-nothing decision for a whole bounded context. A core aggregate with real audit or replay requirements might be event-sourced while supporting aggregates in the same context stay conventional.</p></div></details>
+    <details class="qa"><summary>How would you test business logic in an event-sourced aggregate — what does a typical test look like?</summary><div class="a"><p>The canonical shape is "given these prior events, when this command is handled, then these new events are produced" — you build the aggregate via <code>FromHistory</code> with a fixture list of past events, invoke the method under test, and assert on the newly raised events (and optionally the resulting state), never touching a real event store. This maps directly to Given-When-Then and is one of event sourcing's genuine testing advantages.</p></div></details>
+    <details class="qa"><summary>What's a concurrency conflict in an event-sourced system, and how is it detected without a <code>[Timestamp]</code>-style column?</summary><div class="a"><p>Each stream tracks its own version (the number of events appended so far); a command is loaded against a known version, and appending new events includes an expected-version check — if another process appended events in between, the append is rejected and the command must be retried against the now-current stream, which is the event-sourcing equivalent of the optimistic-concurrency token from unit 04.</p></div></details>
+    <details class="qa"><summary>Why is event sourcing often paired with CQRS, even though the two are independently optional?</summary><div class="a"><p>The event stream is naturally a great source to build multiple independent read projections from — since it's already the full history of what happened, projecting it into several different shapes for different read needs is close to free once the pipeline exists — which is exactly the read-side flexibility CQRS wants. They're commonly adopted together, but neither requires the other: you can do CQRS with a conventional database (unit 07), and you can event-source without maintaining more than one read model.</p></div></details>
+    <details class="qa"><summary>What's the single biggest reason a team should NOT adopt event sourcing for a given aggregate?</summary><div class="a"><p>If there's no real requirement for full history, temporal queries, or multiple independently rebuildable projections, event sourcing adds meaningful complexity (snapshotting, event versioning, a less familiar query story) with no corresponding payoff — a conventional state-stored aggregate, optionally with an audit table, delivers the same business value with far less operational and cognitive overhead. The decision should be justified by a concrete requirement, not general architectural enthusiasm.</p></div></details>
+    <details class="qa"><summary>How does GDPR-style "right to erasure" interact with an append-only event store that's supposed to be immutable history?</summary><div class="a"><p>Genuine tension: you typically can't delete or rewrite historical events without undermining the audit guarantee that's often the whole reason for event sourcing, so the common resolution is crypto-shredding — store personal data encrypted with a per-subject key, and "erase" by discarding the key, leaving the event structurally intact but the personal payload permanently unreadable. This needs to be designed in from the start; retrofitting it onto an existing event store is painful.</p></div></details>
+    <details class="qa"><summary>A team wants event sourcing purely to get "time travel debugging" in production. Is that alone a good justification?</summary><div class="a"><p>It's a real and sometimes valuable benefit, but weigh it against cheaper alternatives first — structured logging, distributed tracing, and periodic state snapshots often answer "what led to this bad state" well enough without committing the whole aggregate to event-sourced persistence. It's a good supporting reason once other requirements (audit, projections) already justify the move, but a thin justification on its own given the ongoing cost of event schema evolution.</p></div></details>
+    <p class="sources">Go deeper: <a href="https://martinfowler.com/eaaDev/EventSourcing.html" target="_blank" rel="noopener">Martin Fowler, "Event Sourcing"</a>.</p>
+  </section>
+
+  <section class="unit" id="u09">
+    <h2>09 · Modular Monoliths &amp; Team Boundaries</h2>
+    <p>The industry's default architectural instinct swung hard toward microservices in the 2015-2020 period, largely on the strength of DDD's own bounded-context concept — "each bounded context should be its own deployable service" felt like the natural conclusion. By the mid-2020s the pendulum swung back, not because bounded contexts stopped being useful but because teams learned the hard way that a service boundary is an <em>operational</em> commitment (network calls, independent deployment, distributed tracing, data consistency across service boundaries) layered on top of the <em>modeling</em> commitment a bounded context already is — and paying the operational cost before you actually need independent scaling or independent deployment cadence is usually a net loss. The <strong>modular monolith</strong> is the resulting synthesis: keep the bounded contexts DDD asks for as genuinely separate modules — separate namespaces/projects, no direct references to another module's internal types, communication only through each module's public contracts or in-process events — but deploy them all as one process, one database (with schema-per-module or at least logically separated tables), one deployment pipeline. You get the modeling discipline of bounded contexts without paying for distributed systems until a real, measured need (a module that genuinely needs independent scaling, a team that genuinely needs to deploy independently) appears.</p>
+    <p>This is also where DDD stops being purely a software-design discipline and meets <strong>Conway's Law</strong> — "organizations design systems that mirror their own communication structure" — and its prescriptive counterpart, <strong>Team Topologies</strong> (Skelton &amp; Pais): a bounded context is most successful when it's owned end-to-end by one team, because the ubiquitous language (unit 01) only stays coherent when the people who use it in conversation are the people who write the code that embodies it. A context split across two teams' code ownership tends to develop two dialects of the same language and a constant negotiation overhead; a context that's too large for one team to hold in their heads collectively tends to develop the internal inconsistency of "several sub-languages wearing one name." Team Topologies' four team types (stream-aligned, platform, enabling, complicated-subsystem) give a vocabulary for deciding who should own which bounded context and where the collaboration/interface friction is deliberate versus accidental — the "team-first" reading of bounded contexts (design the team, and let the context boundary follow) is now at least as common in practice as the "model-first" reading DDD originally emphasized.</p>
+    <div class="table-wrap">
+      <table>
+        <thead><tr><th></th><th>Microservices</th><th>Modular monolith</th></tr></thead>
+        <tbody>
+          <tr><td>Deployment</td><td>Independent, per service</td><td>One unit, all modules together</td></tr>
+          <tr><td>Module boundary enforcement</td><td>Physical (network call — can't cheat it)</td><td>Logical (code convention, architecture tests — can be violated by accident)</td></tr>
+          <tr><td>Cross-boundary consistency</td><td>Eventual, by design (unit 06)</td><td>Can be strong (same DB transaction) or eventual, by choice</td></tr>
+          <tr><td>Operational cost</td><td>High: service mesh, distributed tracing, per-service CI/CD</td><td>Low: one process to run, one pipeline</td></tr>
+          <tr><td>When it earns its cost</td><td>Genuinely independent scaling/deploy cadence needs, per module</td><td>Most systems, most of the time, especially pre-product-market-fit</td></tr>
+        </tbody>
+      </table>
+    </div>
+    <pre><code class="language-csharp">// A modular monolith enforces the boundary in code, not just convention:
+// Orders.Domain must not reference Shipping.Domain's internal types directly.
+namespace Orders.Domain;
+public class Order { /* ... */ }
+
+namespace Shipping.Domain;
+public class Shipment { /* ... */ }
+
+// Cross-module communication goes through a published contract, in-process:
+namespace Orders.Contracts;
+public sealed record OrderReadyForShipping(Guid OrderId, string Address);
+
+// An architecture test (e.g. with NetArchTest) makes the rule enforceable, not just aspirational:
+[Fact]
+public void Orders_domain_should_not_depend_on_Shipping_domain() =&gt;
+    Types.InAssembly(typeof(Order).Assembly)
+         .That().ResideInNamespace("Orders.Domain")
+         .ShouldNot().HaveDependencyOn("Shipping.Domain")
+         .GetResult().IsSuccessful.Should().BeTrue();</code></pre>
+    <div class="callout">
+      <span class="label">Interview trap</span>
+      <p>"We split into microservices because we're doing DDD, and DDD says bounded contexts should be separate services" misstates DDD, which says nothing about deployment topology at all — that inference was an industry-wide overreach, not something in Evans' book. The follow-up worth having ready: modular monoliths still need the module boundary <em>enforced</em>, not just documented — without an architecture test or a build-time check, "modules" silently grow direct references to each other's internals over a few quarters, and you end up with a Big Ball of Mud (unit 02) that merely has folders named after bounded contexts.</p>
+    </div>
+    <div class="try-it">
+      <span class="label">Try it</span>
+      <ol>
+        <li>Pick two bounded contexts in a system you know. If they were each owned by a different team, sketch the interface they'd need to communicate through, and check: does that interface already exist, or does today's code let one team's changes silently affect the other's context without going through any explicit contract?</li>
+        <li>If you have access to a .NET solution, try adding one architecture test (NetArchTest or similar) asserting that one namespace never depends on another. Run it before fixing anything — a failing result on the first run usually reveals exactly where the "boundary" was already just a convention. <details class="solution"><summary>Expected outcome</summary>Most codebases that call themselves "modular" fail this test on the first run somewhere, which is itself the useful finding.</details></li>
+      </ol>
+    </div>
+    <h3>Interview Q&amp;A</h3>
+    <details class="qa"><summary>Does DDD require microservices? Correct the common misreading.</summary><div class="a"><p>No — DDD's bounded context is a modeling boundary about where a ubiquitous language stays consistent, and says nothing about deployment topology; the idea that "each bounded context = one microservice" was an industry inference from the mid-2010s, not something Evans' book asserts. A bounded context can be a module inside a monolith just as validly as a standalone service, and the choice between them is an operational decision made independently of the modeling decision.</p></div></details>
+    <details class="qa"><summary>What specifically makes a modular monolith different from just "a monolith with folders," and how do you keep it from decaying into the latter?</summary><div class="a"><p>The difference is enforcement: a modular monolith has module boundaries that are checked, not just organized — no direct references to another module's internal namespaces, communication only through published contracts or in-process events, ideally verified by an automated architecture test that fails the build on violation. Without that enforcement mechanism, folder-level organization erodes within a few quarters as deadline pressure makes "just reach across and call that internal method" the path of least resistance.</p></div></details>
+    <details class="qa"><summary>State Conway's Law and explain its practical implication for how you'd draw bounded context boundaries in a new project.</summary><div class="a"><p>Conway's Law says a system's structure ends up mirroring the communication structure of the organization that builds it — in practice, this means you should draw bounded context boundaries with an eye to what team topology you actually have or intend to build, because a context boundary that cuts across a team's natural communication pattern will be fought by that structure regardless of how clean the model is on a whiteboard. It's a reason to design org structure and context boundaries together, not sequentially.</p></div></details>
+    <details class="qa"><summary>What are Team Topologies' four team types, and how does a "complicated-subsystem team" relate to a bounded context?</summary><div class="a"><p>Stream-aligned (owns a slice of business value end-to-end), platform (provides self-service capabilities other teams consume), enabling (temporarily helps a team build a capability, then steps back), and complicated-subsystem (owns a piece of genuine deep technical complexity, like a pricing engine, that needs specialist knowledge). A complicated-subsystem team often maps naturally onto a bounded context that's a core domain (unit 01) requiring deep specialist modeling that a general stream-aligned team shouldn't be expected to hold.</p></div></details>
+    <details class="qa"><summary>How would you decide whether a module in your modular monolith is ready to be extracted into its own service?</summary><div class="a"><p>Look for a concrete, already-felt pain: the module needs to scale independently of the rest (different load profile), a separate team needs to deploy it on its own cadence without coordinating releases with everyone else, or it needs a genuinely different technology stack — extracting before any of these pains exist just adds distributed-systems cost for no offsetting benefit. The module boundary you already enforced in code (the try-it above) is exactly what makes the eventual extraction mechanical rather than a rewrite.</p></div></details>
+    <details class="qa"><summary>Can two modules in a modular monolith share the same database tables directly?</summary><div class="a"><p>They shouldn't reach into each other's tables directly — the same "no reaching into another context's internals" rule applies to data as to code, so each module should own its own tables (or schema) and expose data to other modules only through its own code's contracts, even though all the tables physically live in one database. Direct cross-module table access is exactly the kind of boundary violation that's invisible until it blocks an eventual service extraction.</p></div></details>
+    <details class="qa"><summary>What's the "distributed monolith" anti-pattern, and how does it relate to this unit?</summary><div class="a"><p>It's what you get when you extract services along the wrong boundaries — usually technical layers (a "data service," a "business logic service") rather than bounded contexts — so the services must be deployed together anyway because they're too tightly coupled to release independently, but you now pay full network/distributed-systems cost for no autonomy benefit. It's the worst-of-both-worlds outcome the modular-monolith-first approach is specifically trying to avoid.</p></div></details>
+    <details class="qa"><summary>A skeptical team lead says "modular monoliths are just an excuse to avoid doing microservices properly." How do you respond?</summary><div class="a"><p>Reframe it around evidence: microservices are a valid answer to specific operational needs (independent scaling, independent deploy cadence, polyglot requirements), and a modular monolith is the right default until those needs are actually measured and present — starting monolith-first with enforced module boundaries doesn't preclude extracting services later, and in fact makes a well-justified extraction easier because the seams are already clean. It's not avoidance, it's sequencing the investment to match actual need.</p></div></details>
+    <details class="qa"><summary>How do domain events (unit 06) work differently across modules in a monolith versus across services?</summary><div class="a"><p>Within a modular monolith, cross-module domain events can often be dispatched in-process (still going through published contracts, not internal types) and can even participate in the same database transaction if strong consistency is genuinely needed — a choice unavailable across real service boundaries, which are forced into eventual consistency via the outbox pattern. Choosing in-process synchronous dispatch versus deferred/eventual dispatch, even within one monolith, should still be a deliberate decision based on whether the two modules' consistency truly needs to be atomic.</p></div></details>
+    <details class="qa"><summary>What's a practical first step to introduce module boundaries into an existing "big ball of mud" .NET monolith without a rewrite?</summary><div class="a"><p>Pick the clearest, highest-value candidate bounded context (often the core domain), identify its current entry points, and start routing new work through explicit interfaces while leaving legacy call paths alone until they're touched anyway — add an architecture test that only checks the new boundary, so it can't regress, without attempting to retrofit the whole codebase's boundaries at once. This mirrors the incremental Anticorruption Layer approach from unit 02.</p></div></details>
+    <p class="sources">Go deeper: <a href="https://learn.microsoft.com/en-us/dotnet/architecture/modern-web-apps-azure/modular-monoliths" target="_blank" rel="noopener">Microsoft, "Modular monoliths"</a>.</p>
+  </section>
+
+  <section class="unit" id="u10">
+    <h2>10 · Testing the Domain Model</h2>
+    <p>A well-layered domain model (unit 05) pays for itself most visibly in testing: because the domain has no dependency on EF Core, HTTP, or any infrastructure, testing an aggregate's business rules is pure object construction and method calls — no database, no mocks, no test containers, no <code>WebApplicationFactory</code>. This is the fastest, cheapest, most valuable layer of the test pyramid for a DDD codebase, and it should be the largest by count: construct the aggregate (or use a small builder/factory to keep tests readable), call the method under test, assert on the resulting state or the domain events it raised (unit 06). A common and effective style is Given-When-Then, expressed directly as test structure rather than a BDD framework requirement: given this aggregate state, when this method is called, then this happens — the same shape unit 08 showed for event-sourced aggregate tests, but it applies equally to conventional state-stored aggregates.</p>
+    <p>The <strong>Specification pattern</strong> earns its place here as a testing and reuse tool, not just an application-layer concern: a specification is an object encapsulating a business predicate — "is this order eligible for free shipping," "is this customer in good standing" — that can be evaluated in-memory against a domain object directly in a unit test, translated to a LINQ/SQL query for a repository, and reused across both without duplicating the rule. This solves a real pain point: without it, the "is eligible" logic tends to get written once as a LINQ expression in a repository query (fast, but only testable through the database) and once again as a hand-written <code>if</code> in a validation method (testable, but a second place the rule can drift out of sync with the first). One well-tested specification object, used both ways, closes that gap. Where the domain model does need infrastructure (a repository, a payment gateway) inside a use case, that's the application-service test's job (unit 05) — fake or in-memory implementations of those interfaces, testing orchestration rather than business rules a second time.</p>
+    <div class="table-wrap">
+      <table>
+        <thead><tr><th>Test layer</th><th>Tests</th><th>Needs infrastructure?</th></tr></thead>
+        <tbody>
+          <tr><td>Domain unit tests</td><td>Aggregate/value-object/domain-service business rules</td><td>No — pure objects, no mocks needed for the domain itself</td></tr>
+          <tr><td>Application-service tests</td><td>Orchestration: load → call domain → save → publish</td><td>Fakes/in-memory implementations of repository interfaces</td></tr>
+          <tr><td>Integration tests</td><td>Repository mapping, EF Core queries, outbox writes</td><td>Real or test-container database</td></tr>
+          <tr><td>End-to-end tests</td><td>Full request through the API into the database</td><td>Full stack — kept deliberately few, they're slow and brittle</td></tr>
+        </tbody>
+      </table>
+    </div>
+    <pre><code class="language-csharp">// Pure domain unit test — no database, no mocks, no async, runs in microseconds
+[Fact]
+public void Submit_throws_when_order_has_no_lines()
+{
+    var order = Order.Create(customerId: CustomerId.New());
+    Assert.Throws&lt;DomainException&gt;(() =&gt; order.Submit());
+}
+
+[Fact]
+public void Submit_raises_OrderSubmitted_event()
+{
+    var order = Order.Create(customerId: CustomerId.New());
+    order.AddLine(ProductId.New(), quantity: 1);
+    order.Submit();
+    Assert.Contains(order.Events, e =&gt; e is OrderSubmitted);
+}
+
+// A specification, reused both in-memory (test) and translated to SQL (repository)
+public class IsEligibleForFreeShipping : ISpecification&lt;Order&gt;
+{
+    public bool IsSatisfiedBy(Order order) =&gt; order.Total &gt;= 50m;
+    public Expression&lt;Func&lt;Order, bool&gt;&gt; ToExpression() =&gt; o =&gt; o.Total &gt;= 50m;
+}</code></pre>
+    <div class="callout">
+      <span class="label">Interview trap</span>
+      <p>The classic mistake is inverting the test pyramid: a team with an anemic domain model (unit 11) has no business logic in the domain layer worth unit testing, so all real coverage ends up in slow, brittle integration or end-to-end tests that spin up a database for every assertion — the pyramid becomes an ice-cream cone. When a candidate says "we mostly write integration tests because that's where the logic actually is," that's a layering smell (unit 05), not a testing-strategy preference; the fix is moving the logic into the domain, not writing faster integration tests.</p>
+    </div>
+    <div class="try-it">
+      <span class="label">Try it</span>
+      <ol>
+        <li>Take the <code>Order</code> aggregate from unit 04 and write three domain unit tests, none touching a database: one happy path, one that asserts an invariant-violation exception, one that asserts a raised event.</li>
+        <li>Find a business rule in a real codebase currently expressed only as a LINQ query inside a repository method. Extract it into a specification object, add one in-memory unit test against it, and rewire the repository to use the specification's expression form instead of the inline query. <details class="solution"><summary>Expected outcome</summary>The rule now has one authoritative definition and a fast unit test; the repository query is unchanged in behavior but no longer the rule's only test surface.</details></li>
+      </ol>
+    </div>
+    <h3>Interview Q&amp;A</h3>
+    <details class="qa"><summary>Why should domain unit tests be the largest layer of the test pyramid in a DDD codebase, by count?</summary><div class="a"><p>Because they're the cheapest to write and run — no infrastructure, no async waiting on a database or network — and because a properly layered domain model (unit 05) has genuinely no dependency that would force a test to reach outside pure objects. A large base of fast domain tests gives the fastest feedback on the logic that changes most often (business rules), leaving the slower, more expensive layers to cover what only they can: real persistence mapping, real HTTP wiring, real end-to-end flows.</p></div></details>
+    <details class="qa"><summary>What's the Specification pattern, precisely, and what specific duplication problem does it solve?</summary><div class="a"><p>It's an object that encapsulates a business predicate in a form that can be evaluated in-memory (as a <code>Func&lt;T,bool&gt;</code> or similar) and also translated into a query expression (LINQ <code>Expression&lt;Func&lt;T,bool&gt;&gt;</code>, then SQL) — solving the specific problem where the same rule would otherwise be written twice: once as an in-memory <code>if</code> for validation, once as a database query filter, with no guarantee the two stay in sync as the rule evolves.</p></div></details>
+    <details class="qa"><summary>What's the "ice-cream cone" anti-pattern, and how would you diagnose it's happening on a team you've just joined?</summary><div class="a"><p>It's an inverted test pyramid — few or no fast unit tests, most coverage carried by slow integration/E2E tests — usually caused by business logic living somewhere (controllers, an anemic domain, application services) that can't be tested without infrastructure. Diagnose it by checking the CI run time and the ratio of test types: if the suite takes many minutes and almost every test spins up a database or an HTTP server, that's the signature, and the root cause is almost always in unit 05's layering, not in testing tool choice.</p></div></details>
+    <details class="qa"><summary>How do you unit test a domain service (unit 01) that coordinates two aggregates, without hitting a repository?</summary><div class="a"><p>Construct both aggregate instances directly in the test (no repository involved at all), pass them into the domain service's method, and assert on the resulting state or events — a domain service's dependencies, if it has any beyond the aggregates themselves, should be other domain-layer abstractions, not infrastructure, so the same "no mocks needed" property from aggregate testing carries over.</p></div></details>
+    <details class="qa"><summary>What should an application-service (use-case) test fake, and what should it NOT re-test?</summary><div class="a"><p>It should fake the repository interfaces (an in-memory implementation is usually enough — no mocking framework needed for something this simple) so the test can verify the orchestration sequence — load, call the domain, save — without a real database; it should not re-assert the business rule's correctness in detail, since that's already covered by the domain unit tests, or the application test becomes redundant and brittle to any change in the rule's exact behavior.</p></div></details>
+    <details class="qa"><summary>How would you approach testing a value object like Money (from unit 03)?</summary><div class="a"><p>Directly and thoroughly, since it's pure logic with no dependencies at all: construction validation (rejecting a negative amount or mismatched currency), equality (two <code>Money</code> instances with the same amount and currency are equal, per value-object semantics), and any operators/methods it exposes (addition across matching currencies, rejecting addition across mismatched ones) — this is the cheapest, highest-value test surface in the whole model, and skipping it because "it's just a value object" is a missed opportunity.</p></div></details>
+    <details class="qa"><summary>Should you unit test private methods on an aggregate directly?</summary><div class="a"><p>No — test through the aggregate's public API (the methods that represent real behavior, like <code>Submit()</code> or <code>AddLine()</code>) and let the assertions on resulting state or raised events cover what the private methods do internally; testing private methods directly (via reflection or by making them internal "for testability") couples the test suite to implementation details that should be free to change as long as the public behavior stays correct.</p></div></details>
+    <details class="qa"><summary>How do integration tests for a repository differ in purpose from the domain unit tests for the aggregate it persists?</summary><div class="a"><p>The repository integration test verifies persistence mechanics — does saving and reloading an aggregate produce an equivalent object graph, are optimistic-concurrency tokens (unit 04) enforced correctly, does the EF Core mapping round-trip value objects correctly (unit 03) — while the domain unit test verifies business rules with no persistence involved at all; a repository test that also re-asserts business logic is testing the same thing twice, slower, in the wrong layer.</p></div></details>
+    <details class="qa"><summary>What test-first approach works well for a new aggregate's invariants, and why does DDD's explicit invariant language make TDD easier here?</summary><div class="a"><p>Because DDD pushes you to name invariants explicitly (unit 04) — "an order cannot be submitted with no lines," "a shipment cannot exceed the carrier's weight limit" — each invariant translates directly into a test-first assertion (write the failing test asserting the exception, then implement the guard) before any persistence or UI exists at all; this is a natural fit for outside-in or classic TDD specifically because the domain layer has no dependencies to stub out first.</p></div></details>
+    <details class="qa"><summary>A code reviewer asks why a PR added an integration test for something that's "just a getter." What's the right response?</summary><div class="a"><p>If it's a genuine pass-through getter, the integration test is likely unnecessary ceremony and the reviewer's instinct is right — push back on tests that don't exercise a decision or a boundary; the useful question to ask instead is whether there's a real invariant or persistence-mapping concern hiding behind what looks like a plain getter, and if not, cut the test rather than defend it out of habit.</p></div></details>
+    <p class="sources">Go deeper: <a href="https://learn.microsoft.com/en-us/dotnet/architecture/microservices/microservice-ddd-cqrs-patterns/unit-test-domain-model" target="_blank" rel="noopener">Microsoft, "Unit test domain model and other business logic"</a>.</p>
+  </section>
+
+  <section class="unit" id="u11">
+    <h2>11 · Anti-Patterns &amp; Legacy Adoption</h2>
+    <p>The single most-cited DDD anti-pattern, and the one most worth being able to name and diagnose fluently, is the <strong>anemic domain model</strong> — entities that are just property bags (public getters and setters, no behavior) with all the actual business logic living in "service" classes that operate on them from the outside. Fowler called this out explicitly as an anti-pattern, not a neutral style choice: it looks object-oriented (you have classes called <code>Order</code> and <code>Customer</code>) but behaves procedurally (the logic is organized around functions, not around the objects the ubiquitous language actually talks about), and it directly defeats DDD's core value — the model stops being a place where business rules are discoverable and enforced, because nothing stops any code anywhere from setting an <code>Order</code>'s <code>Status</code> to <code>Submitted</code> without ever validating it has lines. This is usually not a one-time design mistake but a slow drift: a model starts rich, then a deadline pressures someone into adding a public setter "just this once," and the invariant it was protecting quietly stops being enforced everywhere except the one call site the original author remembered to guard.</p>
+    <p>The second major anti-pattern is <strong>over-engineering CRUD</strong> — applying the full weight of aggregates, domain events, repositories, and a dedicated bounded context to a genuinely simple lookup-table-style feature ("manage a list of shipping carriers") that has no real invariants, no real domain logic, and would be better served by a straightforward CRUD endpoint over a simple data model. DDD's own vocabulary anticipates this: the whole point of separating core, supporting, and generic subdomains (unit 01) is permission to apply full tactical DDD only where the complexity is real, and to be unapologetically simple everywhere else. A team that applies aggregates-and-repositories ceremony uniformly across an entire codebase, core domain and admin screens alike, has usually skipped the strategic step (subdomain classification) and jumped straight to tactical patterns as a checklist. Both anti-patterns, despite looking opposite, come from the same root cause: not matching the modeling investment to where the actual business complexity lives.</p>
+    <div class="table-wrap">
+      <table>
+        <thead><tr><th>Anti-pattern</th><th>Looks like</th><th>Root cause</th><th>Fix</th></tr></thead>
+        <tbody>
+          <tr><td>Anemic domain model</td><td>Public setters, "service" classes hold all logic</td><td>Logic added incrementally outside the entity under deadline pressure</td><td>Move behavior onto the entity/aggregate; make invalid states unrepresentable</td></tr>
+          <tr><td>Over-engineered CRUD</td><td>Aggregates/events/repositories on a simple lookup table</td><td>Skipped subdomain classification; applied tactical patterns uniformly</td><td>Classify subdomains first; keep generic/supporting code deliberately simple</td></tr>
+          <tr><td>God aggregate</td><td>One aggregate root referencing most of the object graph</td><td>Boundaries drawn from EF Core navigation convenience, not invariants</td><td>Re-derive boundaries from true consistency needs (unit 04)</td></tr>
+          <tr><td>Smart UI</td><td>Business rules embedded in controllers/UI code</td><td>No application/domain layering (unit 05) established at all</td><td>Introduce layering incrementally, starting at the highest-value seam</td></tr>
+        </tbody>
+      </table>
+    </div>
+    <pre><code class="language-csharp">// Anemic — a property bag; nothing prevents an invalid state
+public class Order
+{
+    public Guid Id { get; set; }
+    public string Status { get; set; }
+    public List&lt;OrderLine&gt; Lines { get; set; } = new();
+}
+// somewhere far away, in a "service":
+order.Status = "Submitted";   // no check that Lines is non-empty — the rule from unit 04 simply doesn't exist here
+
+// Rich — the same rule, but actually enforced, from unit 04
+public class Order : AggregateRoot
+{
+    public OrderStatus Status { get; private set; }
+    public void Submit()
+    {
+        if (Lines.Count == 0) throw new DomainException("Cannot submit an empty order.");
+        Status = OrderStatus.Submitted;
+    }
+}</code></pre>
+    <div class="callout">
+      <span class="label">Interview trap</span>
+      <p>A candidate who says "we use DDD" while showing a model with public setters everywhere and all logic in "OrderService" classes is describing an anemic domain model, not DDD — this is worth probing gently rather than accepting at face value, because it's an extremely common self-misdiagnosis. The inverse trap for the interviewer's side: don't assume every simple CRUD feature in a codebase that "does DDD" elsewhere is a failure to apply DDD properly — deliberately simple generic-subdomain code sitting next to a richly modeled core domain is the correct outcome, not an inconsistency.</p>
+    </div>
+    <div class="try-it">
+      <span class="label">Try it</span>
+      <ol>
+        <li>Open any "service" class in a codebase you know and count how many of its methods take an entity as a parameter and mutate its public setters directly. Each one is a candidate to become a method on that entity instead.</li>
+        <li>Pick a genuinely simple, low-complexity feature in the same codebase (an admin lookup table, a settings screen) and check whether it has aggregates, repositories, or domain events applied to it. If it does and there's no real invariant being protected, sketch what a plain CRUD version would look like instead. <details class="solution"><summary>Expected outcome</summary>Often the "aggregate" for a lookup table has zero business methods beyond property setters — a sign the ceremony was applied without a matching invariant to justify it.</details></li>
+      </ol>
+    </div>
+    <h3>Interview Q&amp;A</h3>
+    <details class="qa"><summary>Define the anemic domain model anti-pattern and explain precisely why Fowler considers it an anti-pattern rather than a legitimate style choice.</summary><div class="a"><p>It's a model where entities carry only data (public getters/setters) with all behavior extracted into external "service" classes — Fowler's objection is that this defeats the purpose of object orientation and domain modeling both: the objects look domain-shaped but no invariant is actually enforced by them, since any code anywhere can mutate their state directly without going through a method that could validate the change. It's not "simpler OO," it's OO's behavioral encapsulation benefit discarded while keeping its structural cost.</p></div></details>
+    <details class="qa"><summary>How do you spot an anemic domain model in a code review, quickly?</summary><div class="a"><p>Scan the entity classes for public setters on anything that represents a business-meaningful state transition (an order's status, a shipment's tracking state) — if setting it is a one-liner assignment from anywhere in the codebase with no accompanying validation, that's the signature; then check whether a "manager" or "service" class contains the actual conditional logic that decides when that state should change, which confirms the diagnosis.</p></div></details>
+    <details class="qa"><summary>What's "over-engineered CRUD," and how does DDD's own vocabulary give you the tool to avoid it?</summary><div class="a"><p>It's applying full tactical DDD ceremony — aggregates, repositories, domain events, a dedicated bounded context — to a feature with no real business complexity or invariants, adding cost with no corresponding benefit. DDD's strategic step (classifying core, supporting, and generic subdomains, unit 01) exists precisely to license simplicity: generic and most supporting subdomains should stay as plain CRUD, and only the core domain (and the supporting subdomains with genuine complexity) earn the full tactical toolkit.</p></div></details>
+    <details class="qa"><summary>What's the "God aggregate" anti-pattern and how do you fix one that already exists in production?</summary><div class="a"><p>It's an aggregate that's grown to reference most of the object graph, usually because its boundary was drawn from what was convenient to load via EF Core navigation properties rather than from actual transactional consistency needs (unit 04) — the fix is identifying the true invariants that must be atomic, keeping only those inside the aggregate, and moving everything else to be referenced by id and loaded/updated separately, migrated incrementally rather than in one big rewrite given the risk of touching a heavily-used aggregate all at once.</p></div></details>
+    <details class="qa"><summary>What's "Smart UI" as an anti-pattern, and why does Evans list it as a legitimate anti-pattern rather than always condemning it outright?</summary><div class="a"><p>Smart UI puts all logic directly in the UI/controller layer with no separate domain or application layer at all — Evans actually lists it as a legitimate, deliberate choice for genuinely simple, short-lived, or low-complexity applications where the overhead of proper layering wouldn't pay for itself; it becomes an anti-pattern specifically when applied to a system with real, growing business complexity that needs the discoverability and reuse a real domain model provides.</p></div></details>
+    <details class="qa"><summary>How would you introduce tactical DDD into a legacy .NET codebase that's a Big Ball of Mud, without a rewrite?</summary><div class="a"><p>Start with subdomain classification (unit 01) to find the actual core domain buried in the mud, then apply an Anticorruption Layer (unit 02) around just that piece so new work can build a clean model behind it while the rest of the legacy code continues unchanged — extract behavior from the surrounding "service" classes onto rich entities incrementally, one invariant at a time, verified by the fast domain unit tests from unit 10, rather than attempting a big-bang rewrite that risks the business logic hidden in the mud along the way.</p></div></details>
+    <details class="qa"><summary>A team lead says "our domain model is anemic, but our test coverage is high, so it's fine." How do you respond?</summary><div class="a"><p>High test coverage over an anemic model usually means the tests are asserting against the "service" classes' orchestration logic, not against invariants enforced by the entities themselves — coverage numbers don't distinguish "we tested that this scenario currently produces this output" from "the model makes the invalid state impossible to reach at all"; the latter is what a rich domain model buys you, and no amount of external test coverage substitutes for state that simply cannot become invalid because the object's own API doesn't allow it.</p></div></details>
+    <details class="qa"><summary>What's the risk of over-applying DDD's strategic patterns (bounded contexts, context maps) to a small team or a small system?</summary><div class="a"><p>Strategic DDD's ceremony (formal context maps, dedicated Anticorruption Layers, multiple bounded contexts each with its own model) pays off when a system is big enough or has enough independent teams that language and model actually do diverge across parts of it; for a system one small team can hold entirely in their heads, a single shared model with no formal context boundaries is often correct, and imposing the full strategic toolkit anyway is ceremony without a matching problem to solve.</p></div></details>
+    <details class="qa"><summary>How do you distinguish "this feature genuinely needs an aggregate" from "this feature is being over-engineered," in a design review?</summary><div class="a"><p>Ask what invariant would be violated if the naive CRUD version were built instead — if there's a genuine, nameable rule (an order can't be submitted empty, a shipment can't exceed a weight limit) that a plain property-bag model would let slip through, that's the aggregate's justification; if the honest answer is "nothing bad would happen, it's just good practice," that's a sign the ceremony isn't earning its cost for this particular feature.</p></div></details>
+    <details class="qa"><summary>What's the most common way a rich domain model degrades back into an anemic one over time, and how do you guard against it?</summary><div class="a"><p>Incrementally: a deadline pressures someone into adding a public setter "just this once" to unblock a feature, bypassing the method that enforces an invariant, and the pattern repeats until most invariants have at least one unguarded back door. Guarding against it is mostly a code-review discipline (flag any new public setter on state that has a corresponding business rule) plus, where the tooling allows, encoding the rule so it genuinely can't be bypassed — private setters with EF Core backing-field mapping, immutable value objects, factory methods that are the only way to construct valid instances.</p></div></details>
+    <p class="sources">Go deeper: <a href="https://martinfowler.com/bliki/AnemicDomainModel.html" target="_blank" rel="noopener">Martin Fowler, "AnemicDomainModel"</a>.</p>
+  </section>
+
+  <section class="unit" id="u12">
+    <h2>12 · The Big Q&amp;A</h2>
+    <p>Everything below is grouped by theme rather than by curriculum sequence — the questions interviewers reach for once they've established the fundamentals and want to see judgment, breadth, and how you'd operate at lead/principal altitude.</p>
+
+    <h3>Architecture &amp; ecosystem decisions</h3>
+    <details class="qa"><summary>How do you decide whether a new system warrants DDD's tactical patterns at all, versus a simpler CRUD architecture?</summary><div class="a"><p>Start with the strategic question, not the tactical one: does this system have a core domain with genuine, non-obvious business rules that will change over time and need to be discoverable in code, or is it mostly data entry and display? If it's the latter, DDD's tactical ceremony (unit 11) is a cost without a matching benefit; the decision should follow from the subdomain classification (unit 01), not be applied as a default posture to every new project regardless of its actual complexity.</p></div></details>
+    <details class="qa"><summary>How would you explain the relationship between DDD, Clean Architecture, and microservices to someone who thinks they're the same thing?</summary><div class="a"><p>DDD is a modeling discipline (how to structure the domain's concepts and language); Clean/Onion/Hexagonal Architecture is a layering discipline (how to keep that model isolated from infrastructure, unit 05); microservices is a deployment/operational topology decision. They compose well together but are independently adoptable — you can do rich DDD tactical modeling inside a single-layer script, and you can deploy microservices with anemic models in every one of them; conflating the three is one of the most common sources of cargo-culted architecture.</p></div></details>
+    <details class="qa"><summary>What's your position on using DDD tactical patterns with a NoSQL document database instead of a relational one?</summary><div class="a"><p>It often fits naturally — an aggregate's consistency boundary maps closely onto "what should live in one document," since most document databases only guarantee atomic writes within a single document, which is exactly the granularity DDD already asks you to reason about (unit 04); the friction point is querying across aggregates, which needs the same CQRS-style projection thinking (unit 07) regardless of database technology.</p></div></details>
+    <details class="qa"><summary>How do you keep a bounded context's model from silently drifting as the team rotates or grows over a couple of years?</summary><div class="a"><p>The ubiquitous language has to be actively maintained, not just documented once — glossaries go stale, but a living glossary tied to actual code (a domain project whose class and method names are the glossary) stays honest because a mismatch is a compile error or a failing test, not a documentation review; pairing that with regular model-review conversations involving actual domain experts is what keeps the language and the code from diverging as people rotate through the team.</p></div></details>
+    <details class="qa"><summary>When would you deliberately choose NOT to use an Anticorruption Layer when integrating with a legacy system?</summary><div class="a"><p>When the legacy system's model is genuinely simple, stable, and unlikely to conflict with your own — or when the integration is small enough and short-lived enough that the translation-layer cost isn't worth paying; an ACL is a defensive investment against a growing, evolving core domain being corrupted by a messy upstream model, and applying it to every integration regardless of scale is itself a form of over-engineering (unit 11).</p></div></details>
+
+    <h3>Security</h3>
+    <details class="qa"><summary>How does putting invariant enforcement inside the aggregate improve your system's security posture, not just its correctness?</summary><div class="a"><p>Every invariant enforced only outside the entity (in a controller, a service) is a security control that depends on every caller remembering to invoke it — a new endpoint, an admin script, a data-fix task can all bypass it; enforcing the rule inside the aggregate's own methods means it's structurally impossible to violate through any code path, which is a much stronger guarantee than "we validate on every controller action" and closes an entire class of authorization/business-rule bypass bugs.</p></div></details>
+    <details class="qa"><summary>Where should authorization checks (can this user submit this order) live relative to the domain model?</summary><div class="a"><p>Authorization ("is this actor allowed to do this") is usually an application-layer concern, evaluated before invoking the domain method, since it depends on identity and permissions that aren't part of the ubiquitous language's business rules; business invariants ("can this order, regardless of who's asking, be submitted in its current state") belong on the aggregate. Conflating the two by embedding role checks into aggregate methods couples the domain model to an authorization model that will change for reasons unrelated to the business rules themselves.</p></div></details>
+    <details class="qa"><summary>What's the security risk of an integration event carrying more data than the consumer strictly needs?</summary><div class="a"><p>Over-sharing in a published event silently widens the blast radius of a data exposure — every current and future consumer of that event topic now has access to fields they never asked for, and revoking that later means a breaking contract change (unit 06); the Open Host Service discipline of publishing a deliberately minimal, purpose-built contract is as much a security practice as an integration-design one.</p></div></details>
+
+    <h3>Performance &amp; debugging</h3>
+    <details class="qa"><summary>An aggregate load is slow because EF Core is eagerly including a large object graph. How do you diagnose and fix it without breaking invariant enforcement?</summary><div class="a"><p>First confirm whether the whole graph is actually needed to enforce the invariants for the operation being performed — if a command only needs a subset of the aggregate's data, that's a signal the aggregate boundary might be too large (unit 04), not just a query-tuning problem; if the boundary is genuinely correct, the fix is selective loading (splitting the aggregate's read path for commands that need the full graph versus queries that don't, via the CQRS read-side from unit 07) rather than loosening the write-side's own loading, which would risk enforcing invariants against incomplete state.</p></div></details>
+    <details class="qa"><summary>How would you profile whether a domain event dispatch pipeline is a bottleneck in a high-throughput system?</summary><div class="a"><p>Separate the measurement into the three stages that can each independently bottleneck: raising the event (in-memory, should be near-free), the outbox write (adds one row to the same transaction, measure its overhead directly), and the background publisher's throughput to the broker (often the actual bottleneck under load, tunable via batching and poller concurrency) — treating "events are slow" as one undifferentiated problem usually leads to optimizing the wrong stage.</p></div></details>
+    <details class="qa"><summary>You're seeing intermittent DbUpdateConcurrencyException spikes in production. How do you distinguish a real design problem from expected contention?</summary><div class="a"><p>Check whether the spikes correlate with genuine concurrent business activity on the same aggregate instance (multiple users editing the same order at once — expected, and the retry-with-reload strategy from unit 04 is the correct response) versus a single logical operation that's internally racing itself (a background job and a user action both touching the same aggregate without coordination, or a retry loop retrying the wrong unit of work) — the latter is a design bug to fix, not contention to absorb.</p></div></details>
+    <details class="qa"><summary>How do you debug a read model that's drifted out of sync with the write side in an eventually-consistent (CQRS + events) system?</summary><div class="a"><p>Trace the specific event that should have updated the read model and check each stage it passed through — was it raised, did it reach the outbox, did the publisher deliver it, did the projection handler process it without error and without silently swallowing an exception — eventual consistency bugs are almost always a break in one link of that chain, and structured logging with a correlation id carried through every stage is what makes this traceable rather than guesswork.</p></div></details>
+
+    <h3>Tooling</h3>
+    <details class="qa"><summary>What tools would you introduce to keep architecture/layering rules (unit 05, unit 09) enforced automatically rather than relying on code review discipline alone?</summary><div class="a"><p>Architecture testing libraries (NetArchTest, ArchUnitNET) that assert dependency-direction rules as part of the normal test suite and CI gate, so a violation fails the build rather than slipping through review; for module boundaries specifically, some teams also use separate assemblies/NuGet packages per module so the compiler itself enforces the boundary, which is stronger than a runtime test but has more ceremony to set up.</p></div></details>
+    <details class="qa"><summary>What's EF Core's role versus a hand-rolled data mapper in a DDD-styled codebase, and when would you choose the latter?</summary><div class="a"><p>EF Core's flexibility (private setters, backing fields, owned/complex types, value converters) is usually enough to map a rich domain model without compromising it, which is why it remains the default choice for most .NET teams doing DDD; a hand-rolled mapper (or Dapper for the read side) earns its place when the mapping needs are unusual enough that fighting the ORM's conventions costs more than writing explicit mapping code, or when the read/write split from CQRS (unit 07) already has Dapper on the query side for performance reasons.</p></div></details>
+    <details class="qa"><summary>Would you recommend a dedicated event-sourcing framework (Marten, EventStoreDB) versus hand-rolling an event store on top of a regular database?</summary><div class="a"><p>Reach for the framework once the team has confirmed event sourcing is genuinely justified (unit 08) — the hard parts (snapshotting, projections, optimistic concurrency on streams, event upcasting) are exactly the parts a mature framework has already solved and battle-tested; hand-rolling makes sense mainly for a narrow, well-understood use case where pulling in a new piece of infrastructure isn't worth it, but it's easy to underestimate the edge cases a framework already handles.</p></div></details>
+
+    <h3>Legacy &amp; migration reality</h3>
+    <details class="qa"><summary>You've inherited a 10-year-old .NET codebase with no discernible domain model, entity classes are just EF Core mapping classes, and "business logic" is scattered across 40 controller actions. Where do you start?</summary><div class="a"><p>Resist the urge to redesign everything at once — pick the single highest-value core-domain behavior, trace every place its rule currently lives (likely duplicated across several controllers), consolidate it onto a method on the entity, add domain unit tests for it (unit 10), and route the controllers through that method instead of reimplementing the check; repeat for the next-highest-value rule. This is deliberately slow and incremental because the codebase's existing behavior, bugs included, is often load-bearing in ways nobody has fully documented.</p></div></details>
+    <details class="qa"><summary>How do you get buy-in from a team that sees DDD as "academic" or "too much ceremony for our deadlines"?</summary><div class="a"><p>Lead with a concrete, recent bug that a richer model would have prevented structurally rather than with terminology — "this invalid state got into production because nothing stopped it" lands better than a lecture on ubiquitous language; then propose the smallest possible pilot (one aggregate, one bounded context) with a clear, measurable before/after rather than asking for a wholesale architecture change up front. Ceremony objections are usually really about scope and risk, not about the ideas themselves.</p></div></details>
+    <details class="qa"><summary>How do you handle a bounded context boundary that turns out to be wrong after the system's already in production with real data?</summary><div class="a"><p>Treat it like any other significant migration: identify the data and behavior that need to move to the corrected boundary, build the new model behind an Anticorruption Layer or a feature flag so both old and new can coexist during the transition, migrate data and traffic incrementally with the ability to roll back, and only remove the old boundary once the new one has run correctly under real load for a meaningful period. Discovering a wrong boundary is normal — Evans himself describes context boundaries as something you refine as understanding deepens, not something you're expected to get perfectly right up front.</p></div></details>
+    <details class="qa"><summary>What's your approach to reviewing a vendor's or contractor's code that claims to "follow DDD" but you suspect doesn't?</summary><div class="a"><p>Check for the concrete signals from unit 11 rather than taking the label at face value: are there public setters on state that clearly has business rules attached, is there a "service" layer doing what should be aggregate behavior, do bounded context boundaries (if claimed) actually correspond to anywhere the language or team ownership genuinely diverges. The label "DDD" in a deliverable description is not evidence; the code's actual invariant enforcement is.</p></div></details>
+
+    <h3>Judgment &amp; scenario questions</h3>
+    <details class="qa"><summary>A product manager wants a new feature that would require two aggregates to be updated atomically in one transaction. How do you handle the conversation?</summary><div class="a"><p>Don't just say no — first check whether the aggregate boundaries are actually correct for the business's real consistency needs (maybe they should be one aggregate) or whether the "atomic" requirement is actually a UX assumption that eventual consistency (a brief, sub-second lag) would satisfy just as well from the user's perspective; most of these conversations resolve once the PM understands the actual user-facing consequence of eventual consistency, which is usually much smaller than "atomic" sounds.</p></div></details>
+    <details class="qa"><summary>You're asked to estimate how long it would take to introduce a bounded context split into a monolith ahead of a planned team split. What do you actually need to know before answering?</summary><div class="a"><p>Whether the module boundary already exists in any enforced form (unit 09) or is purely conventional today, how tangled the data model is across the proposed split (shared tables, foreign keys crossing the boundary), and whether the split needs to happen before or can lag behind the team split — a team split ahead of a clean code boundary is workable short-term (one team temporarily owns code it doesn't have full boundary isolation over) but the estimate should be honest that "clean split" and "teams reorganized" are two different milestones, often on different timelines.</p></div></details>
+    <details class="qa"><summary>How do you decide, as the most senior engineer on a team, when to overrule a junior developer's DDD-purist objection to a pragmatic shortcut?</summary><div class="a"><p>Distinguish shortcuts that violate a real invariant (never take these, regardless of deadline — that's exactly the anemic-model drift from unit 11) from shortcuts that just look "impure" relative to a textbook pattern (a slightly pragmatic aggregate size, an EF Core entity that's also the domain entity) — the latter are legitimate trade-offs a lead should be comfortable making explicitly, ideally with the junior developer walked through the actual reasoning so the exception doesn't read as "the rules don't matter."</p></div></details>
+    <details class="qa"><summary>What would you look for in the first 30 days after joining a team to assess whether their DDD is real or cargo-culted?</summary><div class="a"><p>Sit in on a conversation between a domain expert and an engineer and check whether the vocabulary used matches the class and method names in the actual code; read the most business-critical aggregate's code and check whether its invariants are enforced in methods or just implied by convention; and check whether bounded context boundaries (if claimed) correspond to any real divergence in language, team ownership, or deployment, or are just folder names.</p></div></details>
+    <details class="qa"><summary>How would you mentor a mid-level engineer who writes technically correct code but keeps missing where business logic should live?</summary><div class="a"><p>Have them narrate, for a piece of logic they just wrote, which object in the ubiquitous language "owns" the concept the code is expressing — most misplacement comes from defaulting to "put it in the nearest service class" without asking that question first; pairing on a few real PRs specifically to ask "whose responsibility is this rule, in the business's own terms" builds the habit faster than a general lecture on layering.</p></div></details>
+    <p class="sources">Go deeper: <a href="https://www.domainlanguage.com/ddd/reference/" target="_blank" rel="noopener">Eric Evans, "Domain-Driven Design Reference"</a>.</p>
+  </section>
+
+  <section class="unit" id="u13">
+    <h2>13 · Night-Before Cheat Sheet</h2>
+    <p>Read this once before you walk in. Every sentence is something you can say out loud with confidence, and every one connects back to a unit above if you need to go deeper.</p>
+    <ul class="cheat-box">
+      <li>DDD is a modeling discipline built on a shared ubiquitous language between engineers and domain experts, made concrete through Evans' Building Blocks (entities, value objects, aggregates, domain services, domain events) and made scalable through Strategic Design (subdomain classification, bounded contexts, context mapping) — it says nothing about deployment topology, and never required microservices.</li>
+      <li>Spend your strategic-design budget deliberately: classify subdomains into core (differentiating, worth deep modeling), supporting, and generic (buy or keep simple) before applying any tactical pattern — the single biggest anti-pattern is applying full aggregate/repository ceremony uniformly, core domain and admin CRUD alike.</li>
+      <li>An aggregate's boundary is drawn from true transactional invariants, never from EF Core navigation-property convenience; per Vernon, favor small aggregates referencing others by id, and treat cross-aggregate consistency as eventual, coordinated through domain events, not a shared transaction.</li>
+      <li>In .NET 10 / EF Core 10 (LTS since 2025-11-11), model value objects as C# <code>record</code>/<code>record struct</code> types mapped with complex types (<code>ComplexProperty</code>) for pure value semantics, reserving owned entity types for cases that genuinely need per-instance identity or independent querying — this is the current, version-precise answer, not owned types by default.</li>
+      <li>Enforce optimistic concurrency on every mutable aggregate with a <code>[Timestamp]</code>/rowversion column, catch <code>DbUpdateConcurrencyException</code>, and reload-and-retry — this is the default correct answer for concurrent edits, with pessimistic locking reserved for the rare case that genuinely can't tolerate a retry.</li>
+      <li>Keep the domain layer free of every infrastructure dependency (the Dependency Rule) — it defines the repository interfaces it needs, infrastructure implements them — and put transaction boundaries and orchestration, never business rules, in the application layer.</li>
+      <li>Separate in-process domain events (synchronous, same transaction) from integration events (asynchronous, published after commit via the transactional outbox pattern) — publishing directly to a broker inside the same transaction as the domain change is the classic dual-write bug.</li>
+      <li>MediatR went commercial in 2025 (v13+, license key via mediatr.io, contracts split into the free <code>MediatR.Contracts</code>) — know Wolverine and a hand-rolled mediator as the two live alternatives, and know that CQRS itself needs neither MediatR nor event sourcing nor a second database to be legitimate.</li>
+      <li>Event sourcing makes the event stream the system of record instead of an add-on — a deliberate, narrow choice for real audit/temporal/multi-projection needs, not a default extension of "we already raise domain events," because of the real cost in replay performance, snapshotting, and event-schema versioning it brings.</li>
+      <li>Modular monoliths are now at least as common a default as microservices for new .NET systems — keep bounded contexts as enforced (architecture-tested) code modules, one deployment, one database, and extract a service only once independent scaling or deploy cadence is a measured, not speculative, need; draw the boundaries with Conway's Law and team ownership in mind, not model purity alone.</li>
+      <li>Domain unit tests — pure object construction, no database, no mocks — should be your largest test layer by count; if most of your coverage lives in slow integration tests, that's a layering smell (an anemic model), not a testing-strategy choice.</li>
+    </ul>
+    <p class="sources">Go deeper: <a href="https://www.domainlanguage.com/ddd/blue-book/" target="_blank" rel="noopener">Eric Evans, "Domain-Driven Design" (the blue book)</a>.</p>
+  </section>
+
+</div>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/highlight.min.js"></script>
+<script>
+(function () {
+  var SIDE_KEY = 'devbok:ddd:study:v1:sidebar-open';
+  var side = document.getElementById('side-nav');
+  var toggle = document.querySelector('.toggle-side');
+  function setOpen(open) {
+    side.classList.toggle('open', open);
+    try { localStorage.setItem(SIDE_KEY, open ? '1' : '0'); } catch (e) { /* private mode etc. */ }
+  }
+  if (toggle) toggle.addEventListener('click', function () { setOpen(!side.classList.contains('open')); });
+  try { if (localStorage.getItem(SIDE_KEY) === '1') setOpen(true); } catch (e) { /* ignore */ }
+
+  var links = Array.prototype.slice.call(document.querySelectorAll('.units a'));
+  var targets = links.map(function (a) { return document.getElementById(a.getAttribute('href').slice(1)); });
+  function onScroll() {
+    var y = window.scrollY + 120;
+    var current = targets[0];
+    for (var i = 0; i < targets.length; i++) { if (targets[i] && targets[i].offsetTop <= y) current = targets[i]; }
+    links.forEach(function (a) { a.removeAttribute('aria-current'); });
+    if (current) {
+      var link = document.querySelector('.units a[href="#' + current.id + '"]');
+      if (link) link.setAttribute('aria-current', 'true');
+    }
+  }
+  document.addEventListener('scroll', onScroll, { passive: true });
+  window.addEventListener('resize', onScroll);
+  onScroll();
+
+  try { if (window.hljs) hljs.highlightAll(); } catch (e) { /* CDN unreachable: colour is decoration, not content */ }
+})();
+</script>
+</body>
+</html>

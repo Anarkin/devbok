@@ -1,0 +1,58 @@
+{
+  "slug": "ddd",
+  "title": "Domain-Driven Design (.NET)",
+  "topic": "Domain Driven Design (mainly for .NET developers)",
+  "category": "architecture",
+  "accent": "#be185d",
+  "created": "2026-09-08",
+  "kinds": {
+    "study": {
+      "next": 2,
+      "versions": [
+        {
+          "v": 1,
+          "generated": "2026-09-08",
+          "prompt": "e02cbdee",
+          "file": "study.v1.html"
+        }
+      ],
+      "pending": []
+    },
+    "experience": {
+      "next": 2,
+      "versions": [
+        {
+          "v": 1,
+          "generated": "2026-09-08",
+          "prompt": "2bcfefa8",
+          "file": "experience.v1.html"
+        }
+      ],
+      "pending": []
+    },
+    "interview": {
+      "next": 2,
+      "versions": [
+        {
+          "v": 1,
+          "generated": "2026-09-08",
+          "prompt": "008cfc76",
+          "file": "interview.v1.html"
+        }
+      ],
+      "pending": []
+    },
+    "cheatsheet": {
+      "next": 2,
+      "versions": [
+        {
+          "v": 1,
+          "generated": "2026-09-08",
+          "prompt": "7ff70aff",
+          "file": "cheatsheet.v1.html"
+        }
+      ],
+      "pending": []
+    }
+  }
+}

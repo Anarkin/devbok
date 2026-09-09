@@ -1,0 +1,1096 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Payment systems & integrations · experience · devbok</title>
+<link href="https://fonts.googleapis.com/css2?family=Cascadia+Mono:wght@400;600&display=swap" rel="stylesheet">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.11.1/highlight.min.js"></script>
+<style>
+:root { color-scheme: light;
+  --bg: #ffffff; --fg: #111111; --muted: #6b6b6b; --line: #111111; --soft: #f4f4f4; --border: #cccccc;
+  --accent: #635bff; --accent-soft: color-mix(in srgb, var(--accent) 12%, var(--bg));
+  --code: color-mix(in srgb, var(--accent) 70%, var(--fg));
+  --hl-kw: #a626a4; --hl-str: #50a14f; --hl-num: #986801; --hl-cmt: #6b6b6b; --hl-type: #0184bc; --hl-fn: #4078f2; --hl-attr: #986801; }
+@media (prefers-color-scheme: dark) { :root { color-scheme: dark;
+  --bg: #222222; --fg: #cccccc; --muted: #8f8f8f; --line: #111111; --soft: #2c2c2c; --border: #4a4a4a;
+  --accent: #635bff; --accent-soft: color-mix(in srgb, var(--accent) 16%, var(--bg));
+  --hl-kw: #c678dd; --hl-str: #98c379; --hl-num: #d19a66; --hl-cmt: #8f8f8f; --hl-type: #56b6c2; --hl-fn: #61afef; --hl-attr: #e5c07b; } }
+
+*, *::before, *::after { box-sizing: border-box; }
+html { scroll-behavior: smooth; }
+html, body { max-width: 100%; overflow-x: hidden; }
+body { margin: 0; background: var(--bg); color: var(--fg);
+  font-family: system-ui, sans-serif; font-size: 16px; line-height: 1.6; }
+a { color: var(--accent); }
+:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+h1, h2, h3, h4 { font-family: system-ui, sans-serif; font-weight: 700; line-height: 1.25; }
+h2 { font-size: 1.5em; margin: 0 0 8px; }
+h3 { font-size: 1.17em; margin: 24px 0 8px; }
+h4 { font-size: 1em; margin: 16px 0 6px; }
+p { margin: 10px 0; }
+ul, ol { padding-left: 22px; }
+
+code, pre, kbd, .chip, .label, .meta, .num, .side, .docs, .theme { font-family: "Cascadia Mono", Consolas, monospace; font-size: 12px; }
+code { background: var(--soft); border: 1px solid var(--border); border-radius: 3px; padding: 0 .3em; color: var(--code); overflow-wrap: anywhere; }
+pre { background: var(--soft); border: 1px solid var(--border); border-radius: 4px; padding: 12px 14px; overflow-x: auto; line-height: 1.5; margin: 14px 0; max-width: 100%; }
+pre code { background: none; border: 0; border-radius: 0; padding: 0; color: inherit; white-space: pre; overflow-wrap: normal; }
+.hljs { color: var(--fg); background: transparent; }
+.hljs-keyword, .hljs-built_in, .hljs-literal, .hljs-selector-tag { color: var(--hl-kw); }
+.hljs-string, .hljs-regexp, .hljs-selector-attr { color: var(--hl-str); }
+.hljs-number, .hljs-symbol { color: var(--hl-num); }
+.hljs-comment, .hljs-quote, .hljs-doctag { color: var(--hl-cmt); font-style: italic; }
+.hljs-title, .hljs-title.class_, .hljs-type, .hljs-name, .hljs-section, .hljs-selector-class, .hljs-selector-pseudo { color: var(--hl-type); }
+.hljs-title.function_ { color: var(--hl-fn); }
+.hljs-meta, .hljs-attr, .hljs-attribute, .hljs-tag, .hljs-property, .hljs-variable { color: var(--hl-attr); }
+.hljs-template-tag, .hljs-template-variable { color: var(--hl-attr); }
+.hljs-code, .hljs-formula { color: var(--hl-cmt); }
+.hljs-operator, .hljs-subst, .hljs-punctuation, .hljs-params { color: var(--fg); }
+.hljs-emphasis { font-style: italic; } .hljs-strong { font-weight: 700; }
+
+.hero { margin: 0 0 24px; padding: 0 0 24px; border-bottom: 2px solid var(--line); }
+.hero h1 { margin: 0 0 8px; font-size: 2em; line-height: 1.2; font-weight: 700; }
+.hero .meta { margin: 0 0 12px; font-family: "Cascadia Mono", Consolas, monospace; font-size: 12px; color: var(--muted); }
+.hero .summary { margin: 0 0 12px; }
+.hero .chips { display: flex; flex-wrap: wrap; gap: 6px; margin: 0; }
+
+.side { position: fixed; top: 0; bottom: 0; left: 0; width: 260px; display: flex; flex-direction: column; background: var(--bg); border-right: 2px solid var(--line); font-family: "Cascadia Mono", Consolas, monospace; font-size: 12px; }
+.units { list-style: none; margin: 0; padding: 12px 0; overflow-y: auto; flex: 1; }
+.units a { display: grid; grid-template-columns: 2.5em 1fr; padding: 9px 20px 9px 17px; border-left: 3px solid transparent; color: var(--fg); text-decoration: none; line-height: 1.4; }
+.units .n { color: var(--muted); font-weight: 400; }
+.units a:hover { background: var(--soft); }
+.units a[aria-current="true"] { background: var(--accent-soft); border-left-color: var(--accent); font-weight: 700; }
+.side footer { padding: 12px 20px; border-top: 2px solid var(--line); color: var(--muted); line-height: 1.5; }
+.units .t { min-width: 0; overflow-wrap: anywhere; }
+
+main { margin-left: 260px; padding: 24px; max-width: calc(80ch + 260px + 48px); min-width: 0; }
+.chips { display: flex; flex-wrap: wrap; gap: 6px; margin: 10px 0; }
+.chip { display: inline-block; text-transform: uppercase; background: var(--soft); border: 1px solid var(--border);
+  border-radius: 4px; padding: 1px 7px; color: var(--fg); letter-spacing: .02em;
+  font-family: "Cascadia Mono", Consolas, monospace; font-size: 12px; }
+.chip.tier { border-color: var(--accent); color: var(--accent); }
+.label { display: inline-block; text-transform: uppercase; color: var(--accent); border: 1px solid var(--accent);
+  border-radius: 4px; padding: 0 6px; vertical-align: middle;
+  font-family: "Cascadia Mono", Consolas, monospace; font-size: 12px; }
+.callout { background: var(--soft); border-left: 3px solid var(--accent); padding: 10px 14px; margin: 16px 0; min-width: 0; }
+.callout p:first-child { margin-top: 0; } .callout p:last-child { margin-bottom: 0; }
+.tablewrap { overflow-x: auto; max-width: 100%; margin: 12px 0; }
+table { border-collapse: collapse; width: 100%; }
+th, td { text-align: left; padding: 7px 10px; border-bottom: 1px solid var(--border); vertical-align: top; }
+th { color: var(--muted); font-weight: 600; }
+tr.hl td { background: var(--accent-soft); }
+details { border: 1px solid var(--border); border-radius: 4px; margin: 8px 0; padding: 8px 12px; min-width: 0; }
+details > summary { font-weight: 700; cursor: pointer; }
+details > summary::marker { color: var(--accent); }
+details[open] > summary { margin-bottom: 6px; }
+details p:last-child { margin-bottom: 2px; }
+.story { padding-top: 24px; margin-top: 28px; border-top: 1px solid var(--line); }
+.num { color: var(--muted); margin-right: 8px; }
+dl.star { margin: 10px 0; display: grid; grid-template-columns: minmax(10ch, max-content) 1fr; gap: 6px 16px; }
+dl.star dt { font-weight: 700; } dl.star dd { margin: 0; min-width: 0; }
+.docs { color: var(--muted); margin-top: 20px; overflow-wrap: anywhere; }
+.theme { margin: 28px 0 8px; color: var(--muted); text-transform: uppercase;
+  letter-spacing: .06em; border-bottom: 1px solid var(--border); padding-bottom: 4px; }
+#sideToggle { display: none; position: fixed; top: 10px; left: 10px; z-index: 30; background: var(--bg); color: var(--fg);
+  border: 1px solid var(--border); border-radius: 4px; padding: 6px 10px;
+  font-family: "Cascadia Mono", Consolas, monospace; font-size: 12px; cursor: pointer; }
+#sideBackdrop { display: none; position: fixed; inset: 0; background: rgba(0,0,0,.35); z-index: 15; }
+
+@media (max-width: 720px) {
+  .side { transform: translateX(-100%); transition: transform .2s ease; z-index: 20; }
+  .side.open { transform: translateX(0); }
+  #sideToggle { display: inline-block; }
+  #sideBackdrop.show { display: block; }
+  main { margin-left: 0; padding: 56px 16px 24px; }
+  dl.star { grid-template-columns: 1fr; }
+  dl.star dd { margin-bottom: 8px; }
+}
+@media print { .side, #sideToggle, #sideBackdrop { display: none; } main { margin: 0; max-width: none; } details { break-inside: avoid; } }
+</style>
+</head>
+<body>
+<!-- devbok
+slug: payments
+kind: experience
+version: 1
+topic: "Payment systems & integrations (PSP APIs such as Stripe and Adyen, idempotency and retries, webhook handling, 3-D Secure/SCA, PCI DSS scope reduction, refunds, chargebacks, ledgers and reconciliation; mainly for .NET developers)"
+prompt: experience.md@2bcfefa8
+generated: 2026-09-08
+-->
+<button id="sideToggle" type="button" aria-controls="side" aria-expanded="false">units</button>
+<div id="sideBackdrop"></div>
+<nav class="side" id="side" aria-label="Units">
+  <ol class="units">
+    <li><a href="#u01"><span class="n">01</span><span class="t">The reconciliation job that took six hours to find eleven cents</span></a></li>
+    <li><a href="#u02"><span class="n">02</span><span class="t">Buying our way out of PCI scope with Checkout</span></a></li>
+    <li><a href="#u03"><span class="n">03</span><span class="t">The webhook that fired twice, and the charge that rode along with it</span></a></li>
+    <li><a href="#u04"><span class="n">04</span><span class="t">Migrating off 3-D Secure 1.0 before a deadline that kept moving</span></a></li>
+    <li><a href="#u05"><span class="n">05</span><span class="t">Synchronous webhook handlers vs. a queue: the fight that cost us a week</span></a></li>
+    <li><a href="#u06"><span class="n">06</span><span class="t">The retry loop that charged a customer four times</span></a></li>
+    <li><a href="#u07"><span class="n">07</span><span class="t">Sharding the idempotency store before the biggest sale of the year</span></a></li>
+    <li><a href="#u08"><span class="n">08</span><span class="t">The log line with a full card number in it</span></a></li>
+    <li><a href="#u09"><span class="n">09</span><span class="t">Retiring retry-and-pray for a real backoff policy</span></a></li>
+    <li><a href="#u10"><span class="n">10</span><span class="t">Teaching the difference between a decline and a failure</span></a></li>
+    <li><a href="#u11"><span class="n">11</span><span class="t">Three weeks to SCA enforcement, and a scope we couldn't hit</span></a></li>
+    <li><a href="#u12"><span class="n">12</span><span class="t">The ledger that stopped balancing at 2 a.m.</span></a></li>
+    <li><a href="#u13"><span class="n">13</span><span class="t">What counts as "won" in a chargeback, exactly?</span></a></li>
+    <li><a href="#u14"><span class="n">14</span><span class="t">Finance wanted a general ledger; we owned a payments ledger</span></a></li>
+    <li><a href="#u15"><span class="n">15</span><span class="t">The in-house ledger we spent four months building, then shelved</span></a></li>
+    <li><a href="#u16"><span class="n">16</span><span class="t">Cutting decline-retry waste cut the processing bill by six figures</span></a></li>
+    <li><a href="#u17"><span class="n">17</span><span class="t">Bringing in a second PSP, and the abstraction that almost wasn't one</span></a></li>
+    <li><a href="#u18"><span class="n">18</span><span class="t">The dispute deadline that fell during a page storm</span></a></li>
+    <li><a href="#u19"><span class="n">19</span><span class="t">Building a contract-testing harness so an API upgrade stopped being a fire drill</span></a></li>
+    <li><a href="#u20"><span class="n">20</span><span class="t">No, we are not storing the card number "just for now"</span></a></li>
+    <li><a href="#u21"><span class="n">21</span><span class="t">The big behavioural Q&amp;A</span></a></li>
+    <li><a href="#u22"><span class="n">22</span><span class="t">Night-before cheat sheet</span></a></li>
+  </ol>
+  <footer>Payment systems & integrations · experience · version 1 · 2026-09-08</footer>
+</nav>
+
+<main>
+<header class="hero">
+  <h1>Payment systems & integrations</h1>
+  <p class="meta">experience · Stripe API 2026-08-26 (Dahlia) / PCI DSS 4.0.1 · released 2026-08-26</p>
+  <p class="summary">These twenty stories are ideation scaffolds, never a history to recite: everything under the <span class="label">EXAMPLE — replace with your own</span> label is fiction, set at no named company, built to jog your memory and to teach the payments mechanism each story turns on. Work a unit in order — read the worked example, use the recall prompts to find your own equivalent, drop your facts into the STAR/CARL skeleton, then pressure-test the result against the drill chain until the answer holds at the tier you're actually interviewing for. Everything is grounded in the current .NET-shop stack for late 2026: Stripe's API is on the <strong>Dahlia</strong> release (current version <code>2026-08-26.dahlia</code>, with <code>Stripe.net</code> at v52.4.1) and Adyen's Checkout API is at <strong>v72</strong>; PCI DSS is on <strong>v4.0.1</strong>, with v4.0's "future-dated" requirements (targeted MFA for all CDE access, authenticated vulnerability scanning, and more) mandatory since 31 March 2025; and EMV 3-D Secure is on spec version <strong>2.3.1.1</strong>, with a 2.4 draft still in review — 3DS1 has been off card-network rails for years, so a 3DS1 story here would already be a legacy anecdote, not a current one. Two very recent, checkable facts run through several stories: Stripe's <strong>idempotency keys are pruned after 24 hours</strong> and a replayed key with different parameters is rejected outright rather than silently reusing the old result — the exact mechanic behind several of the debugging stories below; and PCI DSS 4.0's future-dated requirements moved from "recommended" to "mandatory" in March 2025, which is why "reduce PCI scope" stopped being optional and started being an audit finding.</p>
+  <p class="chips"><span class="chip">20 stories</span> <span class="chip">20 archetypes</span> <span class="chip">tiers: mid → principal</span> <span class="chip">+2 closing units</span> <span class="chip">Stripe Dahlia · Adyen v72</span> <span class="chip">PCI DSS 4.0.1</span></p>
+</header>
+
+<p>The coverage table is the map. Read down the <strong>Archetype</strong> column and mark the rows where you already have a real story; the empty rows are the gaps to go find in your own history before the interview, not gaps to invent.</p>
+
+<div class="tablewrap">
+<table>
+<thead><tr><th>#</th><th>Story title</th><th>Archetype</th><th>Tier</th></tr></thead>
+<tbody>
+<tr><td><a href="#u01">01</a></td><td>The reconciliation job that took six hours to find eleven cents</td><td>Performance problem diagnosed</td><td>Senior</td></tr>
+<tr><td><a href="#u02">02</a></td><td>Buying our way out of PCI scope with Checkout</td><td>Hard architectural trade-off</td><td>Staff</td></tr>
+<tr><td><a href="#u03">03</a></td><td>The webhook that fired twice, and the charge that rode along with it</td><td>Production incident / outage</td><td>Senior</td></tr>
+<tr><td><a href="#u04">04</a></td><td>Migrating off 3-D Secure 1.0 before a deadline that kept moving</td><td>Migration / version upgrade</td><td>Senior</td></tr>
+<tr><td><a href="#u05">05</a></td><td>Synchronous webhook handlers vs. a queue: the fight that cost us a week</td><td>Technical disagreement with a colleague</td><td>Senior</td></tr>
+<tr><td><a href="#u06">06</a></td><td>The retry loop that charged a customer four times</td><td>Nasty debugging session</td><td>Mid</td></tr>
+<tr><td><a href="#u07">07</a></td><td>Sharding the idempotency store before the biggest sale of the year</td><td>Scaling challenge</td><td>Staff</td></tr>
+<tr><td><a href="#u08">08</a></td><td>The log line with a full card number in it</td><td>Security issue found and fixed</td><td>Senior</td></tr>
+<tr><td><a href="#u09">09</a></td><td>Retiring retry-and-pray for a real backoff policy</td><td>Tech-debt paydown / refactor</td><td>Senior</td></tr>
+<tr><td><a href="#u10">10</a></td><td>Teaching the difference between a decline and a failure</td><td>Mentoring / levelling someone up</td><td>Staff</td></tr>
+<tr><td><a href="#u11">11</a></td><td>Three weeks to SCA enforcement, and a scope we couldn't hit</td><td>Scope / deadline negotiation</td><td>Staff</td></tr>
+<tr><td><a href="#u12">12</a></td><td>The ledger that stopped balancing at 2 a.m.</td><td>Data-loss / corruption scare</td><td>Senior</td></tr>
+<tr><td><a href="#u13">13</a></td><td>What counts as "won" in a chargeback, exactly?</td><td>Ambiguous / shifting requirements</td><td>Senior</td></tr>
+<tr><td><a href="#u14">14</a></td><td>Finance wanted a general ledger; we owned a payments ledger</td><td>Cross-team / integration dependency</td><td>Staff</td></tr>
+<tr><td><a href="#u15">15</a></td><td>The in-house ledger we spent four months building, then shelved</td><td>A project that failed or was cancelled</td><td>Principal</td></tr>
+<tr><td><a href="#u16">16</a></td><td>Cutting decline-retry waste cut the processing bill by six figures</td><td>Cost-optimisation win</td><td>Senior</td></tr>
+<tr><td><a href="#u17">17</a></td><td>Bringing in a second PSP, and the abstraction that almost wasn't one</td><td>Introducing a new tool</td><td>Senior</td></tr>
+<tr><td><a href="#u18">18</a></td><td>The dispute deadline that fell during a page storm</td><td>On-call firefighting</td><td>Senior</td></tr>
+<tr><td><a href="#u19">19</a></td><td>Building a contract-testing harness so an API upgrade stopped being a fire drill</td><td>CI / test reliability improvement</td><td>Staff</td></tr>
+<tr><td><a href="#u20">20</a></td><td>No, we are not storing the card number "just for now"</td><td>Pushing back on a stakeholder or manager</td><td>Principal</td></tr>
+</tbody>
+</table>
+</div>
+
+<div class="callout">
+<p><strong>How the drill chains are meant to hurt.</strong> Every chain climbs the same ladder: <em>why did you build it that way</em> → <em>what if the assumption were wrong</em> → <em>at what scale — volume, blast radius, money — does it break</em> → <em>what did you trade away</em> → <em>would you still do it on today's stack</em>. Answer out loud. Whenever an answer turns on "the PSP did something surprising", name <em>which</em> layer actually did it: the idempotency layer, the webhook delivery guarantee, the card network's dispute rules, or your own retry logic — payments stories that stay vague about which of those failed are the ones that don't survive a follow-up.</p>
+</div>
+<section class="story" id="u01">
+<h2><span class="num">01</span>The reconciliation job that took six hours to find eleven cents</h2>
+<p class="chips"><span class="chip tier">Senior</span><span class="chip">Performance problem diagnosed</span></p>
+
+<h3>(a) Worked example</h3>
+<p><span class="label">EXAMPLE — replace with your own</span> The nightly reconciliation job matched settlement-report line items against ledger entries by pulling every unreconciled ledger row into memory and scanning it for a same-amount, same-day match — an O(n·m) sweep that was fine at a few hundred rows and took six hours once volume grew past a few hundred thousand. Worse, it wasn't even reliably correct: "same amount, same day" is a heuristic, not a key. The actual key was sitting in both records the whole time — the PSP's charge ID — but nobody had indexed on it because the ledger's `Transactions` table stored the PSP reference as a nullable, unindexed free-text column left over from an early integration. Re-keying the join on that ID turned the sweep into a single indexed hash join, and the run dropped from six hours to under four minutes. The last eleven cents of unreconciled balance turned out to be a rounding-mode mismatch: the ledger converted minor units with <code>MidpointRounding.ToEven</code> (banker's rounding) while the PSP's settlement report used round-half-up, so a handful of multi-currency conversions landed a cent apart and accumulated to eleven cents across a month of FX settlements.</p>
+<div class="tablewrap"><table>
+<thead><tr><th>Matching key</th><th>Correctness</th><th>Performance at scale</th><th>Typical failure</th></tr></thead>
+<tbody>
+<tr><td>Amount + date heuristic</td><td>Ambiguous on same-day duplicates</td><td>O(n·m), degrades with volume</td><td>Silent mismatches or double-matches</td></tr>
+<tr><td>PSP charge/transaction ID</td><td>Exact, 1:1</td><td>O(n) with an index</td><td>Fails loudly if the ID was never stored</td></tr>
+</tbody>
+</table></div>
+<pre><code class="language-csharp">// Before: nested scan keyed on amount + date
+foreach (var entry in unreconciledLedgerRows)
+    foreach (var line in settlementLines)
+        if (line.Amount == entry.Amount && line.Date == entry.Date && !line.Matched)
+        { line.Matched = true; entry.Reconciled = true; break; }
+
+// After: indexed join on the PSP's own charge id
+var byChargeId = settlementLines.ToDictionary(l => l.PspChargeId);
+foreach (var entry in unreconciledLedgerRows)
+    if (byChargeId.TryGetValue(entry.PspChargeId, out var line))
+        { line.Matched = true; entry.Reconciled = true; }
+</code></pre>
+
+<div class="callout"><p><strong>What the interviewer is really probing:</strong> whether you reach for the domain's actual identity (a PSP-issued reference) instead of a heuristic when reconciling two independent systems, and whether "it's slow" and "it's wrong" register as two separate bugs you'd diagnose separately rather than one you'd patch with a timeout.</p></div>
+
+<h3>(b) STAR scaffold</h3>
+<dl class="star">
+<dt>Situation</dt><dd>Nightly reconciliation between PSP settlement data and the internal ledger had grown from minutes to six hours, and a small unreconciled balance had persisted for weeks.</dd>
+<dt>Task</dt><dd>Bring the job back under budget and close out the unreconciled balance before month-end close.</dd>
+<dt>Action</dt><dd>Profiled the job to find the nested comparison, re-keyed the match on the PSP charge ID with a proper index, then bisected the remaining discrepancy down to a rounding-mode mismatch in currency conversion.</dd>
+<dt>Result</dt><dd>Run time dropped from six hours to under four minutes; the ledger balanced to the cent, and the rounding fix was documented so the next multi-currency integration wouldn't repeat it.</dd>
+</dl>
+
+<h3>(c) Recall prompts</h3>
+<details><summary>What made the original match "correct most of the time" instead of always correct?</summary><p>It kept up because collisions were rare at low volume, not because the key was actually unique — a classic case of a heuristic passing tests until scale exposes it.</p></details>
+<details><summary>Why index on the PSP's ID rather than a computed hash of amount+date+currency?</summary><p>The PSP already guarantees that ID is unique and stable; inventing your own composite key just recreates the ambiguity with extra steps.</p></details>
+<details><summary>How would you have found the eleven cents without already suspecting rounding?</summary><p>Bucket the unreconciled deltas by currency and by transaction type before looking at individual rows — a rounding bug clusters by currency pair, a matching bug doesn't.</p></details>
+<details><summary>What's your own equivalent — a report, a batch job, or a reconciliation that got slow or subtly wrong as data grew?</summary><p>Look for anywhere you joined two systems on something other than a real shared identifier.</p></details>
+
+<h3>(d) Follow-up drill chain</h3>
+<details><summary>Why did the original design match on amount and date instead of the charge ID?</summary><p>The charge ID column existed but was an afterthought from an earlier integration — nobody had gone back to make it the join key once it was available.</p></details>
+<details><summary>What if the PSP's settlement report didn't include your internal reference at all?</summary><p>Then the fix is upstream: store the PSP's ID at charge-creation time so reconciliation always has a real key to join on, rather than trying to infer one after the fact.</p></details>
+<details><summary>At what row count does the nested scan actually start hurting?</summary><p>Roughly once <code>n·m</code> comparisons stop fitting in the batch window — for us that was a few hundred thousand rows against an hourly SLA, but the honest answer is "profile it," not a fixed number.</p></details>
+<details><summary>What did you trade away by re-indexing on the PSP ID?</summary><p>A small migration cost to backfill the ID on old rows, and a new invariant to enforce going forward: every charge write must persist the PSP reference, or reconciliation degrades again.</p></details>
+<details><summary>Would you build the reconciliation job the same way today?</summary><p>No — today it's a set-based SQL join with the charge ID as a proper indexed foreign key from day one, plus an automated daily assertion that the unreconciled delta is zero, so a regression pages someone instead of sitting for weeks.</p></details>
+</section>
+
+<section class="story" id="u02">
+<h2><span class="num">02</span>Buying our way out of PCI scope with Checkout</h2>
+<p class="chips"><span class="chip tier">Staff</span><span class="chip">Hard architectural trade-off</span></p>
+
+<h3>(a) Worked example</h3>
+<p><span class="label">EXAMPLE — replace with your own</span> The team's own card form posted PANs through our servers before tokenizing, which put every server that touched the request in PCI DSS scope under <strong>SAQ D</strong> — the long, expensive self-assessment with the widest control set. The trade-off was between three ways of shrinking that scope: keep a custom form but swap in the PSP's hosted iframe fields (SAQ A-EP: the DOM is ours, the field is theirs, so we're still in scope for the page's integrity but never touch a PAN), redirect entirely to the PSP's hosted checkout page (SAQ A: our servers never render or touch cardholder data at all), or keep the fully custom form and accept SAQ D. We picked the hosted redirect for the primary checkout flow and reserved a hosted-fields (SAQ A-EP) fallback for one embedded widget where a full redirect broke the UX too badly. The real cost wasn't PCI paperwork — it was giving up control over checkout page styling and losing the ability to add client-side fraud signals inline with card entry, which we partly clawed back with the PSP's JS SDK events.</p>
+<div class="tablewrap"><table>
+<thead><tr><th>Approach</th><th>SAQ tier</th><th>PAN touches your servers?</th><th>UX control</th></tr></thead>
+<tbody>
+<tr><td>Fully custom card form</td><td>SAQ D</td><td>Yes</td><td>Full</td></tr>
+<tr><td>PSP-hosted fields (iframe) in your page</td><td>SAQ A-EP</td><td>No — but your JS still frames the page</td><td>High</td></tr>
+<tr><td>Redirect to PSP-hosted checkout</td><td>SAQ A</td><td>No</td><td>Low — PSP owns the page</td></tr>
+</tbody>
+</table></div>
+
+<div class="callout"><p><strong>What the interviewer is really probing:</strong> whether you understand that PCI scope reduction is an architecture decision with a real UX and control cost, not a checkbox — and whether you can justify a specific SAQ tier rather than reciting "use hosted fields" as a slogan.</p></div>
+
+<h3>(b) STAR scaffold</h3>
+<dl class="star">
+<dt>Situation</dt><dd>A custom card form kept every backend service that handled checkout inside PCI DSS SAQ D scope, and the annual assessment was consuming weeks of engineering time.</dd>
+<dt>Task</dt><dd>Reduce PCI scope without breaking conversion on the primary checkout flow.</dd>
+<dt>Action</dt><dd>Moved the primary flow to a PSP-hosted redirect (SAQ A), kept one embedded widget on hosted fields (SAQ A-EP) where a redirect wasn't acceptable, and re-added inline fraud signals through the PSP's client-side SDK events instead of raw field access.</dd>
+<dt>Result</dt><dd>Scope dropped from SAQ D to a mix of SAQ A and A-EP across the two flows, the next assessment took days instead of weeks, and conversion on the redirect flow held steady after two rounds of styling iteration.</dd>
+</dl>
+
+<h3>(c) Recall prompts</h3>
+<details><summary>What's the actual difference in scope between SAQ A and SAQ A-EP?</summary><p>SAQ A means cardholder data never touches anything you control, even the page's DOM structure around the card fields; SAQ A-EP applies when your JavaScript still constructs the page the PSP's iframe sits inside, so a script-injection risk on your page is still in scope.</p></details>
+<details><summary>Why not just tokenize client-side with your own form and skip hosted fields entirely?</summary><p>A same-origin form that reads the PAN before tokenizing still exposes the PAN to your JavaScript execution context, which is exactly what SAQ D is scoped around — tokenizing after the fact doesn't undo that exposure.</p></details>
+<details><summary>What did the business give up for the scope reduction?</summary><p>Pixel-level control of the card entry UI and the ability to run custom validation logic directly against field values before submission.</p></details>
+<details><summary>What's your own equivalent trade-off between a compliance/security constraint and a UX or feature goal?</summary><p>Look for a place you gave up control to a third party specifically to shrink an audit or compliance surface.</p></details>
+
+<h3>(d) Follow-up drill chain</h3>
+<details><summary>Why not put every flow on SAQ A and skip A-EP entirely?</summary><p>One embedded widget lived inside a partner's iframe where a full-page redirect broke the surrounding flow, so hosted fields were the least-bad option that still avoided touching a PAN.</p></details>
+<details><summary>What if the PSP's hosted checkout page didn't support your currency or locale mix?</summary><p>Then SAQ A stops being available for that flow and you're negotiating between A-EP and D again — scope reduction is bounded by what your PSP's hosted surface actually covers.</p></details>
+<details><summary>At what point does the assessment cost justify the UX cost, and at what point does it not?</summary><p>Once SAQ D's control set (quarterly scans, segmentation validation, much larger evidence collection) starts costing more engineering time than the UX compromise costs in conversion — for us that was after one full SAQ D cycle.</p></details>
+<details><summary>What did you trade away by moving to the PSP's hosted surface?</summary><p>Control over checkout page branding and the ability to A/B test the payment step's layout independently of the PSP's release cycle.</p></details>
+<details><summary>How does this decision age as the product grows a second, third PSP?</summary><p>Each PSP's hosted fields and redirect pages have their own styling limits and event hooks, so "one hosted checkout" becomes "an abstraction over several hosted checkouts" — see story 17 for where that abstraction started leaking.</p></details>
+</section>
+
+<section class="story" id="u03">
+<h2><span class="num">03</span>The webhook that fired twice, and the charge that rode along with it</h2>
+<p class="chips"><span class="chip tier">Senior</span><span class="chip">Production incident / outage</span></p>
+
+<h3>(a) Worked example</h3>
+<p><span class="label">EXAMPLE — replace with your own</span> The order-fulfillment service treated a <code>payment_intent.succeeded</code> webhook as "create the order," with no check for whether that order already existed. PSPs redeliver webhooks — on a slow handler response, a transient 5xx, or just at-least-once delivery guarantees — so the same event arrived twice a few seconds apart during a traffic spike when the handler's response time crept past the PSP's retry timeout. Two orders were created for one payment. The fix had two layers: verify the webhook signature first (so a duplicate can't be forged, only redelivered), then make the handler idempotent by keying on the event's own ID — <code>Stripe-Signature</code> verification confirms authenticity, but the event <code>id</code> field is what you dedupe on, stored with a unique constraint so a second insert fails fast instead of creating a second order. We also learned the event delivery order isn't guaranteed, so the handler couldn't assume <code>succeeded</code> always arrives after <code>created</code> — it had to be safe to process out of order too.</p>
+<pre><code class="language-csharp">[HttpPost("webhooks/stripe")]
+public async Task&lt;IActionResult&gt; Handle()
+{
+    var json = await new StreamReader(Request.Body).ReadToEndAsync();
+    var stripeEvent = EventUtility.ConstructEvent(json,
+        Request.Headers["Stripe-Signature"], _webhookSecret);
+
+    // Dedupe on the event id before doing anything with side effects.
+    var inserted = await _db.ProcessedEvents.TryInsertAsync(stripeEvent.Id);
+    if (!inserted) return Ok(); // already handled this exact event
+
+    if (stripeEvent.Type == "payment_intent.succeeded")
+        await _orders.MarkPaidIdempotentAsync(stripeEvent);
+
+    return Ok();
+}
+</code></pre>
+
+<div class="callout"><p><strong>What the interviewer is really probing:</strong> whether "webhooks are at-least-once, not exactly-once" is a fact you designed around up front, or one you learned from an incident — and whether your idempotency key is the event ID (correct) versus something derived from the payload (fragile).</p></div>
+
+<h3>(b) STAR scaffold</h3>
+<dl class="star">
+<dt>Situation</dt><dd>A traffic spike slowed webhook handler response times past the PSP's retry window, causing a duplicate delivery of a <code>payment_intent.succeeded</code> event and a duplicate order.</dd>
+<dt>Task</dt><dd>Stop the duplicate orders immediately and make the handler safe against redelivery permanently.</dd>
+<dt>Action</dt><dd>Added a unique-constrained table of processed event IDs checked before any side effect, moved slow post-processing off the request path onto a queue, and confirmed signature verification was already correctly rejecting forged events.</dd>
+<dt>Result</dt><dd>No further duplicate orders across two subsequent high-traffic periods, and the handler's own response time dropped enough that redelivery became rare rather than just harmless.</dd>
+</dl>
+
+<h3>(c) Recall prompts</h3>
+<details><summary>Why key deduplication on the event ID rather than the payment intent ID?</summary><p>A single payment intent can legitimately generate several distinct events over its lifecycle (requires_action, succeeded, and so on); deduping on the intent ID would silently drop real, different events.</p></details>
+<details><summary>Why verify the signature before checking for duplicates?</summary><p>An unverified request could be a replay or forgery designed to probe your dedupe logic itself — authenticity has to be established before the event is trusted enough to reason about at all.</p></details>
+<details><summary>What made the handler slow enough to trigger a redelivery in the first place?</summary><p>Order creation, inventory reservation, and a confirmation email were all synchronous in the request path — any one of them being slow under load pushed the whole handler past the PSP's timeout.</p></details>
+<details><summary>What's your own equivalent — an at-least-once delivery guarantee that surprised you the first time it actually redelivered?</summary><p>Look for any integration point where you assumed "the caller only calls this once" without the system actually promising that.</p></details>
+
+<h3>(d) Follow-up drill chain</h3>
+<details><summary>Why did the handler do all its work synchronously instead of enqueuing?</summary><p>It was written early, before webhook volume mattered, and nobody revisited it once traffic grew — a common way idempotency bugs get introduced: correct-enough at the volume it was written for.</p></details>
+<details><summary>What if two duplicate events arrived within milliseconds of each other, racing the unique-constraint check?</summary><p>The unique constraint at the database level, not an application-level "check then insert," is what actually closes that race — a check-then-act pattern in application code has the exact same race the bug started as.</p></details>
+<details><summary>At what request volume does synchronous webhook processing stop being safe?</summary><p>Whenever handler latency has any chance of approaching the PSP's redelivery timeout under load — that's a moving target, which is why the real fix was making redelivery harmless rather than making the handler merely fast enough for today.</p></details>
+<details><summary>What did you trade away by moving processing onto a queue?</summary><p>Immediate consistency — the webhook now returns 200 before the order is fully created, so any code that assumed "webhook acknowledged means order exists" needed to be found and fixed too.</p></details>
+<details><summary>Would this design hold up against out-of-order delivery, not just duplicate delivery?</summary><p>Yes, because side effects are keyed off event ID and applied idempotently per event, not assumed to arrive in a particular sequence — see story 05 for the disagreement that shaped this into a queue-based design from the start.</p></details>
+</section>
+
+<section class="story" id="u04">
+<h2><span class="num">04</span>Migrating off 3-D Secure 1.0 before a deadline that kept moving</h2>
+<p class="chips"><span class="chip tier">Senior</span><span class="chip">Migration / version upgrade</span></p>
+
+<h3>(a) Worked example</h3>
+<p><span class="label">EXAMPLE — replace with your own</span> The checkout flow was still triggering 3-D Secure 1.0 for a slice of card-issuing banks, using an iframe-based redirect that had no App-based flow, weaker device data, and a noticeably worse mobile UX than 2.x. Card networks kept announcing and then pushing back their 3DS1 decommission dates, which made "migrate before the deadline" a moving target rather than a fixed one. Migrating to EMV 3DS 2.x meant switching from the PSP's older `handleCardAction`-style redirect helper to its newer frictionless-first flow: the PSP now sends 150+ device and browser data points to the issuer up front, and roughly two-thirds of authentications came back <em>frictionless</em> — no challenge screen at all — with the rest falling back to an in-app or browser challenge instead of a bank-hosted redirect page. The actual migration risk wasn't the API change, it was that we couldn't test issuer-side frictionless rates in advance; we shipped behind a feature flag, ramped by issuer country, and watched authorization rates before cutting over the remaining traffic.</p>
+<div class="tablewrap"><table>
+<thead><tr><th></th><th>3DS 1.0</th><th>3DS 2.x</th></tr></thead>
+<tbody>
+<tr><td>Challenge UI</td><td>Bank-hosted iframe redirect</td><td>In-app / native challenge, frictionless by default</td></tr>
+<tr><td>Data sent to issuer</td><td>Minimal</td><td>150+ device/browser signals</td></tr>
+<tr><td>Mobile UX</td><td>Poor — full page redirect</td><td>Native, no redirect for frictionless flows</td></tr>
+<tr><td>SCA/PSD2 exemption eligibility</td><td>Not supported</td><td>Low-value, TRA, and other exemptions supported</td></tr>
+</tbody>
+</table></div>
+
+<div class="callout"><p><strong>What the interviewer is really probing:</strong> how you handle a deadline set by a third party (card networks, regulators) that you can't control and that can itself slip — do you build the flag/ramp machinery so the migration timeline is decoupled from the mandate's timeline, or do you treat the mandate date as the actual plan?</p></div>
+
+<h3>(b) STAR scaffold</h3>
+<dl class="star">
+<dt>Situation</dt><dd>A remaining slice of checkout traffic still used 3-D Secure 1.0, and the card networks' decommission date for 3DS1 rails had already slipped once.</dd>
+<dt>Task</dt><dd>Complete the migration to EMV 3DS 2.x without depending on the mandate date holding, and without regressing authorization rates.</dd>
+<dt>Action</dt><dd>Rebuilt the authentication flow on the PSP's 2.x SDK, shipped it behind a feature flag ramped by issuer country, and monitored frictionless rate and authorization rate at each ramp step before proceeding.</dd>
+<dt>Result</dt><dd>Full migration completed two months ahead of the (again-revised) deadline, with a measured frictionless rate high enough that overall checkout friction net decreased despite adding SCA.</dd>
+</dl>
+
+<h3>(c) Recall prompts</h3>
+<details><summary>Why ramp by issuer country instead of by percentage of traffic?</summary><p>Frictionless-flow behavior is driven by the issuing bank's own risk engine, which varies sharply by country and card network relationship — a random percentage ramp mixes good and bad cohorts together and hides which segment is actually a problem.</p></details>
+<details><summary>Why not just wait until the mandate date was closer to firm?</summary><p>3DS1 traffic was already degrading UX and conversion on mobile every day it ran, so the business case for migrating existed independent of the compliance deadline.</p></details>
+<details><summary>What's the practical difference a "frictionless" 3DS2 authentication makes versus a 3DS1 redirect, from the cardholder's side?</summary><p>Frictionless means no challenge screen at all — authentication happens invisibly using device/behavioral signals, so from the shopper's perspective checkout looks identical to no-3DS at all.</p></details>
+<details><summary>What's your own equivalent — a migration gated by an external deadline that moved on you?</summary><p>Look for any dependency on a vendor's or regulator's announced timeline, and whether your plan assumed that date was fixed.</p></details>
+
+<h3>(d) Follow-up drill chain</h3>
+<details><summary>Why not migrate everyone at once given the UX was strictly better?</summary><p>Frictionless rates and issuer support for the new device-data fields were unknown in advance for many banks, so a full cutover risked authorization-rate regressions we couldn't predict or quickly roll back from.</p></details>
+<details><summary>What if a ramped country segment showed a lower authorization rate than 3DS1 gave it?</summary><p>That's exactly what the flag and per-segment monitoring were for — hold that segment on 3DS1, investigate the specific issuer behavior, and only advance once the regression was understood.</p></details>
+<details><summary>At what frictionless rate would the migration not have been worth it?</summary><p>If a meaningful segment came back mostly challenge-flow with a real conversion drop, the answer isn't "abandon 3DS2" — it's usually an SCA exemption request (low-value or TRA) submitted with that transaction, which the PSP's 2.x integration supports and 1.0 never did.</p></details>
+<details><summary>What did you trade away by building the ramp machinery instead of a hard cutover?</summary><p>Weeks of running two authentication code paths side by side, with the operational cost of monitoring both — worth it because a bad cutover on payments directly costs revenue, not just engineering time.</p></details>
+<details><summary>Would you keep the flag-and-ramp approach for the next PSD2-driven change?</summary><p>Yes — the pattern (flag by segment, monitor authorization rate, ramp on evidence) generalizes to any change where a regulator's or network's timeline is out of your control but the blast radius of a bad rollout is real money.</p></details>
+</section>
+
+<section class="story" id="u05">
+<h2><span class="num">05</span>Synchronous webhook handlers vs. a queue: the fight that cost us a week</h2>
+<p class="chips"><span class="chip tier">Senior</span><span class="chip">Technical disagreement with a colleague</span></p>
+
+<h3>(a) Worked example</h3>
+<p><span class="label">EXAMPLE — replace with your own</span> A colleague wanted webhook handlers to stay fully synchronous — verify, process, respond — arguing it was simpler to reason about and easier to debug than adding a queue in between. I wanted the handler to do only verification and dedupe, then drop the event onto a queue for a worker to process, arguing that a PSP's webhook timeout (a handler that doesn't respond quickly gets marked failed and retried) meant any slow downstream step — inventory, email, a partner API call — put every webhook at risk of the exact duplicate-delivery problem from story 03. We each had a real point: synchronous code is easier to trace end-to-end in a debugger, and my design added an operational dependency (the queue and its worker) that could itself fail silently. We resolved it by prototyping both under a simulated slow-downstream-API and measuring actual redelivery rates — synchronous handling produced duplicates within minutes of a 2-second delay injected into the email step; the queued design didn't, because the webhook endpoint's own response time never depended on downstream latency. We kept the queue, but added structured logging and a per-event trace ID so the "harder to debug" objection had a concrete answer instead of just being asserted.</p>
+<div class="tablewrap"><table>
+<thead><tr><th></th><th>Synchronous handler</th><th>Verify + enqueue, async worker</th></tr></thead>
+<tbody>
+<tr><td>Response time under downstream slowness</td><td>Degrades with every dependency</td><td>Constant — bounded by verify + enqueue only</td></tr>
+<tr><td>Debuggability</td><td>Single stack trace, easy to step through</td><td>Needs correlation IDs across two hops</td></tr>
+<tr><td>New failure surface</td><td>None beyond the handler itself</td><td>Queue and worker become dependencies</td></tr>
+<tr><td>Risk of PSP-side redelivery under load</td><td>High</td><td>Low</td></tr>
+</tbody>
+</table></div>
+
+<div class="callout"><p><strong>What the interviewer is really probing:</strong> whether you can hold a technical disagreement as a trade-off with a real counter-argument, resolve it with evidence rather than seniority or persistence, and still credit the part of the other position that was right.</p></div>
+
+<h3>(b) STAR scaffold</h3>
+<dl class="star">
+<dt>Situation</dt><dd>A colleague and I disagreed on whether webhook handlers should process events synchronously or hand off to a queue, with real trade-offs on both sides and no clear precedent in the codebase.</dd>
+<dt>Task</dt><dd>Reach a decision the whole team could stand behind, not just win the argument.</dd>
+<dt>Action</dt><dd>Proposed a time-boxed prototype of both approaches under an injected slow-downstream-call, measured redelivery behavior directly, and added the correlation-ID logging that addressed the debuggability objection rather than dismissing it.</dd>
+<dt>Result</dt><dd>The team adopted the queued design with the added observability; my colleague's debuggability concern shaped the final logging approach, and the decision held up unchanged through the next two incidents.</dd>
+</dl>
+
+<h3>(c) Recall prompts</h3>
+<details><summary>What was genuinely correct in the position you didn't adopt?</summary><p>Synchronous handling really is easier to step through with a debugger — the eventual design had to earn back that clarity with correlation IDs rather than pretend the concern didn't matter.</p></details>
+<details><summary>Why settle it with a prototype instead of a design doc or a vote?</summary><p>Neither of us could actually predict redelivery behavior from first principles with confidence — it depended on real timeout thresholds and real downstream latency, which a doc can't settle but a measurement can.</p></details>
+<details><summary>What would have changed your mind back to the synchronous design?</summary><p>If the prototype had shown the queue's own failure modes (stuck consumers, poison messages) causing more incidents than the redelivery problem it solved.</p></details>
+<details><summary>What's your own equivalent — a technical disagreement you resolved with evidence rather than by outlasting the other person?</summary><p>Look for a disagreement where both sides had a real point, and the resolution mechanism mattered as much as the outcome.</p></details>
+
+<h3>(d) Follow-up drill chain</h3>
+<details><summary>Why did the disagreement take a week to resolve instead of a day?</summary><p>Building a realistic prototype — one that actually simulated production-like downstream latency and PSP redelivery timing rather than a toy case — took longer than either of us expected, but a rushed comparison would have been unconvincing to whoever lost it.</p></details>
+<details><summary>What if the prototype had shown both approaches performing about the same?</summary><p>Then the decision would have defaulted to the simpler-to-operate option — synchronous, since it doesn't add a queue — because a tie on the measured trade-off should be broken by operational simplicity, not by whoever argued harder.</p></details>
+<details><summary>At what webhook volume does the synchronous design become clearly wrong even without a slow dependency?</summary><p>Once handler concurrency limits start throttling incoming webhooks — a queue decouples ingestion rate from processing rate, which synchronous handling can never do regardless of how fast each step is.</p></details>
+<details><summary>What did the losing side of the argument get in return for conceding?</summary><p>Direct input into the observability design, and confirmation that the concern was taken seriously rather than steamrolled — which mattered more to the working relationship than the technical outcome itself.</p></details>
+<details><summary>Would you run the disagreement the same way today, with story 03's incident already having happened?</summary><p>Yes, and faster — story 03 is the evidence this discussion needed and didn't have yet; today I'd point to that incident directly instead of needing a synthetic prototype.</p></details>
+</section>
+<section class="story" id="u06">
+<h2><span class="num">06</span>The retry loop that charged a customer four times</h2>
+<p class="chips"><span class="chip tier">Mid</span><span class="chip">Nasty debugging session</span></p>
+
+<h3>(a) Worked example</h3>
+<p><span class="label">EXAMPLE — replace with your own</span> A customer reported four identical charges for one order. The checkout code called the PSP's create-payment-intent endpoint inside a retry loop that caught <code>HttpRequestException</code> and simply tried again on any failure — including timeouts, where the first request had actually succeeded on the PSP's side but the response never made it back before the client's own timeout fired. Each retry generated a brand-new payment intent because no <code>Idempotency-Key</code> header was set, so the PSP had no way to recognize "this is the same logical request" and dutifully created four separate charges. The fix was to generate one idempotency key per logical checkout attempt (not per HTTP call) and pass it on every retry of that attempt; Stripe's API then recognized the retried request from a previous 24-hour window and returned the original result instead of creating a new charge, and a request retried with the <em>same</em> key but <em>different</em> parameters was rejected outright rather than silently doing something ambiguous.</p>
+<pre><code class="language-csharp">var idempotencyKey = Guid.NewGuid().ToString(); // one key per logical attempt
+var options = new RequestOptions { IdempotencyKey = idempotencyKey };
+
+for (var attempt = 0; attempt &lt; 3; attempt++)
+{
+    try
+    {
+        return await _paymentIntentService.CreateAsync(createOptions, options);
+    }
+    catch (HttpRequestException) when (attempt &lt; 2)
+    {
+        await Task.Delay(TimeSpan.FromSeconds(Math.Pow(2, attempt)));
+        // same idempotencyKey reused here — this is what makes the retry safe
+    }
+}
+</code></pre>
+
+<div class="callout"><p><strong>What the interviewer is really probing:</strong> whether you know that a network timeout doesn't mean "the request didn't happen" — it means "you don't know if it happened" — and whether idempotency keys are scoped to the right unit of work (one per attempt, not one per HTTP call, not omitted).</p></div>
+
+<h3>(b) STAR scaffold</h3>
+<dl class="star">
+<dt>Situation</dt><dd>A customer was charged four times for a single order after a checkout retry loop repeated a payment-intent creation call with no idempotency protection.</dd>
+<dt>Task</dt><dd>Refund the extra charges immediately and stop the retry logic from ever duplicating a charge again.</dd>
+<dt>Action</dt><dd>Refunded the duplicate charges, then rewrote the retry loop to generate one idempotency key per checkout attempt and reuse it across every retry of that attempt, verifying against the PSP's own idempotency documentation that mismatched-parameter retries are rejected rather than silently accepted.</dd>
+<dt>Result</dt><dd>Zero duplicate charges in the following months of retries under real network flakiness, and the pattern became the team's standard for every PSP call, not just this one.</dd>
+</dl>
+
+<h3>(c) Recall prompts</h3>
+<details><summary>Why does a timeout not tell you whether the request succeeded?</summary><p>A timeout means the response didn't arrive in time — the request could have failed before reaching the PSP, succeeded and the response was lost in transit, or be still processing; without an idempotency key there's no safe way to distinguish these.</p></details>
+<details><summary>Why one idempotency key per attempt rather than a new key on every retry?</summary><p>A new key on every retry defeats the whole mechanism — the PSP sees each retry as a brand-new, never-seen-before request and processes it as such.</p></details>
+<details><summary>What happens if a retried request reuses the key but changes a parameter, like the amount?</summary><p>The PSP rejects it with an error rather than guessing which version you meant — the guarantee is stronger than caching, it enforces that a repeated key really does mean a repeated request.</p></details>
+<details><summary>What's your own equivalent — a retry that turned out to duplicate a side effect because "just try again" wasn't actually safe?</summary><p>Look for any retry loop wrapped around a call with side effects, and whether it was actually idempotent or just assumed to be.</p></details>
+
+<h3>(d) Follow-up drill chain</h3>
+<details><summary>Why wasn't this caught before a customer hit it?</summary><p>The retry path only exercises on real network flakiness, which local and staging environments rarely reproduce — it's a class of bug that hides until production load or a bad network day surfaces it.</p></details>
+<details><summary>What if the idempotency key were derived from the request body's hash instead of a fresh GUID per attempt?</summary><p>That works too and has the advantage of being naturally stable across retries without threading a variable through the loop, but it breaks if the payload legitimately needs to vary slightly between retries (a timestamp field, for instance) — a GUID scoped to the attempt avoids that trap entirely.</p></details>
+<details><summary>At what retry count does an idempotency key stop being enough on its own?</summary><p>Never on its own — it protects against duplicate side effects, but you still need backoff to avoid hammering a struggling PSP, which is the tech-debt fix in story 09.</p></details>
+<details><summary>What did fixing this cost in terms of API contract changes?</summary><p>Nothing external — the idempotency key was already a supported header, this was purely an internal discipline fix, which is part of why it was worth catching early: no coordination needed, just correct usage.</p></details>
+<details><summary>Would a circuit breaker have prevented this instead?</summary><p>No — a circuit breaker stops you from retrying a failing dependency, but it doesn't make an individual retry safe; idempotency and backoff solve different problems and you need both.</p></details>
+</section>
+
+<section class="story" id="u07">
+<h2><span class="num">07</span>Sharding the idempotency store before the biggest sale of the year</h2>
+<p class="chips"><span class="chip tier">Staff</span><span class="chip">Scaling challenge</span></p>
+
+<h3>(a) Worked example</h3>
+<p><span class="label">EXAMPLE — replace with your own</span> Our own idempotency layer — a table recording every inbound checkout request's key so a client-side retry couldn't double-submit before it even reached the PSP — was a single Postgres table with a unique index on the key column. Load testing for an upcoming peak sale showed write contention on that one table capping checkout throughput well below the projected peak, because every single checkout in the system serialized through the same hot index range (keys were sequential GUIDs from a naive generator, clustering inserts). The fix was two-fold: switch key generation to a properly randomized distribution so inserts spread across the index instead of clustering, and shard the table by a hash of the customer ID so peak load spread across multiple physical partitions instead of one. We kept a 24-hour TTL matching the PSP's own idempotency retention window, so the table never grew unbounded and old shards could be cleaned up independently.</p>
+<div class="tablewrap"><table>
+<thead><tr><th></th><th>Single table, sequential keys</th><th>Sharded by customer hash, random keys</th></tr></thead>
+<tbody>
+<tr><td>Insert contention under peak load</td><td>High — hot index range</td><td>Low — spread across partitions</td></tr>
+<tr><td>Operational complexity</td><td>Low</td><td>Higher — needs shard-aware cleanup</td></tr>
+<tr><td>TTL cleanup cost</td><td>One large delete sweep</td><td>Parallel, per-shard sweeps</td></tr>
+</tbody>
+</table></div>
+
+<div class="callout"><p><strong>What the interviewer is really probing:</strong> whether you distinguish your own application-level idempotency layer from the PSP's, and whether you can reason about a scaling bottleneck down to the index/storage layer rather than stopping at "the database got slow."</p></div>
+
+<h3>(b) STAR scaffold</h3>
+<dl class="star">
+<dt>Situation</dt><dd>Load testing ahead of the year's biggest sale showed the idempotency table's write contention would cap checkout throughput below the projected peak.</dd>
+<dt>Task</dt><dd>Remove the bottleneck before the sale date, which was fixed and non-negotiable.</dd>
+<dt>Action</dt><dd>Randomized key generation to eliminate index hot-spotting, sharded the table by customer-ID hash, and kept a 24-hour TTL aligned with the PSP's own idempotency window so cleanup stayed cheap.</dd>
+<dt>Result</dt><dd>Load tests post-fix cleared the projected peak with headroom, and the sale ran without a single idempotency-layer-related incident.</dd>
+</dl>
+
+<h3>(c) Recall prompts</h3>
+<details><summary>Why did sequential GUIDs cause contention specifically?</summary><p>Sequentially generated keys insert into adjacent positions in the B-tree index, so concurrent inserts fight over the same hot page instead of spreading across the structure.</p></details>
+<details><summary>Why a 24-hour TTL specifically, rather than 7 days or forever?</summary><p>It matches the PSP's own idempotency-key retention window — there's no value in remembering a key longer than the PSP itself would honor a retry against it.</p></details>
+<details><summary>Why shard by customer ID rather than by the idempotency key itself?</summary><p>Sharding by customer keeps a given customer's retries and lookups on one shard, which matters if any per-customer rate limiting or lookup logic needs to stay local to a partition.</p></details>
+<details><summary>What's your own equivalent — a system that worked fine until a known, scheduled peak forced you to find its actual ceiling?</summary><p>Look for a load test that found a bottleneck you wouldn't have found from steady-state traffic alone.</p></details>
+
+<h3>(d) Follow-up drill chain</h3>
+<details><summary>Why didn't ordinary steady-state traffic surface this bottleneck earlier?</summary><p>The hot-index contention only bites at concurrency levels well above day-to-day traffic — it's a problem that's invisible until you deliberately load-test for the peak you're planning for.</p></details>
+<details><summary>What if the sale's actual peak had exceeded even the sharded design's tested capacity?</summary><p>The sharding count wasn't fixed at build time — it was designed to add shards ahead of future peaks, and we load-tested with margin above the projection specifically because a projection is a guess.</p></details>
+<details><summary>At what point would you reach for a different storage engine entirely instead of sharding Postgres?</summary><p>If sharding a relational table stopped being enough — say, needing geographic distribution or a fundamentally different write pattern — a purpose-built key-value store with native TTL would be the next step, but that's a bigger migration than the throughput problem justified here.</p></details>
+<details><summary>What did the sharding cost operationally?</summary><p>Cleanup jobs, monitoring, and any ad-hoc debugging query now had to be shard-aware — a small but real tax on every future person who touches this table.</p></details>
+<details><summary>Would you reach for sharding again, or solve it differently next time?</summary><p>I'd fix the key-generation hot-spotting first in isolation and re-measure before assuming sharding was necessary — in retrospect it's possible randomized keys alone would have bought enough headroom, and we sharded a bit earlier than we strictly had to.</p></details>
+</section>
+
+<section class="story" id="u08">
+<h2><span class="num">08</span>The log line with a full card number in it</h2>
+<p class="chips"><span class="chip tier">Senior</span><span class="chip">Security issue found and fixed</span></p>
+
+<h3>(a) Worked example</h3>
+<p><span class="label">EXAMPLE — replace with your own</span> A routine log review turned up a full, unmasked PAN in an application log, written by a diagnostic <code>ToString()</code> override on a request DTO that a developer had added months earlier to debug a serialization issue, then never removed. The DTO round-tripped through several layers before tokenization happened, so the raw card number was live in memory (and briefly on disk, via the log) for longer than the PCI DSS scope boundary assumed. This wasn't just a bug, it was a scope violation: any log storage, log-shipping pipeline, and every engineer with log access was now retroactively in a data-exposure incident, regardless of whether anyone actually looked. The immediate response was incident-standard: rotate/purge the affected log retention, confirm no downstream log aggregation had a longer retention window than we thought, and notify per the incident process. The structural fix was to make the exposure class of bug impossible rather than merely fixed: wrap the PAN field in a type whose <code>ToString()</code> and default serializer always mask it, so a future debug-print reflex renders <code>****4242</code> no matter which layer calls it.</p>
+<pre><code class="language-csharp">public readonly struct MaskedPan
+{
+    private readonly string _value;
+    public MaskedPan(string value) => _value = value;
+    public override string ToString() =&gt; $"****{_value[^4..]}";
+    // No implicit conversion to string, no accessor that returns the raw value —
+    // getting the real PAN out requires an explicit, audited call site.
+}
+</code></pre>
+
+<div class="callout"><p><strong>What the interviewer is really probing:</strong> whether you treat an accidental cardholder-data exposure as a scope and compliance event, not just a bug ticket — and whether your fix removes the class of mistake instead of patching the one call site you found.</p></div>
+
+<h3>(b) STAR scaffold</h3>
+<dl class="star">
+<dt>Situation</dt><dd>A log review found a full unmasked card number written by a leftover debug <code>ToString()</code> override, exposing cardholder data outside the intended PCI scope boundary.</dd>
+<dt>Task</dt><dd>Contain the exposure, meet incident-reporting obligations, and prevent the same class of mistake from recurring.</dd>
+<dt>Action</dt><dd>Purged the affected log retention, audited every log sink for retention windows we hadn't verified, followed the incident process for disclosure, and replaced the raw PAN field with a type that can never render its unmasked value through a default code path.</dd>
+<dt>Result</dt><dd>Exposure contained within one retention cycle with no evidence of external access; the masked-type pattern was rolled out to every cardholder-data field in the codebase, and a static-analysis rule now flags any new field holding a raw PAN string.</dd>
+</dl>
+
+<h3>(c) Recall prompts</h3>
+<details><summary>Why does this count as a PCI scope issue rather than "just a logging bug"?</summary><p>PCI DSS scope follows the data, not the intended architecture — the moment a PAN reaches a system (a log store, a log-shipping pipeline) that system is retroactively in scope, whether or not the design ever meant for that to happen.</p></details>
+<details><summary>Why fix it with a type rather than a code-review checklist item?</summary><p>A checklist relies on every future developer remembering it every time; a type that can't render its raw value removes the mistake from the set of things that compile, which scales far better than institutional memory.</p></details>
+<details><summary>What made this exposure worse than a typical bug?</summary><p>It carried mandatory incident-disclosure obligations and put every system in the log pipeline's retention chain into scope — the blast radius was organizational, not just technical.</p></details>
+<details><summary>What's your own equivalent — a bug that turned out to be a compliance or scope event once you traced where the data actually went?</summary><p>Look for any incident where the fix required auditing systems downstream of the bug, not just the code that caused it.</p></details>
+
+<h3>(d) Follow-up drill chain</h3>
+<details><summary>Why wasn't this caught by code review when the debug override was added?</summary><p>It was added as a narrowly-scoped debugging aid and reviewed in that context; nobody re-reviewed it once it survived past the debugging session it was written for, which is exactly the kind of temporary code that outlives its justification.</p></details>
+<details><summary>What if the log had already shipped to a third-party aggregation service by the time it was found?</summary><p>Then containment extends to that vendor's retention and deletion capabilities too — this is why the audit step checked every downstream sink, not just the primary log store, before declaring the exposure contained.</p></details>
+<details><summary>At what point does a near-miss like this require disclosure versus staying an internal fix?</summary><p>That threshold is a legal and compliance-team call, not an engineering one — the engineering responsibility is making sure the facts (scope, duration, access) needed for that call are actually known and accurate.</p></details>
+<details><summary>What did the masked-type fix cost in migration effort?</summary><p>Touching every existing field that held a raw PAN across the codebase and updating serializers and mapping code that assumed a plain string — a multi-week cleanup, done once, to close the class of bug permanently.</p></details>
+<details><summary>Would tokenizing at the very first point of ingress have prevented this entirely?</summary><p>Largely yes — if the PAN were replaced with a PSP token before it ever reached this layer, there would have been nothing sensitive left to log; that's the deeper fix this incident ultimately pushed toward.</p></details>
+</section>
+
+<section class="story" id="u09">
+<h2><span class="num">09</span>Retiring retry-and-pray for a real backoff policy</h2>
+<p class="chips"><span class="chip tier">Senior</span><span class="chip">Tech-debt paydown / refactor</span></p>
+
+<h3>(a) Worked example</h3>
+<p><span class="label">EXAMPLE — replace with your own</span> Every PSP call in the codebase had its own hand-rolled retry logic — some fixed at three attempts with no delay, some with a hardcoded one-second sleep, one with no retry at all — accumulated over years by different developers under time pressure. During a PSP-side partial outage, the no-delay retry paths turned a brief upstream blip into a self-inflicted thundering herd against an already-struggling dependency, which the PSP's rate limiter then started rejecting, making the outage worse for us than it was for the PSP. The paydown replaced every hand-rolled retry with a single shared Polly policy: exponential backoff with jitter, a circuit breaker that stops calling entirely once failures cross a threshold, and retry only on the specific transient status codes and exceptions worth retrying — never on a 4xx, since retrying a bad request just repeats the same failure.</p>
+<pre><code class="language-csharp">services.AddHttpClient&lt;IStripeGateway, StripeGateway&gt;()
+    .AddPolicyHandler(HttpPolicyExtensions
+        .HandleTransientHttpError() // 5xx and network failures only
+        .WaitAndRetryAsync(3, attempt =&gt;
+            TimeSpan.FromSeconds(Math.Pow(2, attempt))
+            + TimeSpan.FromMilliseconds(Random.Shared.Next(0, 250))))
+    .AddPolicyHandler(HttpPolicyExtensions
+        .HandleTransientHttpError()
+        .CircuitBreakerAsync(5, TimeSpan.FromSeconds(30)));
+</code></pre>
+
+<div class="callout"><p><strong>What the interviewer is really probing:</strong> whether you recognize that inconsistent, ad-hoc retry logic is itself a reliability risk — not just messy code — and whether you know the difference between a retryable transient failure and a 4xx that retrying will never fix.</p></div>
+
+<h3>(b) STAR scaffold</h3>
+<dl class="star">
+<dt>Situation</dt><dd>Years of hand-rolled, inconsistent retry logic across PSP integration call sites turned a brief PSP-side outage into a self-inflicted thundering herd that made things worse.</dd>
+<dt>Task</dt><dd>Replace the scattered retry logic with one consistent, safe policy across every PSP call.</dd>
+<dt>Action</dt><dd>Introduced a shared Polly policy — exponential backoff with jitter, a circuit breaker, and retry scoped to genuinely transient failures — and migrated every call site onto it over several sprints, deleting the old bespoke logic as each migrated.</dd>
+<dt>Result</dt><dd>The next PSP-side blip triggered the circuit breaker instead of a retry storm, and on-call load from PSP flakiness dropped noticeably in the following quarter.</dd>
+</dl>
+
+<h3>(c) Recall prompts</h3>
+<details><summary>Why does retrying a 4xx response make things worse, not just useless?</summary><p>A 4xx generally means the request itself was wrong (bad parameters, an expired token) — retrying it identically just repeats the same failure while adding load, and for some 4xx cases without an idempotency key it can also risk a duplicate side effect.</p></details>
+<details><summary>Why add jitter to the backoff instead of a plain exponential delay?</summary><p>Without jitter, every client that started retrying at the same moment (as happens right after an outage begins) stays synchronized wave after wave — jitter spreads the retries out so they don't recreate the thundering herd on each backoff cycle.</p></details>
+<details><summary>What does the circuit breaker add that backoff alone doesn't?</summary><p>Backoff still means every caller eventually tries again; a circuit breaker stops calling at all once failures cross a threshold, giving the struggling dependency room to recover instead of a steady trickle of retries during the worst of the outage.</p></details>
+<details><summary>What's your own equivalent — inconsistent defensive code across a codebase that turned out to make an incident worse instead of containing it?</summary><p>Look for logic that was individually reasonable at each call site but collectively uncoordinated under real failure conditions.</p></details>
+
+<h3>(d) Follow-up drill chain</h3>
+<details><summary>Why did each call site end up with its own retry logic instead of a shared one from the start?</summary><p>Each was written under deadline pressure by whoever built that integration, with no shared library available at the time — classic organic tech debt, no single bad decision, just no one owning the cross-cutting concern.</p></details>
+<details><summary>What if the shared Polly policy's threshold for the circuit breaker was set wrong — too sensitive or not sensitive enough?</summary><p>That threshold needs tuning against real traffic and real PSP failure patterns, which is why it shipped with monitoring and was revisited after the first real trip, not treated as a one-time constant.</p></details>
+<details><summary>At what point does a shared retry policy itself become a single point of failure?</summary><p>If it's misconfigured, it now affects every PSP call at once instead of just one — which is a real cost of consolidation, mitigated by feature-flagging the policy version so a bad change can be rolled back instantly across all call sites together.</p></details>
+<details><summary>What did the migration cost in effort versus just leaving the old logic alone?</summary><p>Several sprints of careful, call-site-by-call-site migration and testing — justified because the alternative was carrying an unbounded number of subtly different retry bugs indefinitely.</p></details>
+<details><summary>Would you build this as a Polly policy again, or reach for something else today?</summary><p>Polly is still the right tool in .NET for this; what I'd do differently is introduce the shared policy from the very first PSP integration rather than letting years of divergence accumulate first.</p></details>
+</section>
+
+<section class="story" id="u10">
+<h2><span class="num">10</span>Teaching the difference between a decline and a failure</h2>
+<p class="chips"><span class="chip tier">Staff</span><span class="chip">Mentoring / levelling someone up</span></p>
+
+<h3>(a) Worked example</h3>
+<p><span class="label">EXAMPLE — replace with your own</span> A junior engineer's PR retried every non-2xx payment response the same way, including card declines — treating a <code>card_declined</code> result identically to a timeout or a 500. The mentoring moment wasn't just "that's wrong," it was walking through why: a decline is the PSP successfully doing its job and telling you the issuer said no, for reasons ranging from insufficient funds to a card network's fraud model flagging the transaction — retrying the exact same request will get the exact same decline, and in the worst case (certain decline codes) retrying can itself look like probing behavior to the issuer's fraud systems and hurt the merchant's standing with that issuer over time. A failure — a timeout, a 5xx, a network error — is the PSP or the network not confirming an outcome at all, which is the actual case a retry is meant for. I had them build a small decision table mapping decline codes to concrete actions (insufficient funds → ask for another card; do-not-honor → same; suspected fraud → do not retry, escalate) instead of a blanket retry-or-not boolean, and pair-reviewed their revised PR against real Stripe decline-code documentation.</p>
+<div class="tablewrap"><table>
+<thead><tr><th>Response type</th><th>What it means</th><th>Retry same request?</th></tr></thead>
+<tbody>
+<tr><td>Network timeout / 5xx</td><td>Outcome unconfirmed</td><td>Yes — with idempotency key and backoff</td></tr>
+<tr><td>Card declined — insufficient funds</td><td>Issuer said no, confirmed</td><td>No — ask for a different payment method</td></tr>
+<tr><td>Card declined — suspected fraud</td><td>Issuer's fraud model flagged it</td><td>No — retrying can worsen standing with the issuer</td></tr>
+</tbody>
+</table></div>
+
+<div class="callout"><p><strong>What the interviewer is really probing:</strong> whether you mentor by building the other person's own mental model (a decision table, a documentation walkthrough) rather than just handing over the corrected code — and whether you actually know this distinction cold yourself.</p></div>
+
+<h3>(b) STAR scaffold</h3>
+<dl class="star">
+<dt>Situation</dt><dd>A junior engineer's PR retried card declines the same way as network failures, which risked both wasted retries and potential issuer-side fraud-signal damage.</dd>
+<dt>Task</dt><dd>Correct the immediate PR and build lasting understanding of decline-versus-failure so the mistake wouldn't recur in a different form.</dd>
+<dt>Action</dt><dd>Walked through the distinction with real decline-code documentation, had them build a decision table mapping codes to actions instead of a boolean, and pair-reviewed the revised implementation together.</dd>
+<dt>Result</dt><dd>The revised PR shipped with correct decline handling, and the engineer independently caught the same class of mistake in a teammate's PR a month later.</dd>
+</dl>
+
+<h3>(c) Recall prompts</h3>
+<details><summary>Why is retrying a decline potentially worse than just wasteful?</summary><p>Some issuers' fraud models track repeated attempts against the same card as a signal; needless retries after a firm decline can degrade how that issuer treats future legitimate transactions from your business.</p></details>
+<details><summary>Why build a decision table instead of just fixing the one retry check?</summary><p>A boolean fix addresses this PR; a decision table is a tool the engineer can extend themselves the next time a new decline code shows up, which is the actual point of mentoring over just correcting.</p></details>
+<details><summary>How do you tell a "confirmed no" from an "unconfirmed outcome" at the API level?</summary><p>A confirmed decline comes back as a successful API response carrying a decline/error code from the issuer; an unconfirmed outcome is a transport-level failure — a timeout, a connection error, a 5xx — where the PSP itself never told you anything.</p></details>
+<details><summary>What's your own equivalent — a mentoring moment where the fix mattered less than the mental model you built together?</summary><p>Look for a code review where you could have just supplied the corrected line, but chose to build a reusable framework with the other person instead.</p></details>
+
+<h3>(d) Follow-up drill chain</h3>
+<details><summary>Why did the PR treat declines and failures the same in the first place?</summary><p>The PSP's client library surfaces both as non-2xx-ish outcomes at a similar point in the call stack, so without specifically knowing to distinguish them, treating them identically is the natural default, not a careless one.</p></details>
+<details><summary>What if the engineer had pushed back on the correction instead of accepting it?</summary><p>That's the useful case for pointing at official decline-code documentation rather than personal authority — the goal is for the model to convince them, not for me to.</p></details>
+<details><summary>At what point would you stop pairing on this and let them run with it alone?</summary><p>Once they'd independently applied the same distinction somewhere I hadn't reviewed — which, per the result, is exactly what happened a month later.</p></details>
+<details><summary>What did the decision-table exercise cost in time compared to just fixing the PR yourself?</summary><p>An extra hour of pairing that PR didn't strictly need — an investment that paid off the first time they caught the mistake in someone else's code without me involved.</p></details>
+<details><summary>Would this scale to a whole team, not just one engineer?</summary><p>Yes — the decision table itself became a shared reference doc for the team, turning a one-on-one mentoring moment into a durable artifact instead of tacit knowledge that lives only in my head.</p></details>
+</section>
+<section class="story" id="u11">
+<h2><span class="num">11</span>Three weeks to SCA enforcement, and a scope we couldn't hit</h2>
+<p class="chips"><span class="chip tier">Staff</span><span class="chip">Scope / deadline negotiation</span></p>
+
+<h3>(a) Worked example</h3>
+<p><span class="label">EXAMPLE — replace with your own</span> A regulator-driven enforcement date for PSD2 Strong Customer Authentication landed with three weeks' notice on our side, because the actual mandate had been known for a while but the internal ticket had been deprioritized behind feature work. Full scope — SCA on every applicable transaction, plus exemption flows (low-value, transaction-risk-analysis, trusted beneficiaries) to keep friction down where the regulation allows it — was not realistically buildable in three weeks with the team available. I negotiated a split: ship bare SCA enforcement (every relevant transaction gets 3-D Secure, no exemptions) in the three-week window to avoid being non-compliant on the date, explicitly flagging that checkout friction and conversion would temporarily worsen, then land the exemption flows as a fast-follow over the next six weeks to recover the friction we'd accepted. Getting that agreed required showing the stakeholder concrete conversion-rate estimates for "SCA with no exemptions" versus "SCA with exemptions," not just asserting the deadline was tight.</p>
+
+<div class="callout"><p><strong>What the interviewer is really probing:</strong> whether you negotiate scope against a fixed, externally-imposed deadline by cutting to a smaller shippable thing with a named cost, rather than either quietly slipping the deadline or quietly cutting corners on compliance itself.</p></div>
+
+<h3>(b) STAR scaffold</h3>
+<dl class="star">
+<dt>Situation</dt><dd>A PSD2 SCA enforcement deadline arrived with three weeks' internal notice, and the full scope including exemption flows wasn't buildable in that window.</dd>
+<dt>Task</dt><dd>Meet the compliance deadline without either slipping it or silently under-scoping the compliance requirement itself.</dd>
+<dt>Action</dt><dd>Split the work into a compliant-but-higher-friction three-week delivery and a fast-follow that added exemption flows, presenting the stakeholder with estimated conversion impact for each option so the trade-off was explicit rather than assumed.</dd>
+<dt>Result</dt><dd>Shipped compliant enforcement on the deadline with the accepted temporary friction, then delivered exemption flows six weeks later, recovering most of the conversion dip within that window.</dd>
+</dl>
+
+<h3>(c) Recall prompts</h3>
+<details><summary>Why was cutting exemption flows the right thing to cut, rather than something else?</summary><p>Exemptions reduce friction but aren't required for compliance itself — bare enforcement satisfies the actual regulatory requirement, so it was the one part of the scope that could be deferred without risking non-compliance.</p></details>
+<details><summary>Why present conversion estimates instead of just saying "three weeks isn't enough"?</summary><p>A vague timeline objection invites a vague pushback; a concrete estimate of what the smaller scope costs in conversion turns the conversation into a real trade-off decision the stakeholder can actually weigh.</p></details>
+<details><summary>What made the deadline non-negotiable in a way an ordinary feature deadline usually isn't?</summary><p>Non-compliance after a regulatory enforcement date carries consequences (fines, forced transaction blocking by acquirers) outside engineering's control entirely — it's not a deadline you can quietly slip and absorb the criticism.</p></details>
+<details><summary>What's your own equivalent — a fixed external deadline that forced a scope cut, and how you decided what to cut?</summary><p>Look for any deadline set by a regulator, a partner contract, or a platform policy, and how you decided which part of the scope was safe to defer.</p></details>
+
+<h3>(d) Follow-up drill chain</h3>
+<details><summary>Why did the internal ticket get deprioritized before the deadline was three weeks out?</summary><p>The mandate's actual enforcement date was known months earlier, but it competed against feature work with more visible near-term stakeholders — a familiar failure mode where compliance work loses prioritization fights until its deadline becomes an emergency.</p></details>
+<details><summary>What if the three-week bare-enforcement build had itself slipped?</summary><p>The fallback plan (which I raised, though it wasn't needed) was disabling the affected transaction types entirely rather than shipping non-compliant, since a smaller compliant surface beats a larger non-compliant one.</p></details>
+<details><summary>At what point should this deadline have been flagged as at-risk, in hindsight?</summary><p>As soon as the mandate was known, with a standing checkpoint tied to the enforcement date rather than a ticket competing unprioritized in the general backlog — the actual process fix that came out of this.</p></details>
+<details><summary>What did the business give up by accepting the higher-friction interim state?</summary><p>A measurable conversion dip for six weeks, which I made sure was framed as accepted-and-temporary in the same conversation as the deadline, not discovered afterward as a surprise.</p></details>
+<details><summary>Would you take the same split again, or push harder for a deadline extension?</summary><p>Same split — regulatory enforcement dates for card-present and most e-commerce SCA weren't practically extendable per merchant, so the negotiation lever was scope, not time.</p></details>
+</section>
+
+<section class="story" id="u12">
+<h2><span class="num">12</span>The ledger that stopped balancing at 2 a.m.</h2>
+<p class="chips"><span class="chip tier">Senior</span><span class="chip">Data-loss / corruption scare</span></p>
+
+<h3>(a) Worked example</h3>
+<p><span class="label">EXAMPLE — replace with your own</span> An automated nightly assertion caught the double-entry ledger's debits and credits failing to balance for the first time since it was built — a genuinely alarming signal, since a correctly implemented double-entry system should balance by construction. The cause turned out to be a partially-applied database migration: a deploy had added a new transaction type (partial refunds split across two payment methods) whose write path only wrote one side of the entry pair under a specific code branch, introduced hours earlier and not yet exercised in production until the first real partial-split refund landed. This wasn't data loss in the sense of deleted rows, but it was a corruption scare: for a period, the ledger's fundamental invariant was violated, and until root cause was confirmed we had to treat every transaction in that window as suspect. The response was to freeze new writes of that transaction type, replay the affected transactions from the PSP's own authoritative event history (since PSP webhook events are the source of truth we can always reconstruct from) to compute correct ledger entries, and add the missing debit-side write before re-enabling the feature.</p>
+<pre><code class="language-csharp">// The bug: only one leg of the entry was written for split-method refunds
+await _ledger.RecordCreditAsync(refund.Amount, refund.MethodA); // present
+// await _ledger.RecordDebitAsync(refund.Amount, refund.MethodB); // MISSING
+
+// The invariant the nightly job checks:
+var imbalance = await _ledger.SumDebitsAsync() - await _ledger.SumCreditsAsync();
+Debug.Assert(imbalance == 0, "Ledger must balance by construction");
+</code></pre>
+
+<div class="callout"><p><strong>What the interviewer is really probing:</strong> whether you treat a broken ledger invariant as seriously as actual data loss (it means you can no longer trust the system's arithmetic, which is arguably worse), and whether you have a real source of truth to reconstruct from rather than just hoping the affected rows are fixable in place.</p></div>
+
+<h3>(b) STAR scaffold</h3>
+<dl class="star">
+<dt>Situation</dt><dd>A nightly balance assertion on the double-entry ledger failed for the first time, caused by a recent deploy that only wrote one leg of the entry pair for a new split-method refund path.</dd>
+<dt>Task</dt><dd>Determine the scope of the corruption, restore the ledger's invariant, and do it without guessing at the correct values.</dd>
+<dt>Action</dt><dd>Froze writes for the affected transaction type, replayed the window's transactions from the PSP's own webhook event history as the authoritative source, computed and applied the missing debit entries, then added the missing write before re-enabling the path.</dd>
+<dt>Result</dt><dd>Ledger balance restored to the cent within hours, with a documented replay procedure now on file for any future invariant violation.</dd>
+</dl>
+
+<h3>(c) Recall prompts</h3>
+<details><summary>Why treat this as a corruption scare rather than "a missing row, easy fix"?</summary><p>Once one invariant-violating write path exists, you can't be confident it's the only one until you've actually verified — the scary part isn't the one bug found, it's not yet knowing the blast radius.</p></details>
+<details><summary>Why replay from the PSP's webhook history instead of reconstructing from the ledger's own data?</summary><p>The ledger's own data is exactly what's in question — you can't use a system to validate itself when its own correctness is what you're trying to establish; the PSP's event history is external and authoritative.</p></details>
+<details><summary>Why freeze the transaction type instead of just deploying the fix immediately?</summary><p>Deploying a fix without first stopping further bad writes just narrows the corrupted window while leaving it open — freezing first guarantees the window has a hard end before any repair work starts.</p></details>
+<details><summary>What's your own equivalent — an automated invariant check that caught something you'd otherwise have found much later?</summary><p>Look for any "this system should never be in this state" assertion that actually fired, and what it saved you from discovering weeks later instead.</p></details>
+
+<h3>(d) Follow-up drill chain</h3>
+<details><summary>Why did testing miss the missing debit-side write?</summary><p>The split-method refund path was new and its specific branch hadn't been exercised by an actual split-method refund in staging — a gap in test data, not a gap in test discipline generally.</p></details>
+<details><summary>What if the PSP's webhook event history had itself been incomplete for that window?</summary><p>Then reconstruction would have needed the PSP's settlement reports as a second authoritative source, or worst case manual reconciliation against customer-facing receipts — the point of the design is having more than one independent source of truth to fall back through.</p></details>
+<details><summary>At what point does a ledger imbalance become a customer-facing incident rather than an internal one?</summary><p>If it affects the amount actually charged or refunded to a customer, not just internal bookkeeping — here the customer-facing amounts were correct throughout, only the internal ledger's accounting was wrong, which kept it internal.</p></details>
+<details><summary>What did the freeze-and-replay approach cost versus a faster, riskier fix?</summary><p>A few hours of the split-refund feature being unavailable, in exchange for certainty that the repaired entries were actually correct rather than a second guess layered on top of the first bug.</p></details>
+<details><summary>Would daily balance assertions have been enough, or should they run more often?</summary><p>In hindsight, an assertion on every write (or at minimum hourly) would have caught this sooner and shrunk the affected window — that became the actual follow-up change, not just fixing the one bug.</p></details>
+</section>
+
+<section class="story" id="u13">
+<h2><span class="num">13</span>What counts as "won" in a chargeback, exactly?</h2>
+<p class="chips"><span class="chip tier">Senior</span><span class="chip">Ambiguous / shifting requirements</span></p>
+
+<h3>(a) Worked example</h3>
+<p><span class="label">EXAMPLE — replace with your own</span> Product asked for a dashboard showing our "chargeback win rate," a requirement that sounded precise and turned out to have at least three defensible definitions once I dug in: won-by-representment as a fraction of all disputes responded to, won as a fraction of all disputes received (including ones we didn't contest because the evidence deadline passed or the amount didn't justify the effort), and won weighted by dollar amount rather than by count. Each definition told a materially different story — the team's actual representment process was strong once we engaged, but a chunk of disputes never got contested at all because of missed deadlines, which the "responded to" denominator hid entirely. Rather than pick one and ship it, I built all three, labeled clearly, and let the initial conversation with product be about which question they actually wanted answered — it turned out the real business question was "are we losing money we could have kept," which pointed at the dollar-weighted, all-disputes-received version, not the flattering count-based one.</p>
+<div class="tablewrap"><table>
+<thead><tr><th>Definition</th><th>Denominator</th><th>What it hides</th></tr></thead>
+<tbody>
+<tr><td>Won ÷ disputes responded to</td><td>Only contested disputes</td><td>Disputes lost by default (missed deadline, not contested)</td></tr>
+<tr><td>Won ÷ all disputes received</td><td>Every dispute, contested or not</td><td>Nothing structurally, but mixes small and large amounts equally</td></tr>
+<tr><td>Won $ ÷ all disputed $</td><td>Dollar-weighted, all disputes</td><td>Nothing — closest to the actual financial question</td></tr>
+</tbody>
+</table></div>
+
+<div class="callout"><p><strong>What the interviewer is really probing:</strong> whether you treat an ambiguous metric request as a signal to find the real underlying question rather than shipping the first reasonable-sounding definition, especially where the choice of definition can flatter or hide an operational problem.</p></div>
+
+<h3>(b) STAR scaffold</h3>
+<dl class="star">
+<dt>Situation</dt><dd>A request for a "chargeback win rate" dashboard had no single unambiguous definition, and the different reasonable definitions told very different stories.</dd>
+<dt>Task</dt><dd>Deliver a metric that actually answered the business question behind the request, not just a plausible-sounding number.</dd>
+<dt>Action</dt><dd>Built all three candidate definitions, presented them side by side with what each hides, and used that to surface the real underlying question — dollar exposure from disputes we weren't recovering — before finalizing which one shipped as the headline metric.</dd>
+<dt>Result</dt><dd>The dollar-weighted, all-disputes metric shipped as the primary view, and it surfaced the missed-deadline problem as a separate, actionable operational fix that the count-based metric had been quietly hiding.</dd>
+</dl>
+
+<h3>(c) Recall prompts</h3>
+<details><summary>Why would the count-based "responded to" metric have been actively misleading, not just incomplete?</summary><p>It excludes disputes lost purely to process failure (missed deadlines) from the denominator entirely, which makes the team's process look stronger than it actually was at the point that mattered — money retained.</p></details>
+<details><summary>Why build all three definitions instead of asking product to clarify first?</summary><p>Product's request itself proved they hadn't yet realized there were three different questions hiding in one word — having concrete numbers to show made the ambiguity visible in a way a clarifying question alone wouldn't have.</p></details>
+<details><summary>What operational problem did the "hidden" losses actually point to?</summary><p>A chunk of chargebacks were lost purely because the evidence-submission deadline passed before anyone acted — a process gap, not a persuasiveness-of-evidence gap, and a much cheaper thing to fix.</p></details>
+<details><summary>What's your own equivalent — a metric or requirement that sounded precise until you tried to define it exactly?</summary><p>Look for a KPI or dashboard request where the stakeholder's word had more than one defensible operational definition.</p></details>
+
+<h3>(d) Follow-up drill chain</h3>
+<details><summary>Why wasn't the deadline-miss problem visible before this dashboard work?</summary><p>Nobody had built a view of the denominator that included un-contested disputes — the existing reporting only ever looked at disputes the team had actively worked, so a silent default-loss had no dashboard to show up on.</p></details>
+<details><summary>What if product had insisted on the flattering count-based metric anyway?</summary><p>I'd have shipped it as one view among the three, clearly labeled with what it excludes, rather than refuse — the goal is an informed choice, not enforcing my own preferred framing.</p></details>
+<details><summary>At what point does presenting multiple definitions become indecision rather than diligence?</summary><p>If it drags on past one clear comparison and a recommendation — here it was one conversation with three numbers on a page, not an open-ended debate, which kept it from becoming analysis paralysis.</p></details>
+<details><summary>What did building three versions cost versus shipping the obvious first guess?</summary><p>A few extra days of dashboard work, which is small next to the cost of shipping a flattering-but-wrong metric that could have delayed fixing the deadline-miss problem by months.</p></details>
+<details><summary>Would you build the deadline-miss alert as a follow-up, or fold it into the same dashboard?</summary><p>A separate alert — a missed evidence deadline is an operational failure worth paging someone about in real time, which a retrospective dashboard metric can't do.</p></details>
+</section>
+
+<section class="story" id="u14">
+<h2><span class="num">14</span>Finance wanted a general ledger; we owned a payments ledger</h2>
+<p class="chips"><span class="chip tier">Staff</span><span class="chip">Cross-team / integration dependency</span></p>
+
+<h3>(a) Worked example</h3>
+<p><span class="label">EXAMPLE — replace with your own</span> Finance asked engineering for a "GL export" from the payments ledger to feed their accounting system, assuming our double-entry payments ledger and a general ledger were close enough in shape to bridge with a light transform. They're not: our ledger's accounts were organized around payment flow concepts (PSP clearing account, customer receivable, refund liability) while a GL needs a chart of accounts organized around statutory reporting categories, and our ledger recorded at the granularity of individual PSP events while GL entries needed to be batched by accounting period with specific journal-entry semantics finance's system required. Rather than build a one-off transform and hope it stayed correct as either system evolved, I proposed we jointly define a mapping table owned by finance (which accounts map to which GL categories) that engineering's export job consumed as data, not logic — so a GL chart-of-accounts change was a finance-side config edit, not an engineering deploy, and the coupling between the two teams' domains stayed explicit instead of buried in transform code neither team fully owned.</p>
+
+<div class="callout"><p><strong>What the interviewer is really probing:</strong> whether you recognize that "just export the data" often means two teams have different domain models entirely, and whether your integration design keeps the mapping between those models as an explicit, owned artifact rather than implicit logic that silently drifts.</p></div>
+
+<h3>(b) STAR scaffold</h3>
+<dl class="star">
+<dt>Situation</dt><dd>Finance requested a general-ledger export from the payments ledger, assuming the two systems' account structures were close enough for a simple transform.</dd>
+<dt>Task</dt><dd>Deliver a working GL export without building a fragile, tightly-coupled bridge between two genuinely different domain models.</dd>
+<dt>Action</dt><dd>Proposed and built a finance-owned mapping table between payments accounts and GL categories, with engineering's export job treating that mapping as configuration data rather than embedded business logic.</dd>
+<dt>Result</dt><dd>The export shipped on schedule, and a subsequent finance-side chart-of-accounts restructuring required zero engineering changes, because it was a data edit on their side of the boundary.</dd>
+</dl>
+
+<h3>(c) Recall prompts</h3>
+<details><summary>Why not just have engineering write the transform logic directly, since we understood the payments side best?</summary><p>Because the GL category assignment is a finance domain decision, not a payments one — embedding it in engineering-owned code means every future accounting change becomes an engineering ticket, which is the coupling we were trying to avoid.</p></details>
+<details><summary>Why does granularity mismatch matter here specifically?</summary><p>A GL typically wants period-batched journal entries; a payments ledger naturally records at individual-event granularity — collapsing the wrong way loses information a real accounting audit might need.</p></details>
+<details><summary>What would have gone wrong with a one-off transform, concretely?</summary><p>The first time finance's chart of accounts changed, the transform's hardcoded mapping would silently produce wrong GL entries until someone noticed in an audit or reconciliation — a slow, expensive way to find a bug.</p></details>
+<details><summary>What's your own equivalent — an integration where two teams' domain models looked similar on the surface but weren't?</summary><p>Look for any "just export/sync the data" request where the receiving team's model had different granularity, categories, or semantics than yours.</p></details>
+
+<h3>(d) Follow-up drill chain</h3>
+<details><summary>Why did finance initially assume this would be a simple export?</summary><p>From outside payments engineering, a ledger looks like a ledger — the domain-specific differences (clearing accounts, event-level granularity) aren't visible until someone maps the two structures side by side, which is exactly the conversation that needed to happen before any code was written.</p></details>
+<details><summary>What if finance's system couldn't consume a mapping table and needed the logic embedded in their own ETL instead?</summary><p>Then the mapping table still gets defined and owned by finance — it just lives in their ETL config rather than ours; the ownership boundary matters more than which system's process reads the config.</p></details>
+<details><summary>At what point would you push back on owning any part of the mapping logic yourself?</summary><p>If finance asked engineering to make judgment calls about statutory reporting categories — that's not a technical decision I'm qualified or authorized to make, and encoding it in our code would hide that it was ever made.</p></details>
+<details><summary>What did this cost in calendar time compared to just shipping the naive transform?</summary><p>An extra couple of weeks upfront to align on the mapping table's shape and get finance to actually own and populate it, against an unknown but real cost of re-doing the integration the first time either side's model changed.</p></details>
+<details><summary>Would this pattern — data-owned mapping instead of embedded logic — apply to other cross-team integrations you've built?</summary><p>Yes — it's the general shape for any integration point where two teams' domain models are related but not identical: keep the mapping as an explicit artifact owned by whichever team's domain it actually reflects.</p></details>
+</section>
+
+<section class="story" id="u15">
+<h2><span class="num">15</span>The in-house ledger we spent four months building, then shelved</h2>
+<p class="chips"><span class="chip tier">Principal</span><span class="chip">A project that failed or was cancelled</span></p>
+
+<h3>(a) Worked example</h3>
+<p><span class="label">EXAMPLE — replace with your own</span> We set out to build a fully general in-house double-entry ledger service intended to eventually back every money-movement system in the company, not just payments — a reasonable-sounding platform investment. Four months in, with a working core and one real integration migrated, a leadership review asked the question that should have been asked at month one: how many teams actually needed this in the next year, versus how many already had a working, if imperfect, ledger of their own? The honest answer was one confirmed team (ours) and a lot of hoped-for future adopters with no committed roadmap. The project was shelved, not because the engineering was bad, but because we'd built for a scale of adoption that didn't exist yet, ahead of any team asking for it. The genuinely useful outcome, salvaged from four months of work, was the schema and the balance-invariant testing approach, which got folded directly into our own team's existing ledger rather than thrown away — the platform ambition failed, the payments-specific improvement it was wrapped around didn't have to.</p>
+
+<div class="callout"><p><strong>What the interviewer is really probing:</strong> whether you can talk honestly about sunk cost and scope misjudgment on a project you led, without either over-blaming yourself or deflecting blame elsewhere — and whether you know how to salvage real value from a cancelled effort instead of writing the whole thing off.</p></div>
+
+<h3>(b) STAR scaffold</h3>
+<dl class="star">
+<dt>Situation</dt><dd>A four-month effort to build a general-purpose, company-wide double-entry ledger platform was cancelled after a leadership review found only one confirmed adopter and no committed roadmap for others.</dd>
+<dt>Task</dt><dd>Close the project responsibly — communicate the decision, and extract whatever real value the work still had rather than discard it wholesale.</dd>
+<dt>Action</dt><dd>Owned the scope misjudgment directly in the retro rather than deflecting it, then folded the schema design and balance-invariant testing approach into our own team's existing ledger, where they delivered value without needing the cancelled platform ambition around them.</dd>
+<dt>Result</dt><dd>The platform effort ended, but our own ledger's invariant testing (the same pattern used in story 12) traces directly back to this project, and the retro's "validate adoption before building for scale" lesson changed how the next platform proposal in the org was evaluated.</dd>
+</dl>
+
+<h3>(c) Recall prompts</h3>
+<details><summary>What was the actual scope mistake, stated precisely?</summary><p>Building general-purpose infrastructure before a second real adopter existed — the generality was speculative, paid for up front, against demand that hadn't yet materialized.</p></details>
+<details><summary>Why was this the right call to cancel rather than push through?</summary><p>Continuing would have kept investing engineering time against unconfirmed future demand, when that time had a known, immediate use improving the one ledger that definitely existed and definitely needed the work.</p></details>
+<details><summary>What made the outcome not a total loss?</summary><p>The core technical ideas — the account schema, the invariant-testing discipline — were separable from the "one platform for everyone" framing, so they survived even though the framing didn't.</p></details>
+<details><summary>What's your own equivalent — a project you led that got cancelled, and what you'd say about why without over- or under-owning it?</summary><p>Look for a project where the honest cause was a scope or timing misjudgment, not a technical failure, and what of it you managed to salvage.</p></details>
+
+<h3>(d) Follow-up drill chain</h3>
+<details><summary>Why wasn't "how many teams actually need this" asked before month one, not month four?</summary><p>It should have been — the honest retro conclusion was that platform ambition felt self-evidently valuable and skipped the adoption-validation step a smaller, less exciting proposal would have been forced through; that's the specific process gap the org fixed afterward.</p></details>
+<details><summary>What if a second team had committed to adopting it in month two?</summary><p>Then the calculus changes entirely — real committed demand from a second team would have justified continuing, which is exactly why the review's question was about confirmed adoption, not potential adoption.</p></details>
+<details><summary>At what sunk-cost point does cancelling get harder to do, regardless of the right answer?</summary><p>Past the point where the team publicly committed to the platform framing — the later the cancellation, the more it looks like personal failure rather than a scope correction, which is exactly why raising it early, even against my own attachment to the project, mattered.</p></details>
+<details><summary>What did you personally take responsibility for versus attribute to the broader team decision?</summary><p>I owned the scope call — I was the one who framed it as a platform rather than a payments-specific improvement — while noting the adoption-validation gap was a process the whole review chain should have caught sooner, not mine alone to have caught.</p></details>
+<details><summary>Would you propose the platform version again today, differently?</summary><p>Only with a second team's committed adoption secured before writing a line of general-purpose code — build the specific thing first, generalize once there's a second real user pulling for it.</p></details>
+</section>
+<section class="story" id="u16">
+<h2><span class="num">16</span>Cutting decline-retry waste cut the processing bill by six figures</h2>
+<p class="chips"><span class="chip tier">Senior</span><span class="chip">Cost-optimisation win</span></p>
+
+<h3>(a) Worked example</h3>
+<p><span class="label">EXAMPLE — replace with your own</span> A cost review of PSP processing fees found that a meaningful slice of authorization attempts were retries of hard declines — the client-side checkout flow retried any failed charge up to twice automatically, regardless of decline reason, on the theory that transient blips deserved a second try. Most PSPs charge a per-authorization-attempt fee regardless of outcome, so retrying a "do not honor" or "insufficient funds" decline wasn't just pointless (as covered in story 10), it was a direct, quantifiable cost: thousands of retried authorizations a month that had zero chance of succeeding, each billed the same as a real attempt. Classifying decline codes into retryable-transient versus final-and-do-not-retry, and gating the automatic retry on that classification instead of retrying everything, cut authorization attempt volume enough to show up clearly on the monthly processing invoice — a six-figure annualized reduction with no change in successful-payment volume at all, since none of the removed retries had ever succeeded historically.</p>
+<div class="tablewrap"><table>
+<thead><tr><th>Decline classification</th><th>Historical retry success rate</th><th>Action</th></tr></thead>
+<tbody>
+<tr><td>Issuer temporarily unavailable</td><td>~40%</td><td>Retry once, with backoff</td></tr>
+<tr><td>Insufficient funds / do not honor</td><td>~0%</td><td>Do not retry — surface to customer</td></tr>
+<tr><td>Suspected fraud</td><td>~0%, and retrying is actively counterproductive</td><td>Do not retry — escalate per story 10</td></tr>
+</tbody>
+</table></div>
+
+<div class="callout"><p><strong>What the interviewer is really probing:</strong> whether you connect a technical correctness issue (retrying declines that will never succeed) to its direct financial cost, and whether you can show the win with a real before/after number rather than an assumed improvement.</p></div>
+
+<h3>(b) STAR scaffold</h3>
+<dl class="star">
+<dt>Situation</dt><dd>A cost review found a large share of monthly authorization-fee spend came from automatically retrying declines that had never once succeeded on retry historically.</dd>
+<dt>Task</dt><dd>Reduce processing cost without reducing successful-payment volume or hurting customer experience on genuinely transient failures.</dd>
+<dt>Action</dt><dd>Classified decline codes by historical retry-success rate, gated the automatic retry logic on that classification, and validated the change against several months of processing invoices before and after.</dd>
+<dt>Result</dt><dd>A six-figure annualized reduction in processing fees with unchanged successful-payment volume, and a decline-code classification table that also fed directly into the story 10 mentoring conversation.</dd>
+</dl>
+
+<h3>(c) Recall prompts</h3>
+<details><summary>Why did nobody notice this cost before the review?</summary><p>Per-attempt authorization fees are small individually and buried in an aggregate monthly invoice line — the waste was only visible once someone deliberately broke the invoice down by decline reason.</p></details>
+<details><summary>Why classify by historical retry-success rate rather than by decline-code category alone?</summary><p>Some codes that sound final occasionally do succeed on retry for reasons specific to certain issuers, so empirical retry-success data was a more reliable signal than assuming every "do not honor" behaves identically everywhere.</p></details>
+<details><summary>How did you prove the removed retries weren't going to succeed, rather than assume it?</summary><p>By looking at months of historical data on exactly those decline codes and confirming a near-zero retry-success rate before changing behavior, not by reasoning from the decline-code name alone.</p></details>
+<details><summary>What's your own equivalent — a correctness fix that turned out to have a measurable cost win once you looked at the bill?</summary><p>Look for any place "we do this for safety/robustness" was costing real money for close to zero benefit, provable with data rather than assumed.</p></details>
+
+<h3>(d) Follow-up drill chain</h3>
+<details><summary>Why not remove all client-side retries entirely, given the risk?</summary><p>Transient issuer-side unavailability does have a real, non-zero retry-success rate — removing retries there would trade a cost win for a real conversion loss, which the data-driven classification specifically avoided by keeping retries where they actually help.</p></details>
+<details><summary>What if a PSP later changed its own retry-success characteristics for a given decline code?</summary><p>The classification table needs periodic re-validation against fresh data rather than being treated as permanent — this became a quarterly review, not a one-time analysis.</p></details>
+<details><summary>At what point does chasing this kind of cost optimization stop being worth engineering time?</summary><p>Once the remaining waste is small enough that further classification refinement costs more analyst and engineering time than it saves — we stopped refining once further gains were in the low single-digit thousands annually.</p></details>
+<details><summary>What did you trade away for the savings?</summary><p>Nothing on the successful-payment side, but customers hitting a hard decline now see the "try a different card" message immediately on the first attempt instead of after a second silent retry — arguably a UX improvement, not just a cost one.</p></details>
+<details><summary>Would you have found this without a dedicated cost review prompting it?</summary><p>Possibly not for a while — this is a case for proactively reviewing infrastructure and processing costs periodically rather than only reacting to a bill spike, since this waste never spiked, it just accumulated quietly.</p></details>
+</section>
+
+<section class="story" id="u17">
+<h2><span class="num">17</span>Bringing in a second PSP, and the abstraction that almost wasn't one</h2>
+<p class="chips"><span class="chip tier">Senior</span><span class="chip">Introducing a new tool</span></p>
+
+<h3>(a) Worked example</h3>
+<p><span class="label">EXAMPLE — replace with your own</span> After a PSP-side outage took checkout down for an uncomfortable stretch, we introduced a second PSP for redundancy and, over time, geographic routing where the second PSP had better local acquiring rates. The first attempt at an abstraction layer over both PSPs modeled the interface entirely around the primary PSP's concepts — its idempotency semantics, its webhook event shapes, its specific decline-code taxonomy — and just adapted the second PSP's calls to fit. That worked for the happy path and fell apart at every edge: the second PSP's idempotency window and mismatch-rejection behavior differed subtly, its webhook delivery guarantees weren't identical, and forcing its decline codes into the first PSP's taxonomy silently misclassified some as retryable that weren't. The fix wasn't a better adapter, it was building the abstraction around the *intersection* of guarantees both PSPs actually provide — treat idempotency windows as "at least N hours, key mismatch behavior undefined across PSPs so always vary something benign on retry," rather than assuming the primary PSP's exact contract everywhere.</p>
+<div class="tablewrap"><table>
+<thead><tr><th></th><th>Adapter around PSP A's model</th><th>Abstraction around the guaranteed intersection</th></tr></thead>
+<tbody>
+<tr><td>Happy path</td><td>Works</td><td>Works</td></tr>
+<tr><td>Idempotency edge cases</td><td>Assumes PSP A's exact window/behavior</td><td>Only relies on what both PSPs actually guarantee</td></tr>
+<tr><td>Decline-code handling</td><td>Misclassifies PSP B's codes forced into PSP A's taxonomy</td><td>Each PSP's codes mapped to a shared, conservative taxonomy</td></tr>
+</tbody>
+</table></div>
+
+<div class="callout"><p><strong>What the interviewer is really probing:</strong> whether you know that introducing a second vendor behind a shared abstraction means designing for the intersection of their guarantees, not for one vendor's contract with a thin adapter bolted on for the other — the mistake that makes multi-vendor abstractions leak exactly where it hurts most.</p></div>
+
+<h3>(b) STAR scaffold</h3>
+<dl class="star">
+<dt>Situation</dt><dd>A second PSP was introduced for redundancy after an outage, and the first abstraction attempt — modeled around the primary PSP's exact semantics — broke on edge cases the second PSP handled differently.</dd>
+<dt>Task</dt><dd>Rebuild the abstraction so both PSPs' edge-case behavior was handled correctly, not just their happy paths.</dd>
+<dt>Action</dt><dd>Redesigned the interface around the documented intersection of both PSPs' actual guarantees — conservative idempotency assumptions, a shared decline-code taxonomy mapped from each PSP's native codes — instead of one PSP's contract with an adapter for the other.</dd>
+<dt>Result</dt><dd>The redundancy failover has since handled a real PSP-B-side outage cleanly, and the shared taxonomy caught a decline-handling bug during integration that the original adapter design would have shipped silently.</dd>
+</dl>
+
+<h3>(c) Recall prompts</h3>
+<details><summary>Why did modeling around one PSP's semantics fail specifically at the edges, not the happy path?</summary><p>Happy-path behavior — successful charge, successful webhook — tends to converge across PSPs since that's what everyone tests; the guarantees that diverge are the ones nobody exercises until a real failure or retry happens.</p></details>
+<details><summary>Why "at least N hours" for idempotency rather than picking the smaller PSP's exact window?</summary><p>Coding to the smaller window as a floor rather than either PSP's exact number means the abstraction stays correct even if a PSP changes its window, since the code never depended on the specific value in the first place.</p></details>
+<details><summary>What's the risk of a shared decline-code taxonomy that's too coarse?</summary><p>Collapsing two PSPs' genuinely different decline reasons into an overly simplified shared category can lose information a caller actually needed — the taxonomy has to be conservative about retry-safety without discarding real distinctions.</p></details>
+<details><summary>What's your own equivalent — an abstraction over two vendors that broke because it was really just an adapter for one of them?</summary><p>Look for any "provider-agnostic" interface where the actual contract quietly matched only the first provider you built against.</p></details>
+
+<h3>(d) Follow-up drill chain</h3>
+<details><summary>Why wasn't this caught in design review before the first version shipped?</summary><p>The differences only became apparent once we deliberately tested edge cases against both PSPs' real behavior, rather than their documentation summaries, which read more similar than they behave — a case for integration testing against both providers early, not just one.</p></details>
+<details><summary>What if a third PSP were added later with yet another idempotency model?</summary><p>The intersection-based design should absorb it by tightening the floor further if needed — the whole point of designing around guarantees rather than one vendor's specifics is that adding a vendor is a matter of checking it against the existing floor, not redesigning the abstraction.</p></details>
+<details><summary>At what point does supporting multiple PSPs' quirks make the abstraction not worth it?</summary><p>If a PSP's guarantees were so far outside the others' that the shared floor became nearly meaningless, at which point you'd handle that PSP as a genuinely separate code path rather than force-fitting it — we haven't hit that point with two.</p></details>
+<details><summary>What did the redesign cost compared to shipping the adapter version?</summary><p>Real integration testing time against both PSPs' documented and actual edge-case behavior, which is exactly the work the adapter version had skipped — the cost was mostly deferred, not avoided, by the first version.</p></details>
+<details><summary>Would you introduce a second PSP the same way again?</summary><p>Yes, but I'd insist on the intersection-first design from day one rather than treating it as a lesson learned after the adapter version's edge cases broke.</p></details>
+</section>
+
+<section class="story" id="u18">
+<h2><span class="num">18</span>The dispute deadline that fell during a page storm</h2>
+<p class="chips"><span class="chip tier">Senior</span><span class="chip">On-call firefighting</span></p>
+
+<h3>(a) Worked example</h3>
+<p><span class="label">EXAMPLE — replace with your own</span> During an unrelated production incident that had on-call fully occupied for several hours, a batch of chargeback evidence-submission deadlines quietly ticked past while everyone's attention was on the outage — dispute response deadlines are typically a short, fixed window (commonly around a week to a couple of weeks depending on the network and reason code) from when the dispute is opened, and they don't pause for anything, including an unrelated incident consuming the whole team. The immediate firefighting was triage under time pressure: the outage was the higher-priority fire in the moment, but the dispute deadlines represented real, permanent, unrecoverable money if missed — an automatic loss regardless of the merits of the case. I pulled someone off the outage response for fifteen minutes specifically to submit the evidence packages that were closest to their deadline, accepting the small cost to outage resolution time, because a missed dispute deadline can't be un-missed the way a delayed incident fix can still eventually land.</p>
+
+<div class="callout"><p><strong>What the interviewer is really probing:</strong> whether you can correctly triage between two genuinely competing fires with different failure characteristics — one recoverable with delay, one permanently lost past a fixed deadline — under real time pressure, rather than just working whichever fire is loudest.</p></div>
+
+<h3>(b) STAR scaffold</h3>
+<dl class="star">
+<dt>Situation</dt><dd>A production incident consumed the whole on-call team's attention for hours, during which several chargeback evidence-submission deadlines were approaching, with no mechanism to extend them.</dd>
+<dt>Task</dt><dd>Resolve the outage while not letting an irreversible, deadline-bound financial loss happen silently in the background.</dd>
+<dt>Action</dt><dd>Recognized the deadline risk mid-incident, briefly pulled one person off outage response specifically to submit the closest-to-deadline evidence packages, and returned full attention to the outage once that window closed.</dd>
+<dt>Result</dt><dd>All deadline-bound disputes were submitted in time with a small, deliberate delay to outage resolution, and the near-miss led to disputes-deadline monitoring getting its own independent alert channel so it would never again compete for attention during an unrelated incident.</dd>
+</dl>
+
+<h3>(c) Recall prompts</h3>
+<details><summary>Why treat a missed dispute deadline as worse than a delayed incident fix, specifically?</summary><p>A delayed fix still eventually resolves the incident; a missed evidence deadline is typically an automatic, final loss of that dispute regardless of how strong the evidence would have been — the asymmetry is about reversibility, not raw severity.</p></details>
+<details><summary>Why pull just one person rather than pause the incident response entirely?</summary><p>The outage still needed active response, and the evidence submissions were a short, bounded task — the triage decision was "smallest sufficient interruption," not "abandon one fire for the other."</p></details>
+<details><summary>Why didn't an existing alert catch the deadline risk automatically before this?</summary><p>Dispute deadline reminders existed but surfaced through the same general alerting channel the incident had saturated, so the signal was there but got lost in the noise — exactly the gap the follow-up fix addressed.</p></details>
+<details><summary>What's your own equivalent — two genuine fires competing for attention where you had to reason about which kind of loss was actually irreversible?</summary><p>Look for an incident where a background deadline or SLA quietly kept running while the visible fire consumed all the attention.</p></details>
+
+<h3>(d) Follow-up drill chain</h3>
+<details><summary>Why weren't dispute deadlines on a separate, higher-priority alert channel already?</summary><p>They'd never needed to compete with a major incident before — the gap was invisible until this exact coincidence exposed it, which is often how monitoring gaps get found in practice.</p></details>
+<details><summary>What if no one on the team had remembered the deadlines at all during the incident?</summary><p>That's precisely the failure mode the new dedicated alert channel exists to prevent — the fix wasn't "be more vigilant next time," it was making the deadline impossible to lose in the noise regardless of how distracted the team is.</p></details>
+<details><summary>At what point should dispute deadline handling be automated rather than requiring a human to notice and act?</summary><p>Evidence assembly itself still needs human judgment for anything non-trivial, but the deadline-tracking and escalation should be fully automated — which is exactly what shipped afterward, a bot that pages independently of general incident-related alert volume.</p></details>
+<details><summary>What did pulling someone off the incident cost in outage resolution time?</summary><p>Roughly fifteen minutes of one engineer's attention — small enough to accept without a debate, which is itself part of the judgment call: this triage decision shouldn't require a lengthy discussion to make correctly.</p></details>
+<details><summary>Would you make the same triage call if the incident had been more severe — a full outage rather than degraded service?</summary><p>Yes, if anything more so — a fully down incident needs full attention, but fifteen minutes to prevent a permanent, irreversible loss is still worth the interruption; the calculus only changes if the evidence-submission task itself couldn't be made that short.</p></details>
+</section>
+
+<section class="story" id="u19">
+<h2><span class="num">19</span>Building a contract-testing harness so an API upgrade stopped being a fire drill</h2>
+<p class="chips"><span class="chip tier">Staff</span><span class="chip">CI / test reliability improvement</span></p>
+
+<h3>(a) Worked example</h3>
+<p><span class="label">EXAMPLE — replace with your own</span> Every PSP API version bump — even a routine, backward-compatible one — had become a multi-day manual regression exercise, because the integration test suite mocked the PSP's client SDK at a level that couldn't have caught a real behavioral or schema change even if one had shipped. Testing against a mocked SDK meant the tests validated "does our code call the SDK the way we think it does," not "does the SDK still respond the way we assume." I built a contract-testing harness using the PSP's own test-mode API instead of a local mock — real HTTP calls against sandbox endpoints for the critical paths (create-and-confirm payment intent, webhook signature verification, refund and dispute flows), run in CI on a schedule independent of any deploy, so a PSP-side behavior change would surface as a CI failure days before it ever reached a version bump we initiated. The upgrade to the PSP's next scheduled API version then took an afternoon of review instead of days of manual re-testing, because the contract suite had already been running against that version's sandbox behavior for weeks by the time we flipped the pinned version string.</p>
+<pre><code class="language-csharp">// Runs against the PSP's real sandbox, not a local mock —
+// scheduled nightly in CI, independent of any deploy.
+[Fact]
+public async Task PaymentIntent_Confirm_ReturnsExpectedStatusShape()
+{
+    var intent = await _sandboxClient.PaymentIntents.CreateAsync(TestFixtures.StandardCharge);
+    var confirmed = await _sandboxClient.PaymentIntents.ConfirmAsync(intent.Id, TestFixtures.TestCard);
+    Assert.Equal("succeeded", confirmed.Status);
+    Assert.NotNull(confirmed.LatestCharge); // catches a schema change here, not in production
+}
+</code></pre>
+
+<div class="callout"><p><strong>What the interviewer is really probing:</strong> whether you understand the difference between testing your code's use of an SDK and testing the actual external contract that SDK wraps — and whether you'd invest in catching a vendor's behavioral drift continuously rather than only at the moment you deliberately upgrade.</p></div>
+
+<h3>(b) STAR scaffold</h3>
+<dl class="star">
+<dt>Situation</dt><dd>PSP API version upgrades required days of manual regression testing because the existing test suite mocked the SDK and couldn't detect real behavioral drift.</dd>
+<dt>Task</dt><dd>Make PSP API upgrades routine and low-risk instead of a recurring multi-day fire drill.</dd>
+<dt>Action</dt><dd>Built a contract-testing harness running real requests against the PSP's sandbox on a nightly CI schedule, covering the critical payment, webhook, refund, and dispute paths, independent of any deploy or upgrade timing.</dd>
+<dt>Result</dt><dd>The next scheduled API version bump took an afternoon of review instead of days of manual testing, and the nightly run has since caught a genuine PSP-side sandbox behavior change weeks before any version bump touched it.</dd>
+</dl>
+
+<h3>(c) Recall prompts</h3>
+<details><summary>Why couldn't a mocked SDK ever catch this class of problem?</summary><p>A mock encodes what you already believe the SDK does — it can verify your code calls it correctly under that belief, but it can't detect the belief itself becoming wrong when the PSP's actual behavior changes.</p></details>
+<details><summary>Why run the contract suite on a nightly schedule rather than only when upgrading?</summary><p>PSPs can change sandbox and even production behavior between your deliberate upgrades — running continuously turns "did the vendor change something" into an ongoing signal instead of a question you only ask at upgrade time.</p></details>
+<details><summary>Why sandbox endpoints rather than production for this kind of testing?</summary><p>The sandbox environment is designed for exactly this — repeated test-mode calls with deterministic test cards and no real money movement — so it gives real-contract fidelity without the cost or risk of touching production payment flows.</p></details>
+<details><summary>What's your own equivalent — a suite that tested your code's assumptions about a dependency rather than the dependency's actual behavior?</summary><p>Look for any test suite that would still pass unchanged even if the real dependency behind the mock silently changed its behavior.</p></details>
+
+<h3>(d) Follow-up drill chain</h3>
+<details><summary>Why had the test suite been built around a mocked SDK in the first place?</summary><p>Mocking is faster to write and doesn't depend on network access or sandbox availability during a build — a reasonable default that quietly stopped being sufficient once API stability became something we actually needed to verify, not assume.</p></details>
+<details><summary>What if the PSP's sandbox environment itself drifted from production behavior?</summary><p>That's a real limitation of this approach — sandbox-production parity is the PSP's responsibility, not something we can fully verify from outside, so the contract suite catches sandbox-visible drift and we accept residual risk on sandbox/production divergence.</p></details>
+<details><summary>At what point does a nightly contract-test failure become a page rather than a ticket?</summary><p>If it touches a critical path — payment confirmation, webhook signature verification — it pages; a failure in a less critical, non-blocking flow can wait for the next business day as a ticket.</p></details>
+<details><summary>What did building and maintaining this harness cost against just doing manual regression each time?</summary><p>Real upfront engineering time to build it, but manual regression's cost was recurring and grew with every future upgrade — the harness paid for itself by roughly the second API version bump it covered.</p></details>
+<details><summary>Would you extend this same approach to your other external dependencies?</summary><p>Yes — any dependency where "does our code call it correctly" and "does it still behave the way we assume" are genuinely different questions is a candidate for this pattern, not just PSPs.</p></details>
+</section>
+
+<section class="story" id="u20">
+<h2><span class="num">20</span>No, we are not storing the card number "just for now"</h2>
+<p class="chips"><span class="chip tier">Principal</span><span class="chip">Pushing back on a stakeholder or manager</span></p>
+
+<h3>(a) Worked example</h3>
+<p><span class="label">EXAMPLE — replace with your own</span> A product stakeholder, under deadline pressure for a new subscription feature, proposed storing raw card numbers directly in our own database "just temporarily" to unblock a feature that needed to charge customers on a delayed schedule, with tokenization to follow "once we have time." I pushed back firmly: there's no such thing as temporary PCI scope — the moment a raw PAN is stored anywhere under our control, the storing system and everything around it is in scope for SAQ D, immediately, and "we'll fix it later" doesn't retroactively un-expose the data that was stored in the meantime. Rather than just saying no, I brought an alternative that hit the actual deadline: use the PSP's existing tokenization and store the PSP-issued reusable payment-method token instead, which is exactly what tokens are designed for and required zero new PCI scope, at a cost of roughly two extra days to wire up the token-based charge flow instead of a naive raw-storage shortcut. The stakeholder's real goal — ship the delayed-charge feature on time — was still achievable; the shortcut they'd proposed just wasn't the way to get there.</p>
+
+<div class="callout"><p><strong>What the interviewer is really probing:</strong> whether you can push back on a stakeholder's shortcut under real deadline pressure without just saying no — bringing a concrete alternative that meets their actual goal — and whether you understand deeply enough that PCI scope has no "temporary" exception to explain why clearly and non-alarmingly.</p></div>
+
+<h3>(b) STAR scaffold</h3>
+<dl class="star">
+<dt>Situation</dt><dd>A stakeholder proposed temporarily storing raw card numbers to unblock a deadline-pressured feature, planning to add tokenization later.</dd>
+<dt>Task</dt><dd>Prevent an unnecessary and irreversible PCI scope expansion while still helping the feature hit its deadline.</dd>
+<dt>Action</dt><dd>Explained clearly why "temporary" raw-PAN storage doesn't limit scope or exposure, then proposed and implemented a token-based alternative using the PSP's existing reusable payment-method tokens, which met the deadline with about two extra days of work.</dd>
+<dt>Result</dt><dd>The feature shipped on the original deadline using tokenization, with no new PCI scope created, and the stakeholder became a reliable ally in later conversations about payment data handling rather than someone to route around.</dd>
+</dl>
+
+<h3>(c) Recall prompts</h3>
+<details><summary>Why is there no such thing as "temporary" PCI scope?</summary><p>Scope is determined by where cardholder data has been, not by intent or duration — once a raw PAN touches a system, that system (and its logs, backups, and access surface) is in scope for as long as any trace of that data could remain, regardless of a stated plan to remove it later.</p></details>
+<details><summary>Why was the token-based alternative not just "the compliant option" but actually the right engineering choice?</summary><p>PSP-issued tokens are purpose-built for exactly this use case — charging a customer later without holding their raw card details — so it wasn't a compliance tax layered on top of the real solution, it was the real solution.</p></details>
+<details><summary>Why lead with an alternative instead of just explaining the risk?</summary><p>A stakeholder under deadline pressure hearing only "no" reasonably assumes the deadline is now at risk; leading with "here's how we still hit the date" reframes the conversation from a conflict into a shared problem-solving exercise.</p></details>
+<details><summary>What's your own equivalent — pushing back on a shortcut under pressure by offering a concrete alternative rather than just refusing?</summary><p>Look for a moment where saying no by itself would have been correct but insufficient, and what alternative made the pushback actually land.</p></details>
+
+<h3>(d) Follow-up drill chain</h3>
+<details><summary>Why did the stakeholder propose raw storage in the first place, rather than asking about tokenization?</summary><p>Tokenization's constraints and guarantees aren't obvious from outside payments engineering — from the stakeholder's side, "just store the number" looks like the simplest, fastest path, which is exactly why the explanation needed to be clear and non-judgmental rather than assume bad intent.</p></details>
+<details><summary>What if the token-based alternative genuinely couldn't have hit the deadline?</summary><p>Then the honest answer would have been negotiating the deadline itself, the way story 11 negotiated SCA scope — compliance risk isn't a lever available to trade away just because a schedule is tight.</p></details>
+<details><summary>At what point would raw PAN storage ever be an acceptable trade-off?</summary><p>Essentially never, for a team that isn't itself a PSP — the liability, audit burden, and breach risk so heavily outweigh any convenience gained that this is one of the few payments decisions with almost no legitimate trade-off space at all.</p></details>
+<details><summary>What did the pushback cost in terms of the stakeholder relationship?</summary><p>Some initial friction in the conversation, resolved once the alternative was on the table — the relationship came out stronger, not weaker, because the stakeholder saw the pushback paired with a real solution rather than an obstacle.</p></details>
+<details><summary>Would you handle this differently if the stakeholder had outranked you more significantly?</summary><p>No — the explanation and the alternative are the same regardless of hierarchy; PCI scope doesn't become more negotiable because the request came from someone more senior, and that's exactly the point worth making plainly if asked.</p></details>
+</section>
+<section class="story" id="u21">
+<h2><span class="num">21</span>The big behavioural Q&amp;A</h2>
+<p>Cross-cutting prompts an interviewer might ask without warning which story they're aimed at. Each names the story to deploy and the pivot to make if the first question isn't quite the one you prepared for.</p>
+
+<p class="theme">Reliability and correctness under failure</p>
+<details><summary>Tell me about a time a retry made things worse instead of better.</summary><p>Deploy story 06 (the four-times charge) or story 09 (retry-and-pray retired) — pick 06 if they want a concrete bug, 09 if they want the systemic fix across a codebase.</p></details>
+<details><summary>How do you design an integration to survive a dependency that's flaky, not fully down?</summary><p>Deploy story 09 for the backoff/circuit-breaker policy itself, and be ready to pivot into story 07 if they push on "what happens at real scale."</p></details>
+<details><summary>Describe a time you had to prove data was correct, not just present.</summary><p>Deploy story 12 (the ledger that stopped balancing) — lead with the invariant check catching it, not the fix, since that's usually the more interesting half.</p></details>
+<details><summary>Tell me about a bug that was hard to reproduce.</summary><p>Deploy story 03 (the double-fired webhook) — it only reproduced under load, which is the actual answer to "why didn't tests catch it."</p></details>
+
+<p class="theme">Trade-offs, scope, and compliance</p>
+<details><summary>Walk me through a decision where you traded UX for compliance, or vice versa.</summary><p>Deploy story 02 (buying out of PCI scope) — have the SAQ A vs A-EP vs D distinction ready cold, that's the follow-up they'll reach for.</p></details>
+<details><summary>Tell me about negotiating scope against a deadline you didn't control.</summary><p>Deploy story 11 (SCA enforcement in three weeks) — the concrete move is showing conversion estimates, not just asserting the timeline was tight.</p></details>
+<details><summary>Describe a time you said no to a shortcut under pressure.</summary><p>Deploy story 20 (no raw card storage) — the point isn't the refusal, it's that you had a working alternative ready.</p></details>
+<details><summary>How do you think about the cost of a security or compliance control versus the risk it prevents?</summary><p>Deploy story 08 (the log line with a PAN in it) for a security-incident angle, or story 02 for an architectural-cost angle — pick based on whether they said "security" or "compliance."</p></details>
+
+<p class="theme">Incidents, debugging, and on-call</p>
+<details><summary>Tell me about a production incident you handled, start to finish.</summary><p>Deploy story 03 (double-fired webhook) for a clean incident arc, or story 18 (dispute deadline during a page storm) if they specifically want a triage-under-pressure story.</p></details>
+<details><summary>Describe a time you had to triage between two things that both mattered.</summary><p>Deploy story 18 — the reversible-versus-irreversible framing is the actual answer, not "I prioritized the bigger one."</p></details>
+<details><summary>Tell me about a security issue you found, not one that was reported to you.</summary><p>Deploy story 08 — emphasize it was found in a routine log review, not an external report, if they're probing for proactive security habits.</p></details>
+<details><summary>Walk me through debugging something that only showed up under load or scale.</summary><p>Deploy story 01 (the six-hour reconciliation job) for a performance angle, or story 07 (sharding the idempotency store) for a pure scaling angle.</p></details>
+
+<p class="theme">People: disagreement, mentoring, and pushback</p>
+<details><summary>Tell me about a technical disagreement you didn't immediately win.</summary><p>Deploy story 05 (sync handlers vs. a queue) — the resolution mechanism (a prototype, not persistence) is the actual point.</p></details>
+<details><summary>Describe how you've mentored someone through a mistake without just fixing it for them.</summary><p>Deploy story 10 (decline vs. failure) — lead with the decision table they built, not the correction itself.</p></details>
+<details><summary>Tell me about pushing back on a manager or stakeholder.</summary><p>Deploy story 20 — same story as the compliance-shortcut prompt above; if asked both in one interview, differentiate by leading with the relationship outcome the second time.</p></details>
+<details><summary>How do you handle a cross-team dependency where the other team's model doesn't match yours?</summary><p>Deploy story 14 (finance wanted a GL export) — the mapping-table-as-owned-artifact idea is the transferable lesson.</p></details>
+
+<p class="theme">Money, metrics, and judgment calls</p>
+<details><summary>Tell me about a metric or KPI that turned out to be more ambiguous than it looked.</summary><p>Deploy story 13 (chargeback win rate) — the three-definitions framing is the memorable part, keep it concrete.</p></details>
+<details><summary>Describe a cost optimization you drove that had a real, measurable number attached.</summary><p>Deploy story 16 (decline-retry waste) — always be ready to state the actual before/after mechanism (billed-per-attempt fees), not just "we saved money."</p></details>
+<details><summary>Tell me about a project you led that failed or got cancelled.</summary><p>Deploy story 15 (the shelved ledger platform) — own the scope call plainly, and lead with what was salvaged, not just what was lost.</p></details>
+<details><summary>How do you decide when to build shared infrastructure versus solving one team's problem directly?</summary><p>Deploy story 15 for the cautionary framing, or story 09 for the case where a shared policy across call sites was the right call — the difference is confirmed adoption versus none.</p></details>
+
+<p class="theme">Introducing change, and staying current</p>
+<details><summary>Tell me about bringing a new tool or vendor into an existing system.</summary><p>Deploy story 17 (second PSP) — the "design for the intersection of guarantees" idea is what separates a senior answer from a mid-level one here.</p></details>
+<details><summary>How do you keep an integration from silently breaking when a vendor's API evolves?</summary><p>Deploy story 19 (contract-testing harness) — the key distinction is testing the real contract versus testing your own mock of it.</p></details>
+</section>
+
+<section class="story" id="u22">
+<h2><span class="num">22</span>Night-before cheat sheet</h2>
+<p>Ten sentences to say out loud once, the night before. If one doesn't come out fluently, that's the story to re-read.</p>
+<div class="callout">
+<ol>
+<li>Idempotency keys are scoped to one logical attempt, not one HTTP call, and a mismatched retry gets rejected, not silently reused.</li>
+<li>Webhooks are at-least-once and not strictly ordered — dedupe on the event ID, never assume delivery sequence.</li>
+<li>A decline is the PSP doing its job and telling you no; a failure is the PSP telling you nothing — only the second one is safe to retry.</li>
+<li>PCI scope follows where the data has been, not intent or duration — there is no such thing as "temporary" raw-PAN storage.</li>
+<li>SAQ A, A-EP, and D trade UX control for shrinking what's in scope, in that order, from most control given up to least.</li>
+<li>3-D Secure 2.x is frictionless-first by design; the challenge flow is the fallback, not the default.</li>
+<li>A double-entry ledger should balance by construction — a failed balance assertion means the invariant broke, treat it like a correctness incident, not a data-entry bug.</li>
+<li>A dispute deadline is a hard, short, non-negotiable window; a missed one is usually an automatic, permanent loss regardless of the evidence's strength.</li>
+<li>An abstraction over two PSPs has to be built on the intersection of their real guarantees, not one PSP's contract with an adapter bolted on for the other.</li>
+<li>Retrying a hard decline isn't just wasteful, it can cost real processing fees and, on some issuers, hurt future authorization odds.</li>
+</ol>
+</div>
+</section>
+
+<script>
+(function () {
+  var KEY_PREFIX = "devbok:payments:experience:v1:";
+  var side = document.getElementById("side");
+  var toggle = document.getElementById("sideToggle");
+  var backdrop = document.getElementById("sideBackdrop");
+
+  function openSide() {
+    side.classList.add("open");
+    backdrop.classList.add("show");
+    toggle.setAttribute("aria-expanded", "true");
+  }
+  function closeSide() {
+    side.classList.remove("open");
+    backdrop.classList.remove("show");
+    toggle.setAttribute("aria-expanded", "false");
+  }
+  if (toggle) {
+    toggle.addEventListener("click", function () {
+      if (side.classList.contains("open")) closeSide(); else openSide();
+    });
+  }
+  if (backdrop) backdrop.addEventListener("click", closeSide);
+  document.querySelectorAll(".units a").forEach(function (a) {
+    a.addEventListener("click", closeSide);
+  });
+
+  // Scrollspy
+  var links = Array.prototype.slice.call(document.querySelectorAll(".units a"));
+  var sections = links.map(function (a) {
+    return document.getElementById(a.getAttribute("href").slice(1));
+  });
+  function updateSpy() {
+    var best = -1;
+    var bestTop = -Infinity;
+    for (var i = 0; i < sections.length; i++) {
+      var el = sections[i];
+      if (!el) continue;
+      var top = el.getBoundingClientRect().top;
+      if (top <= 96 && top > bestTop) { bestTop = top; best = i; }
+    }
+    if (best === -1) best = 0;
+    links.forEach(function (a, i) {
+      if (i === best) a.setAttribute("aria-current", "true");
+      else a.removeAttribute("aria-current");
+    });
+  }
+  document.addEventListener("scroll", updateSpy, { passive: true });
+  window.addEventListener("resize", updateSpy);
+  updateSpy();
+
+  // Persist which details elements are open, per element id (assign one if missing)
+  var counter = 0;
+  document.querySelectorAll("details").forEach(function (d) {
+    if (!d.id) d.id = "d" + (counter++);
+    var key = KEY_PREFIX + "open:" + d.id;
+    try {
+      var saved = localStorage.getItem(key);
+      if (saved === "1") d.open = true;
+      else if (saved === "0") d.open = false;
+    } catch (e) { /* localStorage unavailable */ }
+    d.addEventListener("toggle", function () {
+      try { localStorage.setItem(key, d.open ? "1" : "0"); } catch (e) { /* ignore */ }
+    });
+  });
+
+  if (window.hljs) {
+    document.querySelectorAll("pre code").forEach(function (block) {
+      hljs.highlightElement(block);
+    });
+  }
+})();
+</script>
+</main>
+</body>
+</html>
