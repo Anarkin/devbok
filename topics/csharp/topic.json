@@ -7,7 +7,7 @@
   "created": "2026-09-08",
   "kinds": {
     "study": {
-      "next": 2,
+      "next": 3,
       "versions": [
         {
           "v": 1,
@@ -15,12 +15,18 @@
           "prompt": "e02cbdee",
           "file": "study.v1.html",
           "restamped": "2026-09-08"
+        },
+        {
+          "v": 2,
+          "generated": "2026-09-14",
+          "prompt": "e02cbdee",
+          "file": "study.v2.html"
         }
       ],
       "pending": []
     },
     "experience": {
-      "next": 2,
+      "next": 3,
       "versions": [
         {
           "v": 1,
@@ -28,12 +34,18 @@
           "prompt": "2bcfefa8",
           "file": "experience.v1.html",
           "restamped": "2026-09-08"
+        },
+        {
+          "v": 2,
+          "generated": "2026-09-14",
+          "prompt": "2bcfefa8",
+          "file": "experience.v2.html"
         }
       ],
       "pending": []
     },
     "interview": {
-      "next": 2,
+      "next": 3,
       "versions": [
         {
           "v": 1,
@@ -41,12 +53,18 @@
           "prompt": "008cfc76",
           "file": "interview.v1.html",
           "restamped": "2026-09-08"
+        },
+        {
+          "v": 2,
+          "generated": "2026-09-14",
+          "prompt": "008cfc76",
+          "file": "interview.v2.html"
         }
       ],
       "pending": []
     },
     "cheatsheet": {
-      "next": 2,
+      "next": 3,
       "versions": [
         {
           "v": 1,
@@ -54,6 +72,12 @@
           "prompt": "7ff70aff",
           "file": "cheatsheet.v1.html",
           "restamped": "2026-09-08"
+        },
+        {
+          "v": 2,
+          "generated": "2026-09-14",
+          "prompt": "7ff70aff",
+          "file": "cheatsheet.v2.html"
         }
       ],
       "pending": []
